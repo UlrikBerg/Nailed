@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Logg inn — nailed</title>
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .auth {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+    }
+    .auth__card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-xl);
+      padding: 40px 36px;
+      box-shadow: var(--shadow-md);
+    }
+    .auth__brand {
+      display: block;
+      height: 32px;
+      margin: 0 auto 32px;
+    }
+    .auth__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      text-align: center;
+      margin: 0 0 8px;
+    }
+    .auth__sub {
+      font-size: 14px;
+      color: var(--fg-muted);
+      text-align: center;
+      margin: 0 0 28px;
+    }
+    .auth__form { display: flex; flex-direction: column; gap: 16px; }
+    .auth__field label {
+      display: block;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .auth__field input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--cream-100);
+      outline: none;
+      transition: border-color var(--dur-fast) var(--ease-out-soft);
+    }
+    .auth__field input:focus { border-color: var(--brand); }
+    .auth__field input::placeholder { color: var(--stone-400); }
+    .auth__submit {
+      width: 100%;
+      justify-content: center;
+      padding: 14px 24px;
+      font-size: 15px;
+      margin-top: 4px;
+    }
+    .auth__error {
+      background: var(--danger-50);
+      color: var(--danger-500);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      display: none;
+    }
+    .auth__error.visible { display: block; }
+    .auth__switch {
+      text-align: center;
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin-top: 20px;
+    }
+    .auth__switch a {
+      color: var(--brand);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .auth__switch a:hover { color: var(--brand-hover); }
+    .auth__divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 4px 0;
+      color: var(--fg-muted);
+      font-size: 12px;
+    }
+    .auth__divider::before,
+    .auth__divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--stone-200);
+    }
+
+    /* Logged-in state shown in nav */
+    .auth-user {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .auth-user__avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, #FFC4D6, #EE3F7E);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth">
+    <div class="auth__card">
+      <img src="assets/logo-wordmark.svg" alt="nailed" class="auth__brand" />
+
+      <!-- Login form -->
+      <div id="loginView">
+        <h1 class="auth__title">Logg inn</h1>
+        <p class="auth__sub">Velkommen tilbake. Book deg pen.</p>
+        <div class="auth__error" id="loginError"></div>
+        <form class="auth__form" id="loginForm">
+          <div class="auth__field">
+            <label for="loginEmail">E-post</label>
+            <input type="email" id="loginEmail" placeholder="din@epost.no" required />
+          </div>
+          <div class="auth__field">
+            <label for="loginPassword">Passord</label>
+            <input type="password" id="loginPassword" placeholder="Skriv inn passord" required />
+          </div>
+          <button type="submit" class="btn btn-primary auth__submit">Logg inn</button>
+        </form>
+        <p class="auth__switch">
+          Har du ikke konto? <a id="showRegister">Registrer deg</a>
+        </p>
+      </div>
+
+      <!-- Register form -->
+      <div id="registerView" style="display:none;">
+        <h1 class="auth__title">Registrer deg</h1>
+        <p class="auth__sub">Opprett konto og book din første time.</p>
+        <div class="auth__error" id="registerError"></div>
+        <form class="auth__form" id="registerForm">
+          <div class="auth__field">
+            <label for="regName">Navn</label>
+            <input type="text" id="regName" placeholder="Ditt navn" required />
+          </div>
+          <div class="auth__field">
+            <label for="regEmail">E-post</label>
+            <input type="email" id="regEmail" placeholder="din@epost.no" required />
+          </div>
+          <div class="auth__field">
+            <label for="regPassword">Passord</label>
+            <input type="password" id="regPassword" placeholder="Minst 6 tegn" required minlength="6" />
+          </div>
+          <button type="submit" class="btn btn-primary auth__submit">Opprett konto</button>
+        </form>
+        <p class="auth__switch">
+          Har du allerede konto? <a id="showLogin">Logg inn</a>
+        </p>
+      </div>
+
+      <!-- Logged-in view -->
+      <div id="loggedInView" style="display:none;">
+        <h1 class="auth__title">Velkommen!</h1>
+        <p class="auth__sub" id="welcomeMsg"></p>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:24px;">
+          <a href="index.html" class="btn btn-primary auth__submit">Gå til forsiden</a>
+          <button class="btn btn-ghost auth__submit" id="logoutBtn">Logg ut</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var loginView = document.getElementById('loginView');
+    var registerView = document.getElementById('registerView');
+    var loggedInView = document.getElementById('loggedInView');
+
+    // Toggle between login and register
+    document.getElementById('showRegister').addEventListener('click', function() {
+      loginView.style.display = 'none';
+      registerView.style.display = '';
+    });
+    document.getElementById('showLogin').addEventListener('click', function() {
+      registerView.style.display = 'none';
+      loginView.style.display = '';
+    });
+
+    function showError(el, msg) {
+      el.textContent = msg;
+      el.classList.add('visible');
+    }
+    function hideError(el) {
+      el.classList.remove('visible');
+    }
+
+    function showLoggedIn(user) {
+      loginView.style.display = 'none';
+      registerView.style.display = 'none';
+      loggedInView.style.display = '';
+      document.getElementById('welcomeMsg').textContent =
+        'Innlogget som ' + user.name + ' (' + user.email + ')';
+    }
+
+    // Check if already logged in
+    var token = localStorage.getItem('nailed_token');
+    if (token) {
+      fetch('/api/me', { headers: { Authorization: token } })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.user) showLoggedIn(data.user);
+        });
+    }
+
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var errorEl = document.getElementById('loginError');
+      hideError(errorEl);
+
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('loginEmail').value,
+          password: document.getElementById('loginPassword').value
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          showError(errorEl, data.error);
+        } else {
+          localStorage.setItem('nailed_token', data.token);
+          showLoggedIn(data.user);
+        }
+      });
+    });
+
+    // Register
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var errorEl = document.getElementById('registerError');
+      hideError(errorEl);
+
+      fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById('regName').value,
+          email: document.getElementById('regEmail').value,
+          password: document.getElementById('regPassword').value
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          showError(errorEl, data.error);
+        } else {
+          localStorage.setItem('nailed_token', data.token);
+          showLoggedIn(data.user);
+        }
+      });
+    });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      var t = localStorage.getItem('nailed_token');
+      fetch('/api/logout', {
+        method: 'POST',
+        headers: { Authorization: t }
+      });
+      localStorage.removeItem('nailed_token');
+      loggedInView.style.display = 'none';
+      loginView.style.display = '';
+    });
+  </script>
+</body>
+</html>

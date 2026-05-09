@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>nailed — utforsk</title>
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .page--wide { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+  </style>
+</head>
+<body>
+
+  <!-- Top navigation -->
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="index.html">
+        <img src="assets/logo-wordmark.svg" alt="nailed" />
+      </a>
+      <nav class="top-nav__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="#">Gavekort</a>
+        <a href="#">For salonger</a>
+      </nav>
+      <div class="top-nav__actions">
+        <button class="btn-icon"><i data-lucide="heart"></i></button>
+        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sticky filter header -->
+  <header class="utforsk-head">
+    <div class="page--wide">
+      <div class="utforsk-head__title">
+        <h1>Utforsk <em>Oslo</em></h1>
+        <span class="utforsk-head__count">8 salonger · oppdatert nå</span>
+      </div>
+
+      <div class="utforsk-head__search">
+        <div class="search-bar search-bar--compact">
+          <div class="search-bar__field">
+            <i data-lucide="sparkles" class="search-bar__field-icon"></i>
+            <div class="search-bar__field-text">
+              <div class="search-bar__label">Hva</div>
+              <input placeholder="Velg behandling" />
+            </div>
+          </div>
+          <div class="search-bar__divider"></div>
+          <div class="search-bar__field">
+            <i data-lucide="map-pin" class="search-bar__field-icon"></i>
+            <div class="search-bar__field-text">
+              <div class="search-bar__label">Hvor</div>
+              <input placeholder="Søk etter adresse" />
+            </div>
+          </div>
+          <button class="btn btn-primary search-bar__cta">
+            <i data-lucide="search"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="utforsk-filters">
+        <button class="filter-pill active"><i data-lucide="layout-grid"></i> Alt</button>
+        <button class="filter-pill"><i data-lucide="sparkles"></i> Negler</button>
+        <button class="filter-pill"><i data-lucide="eye"></i> Vipper</button>
+        <button class="filter-pill">Bryn</button>
+        <button class="filter-pill"><i data-lucide="palette"></i> Makeup</button>
+        <button class="filter-pill"><i data-lucide="scissors"></i> Hår</button>
+        <button class="filter-pill">Voksing</button>
+        <span class="utforsk-filters__divider"></span>
+        <button class="filter-pill"><i data-lucide="calendar"></i> Når <i data-lucide="chevron-down"></i></button>
+        <button class="filter-pill"><i data-lucide="banknote"></i> Pris <i data-lucide="chevron-down"></i></button>
+        <button class="filter-pill"><i data-lucide="star"></i> Vurdering <i data-lucide="chevron-down"></i></button>
+        <button class="filter-pill"><i data-lucide="sliders-horizontal"></i> Flere filtre</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Results body -->
+  <section class="utforsk-body">
+    <div class="page--wide">
+
+      <!-- Toolbar: active filters + sort -->
+      <div class="utforsk-toolbar">
+        <div class="utforsk-toolbar__active" id="activeFilters">
+          <span class="active-pill">
+            Tilgjengelig i dag
+            <button class="active-pill__remove" aria-label="Fjern"><i data-lucide="x"></i></button>
+          </span>
+          <span class="active-pill">
+            Under 800 kr
+            <button class="active-pill__remove" aria-label="Fjern"><i data-lucide="x"></i></button>
+          </span>
+          <button class="btn btn-ghost btn-sm" style="padding: 6px 12px;" id="resetFilters">Nullstill</button>
+        </div>
+        <div class="utforsk-toolbar__sort">
+          <i data-lucide="arrow-up-down" style="width: 14px; height: 14px;"></i>
+          Sortér:
+          <select>
+            <option>Anbefalt</option>
+            <option>Nærmest meg</option>
+            <option>Best vurdert</option>
+            <option>Lavest pris</option>
+            <option>Tidligste ledige time</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Neighbourhood pills -->
+      <div class="neighbourhood-rail">
+        <button class="nbh active">Hele Oslo</button>
+        <button class="nbh">Grünerløkka</button>
+        <button class="nbh">Frogner</button>
+        <button class="nbh">Majorstuen</button>
+        <button class="nbh">Sentrum</button>
+        <button class="nbh">Sagene</button>
+        <button class="nbh">St. Hanshaugen</button>
+        <button class="nbh">Tøyen</button>
+        <button class="nbh">Bislett</button>
+      </div>
+
+      <!-- Grid: results + map -->
+      <div class="utforsk-grid" style="margin-top: 24px;">
+
+        <!-- Results column -->
+        <div class="utforsk-results">
+          <div class="utforsk-results-head">
+            <span><strong>8</strong> resultater i hele oslo</span>
+            <span style="display:inline-flex; align-items:center; gap:6px;">
+              <i data-lucide="map-pin" style="width:14px; height:14px; color:var(--rouge-500);"></i>
+              Innenfor 3 km fra deg
+            </span>
+          </div>
+
+          <!-- Card 1 -->
+          <article class="service-card card service-card--featured" onclick="location.href='salon.html'">
+            <div class="service-card__photo" style="background: linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 100%);">
+              <span class="service-card__badge">Mest booket</span>
+              <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            </div>
+            <div class="service-card__body">
+              <div class="service-card__row">
+                <div>
+                  <div class="service-card__name">Studio Lakk</div>
+                  <div class="service-card__meta"><i data-lucide="map-pin"></i>Grünerløkka · 0.4 km</div>
+                </div>
+                <div class="service-card__price"><span class="service-card__from">fra</span>690<span class="service-card__kr"> kr</span></div>
+              </div>
+              <div class="service-card__row">
+                <div class="service-card__meta"><i data-lucide="star" style="color:var(--rouge-500); fill:var(--rouge-500);"></i>4.9 · 312 anmeldelser</div>
+                <div class="service-card__tags"><span class="service-card__tag">Gel</span><span class="service-card__tag">Bio</span></div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 2 -->
+          <article class="service-card card" onclick="location.href='salon.html'">
+            <div class="service-card__photo" style="background: linear-gradient(135deg, #F4ECDF 0%, #E8DCC4 100%);">
+              <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            </div>
+            <div class="service-card__body">
+              <div class="service-card__row">
+                <div>
+                  <div class="service-card__name">Lash & Linn</div>
+                  <div class="service-card__meta"><i data-lucide="map-pin"></i>Frogner · 1.2 km</div>
+                </div>
+                <div class="service-card__price"><span class="service-card__from">fra</span>890<span class="service-card__kr"> kr</span></div>
+              </div>
+              <div class="service-card__row">
+                <div class="service-card__meta"><i data-lucide="star" style="color:var(--rouge-500); fill:var(--rouge-500);"></i>4.8 · 184 anmeldelser</div>
+                <div class="service-card__tags"><span class="service-card__tag">Vipper</span><span class="service-card__tag">Bryn</span></div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 3 -->
+          <article class="service-card card" onclick="location.href='salon.html'">
+            <div class="service-card__photo" style="background: linear-gradient(135deg, #FFF1F5 0%, #FB6B9A 100%);">
+              <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            </div>
+            <div class="service-card__body">
+              <div class="service-card__row">
+                <div>
+                  <div class="service-card__name">Bare Negler</div>
+                  <div class="service-card__meta"><i data-lucide="map-pin"></i>Majorstuen · 1.8 km</div>
+                </div>
+                <div class="service-card__price"><span class="service-card__from">fra</span>590<span class="service-card__kr"> kr</span></div>
+              </div>
+              <div class="service-card__row">
+                <div class="service-card__meta"><i data-lucide="star" style="color:var(--rouge-500); fill:var(--rouge-500);"></i>4.7 · 521 anmeldelser</div>
+                <div class="service-card__tags"><span class="service-card__tag">Klassisk</span></div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 4 -->
+          <article class="service-card card" onclick="location.href='salon.html'">
+            <div class="service-card__photo" style="background: linear-gradient(135deg, #DDE3D2 0%, #8DA079 100%);">
+              <span class="service-card__badge">Ny på nailed</span>
+              <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            </div>
+            <div class="service-card__body">
+              <div class="service-card__row">
+                <div>
+                  <div class="service-card__name">Studio Glow</div>
+                  <div class="service-card__meta"><i data-lucide="map-pin"></i>St. Hanshaugen · 2.1 km</div>
+                </div>
+                <div class="service-card__price"><span class="service-card__from">fra</span>1190<span class="service-card__kr"> kr</span></div>
+              </div>
+              <div class="service-card__row">
+                <div class="service-card__meta"><i data-lucide="star" style="color:var(--rouge-500); fill:var(--rouge-500);"></i>5.0 · 92 anmeldelser</div>
+                <div class="service-card__tags"><span class="service-card__tag">Brud</span><span class="service-card__tag">Makeup</span></div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Editorial tile -->
+          <div class="editorial-tile">
+            <div class="editorial-tile__txt">
+              <div class="editorial-tile__eyebrow">nailed picks</div>
+              <h3 class="editorial-tile__title">Negler er <em>kunst.</em> Møt stylistene som lager den.</h3>
+              <p class="editorial-tile__sub">Bli kjent med fem av Oslos mest etterspurte neglestylister, og book deg pen.</p>
+            </div>
+            <button class="btn editorial-tile__cta">Les saken <i data-lucide="arrow-right"></i></button>
+          </div>
+
+          <!-- Card 5 -->
+          <article class="service-card card" onclick="location.href='salon.html'">
+            <div class="service-card__photo" style="background: linear-gradient(135deg, #FFC4D6 0%, #82103D 100%);">
+              <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            </div>
+            <div class="service-card__body">
+              <div class="service-card__row">
+                <div>
+                  <div class="service-card__name">Neon Nails</div>
+                  <div class="service-card__meta"><i data-lucide="map-pin"></i>Tøyen · 2.6 km</div>
+                </div>
+                <div class="service-card__price"><span class="service-card__from">fra</span>750<span class="service-card__kr"> kr</span></div>
+              </div>
+              <div class="service-card__row">
+                <div class="service-card__meta"><i data-lucide="star" style="color:var(--rouge-500); fill:var(--rouge-500);"></i>4.6 · 268 anmeldelser</div>
+                <div class="service-card__tags"><span class="service-card__tag">Art</span><span class="service-card__tag">Gel</span></div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 6 -->
+          <article class="service-card card" onclick="location.href='salon.html'">
+            <div class="service-card__photo" style="background: linear-gradient(135deg, #ECDFCB 0%, #C9B79A 100%);">
+              <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            </div>
+            <div class="service-card__body">
+              <div class="service-card__row">
+                <div>
+                  <div class="service-card__name">Rosa Atelier</div>
+                  <div class="service-card__meta"><i data-lucide="map-pin"></i>Bislett · 0.9 km</div>
+                </div>
+                <div class="service-card__price"><span class="service-card__from">fra</span>920<span class="service-card__kr"> kr</span></div>
+              </div>
+              <div class="service-card__row">
+                <div class="service-card__meta"><i data-lucide="star" style="color:var(--rouge-500); fill:var(--rouge-500);"></i>4.9 · 401 anmeldelser</div>
+                <div class="service-card__tags"><span class="service-card__tag">Press-on</span></div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 7 -->
+          <article class="service-card card" onclick="location.href='salon.html'">
+            <div class="service-card__photo" style="background: linear-gradient(135deg, #F4ECDF 0%, #B89870 100%);">
+              <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            </div>
+            <div class="service-card__body">
+              <div class="service-card__row">
+                <div>
+                  <div class="service-card__name">Brun & Bryn</div>
+                  <div class="service-card__meta"><i data-lucide="map-pin"></i>Sagene · 2.0 km</div>
+                </div>
+                <div class="service-card__price"><span class="service-card__from">fra</span>590<span class="service-card__kr"> kr</span></div>
+              </div>
+              <div class="service-card__row">
+                <div class="service-card__meta"><i data-lucide="star" style="color:var(--rouge-500); fill:var(--rouge-500);"></i>4.8 · 156 anmeldelser</div>
+                <div class="service-card__tags"><span class="service-card__tag">Bryn</span><span class="service-card__tag">Microblading</span></div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 8 -->
+          <article class="service-card card" onclick="location.href='salon.html'">
+            <div class="service-card__photo" style="background: linear-gradient(135deg, #FFE0E9 0%, #B8536F 100%);">
+              <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            </div>
+            <div class="service-card__body">
+              <div class="service-card__row">
+                <div>
+                  <div class="service-card__name">Strøk Studio</div>
+                  <div class="service-card__meta"><i data-lucide="map-pin"></i>Sentrum · 0.6 km</div>
+                </div>
+                <div class="service-card__price"><span class="service-card__from">fra</span>790<span class="service-card__kr"> kr</span></div>
+              </div>
+              <div class="service-card__row">
+                <div class="service-card__meta"><i data-lucide="star" style="color:var(--rouge-500); fill:var(--rouge-500);"></i>4.7 · 245 anmeldelser</div>
+                <div class="service-card__tags"><span class="service-card__tag">Makeup</span><span class="service-card__tag">Brud</span></div>
+              </div>
+            </div>
+          </article>
+
+          <div class="utforsk-load">
+            <button class="btn btn-ghost">Vis flere salonger <i data-lucide="arrow-down"></i></button>
+          </div>
+        </div>
+
+        <!-- Map column -->
+        <aside class="utforsk-map-wrap">
+          <div class="utforsk-map">
+            <svg viewBox="0 0 720 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="720" height="600" fill="#F1ECE2" />
+              <!-- Parks -->
+              <path d="M120 80 Q 220 60 280 120 Q 300 200 220 220 Q 140 200 120 80 Z" fill="#DDE3D2" opacity="0.7" />
+              <path d="M540 420 Q 620 400 680 460 Q 700 540 600 560 Q 520 540 540 420 Z" fill="#DDE3D2" opacity="0.7" />
+              <circle cx="180" cy="480" r="60" fill="#DDE3D2" opacity="0.6" />
+              <!-- Water -->
+              <path d="M0 440 Q 100 460 200 440 T 400 460 T 600 450 L 720 460 L 720 600 L 0 600 Z" fill="#C9D8E0" opacity="0.6" />
+              <!-- Roads -->
+              <g stroke="#E8DCC4" stroke-width="14" fill="none" stroke-linecap="round">
+                <line x1="0" y1="200" x2="720" y2="240" />
+                <line x1="0" y1="320" x2="720" y2="340" />
+                <line x1="200" y1="0" x2="240" y2="600" />
+                <line x1="420" y1="0" x2="460" y2="600" />
+                <line x1="600" y1="0" x2="620" y2="600" />
+              </g>
+              <g stroke="#F4ECDF" stroke-width="6" fill="none" stroke-linecap="round">
+                <line x1="0" y1="120" x2="720" y2="160" />
+                <line x1="0" y1="420" x2="720" y2="440" />
+                <line x1="120" y1="0" x2="140" y2="600" />
+                <line x1="320" y1="0" x2="340" y2="600" />
+                <line x1="540" y1="0" x2="560" y2="600" />
+              </g>
+              <!-- Neighbourhood labels -->
+              <g font-family="'Manrope', system-ui" font-size="11" fill="#7C7468" font-weight="600" letter-spacing="0.08em">
+                <text x="280" y="200" opacity="0.7">GRÜNERLØKKA</text>
+                <text x="160" y="320" opacity="0.7">FROGNER</text>
+                <text x="120" y="200" opacity="0.7">MAJORSTUEN</text>
+                <text x="300" y="160" opacity="0.7">SAGENE</text>
+                <text x="500" y="320" opacity="0.7">TØYEN</text>
+                <text x="350" y="420" opacity="0.7">SENTRUM</text>
+              </g>
+              <!-- "Du er her" -->
+              <g transform="translate(360, 300)">
+                <circle r="24" fill="#82103D" opacity="0.15" />
+                <circle r="14" fill="#82103D" opacity="0.25" />
+                <circle r="6" fill="#82103D" />
+                <circle r="3" fill="white" />
+                <text x="14" y="-12" font-family="'Manrope', system-ui" font-size="11" font-weight="700" fill="#82103D">Du</text>
+              </g>
+              <!-- Salon pins -->
+              <g class="map-pin" transform="translate(480, 280)"><rect x="-30" y="-14" width="60" height="28" rx="14" fill="#FBF6EE" stroke="#82103D" stroke-width="1.5" /><text x="0" y="4" text-anchor="middle" font-family="'Manrope', system-ui" font-weight="700" font-size="11" fill="#82103D">690 kr</text></g>
+              <g class="map-pin" transform="translate(280, 360)"><rect x="-30" y="-14" width="60" height="28" rx="14" fill="#FBF6EE" stroke="#82103D" stroke-width="1.5" /><text x="0" y="4" text-anchor="middle" font-family="'Manrope', system-ui" font-weight="700" font-size="11" fill="#82103D">890 kr</text></g>
+              <g class="map-pin" transform="translate(240, 240)"><rect x="-30" y="-14" width="60" height="28" rx="14" fill="#FBF6EE" stroke="#82103D" stroke-width="1.5" /><text x="0" y="4" text-anchor="middle" font-family="'Manrope', system-ui" font-weight="700" font-size="11" fill="#82103D">590 kr</text></g>
+              <g class="map-pin" transform="translate(380, 220)"><rect x="-35" y="-14" width="70" height="28" rx="14" fill="#FBF6EE" stroke="#82103D" stroke-width="1.5" /><text x="0" y="4" text-anchor="middle" font-family="'Manrope', system-ui" font-weight="700" font-size="11" fill="#82103D">1190 kr</text></g>
+              <g class="map-pin" transform="translate(560, 380)"><rect x="-30" y="-14" width="60" height="28" rx="14" fill="#FBF6EE" stroke="#82103D" stroke-width="1.5" /><text x="0" y="4" text-anchor="middle" font-family="'Manrope', system-ui" font-weight="700" font-size="11" fill="#82103D">750 kr</text></g>
+              <g class="map-pin" transform="translate(360, 320)"><rect x="-30" y="-14" width="60" height="28" rx="14" fill="#FBF6EE" stroke="#82103D" stroke-width="1.5" /><text x="0" y="4" text-anchor="middle" font-family="'Manrope', system-ui" font-weight="700" font-size="11" fill="#82103D">920 kr</text></g>
+              <g class="map-pin" transform="translate(440, 180)"><rect x="-30" y="-14" width="60" height="28" rx="14" fill="#FBF6EE" stroke="#82103D" stroke-width="1.5" /><text x="0" y="4" text-anchor="middle" font-family="'Manrope', system-ui" font-weight="700" font-size="11" fill="#82103D">590 kr</text></g>
+              <g class="map-pin" transform="translate(420, 380)"><rect x="-30" y="-14" width="60" height="28" rx="14" fill="#FBF6EE" stroke="#82103D" stroke-width="1.5" /><text x="0" y="4" text-anchor="middle" font-family="'Manrope', system-ui" font-weight="700" font-size="11" fill="#82103D">790 kr</text></g>
+            </svg>
+
+            <div class="utforsk-map__controls">
+              <button class="utforsk-map__btn" aria-label="Zoom inn"><i data-lucide="plus"></i></button>
+              <button class="utforsk-map__btn" aria-label="Zoom ut"><i data-lucide="minus"></i></button>
+              <button class="utforsk-map__btn" aria-label="Min posisjon"><i data-lucide="locate-fixed"></i></button>
+            </div>
+
+            <div class="utforsk-map__legend">
+              <i data-lucide="map-pin"></i>
+              Klikk en pin for å se salongen
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="page footer__inner">
+      <div class="footer__top">
+        <img src="assets/logo-wordmark-light.svg" alt="nailed" class="footer__brand" />
+        <p class="footer__tag">Nailed it. Nailed it again.</p>
+      </div>
+      <div class="footer__cols">
+        <div>
+          <div class="footer__h">Utforsk</div>
+          <a href="#">Salonger nær meg</a>
+          <a href="#">Kategorier</a>
+          <a href="#">Gavekort</a>
+        </div>
+        <div>
+          <div class="footer__h">For salonger</div>
+          <a href="#">Bli partner</a>
+          <a href="#">Priser</a>
+          <a href="#">Logg inn</a>
+        </div>
+        <div>
+          <div class="footer__h">Selskap</div>
+          <a href="#">Om oss</a>
+          <a href="#">Kontakt</a>
+          <a href="#">Personvern</a>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Sticky nav scroll effect
+    var nav = document.getElementById('topNav');
+    window.addEventListener('scroll', function() {
+      nav.classList.toggle('scrolled', window.scrollY > 30);
+    });
+
+    // Neighbourhood pill selection
+    var nbhPills = document.querySelectorAll('.nbh');
+    nbhPills.forEach(function(pill) {
+      pill.addEventListener('click', function() {
+        nbhPills.forEach(function(p) { p.classList.remove('active'); });
+        pill.classList.add('active');
+      });
+    });
+
+    // Filter pill selection (category group)
+    var filterPills = document.querySelectorAll('.utforsk-filters .filter-pill');
+    filterPills.forEach(function(pill, i) {
+      if (i < 7) { // Only category pills (first 7)
+        pill.addEventListener('click', function() {
+          filterPills.forEach(function(p, j) { if (j < 7) p.classList.remove('active'); });
+          pill.classList.add('active');
+        });
+      }
+    });
+
+    // Remove active filter pills
+    document.querySelectorAll('.active-pill__remove').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        btn.parentElement.remove();
+        if (!document.querySelector('.active-pill')) {
+          document.getElementById('resetFilters').style.display = 'none';
+        }
+      });
+    });
+
+    // Reset all filters
+    document.getElementById('resetFilters').addEventListener('click', function() {
+      document.querySelectorAll('.active-pill').forEach(function(p) { p.remove(); });
+      this.style.display = 'none';
+    });
+  </script>
+</body>
+</html>

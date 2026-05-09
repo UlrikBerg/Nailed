@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>nailed — book deg pen</title>
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       Top navigation
+       ============================================================ -->
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="index.html">
+        <img src="assets/logo-wordmark.svg" alt="nailed" />
+      </a>
+      <nav class="top-nav__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="#">Gavekort</a>
+        <a href="#">For salonger</a>
+      </nav>
+      <div class="top-nav__actions">
+        <button class="btn-icon"><i data-lucide="heart"></i></button>
+        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       Hero
+       ============================================================ -->
+  <section class="hero">
+    <div class="page hero__inner">
+      <h1 class="hero__title">book deg <em>pen.</em></h1>
+      <p class="hero__sub">
+        Finn salong og behandling, velg tid — og book din time.
+      </p>
+      <div class="hero__search-wrap">
+        <div class="search-bar">
+          <div class="search-bar__field">
+            <i data-lucide="sparkles" class="search-bar__field-icon"></i>
+            <div class="search-bar__field-text">
+              <div class="search-bar__label">Hva</div>
+              <input placeholder="Velg behandling" />
+            </div>
+          </div>
+          <div class="search-bar__divider"></div>
+          <div class="search-bar__field">
+            <i data-lucide="map-pin" class="search-bar__field-icon"></i>
+            <div class="search-bar__field-text">
+              <div class="search-bar__label">Hvor</div>
+              <input placeholder="Søk etter adresse" />
+            </div>
+          </div>
+          <button class="btn btn-primary search-bar__cta">
+            <i data-lucide="search"></i>
+          </button>
+        </div>
+      </div>
+      <div class="hero__quick">
+        <span class="eyebrow">Populært:</span>
+        <button class="chip">Gel manikyr</button>
+        <button class="chip">Klassiske vipper</button>
+        <button class="chip">Brynsfarge</button>
+        <button class="chip">Brudemakeup</button>
+      </div>
+    </div>
+    <img src="assets/sticker-nailed-it.svg" class="hero__sticker" alt="" />
+  </section>
+
+  <!-- ============================================================
+       Category rail
+       ============================================================ -->
+  <section style="padding: 24px 0 0;">
+    <div class="cat-rail">
+      <button class="chip active"><i data-lucide="sparkles"></i> Alle</button>
+      <button class="chip"><i data-lucide="sparkles"></i> Negler</button>
+      <button class="chip"><i data-lucide="eye"></i> Vipper</button>
+      <button class="chip"><i data-lucide="eye"></i> Bryn</button>
+      <button class="chip"><i data-lucide="palette"></i> Makeup</button>
+      <button class="chip"><i data-lucide="scissors"></i> Hår</button>
+      <button class="chip"><i data-lucide="flower-2"></i> Spa</button>
+      <button class="chip"><i data-lucide="wind"></i> Voksing</button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Salon grid — nearby
+       ============================================================ -->
+  <section style="padding: 32px 0 56px;">
+    <div class="page">
+      <div class="section-head">
+        <div>
+          <h2>Salonger nær <em>Oslo</em></h2>
+        </div>
+        <button class="section-head__link">Se alle <i data-lucide="arrow-right"></i></button>
+      </div>
+      <div class="grid-3">
+
+        <!-- Card 1 — featured -->
+        <article class="service-card card service-card--featured" onclick="location.href='salon.html'">
+          <div class="service-card__photo" style="background: linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 100%);">
+            <span class="service-card__badge">Mest booket</span>
+            <button class="service-card__heart"><i data-lucide="heart"></i></button>
+          </div>
+          <div class="service-card__body">
+            <div class="service-card__row">
+              <div>
+                <div class="service-card__name">Studio Lakk</div>
+                <div class="service-card__meta"><i data-lucide="map-pin"></i>Grünerløkka · 0.4 km</div>
+              </div>
+              <div class="service-card__price">
+                <span class="service-card__from">fra</span>690<span class="service-card__kr"> kr</span>
+              </div>
+            </div>
+            <div class="service-card__row">
+              <div class="service-card__meta">
+                <i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i>
+                4.9 · 312 anmeldelser
+              </div>
+              <div class="service-card__tags">
+                <span class="service-card__tag">Gel</span>
+                <span class="service-card__tag">Bio</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="service-card card" onclick="location.href='salon.html'">
+          <div class="service-card__photo" style="background: linear-gradient(135deg, #F4ECDF 0%, #E8DCC4 100%);">
+            <button class="service-card__heart"><i data-lucide="heart"></i></button>
+          </div>
+          <div class="service-card__body">
+            <div class="service-card__row">
+              <div>
+                <div class="service-card__name">Lash & Linn</div>
+                <div class="service-card__meta"><i data-lucide="map-pin"></i>Frogner · 1.2 km</div>
+              </div>
+              <div class="service-card__price">
+                <span class="service-card__from">fra</span>890<span class="service-card__kr"> kr</span>
+              </div>
+            </div>
+            <div class="service-card__row">
+              <div class="service-card__meta">
+                <i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i>
+                4.8 · 184 anmeldelser
+              </div>
+              <div class="service-card__tags">
+                <span class="service-card__tag">Vipper</span>
+                <span class="service-card__tag">Bryn</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="service-card card" onclick="location.href='salon.html'">
+          <div class="service-card__photo" style="background: linear-gradient(135deg, #FFF1F5 0%, #FB6B9A 100%);">
+            <button class="service-card__heart"><i data-lucide="heart"></i></button>
+          </div>
+          <div class="service-card__body">
+            <div class="service-card__row">
+              <div>
+                <div class="service-card__name">Bare Negler</div>
+                <div class="service-card__meta"><i data-lucide="map-pin"></i>Majorstuen · 1.8 km</div>
+              </div>
+              <div class="service-card__price">
+                <span class="service-card__from">fra</span>590<span class="service-card__kr"> kr</span>
+              </div>
+            </div>
+            <div class="service-card__row">
+              <div class="service-card__meta">
+                <i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i>
+                4.7 · 521 anmeldelser
+              </div>
+              <div class="service-card__tags">
+                <span class="service-card__tag">Klassisk</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Editorial quote band
+       ============================================================ -->
+  <section style="padding: 56px 0;">
+    <div class="page">
+      <div class="editorial-band">
+        <div class="editorial-band__inner">
+          <div class="editorial-band__quote">
+            "Gå inn med klør, <em>gå ut med kunst.</em>"
+          </div>
+          <div class="editorial-band__attr">— Maja, neglestylist · Studio Lakk</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Salon grid — popular
+       ============================================================ -->
+  <section style="padding: 0 0 56px;">
+    <div class="page">
+      <div class="section-head">
+        <div>
+          <h2>Folkets favoritter denne uken</h2>
+        </div>
+      </div>
+      <div class="grid-3">
+
+        <article class="service-card card" onclick="location.href='salon.html'">
+          <div class="service-card__photo" style="background: linear-gradient(135deg, #DDE3D2 0%, #8DA079 100%);">
+            <button class="service-card__heart"><i data-lucide="heart"></i></button>
+          </div>
+          <div class="service-card__body">
+            <div class="service-card__row">
+              <div>
+                <div class="service-card__name">Studio Glow</div>
+                <div class="service-card__meta"><i data-lucide="map-pin"></i>St. Hanshaugen · 2.1 km</div>
+              </div>
+              <div class="service-card__price">
+                <span class="service-card__from">fra</span>1190<span class="service-card__kr"> kr</span>
+              </div>
+            </div>
+            <div class="service-card__row">
+              <div class="service-card__meta">
+                <i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i>
+                5.0 · 92 anmeldelser
+              </div>
+              <div class="service-card__tags">
+                <span class="service-card__tag">Brud</span>
+                <span class="service-card__tag">Makeup</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="service-card card" onclick="location.href='salon.html'">
+          <div class="service-card__photo" style="background: linear-gradient(135deg, #FFC4D6 0%, #82103D 100%);">
+            <button class="service-card__heart"><i data-lucide="heart"></i></button>
+          </div>
+          <div class="service-card__body">
+            <div class="service-card__row">
+              <div>
+                <div class="service-card__name">Neon Nails</div>
+                <div class="service-card__meta"><i data-lucide="map-pin"></i>Tøyen · 2.6 km</div>
+              </div>
+              <div class="service-card__price">
+                <span class="service-card__from">fra</span>750<span class="service-card__kr"> kr</span>
+              </div>
+            </div>
+            <div class="service-card__row">
+              <div class="service-card__meta">
+                <i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i>
+                4.6 · 268 anmeldelser
+              </div>
+              <div class="service-card__tags">
+                <span class="service-card__tag">Art</span>
+                <span class="service-card__tag">Gel</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="service-card card" onclick="location.href='salon.html'">
+          <div class="service-card__photo" style="background: linear-gradient(135deg, #ECDFCB 0%, #C9B79A 100%);">
+            <button class="service-card__heart"><i data-lucide="heart"></i></button>
+          </div>
+          <div class="service-card__body">
+            <div class="service-card__row">
+              <div>
+                <div class="service-card__name">Rosa Atelier</div>
+                <div class="service-card__meta"><i data-lucide="map-pin"></i>Bislett · 0.9 km</div>
+              </div>
+              <div class="service-card__price">
+                <span class="service-card__from">fra</span>920<span class="service-card__kr"> kr</span>
+              </div>
+            </div>
+            <div class="service-card__row">
+              <div class="service-card__meta">
+                <i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i>
+                4.9 · 401 anmeldelser
+              </div>
+              <div class="service-card__tags">
+                <span class="service-card__tag">Press-on</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Footer
+       ============================================================ -->
+  <footer class="footer">
+    <div class="page footer__inner">
+      <div class="footer__top">
+        <img src="assets/logo-wordmark-light.svg" alt="nailed" class="footer__brand" />
+        <p class="footer__tag">Nailed it. Nailed it again.</p>
+      </div>
+      <div class="footer__cols">
+        <div>
+          <div class="footer__h">Utforsk</div>
+          <a href="#">Salonger nær meg</a>
+          <a href="#">Kategorier</a>
+          <a href="#">Gavekort</a>
+        </div>
+        <div>
+          <div class="footer__h">For salonger</div>
+          <a href="#">Bli partner</a>
+          <a href="#">Priser</a>
+          <a href="#">Logg inn</a>
+        </div>
+        <div>
+          <div class="footer__h">Selskap</div>
+          <a href="#">Om oss</a>
+          <a href="#">Kontakt</a>
+          <a href="#">Personvern</a>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Sticky nav scroll effect
+    var nav = document.getElementById('topNav');
+    window.addEventListener('scroll', function() {
+      if (window.scrollY > 30) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+  </script>
+</body>
+</html>

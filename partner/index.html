@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>nailed — partner</title>
+  <link rel="icon" href="../assets/logo-mark.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="partner.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <a class="sidebar__brand" href="../index.html"><img src="../assets/logo-wordmark.svg" alt="nailed" /></a>
+
+      <button class="nav-item active"><i data-lucide="layout-dashboard"></i> Oversikt</button>
+      <button class="nav-item"><i data-lucide="calendar"></i> Kalender</button>
+      <button class="nav-item"><i data-lucide="list"></i> Bookinger <span class="nav-item__count">7</span></button>
+      <button class="nav-item"><i data-lucide="sparkles"></i> Tjenester</button>
+      <button class="nav-item"><i data-lucide="users"></i> Kunder</button>
+      <button class="nav-item"><i data-lucide="message-circle"></i> Meldinger <span class="nav-item__count">2</span></button>
+
+      <div class="sidebar__section">Salong</div>
+      <button class="nav-item"><i data-lucide="image"></i> Profil</button>
+      <button class="nav-item"><i data-lucide="bar-chart-3"></i> Innsikt</button>
+      <button class="nav-item"><i data-lucide="credit-card"></i> Utbetaling</button>
+      <button class="nav-item"><i data-lucide="settings"></i> Innstillinger</button>
+
+      <div class="sidebar__footer">
+        <div class="sidebar__avatar">SL</div>
+        <div>
+          <div class="sidebar__user">Studio Lakk</div>
+          <div class="sidebar__role">Linn Andersen</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1 class="topbar__title">God morgen, <em>Linn.</em></h1>
+          <div class="topbar__sub">Tirsdag 12. mai · Du har 7 bookinger i dag.</div>
+        </div>
+        <div class="topbar__actions">
+          <button class="btn btn-ghost"><i data-lucide="calendar-plus"></i> Ny booking</button>
+          <button class="btn btn-primary"><i data-lucide="plus"></i> Ny tjeneste</button>
+        </div>
+      </div>
+
+      <!-- KPI row -->
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi__label">Bookinger denne uken</div>
+          <div class="kpi__value">42</div>
+          <div class="kpi__delta"><i data-lucide="trending-up"></i> +18% vs. forrige uke</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi__label">Omsetning (uke)</div>
+          <div class="kpi__value">28&thinsp;490 <span class="kpi__unit">kr</span></div>
+          <div class="kpi__delta"><i data-lucide="trending-up"></i> +12%</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi__label">Belegg</div>
+          <div class="kpi__value">87%</div>
+          <div class="kpi__delta kpi__delta--down"><i data-lucide="trending-down"></i> -3% vs. forrige uke</div>
+        </div>
+        <div class="kpi kpi--dark">
+          <div class="kpi__label">Snittvurdering</div>
+          <div class="kpi__value">4,9 <em>/5</em></div>
+          <div class="kpi__delta kpi__delta--dark">312 anmeldelser</div>
+        </div>
+      </div>
+
+      <!-- Two-column layout -->
+      <div class="grid-2">
+
+        <!-- Today's bookings -->
+        <section class="panel">
+          <div class="panel__head">
+            <h3>Dagens bookinger</h3>
+            <button class="btn btn-ghost btn-sm">Se hele dagen <i data-lucide="arrow-right"></i></button>
+          </div>
+
+          <div class="booking">
+            <div class="booking__time">09:00<small>45 min</small></div>
+            <div class="booking__client">
+              <div class="booking__avatar booking__avatar--pink">IS</div>
+              <div>
+                <div class="booking__name">Ida Skogen</div>
+                <div class="booking__svc">Klassisk manikyr</div>
+              </div>
+            </div>
+            <div class="booking__right">
+              <div class="booking__price">490 kr</div>
+              <span class="pill pill--paid"><i data-lucide="check" style="width:10px;height:10px"></i> Betalt</span>
+            </div>
+          </div>
+
+          <div class="booking">
+            <div class="booking__time">10:30<small>75 min</small></div>
+            <div class="booking__client">
+              <div class="booking__avatar booking__avatar--sage">MK</div>
+              <div>
+                <div class="booking__name">Maria Kvam</div>
+                <div class="booking__svc">Gel manikyr · Maja</div>
+              </div>
+            </div>
+            <div class="booking__right">
+              <div class="booking__price">690 kr</div>
+              <span class="pill pill--confirmed">Bekreftet</span>
+            </div>
+          </div>
+
+          <div class="booking">
+            <div class="booking__time">12:00<small>90 min</small></div>
+            <div class="booking__client">
+              <div class="booking__avatar booking__avatar--berry">TH</div>
+              <div>
+                <div class="booking__name">Thea Hauge</div>
+                <div class="booking__svc">Gel + neglekunst · Maja</div>
+              </div>
+            </div>
+            <div class="booking__right">
+              <div class="booking__price">890 kr</div>
+              <span class="pill pill--paid">Betalt</span>
+            </div>
+          </div>
+
+          <div class="booking">
+            <div class="booking__time">14:30<small>60 min</small></div>
+            <div class="booking__client">
+              <div class="booking__avatar">SB</div>
+              <div>
+                <div class="booking__name">Sara Berg</div>
+                <div class="booking__svc">Pedikyr — luksus</div>
+              </div>
+            </div>
+            <div class="booking__right">
+              <div class="booking__price">790 kr</div>
+              <span class="pill pill--pending"><i data-lucide="clock" style="width:10px;height:10px"></i> Ubekreftet</span>
+            </div>
+          </div>
+
+          <div class="booking">
+            <div class="booking__time">16:00<small>30 min</small></div>
+            <div class="booking__client">
+              <div class="booking__avatar booking__avatar--pink">EL</div>
+              <div>
+                <div class="booking__name">Emilie Lund</div>
+                <div class="booking__svc">Fjerning av gel</div>
+              </div>
+            </div>
+            <div class="booking__right">
+              <div class="booking__price">290 kr</div>
+              <span class="pill pill--confirmed">Bekreftet</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right column -->
+        <div class="right-col">
+
+          <!-- Mini calendar -->
+          <section class="panel">
+            <div class="panel__head">
+              <h3>Mai 2026</h3>
+              <button class="btn btn-ghost" style="padding: 6px 10px;"><i data-lucide="chevron-right"></i></button>
+            </div>
+            <div class="cal-grid cal-grid--head">
+              <div class="cal-cell cal-head">M</div>
+              <div class="cal-cell cal-head">T</div>
+              <div class="cal-cell cal-head">O</div>
+              <div class="cal-cell cal-head">T</div>
+              <div class="cal-cell cal-head">F</div>
+              <div class="cal-cell cal-head">L</div>
+              <div class="cal-cell cal-head">S</div>
+            </div>
+            <div class="cal-grid">
+              <div class="cal-cell muted">28</div><div class="cal-cell muted">29</div><div class="cal-cell muted">30</div><div class="cal-cell">1</div><div class="cal-cell has-bookings">2</div><div class="cal-cell">3</div><div class="cal-cell">4</div>
+              <div class="cal-cell">5</div><div class="cal-cell has-bookings">6</div><div class="cal-cell has-bookings">7</div><div class="cal-cell">8</div><div class="cal-cell has-bookings">9</div><div class="cal-cell">10</div><div class="cal-cell">11</div>
+              <div class="cal-cell today">12</div><div class="cal-cell">13</div><div class="cal-cell has-bookings">14</div><div class="cal-cell has-bookings">15</div><div class="cal-cell has-bookings">16</div><div class="cal-cell">17</div><div class="cal-cell">18</div>
+              <div class="cal-cell">19</div><div class="cal-cell has-bookings">20</div><div class="cal-cell">21</div><div class="cal-cell has-bookings">22</div><div class="cal-cell">23</div><div class="cal-cell">24</div><div class="cal-cell">25</div>
+              <div class="cal-cell has-bookings">26</div><div class="cal-cell">27</div><div class="cal-cell">28</div><div class="cal-cell">29</div><div class="cal-cell">30</div><div class="cal-cell">31</div><div class="cal-cell muted">1</div>
+            </div>
+          </section>
+
+          <!-- Top services -->
+          <section class="panel">
+            <div class="panel__head">
+              <h3>Toppen av menyen</h3>
+              <button class="btn btn-ghost" style="padding: 6px 10px;"><i data-lucide="more-horizontal"></i></button>
+            </div>
+
+            <div class="menu-row">
+              <div>
+                <div class="menu-row__name">Gel manikyr</div>
+                <div class="menu-row__meta">75 min · 28 bookinger denne uken</div>
+              </div>
+              <div class="menu-row__right">
+                <div class="menu-row__price">690 kr</div>
+                <button class="menu-row__edit"><i data-lucide="pencil"></i></button>
+              </div>
+            </div>
+
+            <div class="menu-row">
+              <div>
+                <div class="menu-row__name">Gel + neglekunst</div>
+                <div class="menu-row__meta">90 min · 11 bookinger</div>
+              </div>
+              <div class="menu-row__right">
+                <div class="menu-row__price">890 kr</div>
+                <button class="menu-row__edit"><i data-lucide="pencil"></i></button>
+              </div>
+            </div>
+
+            <div class="menu-row">
+              <div>
+                <div class="menu-row__name">Klassisk manikyr</div>
+                <div class="menu-row__meta">45 min · 8 bookinger</div>
+              </div>
+              <div class="menu-row__right">
+                <div class="menu-row__price">490 kr</div>
+                <button class="menu-row__edit"><i data-lucide="pencil"></i></button>
+              </div>
+            </div>
+
+            <div class="menu-row">
+              <div>
+                <div class="menu-row__name">Pedikyr — luksus</div>
+                <div class="menu-row__meta">60 min · 5 bookinger</div>
+              </div>
+              <div class="menu-row__right">
+                <div class="menu-row__price">790 kr</div>
+                <button class="menu-row__edit"><i data-lucide="pencil"></i></button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Decorative sticker -->
+  <img src="../assets/sticker-nailed-it.svg" class="sticker-corner" alt="" />
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

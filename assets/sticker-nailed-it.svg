@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img" aria-label="nailed it sticker">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&amp;display=swap');
+    .ring { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; fill: #1B1218; }
+  </style>
+  <defs>
+    <path id="circle" d="M 110,110 m -78,0 a 78,78 0 1,1 156,0 a 78,78 0 1,1 -156,0"></path>
+  </defs>
+  <circle cx="110" cy="110" r="100" fill="#EE3F7E"></circle>
+  <circle cx="110" cy="110" r="62" fill="#FBF6EE"></circle>
+  <text class="ring">
+    <textPath href="#circle" startOffset="0">NAILED IT · NAILED IT AGAIN · NAILED IT · NAILED IT AGAIN · </textPath>
+  </text>
+  <circle cx="110" cy="110" r="14" fill="#1B1218"></circle>
+  <circle cx="115" cy="105" r="4" fill="#EE3F7E"></circle>
+</svg>

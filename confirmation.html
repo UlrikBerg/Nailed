@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nailed it — booking bekreftet</title>
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Top navigation -->
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="index.html">
+        <img src="assets/logo-wordmark.svg" alt="nailed" />
+      </a>
+      <nav class="top-nav__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="#">Gavekort</a>
+        <a href="#">For salonger</a>
+      </nav>
+      <div class="top-nav__actions">
+        <button class="btn-icon"><i data-lucide="heart"></i></button>
+        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Confirmation -->
+  <section class="confirm">
+    <div class="page">
+      <img src="assets/sticker-nailed-it.svg" class="confirm__sticker" alt="" />
+      <h1 class="confirm__title"><em>Nailed it.</em></h1>
+      <p class="confirm__sub">Time bekreftet. Vi har sendt en SMS til deg, og en påminnelse dukker opp dagen før.</p>
+      <div class="confirm__card">
+        <div class="confirm__row">
+          <span class="confirm__label">Hva</span>
+          <span class="confirm__val">Klassisk manikyr</span>
+        </div>
+        <div class="confirm__row">
+          <span class="confirm__label">Hos</span>
+          <span class="confirm__val">Studio Lakk</span>
+        </div>
+        <div class="confirm__row">
+          <span class="confirm__label">Når</span>
+          <span class="confirm__val">Ons 13. mai · 14:30</span>
+        </div>
+        <div class="confirm__row">
+          <span class="confirm__label">Pris</span>
+          <span class="confirm__val">490 kr</span>
+        </div>
+      </div>
+      <div class="confirm__actions">
+        <a href="index.html" class="btn btn-ghost">Tilbake til forsiden</a>
+        <button class="btn btn-primary"><i data-lucide="calendar-plus"></i> Legg til i kalender</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="page footer__inner">
+      <div class="footer__top">
+        <img src="assets/logo-wordmark-light.svg" alt="nailed" class="footer__brand" />
+        <p class="footer__tag">Nailed it. Nailed it again.</p>
+      </div>
+      <div class="footer__cols">
+        <div>
+          <div class="footer__h">Utforsk</div>
+          <a href="#">Salonger nær meg</a>
+          <a href="#">Kategorier</a>
+          <a href="#">Gavekort</a>
+        </div>
+        <div>
+          <div class="footer__h">For salonger</div>
+          <a href="#">Bli partner</a>
+          <a href="#">Priser</a>
+          <a href="#">Logg inn</a>
+        </div>
+        <div>
+          <div class="footer__h">Selskap</div>
+          <a href="#">Om oss</a>
+          <a href="#">Kontakt</a>
+          <a href="#">Personvern</a>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    var nav = document.getElementById('topNav');
+    window.addEventListener('scroll', function() {
+      nav.classList.toggle('scrolled', window.scrollY > 30);
+    });
+  </script>
+</body>
+</html>
