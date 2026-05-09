@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Last ned app — nailed</title>
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .app-hero {
+      padding: 80px 0 0;
+      text-align: center;
+      overflow: hidden;
+    }
+    .app-hero__eyebrow {
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--rouge-500);
+      margin-bottom: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .app-hero__eyebrow-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--rouge-500);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .app-hero__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(36px, 6vw, 64px);
+      letter-spacing: -0.03em;
+      line-height: 1.06;
+      margin: 0 0 16px;
+    }
+    .app-hero__title em {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rouge-500);
+    }
+    .app-hero__sub {
+      font-size: 18px;
+      color: var(--fg-muted);
+      max-width: 48ch;
+      margin: 0 auto 32px;
+      line-height: 1.55;
+    }
+
+    /* Launch date card */
+    .launch-card {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--ink);
+      color: var(--cream-50);
+      padding: 16px 28px;
+      border-radius: var(--radius-pill);
+      margin-bottom: 40px;
+    }
+    .launch-card__icon {
+      width: 40px; height: 40px; border-radius: var(--radius-pill);
+      background: var(--rouge-500);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .launch-card__icon i { width: 20px; height: 20px; color: white; }
+    .launch-card__text {
+      text-align: left;
+    }
+    .launch-card__date {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 18px;
+    }
+    .launch-card__platforms {
+      font-size: 13px;
+      color: var(--stone-300);
+      margin-top: 2px;
+    }
+
+    /* Store badges */
+    .store-badges {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 48px;
+    }
+    .store-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 24px;
+      background: var(--ink);
+      color: var(--cream-50);
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      border: 1px solid var(--stone-700);
+      transition: all var(--dur-fast);
+      text-align: left;
+      cursor: default;
+      opacity: 0.7;
+      position: relative;
+    }
+    .store-badge__icon { width: 28px; height: 28px; flex-shrink: 0; }
+    .store-badge__label { font-size: 11px; color: var(--stone-400); }
+    .store-badge__name { font-weight: 700; font-size: 16px; }
+    .store-badge__soon {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--rouge-500);
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* Phone mockup */
+    .app-phones {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 16px;
+    }
+    .app-phone {
+      width: 220px;
+      height: 440px;
+      background: var(--ink);
+      border-radius: 36px;
+      padding: 12px;
+      box-shadow: 0 24px 60px rgba(27, 18, 24, 0.25);
+      position: relative;
+    }
+    .app-phone::before {
+      content: "";
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 6px;
+      background: #333;
+      border-radius: var(--radius-pill);
+    }
+    .app-phone__screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 26px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .app-phone__screen--home {
+      background: var(--cream-100);
+      padding: 40px 16px 16px;
+    }
+    .app-phone__screen--salon {
+      background: var(--cream-100);
+    }
+    .phone-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 0 12px;
+    }
+    .phone-nav__brand {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      display: flex;
+      align-items: baseline;
+      gap: 3px;
+    }
+    .phone-nav__dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--rouge-500);
+    }
+    .phone-search {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill);
+      padding: 8px 12px;
+      font-size: 10px;
+      color: var(--stone-400);
+      margin-bottom: 12px;
+    }
+    .phone-card {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .phone-card__photo {
+      height: 70px;
+    }
+    .phone-card__body {
+      padding: 8px 10px;
+    }
+    .phone-card__name {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 11px;
+    }
+    .phone-card__meta {
+      font-size: 8px;
+      color: var(--fg-muted);
+      margin-top: 2px;
+    }
+    .phone-salon-hero {
+      height: 120px;
+      background: linear-gradient(135deg, #FFE0E9, #FFC4D6, #82103D);
+    }
+    .phone-salon-body {
+      padding: 12px;
+      flex: 1;
+    }
+    .phone-salon-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 16px;
+      margin: 0 0 4px;
+    }
+    .phone-salon-rating {
+      font-size: 9px;
+      color: var(--fg-muted);
+    }
+    .phone-salon-svc {
+      margin-top: 10px;
+      padding: 8px 10px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: 8px;
+      font-size: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .phone-salon-svc strong {
+      font-family: var(--font-display);
+      font-weight: 700;
+    }
+    .phone-salon-btn {
+      margin-top: 10px;
+      background: var(--rouge-500);
+      color: white;
+      border-radius: var(--radius-pill);
+      padding: 8px;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 560px) {
+      .app-phones { gap: 12px; }
+      .app-phone { width: 160px; height: 340px; border-radius: 28px; padding: 8px; }
+      .app-phone__screen { border-radius: 20px; }
+    }
+
+    /* Notify form */
+    .notify {
+      padding: 64px 0;
+      text-align: center;
+    }
+    .notify__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 32px;
+      letter-spacing: -0.02em;
+      margin: 0 0 8px;
+    }
+    .notify__sub {
+      font-size: 15px;
+      color: var(--fg-muted);
+      margin: 0 0 24px;
+    }
+    .notify__form {
+      display: flex;
+      gap: 10px;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+    .notify__input {
+      flex: 1;
+      padding: 14px 20px;
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill);
+      font-family: var(--font-body);
+      font-size: 15px;
+      background: var(--cream-50);
+      outline: none;
+    }
+    .notify__input:focus { border-color: var(--rouge-500); }
+    .notify__input::placeholder { color: var(--stone-400); }
+    .notify__success {
+      display: none;
+      font-size: 15px;
+      color: var(--success-500);
+      font-weight: 600;
+      margin-top: 16px;
+    }
+
+    /* Features */
+    .app-features {
+      padding: 64px 0;
+      background: var(--cream-50);
+    }
+    .app-features__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 32px;
+      letter-spacing: -0.02em;
+      text-align: center;
+      margin: 0 0 40px;
+    }
+    .app-features__grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 720px) { .app-features__grid { grid-template-columns: 1fr; } }
+    .app-feat {
+      padding: 24px;
+      background: var(--cream-100);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--stone-200);
+    }
+    .app-feat__icon {
+      width: 40px; height: 40px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .app-feat__icon i { width: 20px; height: 20px; }
+    .app-feat__title { font-family: var(--font-display); font-weight: 600; font-size: 17px; margin: 0 0 6px; }
+    .app-feat__desc { font-size: 14px; color: var(--fg-muted); margin: 0; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="index.html"><img src="assets/logo-wordmark.svg" alt="nailed" /></a>
+      <nav class="top-nav__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="for-salonger.html">For salonger</a>
+        <a href="last-ned-app.html" style="color:var(--rouge-500);">Last ned app</a>
+      </nav>
+      <div class="top-nav__actions">
+        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="app-hero">
+    <div class="page">
+      <div class="app-hero__eyebrow">
+        <span class="app-hero__eyebrow-dot"></span>
+        Lanseres juni 2026
+      </div>
+      <h1 class="app-hero__title">Book deg <em>pen.</em><br>Rett fra lomma.</h1>
+      <p class="app-hero__sub">nailed-appen kommer til App Store og Google Play i juni. Finn salonger, velg tid og book — alt på noen sekunder.</p>
+
+      <div class="launch-card">
+        <div class="launch-card__icon"><i data-lucide="rocket"></i></div>
+        <div class="launch-card__text">
+          <div class="launch-card__date">Juni 2026</div>
+          <div class="launch-card__platforms">App Store + Google Play — samtidig lansering</div>
+        </div>
+      </div>
+
+      <!-- Store badges -->
+      <div class="store-badges">
+        <div class="store-badge">
+          <svg class="store-badge__icon" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          <div>
+            <div class="store-badge__label">Kommer snart på</div>
+            <div class="store-badge__name">App Store</div>
+          </div>
+          <span class="store-badge__soon">Juni</span>
+        </div>
+        <div class="store-badge">
+          <svg class="store-badge__icon" viewBox="0 0 24 24" fill="white"><path d="M3.18 23.49L14.23 12.44 3.18.49c-.35.2-.57.58-.57 1v21c0 .42.22.8.57 1zm1.64 1.15l12.24-6.93-2.72-2.72L4.82 24.64zm14.76-8.35L7.37.21l2.72 2.72 12.21 6.93c.67.38.67 1.34 0 1.72l-2.72 1.71zm-14.76-15L16.58 8.21l2.72-2.72L7.06.56c-.4-.23-.86-.2-1.24.02z"/></svg>
+          <div>
+            <div class="store-badge__label">Kommer snart på</div>
+            <div class="store-badge__name">Google Play</div>
+          </div>
+          <span class="store-badge__soon">Juni</span>
+        </div>
+      </div>
+
+      <!-- Phone mockups -->
+      <div class="app-phones">
+        <div class="app-phone">
+          <div class="app-phone__screen app-phone__screen--home">
+            <div class="phone-nav">
+              <div class="phone-nav__brand">nailed <span class="phone-nav__dot"></span></div>
+              <i data-lucide="heart" style="width:14px;height:14px;color:var(--fg-muted);"></i>
+            </div>
+            <div class="phone-search">Søk behandling eller salong..</div>
+            <div class="phone-card">
+              <div class="phone-card__photo" style="background:linear-gradient(135deg, #FFE0E9, #FFC4D6);"></div>
+              <div class="phone-card__body">
+                <div class="phone-card__name">Studio Lakk</div>
+                <div class="phone-card__meta">Grünerløkka · 4.9 ★ · fra 690 kr</div>
+              </div>
+            </div>
+            <div class="phone-card">
+              <div class="phone-card__photo" style="background:linear-gradient(135deg, #F4ECDF, #E8DCC4);"></div>
+              <div class="phone-card__body">
+                <div class="phone-card__name">Lash & Linn</div>
+                <div class="phone-card__meta">Frogner · 4.8 ★ · fra 890 kr</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="app-phone">
+          <div class="app-phone__screen app-phone__screen--salon">
+            <div class="phone-salon-hero"></div>
+            <div class="phone-salon-body">
+              <div class="phone-salon-title">Studio Lakk</div>
+              <div class="phone-salon-rating">★ 4.9 · 312 anmeldelser · Grünerløkka</div>
+              <div class="phone-salon-svc">
+                <span>Gel manikyr · 75 min</span>
+                <strong>690 kr</strong>
+              </div>
+              <div class="phone-salon-svc">
+                <span>Gel + neglekunst · 90 min</span>
+                <strong>890 kr</strong>
+              </div>
+              <div class="phone-salon-btn">Book nå</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Notify -->
+  <section class="notify">
+    <div class="page">
+      <h2 class="notify__title">Bli varslet ved lansering</h2>
+      <p class="notify__sub">Legg igjen e-posten din, så gir vi deg beskjed når appen er klar.</p>
+      <form class="notify__form" id="notifyForm">
+        <input class="notify__input" type="email" placeholder="din@epost.no" required />
+        <button type="submit" class="btn btn-primary">Varsle meg</button>
+      </form>
+      <p class="notify__success" id="notifySuccess"><i data-lucide="check-circle" style="width:16px;height:16px;vertical-align:-3px;"></i> Du er på listen! Vi sender deg en e-post i juni.</p>
+    </div>
+  </section>
+
+  <!-- App features -->
+  <section class="app-features">
+    <div class="page">
+      <h2 class="app-features__title">Alt du elsker med nailed — i appen</h2>
+      <div class="app-features__grid">
+        <div class="app-feat">
+          <div class="app-feat__icon" style="background:var(--rouge-50);"><i data-lucide="zap" style="color:var(--rouge-500);"></i></div>
+          <h3 class="app-feat__title">Book på sekunder</h3>
+          <p class="app-feat__desc">Finn salong, velg behandling og tid — og bekreft med Vipps. Raskere enn noen gang.</p>
+        </div>
+        <div class="app-feat">
+          <div class="app-feat__icon" style="background:var(--success-50);"><i data-lucide="bell" style="color:var(--success-500);"></i></div>
+          <h3 class="app-feat__title">Push-varsler</h3>
+          <p class="app-feat__desc">Påminnelser før timen, bekreftelser og meldinger fra salongen rett på mobilen.</p>
+        </div>
+        <div class="app-feat">
+          <div class="app-feat__icon" style="background:var(--cream-200);"><i data-lucide="map-pin" style="color:var(--champagne-500);"></i></div>
+          <h3 class="app-feat__title">Salonger nær deg</h3>
+          <p class="app-feat__desc">Bruk GPS for å finne de beste salongene i nærheten — sortert på avstand og tilgjengelighet.</p>
+        </div>
+        <div class="app-feat">
+          <div class="app-feat__icon" style="background:var(--rouge-50);"><i data-lucide="heart" style="color:var(--rouge-500);"></i></div>
+          <h3 class="app-feat__title">Favoritter som synker</h3>
+          <p class="app-feat__desc">Favorittene dine følger deg fra nett til app. Logg inn med Vipps og alt er klart.</p>
+        </div>
+        <div class="app-feat">
+          <div class="app-feat__icon" style="background:var(--success-50);"><i data-lucide="calendar" style="color:var(--success-500);"></i></div>
+          <h3 class="app-feat__title">Bookinger alltid tilgjengelig</h3>
+          <p class="app-feat__desc">Se alle kommende og tidligere timer, endre eller avbestill med et trykk.</p>
+        </div>
+        <div class="app-feat">
+          <div class="app-feat__icon" style="background:var(--cream-200);"><i data-lucide="message-circle" style="color:var(--champagne-500);"></i></div>
+          <h3 class="app-feat__title">Chat med salongen</h3>
+          <p class="app-feat__desc">Spør om ledig tid, be om inspirasjon eller send en melding — direkte i appen.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="page footer__inner">
+      <div class="footer__top">
+        <img src="assets/logo-wordmark-light.svg" alt="nailed" class="footer__brand" />
+        <p class="footer__tag">Nailed it. Nailed it again.</p>
+      </div>
+      <div class="footer__cols">
+        <div><div class="footer__h">Utforsk</div><a href="utforsk.html">Salonger</a><a href="favoritter.html">Favoritter</a><a href="last-ned-app.html">Last ned app</a></div>
+        <div><div class="footer__h">For salonger</div><a href="for-salonger.html">Bli partner</a><a href="for-salonger.html">Priser</a><a href="login.html">Logg inn</a></div>
+        <div><div class="footer__h">Selskap</div><a href="#">Om oss</a><a href="#">Kontakt</a><a href="#">Personvern</a></div>
+      </div>
+      <div class="footer__bottom"><small>&copy; 2026 Neglet AS &middot; Made in Oslo</small></div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    var nav = document.getElementById('topNav');
+    window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 30); });
+
+    document.getElementById('notifyForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      this.style.display = 'none';
+      document.getElementById('notifySuccess').style.display = 'block';
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
