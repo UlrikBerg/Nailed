@@ -811,31 +811,31 @@
         </div>
 
         <!-- KPIs -->
-        <div class="kpi-grid kpi-grid--5" style="margin-bottom:24px;">
-          <div class="kpi-card">
-            <div class="kpi-card__label">Nye bookinger</div>
-            <div class="kpi-card__value">412</div>
-            <div class="kpi-card__delta up"><i data-lucide="trending-up"></i> +22% vs. forrige</div>
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi__label">Nye bookinger</div>
+            <div class="kpi__value">412</div>
+            <div class="kpi__delta"><i data-lucide="trending-up"></i> +22% vs. forrige</div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-card__label">Unike kunder</div>
-            <div class="kpi-card__value">287</div>
-            <div class="kpi-card__delta up"><i data-lucide="trending-up"></i> +18%</div>
+          <div class="kpi">
+            <div class="kpi__label">Unike kunder</div>
+            <div class="kpi__value">287</div>
+            <div class="kpi__delta"><i data-lucide="trending-up"></i> +18%</div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-card__label">Førstegangskunder</div>
-            <div class="kpi-card__value">94</div>
-            <div class="kpi-card__delta up"><i data-lucide="trending-up"></i> +31%</div>
+          <div class="kpi">
+            <div class="kpi__label">Førstegangskunder</div>
+            <div class="kpi__value">94</div>
+            <div class="kpi__delta"><i data-lucide="trending-up"></i> +31%</div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-card__label">Snitt bookingverdi</div>
-            <div class="kpi-card__value">691 <span style="font-size:16px;color:var(--fg-muted);">kr</span></div>
-            <div class="kpi-card__delta up"><i data-lucide="trending-up"></i> +4%</div>
+          <div class="kpi">
+            <div class="kpi__label">Snitt bookingverdi</div>
+            <div class="kpi__value">691 <span class="kpi__unit">kr</span></div>
+            <div class="kpi__delta"><i data-lucide="trending-up"></i> +4%</div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-card__label">No-show rate</div>
-            <div class="kpi-card__value">2.4<span style="font-size:16px;color:var(--fg-muted);">%</span></div>
-            <div class="kpi-card__delta down"><i data-lucide="trending-down"></i> -0.8%</div>
+          <div class="kpi">
+            <div class="kpi__label">No-show rate</div>
+            <div class="kpi__value">2.4<span class="kpi__unit">%</span></div>
+            <div class="kpi__delta kpi__delta--down"><i data-lucide="trending-down"></i> -0.8%</div>
           </div>
         </div>
 
@@ -843,29 +843,29 @@
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px;">
           <div class="admin-card">
             <h3 class="admin-card__title">Bookinger per fylke</h3>
-            <table class="admin-table admin-table--compact">
+            <table class="data-table data-table--compact">
               <thead><tr><th>Fylke</th><th>Bookinger</th><th>Andel</th><th>Trend</th></tr></thead>
               <tbody>
-                <tr><td>Oslo</td><td><strong>186</strong></td><td>45%</td><td><span class="kpi-card__delta up" style="margin:0;"><i data-lucide="trending-up"></i> +24%</span></td></tr>
-                <tr><td>Akershus</td><td><strong>62</strong></td><td>15%</td><td><span class="kpi-card__delta up" style="margin:0;"><i data-lucide="trending-up"></i> +18%</span></td></tr>
-                <tr><td>Vestland</td><td><strong>48</strong></td><td>12%</td><td><span class="kpi-card__delta up" style="margin:0;"><i data-lucide="trending-up"></i> +32%</span></td></tr>
-                <tr><td>Trøndelag</td><td><strong>37</strong></td><td>9%</td><td><span class="kpi-card__delta up" style="margin:0;"><i data-lucide="trending-up"></i> +15%</span></td></tr>
-                <tr><td>Rogaland</td><td><strong>31</strong></td><td>8%</td><td><span class="kpi-card__delta up" style="margin:0;"><i data-lucide="trending-up"></i> +42%</span></td></tr>
-                <tr><td>Andre</td><td><strong>48</strong></td><td>11%</td><td><span class="kpi-card__delta up" style="margin:0;"><i data-lucide="trending-up"></i> +28%</span></td></tr>
+                <tr><td>Oslo</td><td><strong>186</strong></td><td>45%</td><td><span class="kpi__delta" style="margin:0;"><i data-lucide="trending-up"></i> +24%</span></td></tr>
+                <tr><td>Akershus</td><td><strong>62</strong></td><td>15%</td><td><span class="kpi__delta" style="margin:0;"><i data-lucide="trending-up"></i> +18%</span></td></tr>
+                <tr><td>Vestland</td><td><strong>48</strong></td><td>12%</td><td><span class="kpi__delta" style="margin:0;"><i data-lucide="trending-up"></i> +32%</span></td></tr>
+                <tr><td>Trøndelag</td><td><strong>37</strong></td><td>9%</td><td><span class="kpi__delta" style="margin:0;"><i data-lucide="trending-up"></i> +15%</span></td></tr>
+                <tr><td>Rogaland</td><td><strong>31</strong></td><td>8%</td><td><span class="kpi__delta" style="margin:0;"><i data-lucide="trending-up"></i> +42%</span></td></tr>
+                <tr><td>Andre</td><td><strong>48</strong></td><td>11%</td><td><span class="kpi__delta" style="margin:0;"><i data-lucide="trending-up"></i> +28%</span></td></tr>
               </tbody>
             </table>
           </div>
           <div class="admin-card">
             <h3 class="admin-card__title">Populære behandlinger</h3>
-            <table class="admin-table admin-table--compact">
+            <table class="data-table data-table--compact">
               <thead><tr><th>Behandling</th><th>Bookinger</th><th>Snitt pris</th><th>Trend</th></tr></thead>
               <tbody>
-                <tr><td>Gel manikyr</td><td><strong>142</strong></td><td>690 kr</td><td><span class="kpi-card__delta up" style="margin:0;"><i data-lucide="trending-up"></i> +19%</span></td></tr>
-                <tr><td>Vipper</td><td><strong>78</strong></td><td>890 kr</td><td><span class="kpi-card__delta up" style="margin:0;"><i data-lucide="trending-up"></i> +26%</span></td></tr>
-                <tr><td>Gel + neglekunst</td><td><strong>64</strong></td><td>890 kr</td><td><span class="kpi-card__delta up" style="margin:0;"><i data-lucide="trending-up"></i> +14%</span></td></tr>
-                <tr><td>Bryn</td><td><strong>52</strong></td><td>590 kr</td><td><span class="kpi-card__delta up" style="margin:0;"><i data-lucide="trending-up"></i> +38%</span></td></tr>
-                <tr><td>Pedikyr</td><td><strong>41</strong></td><td>790 kr</td><td><span class="kpi-card__delta down" style="margin:0;"><i data-lucide="trending-down"></i> -5%</span></td></tr>
-                <tr><td>Andre</td><td><strong>35</strong></td><td>485 kr</td><td><span class="kpi-card__delta up" style="margin:0;"><i data-lucide="trending-up"></i> +12%</span></td></tr>
+                <tr><td>Gel manikyr</td><td><strong>142</strong></td><td>690 kr</td><td><span class="kpi__delta" style="margin:0;"><i data-lucide="trending-up"></i> +19%</span></td></tr>
+                <tr><td>Vipper</td><td><strong>78</strong></td><td>890 kr</td><td><span class="kpi__delta" style="margin:0;"><i data-lucide="trending-up"></i> +26%</span></td></tr>
+                <tr><td>Gel + neglekunst</td><td><strong>64</strong></td><td>890 kr</td><td><span class="kpi__delta" style="margin:0;"><i data-lucide="trending-up"></i> +14%</span></td></tr>
+                <tr><td>Bryn</td><td><strong>52</strong></td><td>590 kr</td><td><span class="kpi__delta" style="margin:0;"><i data-lucide="trending-up"></i> +38%</span></td></tr>
+                <tr><td>Pedikyr</td><td><strong>41</strong></td><td>790 kr</td><td><span class="kpi__delta kpi__delta--down" style="margin:0;"><i data-lucide="trending-down"></i> -5%</span></td></tr>
+                <tr><td>Andre</td><td><strong>35</strong></td><td>485 kr</td><td><span class="kpi__delta" style="margin:0;"><i data-lucide="trending-up"></i> +12%</span></td></tr>
               </tbody>
             </table>
           </div>
@@ -876,7 +876,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
             <h3 class="admin-card__title">Siste bookinger — med Vipps-data</h3>
             <div style="display:flex; gap:8px;">
-              <div class="search-field" style="max-width:260px;">
+              <div class="search-input" style="max-width:260px;">
                 <i data-lucide="search"></i>
                 <input placeholder="Søk kunde, salong, behandling.." id="baSearch" />
               </div>
@@ -889,7 +889,7 @@
               </select>
             </div>
           </div>
-          <table class="admin-table" id="baTable">
+          <table class="data-table" id="baTable">
             <thead>
               <tr>
                 <th>Dato/tid</th>
@@ -911,7 +911,7 @@
                 <td>Studio Lakk</td>
                 <td>Gel manikyr</td>
                 <td><strong>690 kr</strong></td>
-                <td><span class="status-badge status-badge--confirmed">Bekreftet</span></td>
+                <td><span class="status status--confirmed">Bekreftet</span></td>
               </tr>
               <tr>
                 <td><strong>I dag 12:00</strong><br><span class="text-muted">12. mai</span></td>
@@ -921,7 +921,7 @@
                 <td>Studio Lakk</td>
                 <td>Gel + neglekunst</td>
                 <td><strong>890 kr</strong></td>
-                <td><span class="status-badge status-badge--completed">Fullført</span></td>
+                <td><span class="status status--completed">Fullført</span></td>
               </tr>
               <tr>
                 <td><strong>I dag 10:30</strong><br><span class="text-muted">12. mai</span></td>
@@ -931,7 +931,7 @@
                 <td>Studio Lakk</td>
                 <td>Klassisk manikyr</td>
                 <td><strong>490 kr</strong></td>
-                <td><span class="status-badge status-badge--completed">Fullført</span></td>
+                <td><span class="status status--completed">Fullført</span></td>
               </tr>
               <tr>
                 <td><strong>I går 16:00</strong><br><span class="text-muted">11. mai</span></td>
@@ -941,7 +941,7 @@
                 <td>Bare Negler</td>
                 <td>Bio-gel manikyr</td>
                 <td><strong>790 kr</strong></td>
-                <td><span class="status-badge status-badge--confirmed">Bekreftet</span></td>
+                <td><span class="status status--confirmed">Bekreftet</span></td>
               </tr>
               <tr>
                 <td><strong>I går 14:00</strong><br><span class="text-muted">11. mai</span></td>
@@ -951,7 +951,7 @@
                 <td>Lash & Linn</td>
                 <td>Vipper — klassisk</td>
                 <td><strong>890 kr</strong></td>
-                <td><span class="status-badge status-badge--completed">Fullført</span></td>
+                <td><span class="status status--completed">Fullført</span></td>
               </tr>
               <tr>
                 <td><strong>I går 11:00</strong><br><span class="text-muted">11. mai</span></td>
@@ -961,7 +961,7 @@
                 <td>Neon Nails</td>
                 <td>Gel manikyr</td>
                 <td><strong>750 kr</strong></td>
-                <td><span class="status-badge status-badge--cancelled">Kansellert</span></td>
+                <td><span class="status status--cancelled">Kansellert</span></td>
               </tr>
               <tr>
                 <td><strong>10. mai 15:30</strong><br><span class="text-muted">Lørdag</span></td>
@@ -971,7 +971,7 @@
                 <td>Rosa Atelier</td>
                 <td>Press-on negler</td>
                 <td><strong>690 kr</strong></td>
-                <td><span class="status-badge status-badge--noshow">No-show</span></td>
+                <td><span class="status status--noshow">No-show</span></td>
               </tr>
               <tr>
                 <td><strong>10. mai 12:00</strong><br><span class="text-muted">Lørdag</span></td>
@@ -981,7 +981,7 @@
                 <td>Brun & Bryn</td>
                 <td>Bryn — microblading</td>
                 <td><strong>1 490 kr</strong></td>
-                <td><span class="status-badge status-badge--completed">Fullført</span></td>
+                <td><span class="status status--completed">Fullført</span></td>
               </tr>
               <tr>
                 <td><strong>9. mai 09:00</strong><br><span class="text-muted">Fredag</span></td>
@@ -991,7 +991,7 @@
                 <td>Bergen Beauty</td>
                 <td>Vipper — volum</td>
                 <td><strong>1 190 kr</strong></td>
-                <td><span class="status-badge status-badge--completed">Fullført</span></td>
+                <td><span class="status status--completed">Fullført</span></td>
               </tr>
               <tr>
                 <td><strong>8. mai 13:00</strong><br><span class="text-muted">Torsdag</span></td>
@@ -1001,7 +1001,7 @@
                 <td>Trondheim Nails</td>
                 <td>Gel manikyr</td>
                 <td><strong>650 kr</strong></td>
-                <td><span class="status-badge status-badge--completed">Fullført</span></td>
+                <td><span class="status status--completed">Fullført</span></td>
               </tr>
             </tbody>
           </table>
@@ -1061,31 +1061,31 @@
         </div>
 
         <!-- KPIs -->
-        <div class="kpi-grid kpi-grid--5" style="margin-bottom:24px;">
-          <div class="kpi-card">
-            <div class="kpi-card__label">Nye brukere</div>
-            <div class="kpi-card__value">142</div>
-            <div class="kpi-card__delta up"><i data-lucide="trending-up"></i> +34% vs. forrige</div>
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi__label">Nye brukere</div>
+            <div class="kpi__value">142</div>
+            <div class="kpi__delta"><i data-lucide="trending-up"></i> +34% vs. forrige</div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-card__label">Totalt brukere</div>
-            <div class="kpi-card__value">4 312</div>
-            <div class="kpi-card__delta up"><i data-lucide="trending-up"></i> +3.4%</div>
+          <div class="kpi">
+            <div class="kpi__label">Totalt brukere</div>
+            <div class="kpi__value">4 312</div>
+            <div class="kpi__delta"><i data-lucide="trending-up"></i> +3.4%</div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-card__label">Aktive (booket siste 30d)</div>
-            <div class="kpi-card__value">1 287</div>
-            <div class="kpi-card__delta up"><i data-lucide="trending-up"></i> +12%</div>
+          <div class="kpi">
+            <div class="kpi__label">Aktive (booket siste 30d)</div>
+            <div class="kpi__value">1 287</div>
+            <div class="kpi__delta"><i data-lucide="trending-up"></i> +12%</div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-card__label">Returrate</div>
-            <div class="kpi-card__value">64<span style="font-size:16px;color:var(--fg-muted);">%</span></div>
-            <div class="kpi-card__delta up"><i data-lucide="trending-up"></i> +2%</div>
+          <div class="kpi">
+            <div class="kpi__label">Returrate</div>
+            <div class="kpi__value">64<span class="kpi__unit">%</span></div>
+            <div class="kpi__delta"><i data-lucide="trending-up"></i> +2%</div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-card__label">Snitt bookinger/bruker</div>
-            <div class="kpi-card__value">2.8</div>
-            <div class="kpi-card__delta up"><i data-lucide="trending-up"></i> +0.3</div>
+          <div class="kpi">
+            <div class="kpi__label">Snitt bookinger/bruker</div>
+            <div class="kpi__value">2.8</div>
+            <div class="kpi__delta"><i data-lucide="trending-up"></i> +0.3</div>
           </div>
         </div>
 
@@ -1129,7 +1129,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
             <h3 class="admin-card__title">Siste registrerte brukere — Vipps-data</h3>
             <div style="display:flex; gap:8px;">
-              <div class="search-field" style="max-width:260px;">
+              <div class="search-input" style="max-width:260px;">
                 <i data-lucide="search"></i>
                 <input placeholder="Søk navn, telefon, e-post.." id="buSearch" />
               </div>
@@ -1141,7 +1141,7 @@
               </select>
             </div>
           </div>
-          <table class="admin-table" id="buTable">
+          <table class="data-table" id="buTable">
             <thead>
               <tr>
                 <th>Registrert</th>
@@ -1156,16 +1156,16 @@
               </tr>
             </thead>
             <tbody>
-              <tr><td><strong>I dag</strong></td><td><strong>Maria Solberg</strong></td><td>30</td><td>+47 912 34 567</td><td class="text-muted">maria.solberg@gmail.com</td><td class="text-muted">Thorvald Meyers gt 12, Oslo</td><td><strong>12</strong></td><td>I dag</td><td><span class="status-badge status-badge--confirmed">Aktiv</span></td></tr>
-              <tr><td><strong>I dag</strong></td><td><strong>Julie Andersen</strong></td><td>26</td><td>+47 412 34 567</td><td class="text-muted">julie.a@outlook.com</td><td class="text-muted">Olav Kyrres gate 12, Bergen</td><td><strong>1</strong></td><td>I dag</td><td><span class="status-badge status-badge--new">Ny</span></td></tr>
-              <tr><td><strong>I går</strong></td><td><strong>Nora Eriksen</strong></td><td>21</td><td>+47 423 45 678</td><td class="text-muted">nora.e@stud.ntnu.no</td><td class="text-muted">Elgeseter gate 1, Trondheim</td><td><strong>2</strong></td><td>I går</td><td><span class="status-badge status-badge--confirmed">Aktiv</span></td></tr>
-              <tr><td><strong>10. mai</strong></td><td><strong>Hanna Viken</strong></td><td>31</td><td>+47 901 23 456</td><td class="text-muted">hanna.v@gmail.com</td><td class="text-muted">Strandveien 4, Lysaker</td><td><strong>3</strong></td><td>10. mai</td><td><span class="status-badge status-badge--confirmed">Aktiv</span></td></tr>
-              <tr><td><strong>9. mai</strong></td><td><strong>Kristine Nordli</strong></td><td>27</td><td>+47 990 12 345</td><td class="text-muted">kristine.n@gmail.com</td><td class="text-muted">Sandakerveien 52, Oslo</td><td><strong>7</strong></td><td>10. mai</td><td><span class="status-badge status-badge--confirmed">Aktiv</span></td></tr>
-              <tr><td><strong>8. mai</strong></td><td><strong>Emilie Lund</strong></td><td>19</td><td>+47 956 78 901</td><td class="text-muted">emilie@lund.no</td><td class="text-muted">Grønlandsleiret 25, Oslo</td><td><strong>2</strong></td><td>I går</td><td><span class="status-badge status-badge--confirmed">Aktiv</span></td></tr>
-              <tr><td><strong>7. mai</strong></td><td><strong>Mari Haugen</strong></td><td>33</td><td>+47 967 89 012</td><td class="text-muted">mari.haugen@gmail.com</td><td class="text-muted">Thereses gate 28, Oslo</td><td><strong>15</strong></td><td>3 dager siden</td><td><span class="status-badge status-badge--confirmed">Aktiv</span></td></tr>
-              <tr><td><strong>5. mai</strong></td><td><strong>Sofie Pettersen</strong></td><td>23</td><td>+47 434 56 789</td><td class="text-muted">sofie.p@gmail.com</td><td class="text-muted">Bryggen 3, Bergen</td><td><strong>0</strong></td><td>—</td><td><span class="status-badge status-badge--pending">Aldri booket</span></td></tr>
-              <tr><td><strong>3. mai</strong></td><td><strong>Ingrid Olsen</strong></td><td>29</td><td>+47 445 67 890</td><td class="text-muted">ingrid.o@hotmail.com</td><td class="text-muted">Sørkedalsveien 14, Oslo</td><td><strong>4</strong></td><td>1 uke siden</td><td><span class="status-badge status-badge--confirmed">Aktiv</span></td></tr>
-              <tr><td><strong>28. apr</strong></td><td><strong>Camilla Dahl</strong></td><td>37</td><td>+47 456 78 901</td><td class="text-muted">camilla.d@firma.no</td><td class="text-muted">Vålandstårnet 1, Stavanger</td><td><strong>1</strong></td><td>4 uker siden</td><td><span class="status-badge status-badge--inactive">Inaktiv</span></td></tr>
+              <tr><td><strong>I dag</strong></td><td><strong>Maria Solberg</strong></td><td>30</td><td>+47 912 34 567</td><td class="text-muted">maria.solberg@gmail.com</td><td class="text-muted">Thorvald Meyers gt 12, Oslo</td><td><strong>12</strong></td><td>I dag</td><td><span class="status status--confirmed">Aktiv</span></td></tr>
+              <tr><td><strong>I dag</strong></td><td><strong>Julie Andersen</strong></td><td>26</td><td>+47 412 34 567</td><td class="text-muted">julie.a@outlook.com</td><td class="text-muted">Olav Kyrres gate 12, Bergen</td><td><strong>1</strong></td><td>I dag</td><td><span class="status status--new">Ny</span></td></tr>
+              <tr><td><strong>I går</strong></td><td><strong>Nora Eriksen</strong></td><td>21</td><td>+47 423 45 678</td><td class="text-muted">nora.e@stud.ntnu.no</td><td class="text-muted">Elgeseter gate 1, Trondheim</td><td><strong>2</strong></td><td>I går</td><td><span class="status status--confirmed">Aktiv</span></td></tr>
+              <tr><td><strong>10. mai</strong></td><td><strong>Hanna Viken</strong></td><td>31</td><td>+47 901 23 456</td><td class="text-muted">hanna.v@gmail.com</td><td class="text-muted">Strandveien 4, Lysaker</td><td><strong>3</strong></td><td>10. mai</td><td><span class="status status--confirmed">Aktiv</span></td></tr>
+              <tr><td><strong>9. mai</strong></td><td><strong>Kristine Nordli</strong></td><td>27</td><td>+47 990 12 345</td><td class="text-muted">kristine.n@gmail.com</td><td class="text-muted">Sandakerveien 52, Oslo</td><td><strong>7</strong></td><td>10. mai</td><td><span class="status status--confirmed">Aktiv</span></td></tr>
+              <tr><td><strong>8. mai</strong></td><td><strong>Emilie Lund</strong></td><td>19</td><td>+47 956 78 901</td><td class="text-muted">emilie@lund.no</td><td class="text-muted">Grønlandsleiret 25, Oslo</td><td><strong>2</strong></td><td>I går</td><td><span class="status status--confirmed">Aktiv</span></td></tr>
+              <tr><td><strong>7. mai</strong></td><td><strong>Mari Haugen</strong></td><td>33</td><td>+47 967 89 012</td><td class="text-muted">mari.haugen@gmail.com</td><td class="text-muted">Thereses gate 28, Oslo</td><td><strong>15</strong></td><td>3 dager siden</td><td><span class="status status--confirmed">Aktiv</span></td></tr>
+              <tr><td><strong>5. mai</strong></td><td><strong>Sofie Pettersen</strong></td><td>23</td><td>+47 434 56 789</td><td class="text-muted">sofie.p@gmail.com</td><td class="text-muted">Bryggen 3, Bergen</td><td><strong>0</strong></td><td>—</td><td><span class="status status--pending">Aldri booket</span></td></tr>
+              <tr><td><strong>3. mai</strong></td><td><strong>Ingrid Olsen</strong></td><td>29</td><td>+47 445 67 890</td><td class="text-muted">ingrid.o@hotmail.com</td><td class="text-muted">Sørkedalsveien 14, Oslo</td><td><strong>4</strong></td><td>1 uke siden</td><td><span class="status status--confirmed">Aktiv</span></td></tr>
+              <tr><td><strong>28. apr</strong></td><td><strong>Camilla Dahl</strong></td><td>37</td><td>+47 456 78 901</td><td class="text-muted">camilla.d@firma.no</td><td class="text-muted">Vålandstårnet 1, Stavanger</td><td><strong>1</strong></td><td>4 uker siden</td><td><span class="status status--inactive">Inaktiv</span></td></tr>
             </tbody>
           </table>
         </div>

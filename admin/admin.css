@@ -608,6 +608,10 @@ p { margin: 0 0 var(--space-4) 0; }
 
 .data-table tbody tr:hover { background: var(--stone-50); }
 
+.data-table--compact { font-size: 13px; }
+.data-table--compact thead th { padding: 0 10px 10px; }
+.data-table--compact tbody td { padding: 10px; }
+
 .td-name {
   font-weight: 600;
 }
@@ -656,6 +660,9 @@ p { margin: 0 0 var(--space-4) 0; }
 .status--confirmed { background: var(--success-50); color: var(--success-500); }
 .status--cancelled { background: var(--stone-100); color: var(--stone-500); }
 .status--completed { background: var(--cream-200); color: var(--stone-600); }
+.status--new { background: var(--rouge-50); color: var(--rouge-700); }
+.status--inactive { background: var(--stone-100); color: var(--stone-500); }
+.status--noshow { background: var(--danger-50); color: var(--danger-500); }
 
 /* =========================================================================
    Settings form
@@ -921,16 +928,12 @@ p { margin: 0 0 var(--space-4) 0; }
    Booking & User analyse
    ========================================================================= */
 
-.kpi-grid--5 { grid-template-columns: repeat(5, 1fr); }
-@media (max-width: 1100px) { .kpi-grid--5 { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 720px) { .kpi-grid--5 { grid-template-columns: 1fr 1fr; } }
-
 .period-btn {
   font-family: var(--font-body);
   font-weight: 500;
   font-size: 13px;
   padding: 7px 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--stone-200);
   background: var(--cream-50);
   cursor: pointer;
@@ -943,7 +946,7 @@ p { margin: 0 0 var(--space-4) 0; }
 .admin-card {
   background: var(--cream-50);
   border: 1px solid var(--stone-200);
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   padding: 24px;
 }
 .admin-card__title {
@@ -952,10 +955,6 @@ p { margin: 0 0 var(--space-4) 0; }
   font-size: 18px;
   margin: 0;
 }
-
-.admin-table--compact { font-size: 13px; }
-.admin-table--compact th { font-size: 11px; }
-.admin-table--compact td { padding: 10px 12px; }
 
 .text-muted { color: var(--fg-muted); font-size: 12px; }
 
@@ -990,12 +989,3 @@ p { margin: 0 0 var(--space-4) 0; }
   color: var(--ink);
   flex-shrink: 0;
 }
-
-.status-badge--new { background: #E0F5E4; color: #2D7A3A; }
-.status-badge--inactive { background: var(--stone-100); color: var(--fg-muted); }
-.status-badge--noshow { background: var(--stone-100); color: var(--fg-muted); }
-
-.kpi-card__delta { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; margin-top: 6px; padding: 3px 8px; border-radius: 999px; }
-.kpi-card__delta i { width: 12px; height: 12px; }
-.kpi-card__delta.up { background: #E7F1E7; color: #4F8A5B; }
-.kpi-card__delta.down { background: #FBE2E5; color: #C8324A; }
