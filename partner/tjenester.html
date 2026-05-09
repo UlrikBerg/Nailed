@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tjenester — nailed partner</title>
+  <link rel="icon" href="../assets/logo-mark.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="partner.css" />
+  <style>
+    .svc-toolbar {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .svc-toolbar__left { display: flex; gap: 8px; align-items: center; }
+    .svc-toolbar__search {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--cream-50); border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill); padding: 8px 16px; min-width: 260px;
+    }
+    .svc-toolbar__search i { width: 16px; height: 16px; color: var(--fg-muted); }
+    .svc-toolbar__search input {
+      border: 0; outline: 0; background: transparent;
+      font-family: var(--font-body); font-size: 14px; color: var(--ink); width: 100%;
+    }
+    .svc-toolbar__search input::placeholder { color: var(--stone-400); }
+
+    .svc-group { margin-bottom: 28px; }
+    .svc-group__head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px;
+    }
+    .svc-group__title {
+      font-family: var(--font-display); font-weight: 600; font-size: 20px; margin: 0;
+    }
+    .svc-group__count { font-size: 13px; color: var(--fg-muted); }
+
+    .svc-table {
+      background: var(--cream-50); border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg); overflow: hidden;
+    }
+    .svc-row {
+      display: grid;
+      grid-template-columns: 2fr 80px 90px 1.2fr 100px 70px;
+      gap: 12px; padding: 16px 20px; align-items: center;
+      border-bottom: 1px solid var(--stone-200);
+      transition: background var(--dur-fast);
+    }
+    .svc-row:last-child { border: 0; }
+    .svc-row:hover { background: var(--cream-100); }
+
+    .svc-row__name { font-weight: 600; font-size: 15px; }
+    .svc-row__desc { font-size: 12px; color: var(--fg-muted); margin-top: 2px; }
+    .svc-row__dur { font-size: 14px; color: var(--fg-muted); }
+    .svc-row__price { font-family: var(--font-display); font-weight: 700; font-size: 17px; }
+
+    .svc-row__artists { display: flex; gap: 4px; }
+    .svc-row__artist-dot {
+      width: 26px; height: 26px; border-radius: var(--radius-pill);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+    }
+
+    .svc-row__pop {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 12px; color: var(--fg-muted);
+    }
+    .svc-row__pop-bar {
+      width: 50px; height: 6px; background: var(--stone-100);
+      border-radius: var(--radius-pill); overflow: hidden;
+    }
+    .svc-row__pop-fill { height: 100%; border-radius: var(--radius-pill); background: var(--rouge-500); }
+
+    .svc-row__actions { display: flex; gap: 4px; justify-content: flex-end; }
+    .svc-row__action {
+      width: 28px; height: 28px; border-radius: var(--radius-pill);
+      border: 0; background: transparent; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--fg-muted);
+    }
+    .svc-row__action:hover { background: var(--stone-100); color: var(--ink); }
+    .svc-row__action i { width: 14px; height: 14px; }
+
+    .svc-row__toggle { position: relative; }
+    .svc-toggle {
+      width: 38px; height: 20px; border-radius: var(--radius-pill);
+      background: var(--stone-300); border: 0; cursor: pointer;
+      position: relative; transition: background var(--dur-fast);
+    }
+    .svc-toggle::after {
+      content: ""; position: absolute; top: 2px; left: 2px;
+      width: 16px; height: 16px; border-radius: var(--radius-pill);
+      background: white; transition: transform var(--dur-fast);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .svc-toggle.on { background: var(--rouge-500); }
+    .svc-toggle.on::after { transform: translateX(18px); }
+
+    /* Stats bar */
+    .svc-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 16px; margin-bottom: 28px;
+    }
+    .svc-stat {
+      background: var(--cream-50); border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg); padding: 18px 20px;
+    }
+    .svc-stat__label { font-size: 12px; color: var(--fg-muted); font-weight: 600; }
+    .svc-stat__value {
+      font-family: var(--font-display); font-weight: 700; font-size: 28px;
+      color: var(--ink); margin-top: 4px; line-height: 1;
+    }
+    .svc-stat__sub { font-size: 12px; color: var(--fg-muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <aside class="sidebar">
+      <a class="sidebar__brand" href="index.html"><img src="../assets/logo-wordmark.svg" alt="nailed" /></a>
+      <button class="nav-item" onclick="location.href='index.html'"><i data-lucide="layout-dashboard"></i> Oversikt</button>
+      <button class="nav-item" onclick="location.href='kalender.html'"><i data-lucide="calendar"></i> Kalender</button>
+      <button class="nav-item" onclick="location.href='bookinger.html'"><i data-lucide="list"></i> Bookinger <span class="nav-item__count">7</span></button>
+      <button class="nav-item active"><i data-lucide="sparkles"></i> Tjenester</button>
+      <button class="nav-item" onclick="location.href='kunder.html'"><i data-lucide="users"></i> Kunder</button>
+      <button class="nav-item" onclick="location.href='meldinger.html'"><i data-lucide="message-circle"></i> Meldinger <span class="nav-item__count">2</span></button>
+      <div class="sidebar__section">Salong</div>
+      <button class="nav-item" onclick="location.href='profil.html'"><i data-lucide="image"></i> Profil</button>
+      <button class="nav-item" onclick="location.href='innsikt.html'"><i data-lucide="bar-chart-3"></i> Innsikt</button>
+      <button class="nav-item"><i data-lucide="crown"></i> Abonnement</button>
+      <button class="nav-item" onclick="location.href='settings.html'"><i data-lucide="settings"></i> Innstillinger</button>
+      <div class="sidebar__footer">
+        <div class="sidebar__avatar">SL</div>
+        <div><div class="sidebar__user">Studio Lakk</div><div class="sidebar__role">Linn Andersen</div></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1 class="topbar__title">Tjenester</h1>
+          <div class="topbar__sub">Administrer behandlinger og priser.</div>
+        </div>
+        <div class="topbar__actions">
+          <button class="btn btn-primary"><i data-lucide="plus"></i> Ny tjeneste</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="svc-stats">
+        <div class="svc-stat">
+          <div class="svc-stat__label">Totalt tjenester</div>
+          <div class="svc-stat__value">12</div>
+          <div class="svc-stat__sub">10 aktive · 2 skjulte</div>
+        </div>
+        <div class="svc-stat">
+          <div class="svc-stat__label">Snittpris</div>
+          <div class="svc-stat__value">586 <span style="font-size:16px; color:var(--fg-muted);">kr</span></div>
+          <div class="svc-stat__sub">fra 90 til 890 kr</div>
+        </div>
+        <div class="svc-stat">
+          <div class="svc-stat__label">Mest booket</div>
+          <div class="svc-stat__value" style="font-size:20px;">Gel manikyr</div>
+          <div class="svc-stat__sub">66 bookinger siste 30 dager</div>
+        </div>
+        <div class="svc-stat">
+          <div class="svc-stat__label">Snitt varighet</div>
+          <div class="svc-stat__value">54 <span style="font-size:16px; color:var(--fg-muted);">min</span></div>
+          <div class="svc-stat__sub">per behandling</div>
+        </div>
+      </div>
+
+      <div class="svc-toolbar">
+        <div class="svc-toolbar__left">
+          <div class="svc-toolbar__search">
+            <i data-lucide="search"></i>
+            <input placeholder="Søk etter tjeneste.." />
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <select class="btn btn-ghost btn-sm" style="padding-right:12px;">
+            <option>Alle kategorier</option>
+            <option>Manikyr</option>
+            <option>Pedikyr</option>
+            <option>Tillegg</option>
+          </select>
+          <select class="btn btn-ghost btn-sm" style="padding-right:12px;">
+            <option>Sortér: Mest booket</option>
+            <option>Pris: Lav → Høy</option>
+            <option>Pris: Høy → Lav</option>
+            <option>Navn A–Å</option>
+            <option>Varighet</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Manikyr -->
+      <div class="svc-group">
+        <div class="svc-group__head">
+          <h3 class="svc-group__title">Manikyr</h3>
+          <span class="svc-group__count">6 tjenester</span>
+        </div>
+        <div class="svc-table">
+          <div class="svc-row">
+            <div><div class="svc-row__name">Gel manikyr</div><div class="svc-row__desc">Langtidsholbar gel med LED-herding</div></div>
+            <div class="svc-row__dur">75 min</div>
+            <div class="svc-row__price">690 kr</div>
+            <div class="svc-row__artists">
+              <div class="svc-row__artist-dot" style="background:var(--rouge-100); color:var(--rouge-700);">LA</div>
+              <div class="svc-row__artist-dot" style="background:#DDE3D2; color:var(--sage-700);">MH</div>
+            </div>
+            <div class="svc-row__pop"><div class="svc-row__pop-bar"><div class="svc-row__pop-fill" style="width:100%;"></div></div> 66</div>
+            <div class="svc-row__actions">
+              <button class="svc-toggle on"></button>
+              <button class="svc-row__action"><i data-lucide="pencil"></i></button>
+              <button class="svc-row__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+          <div class="svc-row">
+            <div><div class="svc-row__name">Gel + neglekunst</div><div class="svc-row__desc">Gel med håndmalt design eller stamping</div></div>
+            <div class="svc-row__dur">90 min</div>
+            <div class="svc-row__price">890 kr</div>
+            <div class="svc-row__artists">
+              <div class="svc-row__artist-dot" style="background:#DDE3D2; color:var(--sage-700);">MH</div>
+            </div>
+            <div class="svc-row__pop"><div class="svc-row__pop-bar"><div class="svc-row__pop-fill" style="width:65%;"></div></div> 43</div>
+            <div class="svc-row__actions">
+              <button class="svc-toggle on"></button>
+              <button class="svc-row__action"><i data-lucide="pencil"></i></button>
+              <button class="svc-row__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+          <div class="svc-row">
+            <div><div class="svc-row__name">Klassisk manikyr</div><div class="svc-row__desc">Filing, neglebånd, lakkering</div></div>
+            <div class="svc-row__dur">45 min</div>
+            <div class="svc-row__price">490 kr</div>
+            <div class="svc-row__artists">
+              <div class="svc-row__artist-dot" style="background:var(--rouge-100); color:var(--rouge-700);">LA</div>
+              <div class="svc-row__artist-dot" style="background:var(--cream-200); color:var(--stone-700);">AK</div>
+            </div>
+            <div class="svc-row__pop"><div class="svc-row__pop-bar"><div class="svc-row__pop-fill" style="width:23%;"></div></div> 15</div>
+            <div class="svc-row__actions">
+              <button class="svc-toggle on"></button>
+              <button class="svc-row__action"><i data-lucide="pencil"></i></button>
+              <button class="svc-row__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+          <div class="svc-row">
+            <div><div class="svc-row__name">Bio-gel manikyr</div><div class="svc-row__desc">Giftfri bio-gel, skånsom for neglene</div></div>
+            <div class="svc-row__dur">75 min</div>
+            <div class="svc-row__price">790 kr</div>
+            <div class="svc-row__artists">
+              <div class="svc-row__artist-dot" style="background:var(--rouge-100); color:var(--rouge-700);">LA</div>
+            </div>
+            <div class="svc-row__pop"><div class="svc-row__pop-bar"><div class="svc-row__pop-fill" style="width:14%;"></div></div> 9</div>
+            <div class="svc-row__actions">
+              <button class="svc-toggle on"></button>
+              <button class="svc-row__action"><i data-lucide="pencil"></i></button>
+              <button class="svc-row__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+          <div class="svc-row">
+            <div><div class="svc-row__name">French manikyr</div><div class="svc-row__desc">Klassisk hvit spiss med naturlig base</div></div>
+            <div class="svc-row__dur">60 min</div>
+            <div class="svc-row__price">590 kr</div>
+            <div class="svc-row__artists">
+              <div class="svc-row__artist-dot" style="background:#DDE3D2; color:var(--sage-700);">MH</div>
+            </div>
+            <div class="svc-row__pop"><div class="svc-row__pop-bar"><div class="svc-row__pop-fill" style="width:18%;"></div></div> 12</div>
+            <div class="svc-row__actions">
+              <button class="svc-toggle on"></button>
+              <button class="svc-row__action"><i data-lucide="pencil"></i></button>
+              <button class="svc-row__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+          <div class="svc-row" style="opacity:0.55;">
+            <div><div class="svc-row__name">Press-on negler</div><div class="svc-row__desc">Ferdiglagde negler, raskt og enkelt</div></div>
+            <div class="svc-row__dur">45 min</div>
+            <div class="svc-row__price">690 kr</div>
+            <div class="svc-row__artists">
+              <div class="svc-row__artist-dot" style="background:#DDE3D2; color:var(--sage-700);">MH</div>
+            </div>
+            <div class="svc-row__pop"><div class="svc-row__pop-bar"><div class="svc-row__pop-fill" style="width:5%;"></div></div> 3</div>
+            <div class="svc-row__actions">
+              <button class="svc-toggle"></button>
+              <button class="svc-row__action"><i data-lucide="pencil"></i></button>
+              <button class="svc-row__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pedikyr -->
+      <div class="svc-group">
+        <div class="svc-group__head">
+          <h3 class="svc-group__title">Pedikyr</h3>
+          <span class="svc-group__count">3 tjenester</span>
+        </div>
+        <div class="svc-table">
+          <div class="svc-row">
+            <div><div class="svc-row__name">Pedikyr — luksus</div><div class="svc-row__desc">Fotbad, peeling, massasje, lakkering</div></div>
+            <div class="svc-row__dur">60 min</div>
+            <div class="svc-row__price">790 kr</div>
+            <div class="svc-row__artists">
+              <div class="svc-row__artist-dot" style="background:var(--rouge-100); color:var(--rouge-700);">LA</div>
+            </div>
+            <div class="svc-row__pop"><div class="svc-row__pop-bar"><div class="svc-row__pop-fill" style="width:42%;"></div></div> 28</div>
+            <div class="svc-row__actions">
+              <button class="svc-toggle on"></button>
+              <button class="svc-row__action"><i data-lucide="pencil"></i></button>
+              <button class="svc-row__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+          <div class="svc-row">
+            <div><div class="svc-row__name">Klassisk pedikyr</div><div class="svc-row__desc">Filing, neglebånd og lakkering</div></div>
+            <div class="svc-row__dur">45 min</div>
+            <div class="svc-row__price">590 kr</div>
+            <div class="svc-row__artists">
+              <div class="svc-row__artist-dot" style="background:var(--rouge-100); color:var(--rouge-700);">LA</div>
+            </div>
+            <div class="svc-row__pop"><div class="svc-row__pop-bar"><div class="svc-row__pop-fill" style="width:12%;"></div></div> 8</div>
+            <div class="svc-row__actions">
+              <button class="svc-toggle on"></button>
+              <button class="svc-row__action"><i data-lucide="pencil"></i></button>
+              <button class="svc-row__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+          <div class="svc-row">
+            <div><div class="svc-row__name">Gel pedikyr</div><div class="svc-row__desc">Langvarig gel-lakkering på tær</div></div>
+            <div class="svc-row__dur">75 min</div>
+            <div class="svc-row__price">890 kr</div>
+            <div class="svc-row__artists">
+              <div class="svc-row__artist-dot" style="background:var(--rouge-100); color:var(--rouge-700);">LA</div>
+            </div>
+            <div class="svc-row__pop"><div class="svc-row__pop-bar"><div class="svc-row__pop-fill" style="width:8%;"></div></div> 5</div>
+            <div class="svc-row__actions">
+              <button class="svc-toggle on"></button>
+              <button class="svc-row__action"><i data-lucide="pencil"></i></button>
+              <button class="svc-row__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tillegg -->
+      <div class="svc-group">
+        <div class="svc-group__head">
+          <h3 class="svc-group__title">Tillegg</h3>
+          <span class="svc-group__count">3 tjenester</span>
+        </div>
+        <div class="svc-table">
+          <div class="svc-row">
+            <div><div class="svc-row__name">Fjerning av gel</div><div class="svc-row__desc">Skånsom fjerning med aceton-wraps</div></div>
+            <div class="svc-row__dur">30 min</div>
+            <div class="svc-row__price">290 kr</div>
+            <div class="svc-row__artists">
+              <div class="svc-row__artist-dot" style="background:var(--rouge-100); color:var(--rouge-700);">LA</div>
+              <div class="svc-row__artist-dot" style="background:#DDE3D2; color:var(--sage-700);">MH</div>
+              <div class="svc-row__artist-dot" style="background:var(--cream-200); color:var(--stone-700);">AK</div>
+            </div>
+            <div class="svc-row__pop"><div class="svc-row__pop-bar"><div class="svc-row__pop-fill" style="width:15%;"></div></div> 10</div>
+            <div class="svc-row__actions">
+              <button class="svc-toggle on"></button>
+              <button class="svc-row__action"><i data-lucide="pencil"></i></button>
+              <button class="svc-row__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+          <div class="svc-row" style="opacity:0.55;">
+            <div><div class="svc-row__name">Reparasjon (per negl)</div><div class="svc-row__desc">Rask fix av enkeltnegler</div></div>
+            <div class="svc-row__dur">15 min</div>
+            <div class="svc-row__price">90 kr</div>
+            <div class="svc-row__artists">
+              <div class="svc-row__artist-dot" style="background:var(--rouge-100); color:var(--rouge-700);">LA</div>
+              <div class="svc-row__artist-dot" style="background:#DDE3D2; color:var(--sage-700);">MH</div>
+              <div class="svc-row__artist-dot" style="background:var(--cream-200); color:var(--stone-700);">AK</div>
+            </div>
+            <div class="svc-row__pop"><div class="svc-row__pop-bar"><div class="svc-row__pop-fill" style="width:3%;"></div></div> 2</div>
+            <div class="svc-row__actions">
+              <button class="svc-toggle"></button>
+              <button class="svc-row__action"><i data-lucide="pencil"></i></button>
+              <button class="svc-row__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+          <div class="svc-row">
+            <div><div class="svc-row__name">Håndmassasje 15 min</div><div class="svc-row__desc">Avslappende massasje med lotion</div></div>
+            <div class="svc-row__dur">15 min</div>
+            <div class="svc-row__price">190 kr</div>
+            <div class="svc-row__artists">
+              <div class="svc-row__artist-dot" style="background:var(--rouge-100); color:var(--rouge-700);">LA</div>
+            </div>
+            <div class="svc-row__pop"><div class="svc-row__pop-bar"><div class="svc-row__pop-fill" style="width:6%;"></div></div> 4</div>
+            <div class="svc-row__actions">
+              <button class="svc-toggle on"></button>
+              <button class="svc-row__action"><i data-lucide="pencil"></i></button>
+              <button class="svc-row__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    document.querySelectorAll('.svc-toggle').forEach(function(toggle) {
+      toggle.addEventListener('click', function() {
+        toggle.classList.toggle('on');
+        var row = toggle.closest('.svc-row');
+        row.style.opacity = toggle.classList.contains('on') ? '1' : '0.55';
+      });
+    });
+  </script>
+</body>
+</html>
