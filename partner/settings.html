@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Innstillinger — nailed partner</title>
+  <link rel="icon" href="../assets/logo-mark.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="partner.css" />
+  <style>
+    /* Settings page specific */
+    .settings-nav { display: flex; gap: 4px; margin-bottom: 32px; border-bottom: 1px solid var(--stone-200); }
+    .settings-nav__tab {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 20px;
+      border: 0;
+      background: transparent;
+      color: var(--fg-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all var(--dur-fast);
+    }
+    .settings-nav__tab:hover { color: var(--ink); }
+    .settings-nav__tab.active { color: var(--ink); border-bottom-color: var(--rouge-500); }
+
+    .settings-section { display: none; }
+    .settings-section.active { display: block; }
+
+    .settings-card {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    .settings-card__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .settings-card__title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 20px;
+      margin: 0;
+    }
+    .settings-card__desc {
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin: 4px 0 0;
+    }
+
+    .field-group { display: flex; flex-direction: column; gap: 20px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 720px) { .field-row { grid-template-columns: 1fr; } }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field__label {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .field__hint { font-size: 12px; color: var(--fg-muted); margin-top: 2px; }
+    .field__input {
+      font-family: var(--font-body);
+      font-size: 15px;
+      padding: 12px 16px;
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      background: var(--cream-100);
+      color: var(--ink);
+      outline: none;
+      transition: border-color var(--dur-fast);
+    }
+    .field__input:focus { border-color: var(--rouge-500); }
+    .field__input::placeholder { color: var(--stone-400); }
+    textarea.field__input { resize: vertical; min-height: 80px; }
+    select.field__input { cursor: pointer; }
+
+    .field__toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      background: var(--cream-100);
+    }
+    .field__toggle-text { font-size: 14px; }
+    .field__toggle-text strong { display: block; font-weight: 600; }
+    .field__toggle-text span { font-size: 12px; color: var(--fg-muted); }
+    .toggle {
+      width: 44px;
+      height: 24px;
+      border-radius: var(--radius-pill);
+      background: var(--stone-300);
+      border: 0;
+      cursor: pointer;
+      position: relative;
+      transition: background var(--dur-fast);
+      flex-shrink: 0;
+    }
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: var(--radius-pill);
+      background: white;
+      transition: transform var(--dur-fast);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .toggle.on { background: var(--rouge-500); }
+    .toggle.on::after { transform: translateX(20px); }
+
+    /* Integration cards */
+    .integration {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px;
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      background: var(--cream-100);
+      transition: border-color var(--dur-fast);
+    }
+    .integration:hover { border-color: var(--stone-400); }
+    .integration.connected { border-color: var(--success-500); background: var(--success-50); }
+    .integration__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .integration__icon--fiken { background: #1B2A4A; color: white; }
+    .integration__icon--tripletex { background: #00A651; color: white; }
+    .integration__icon--vipps { background: #FF5B24; color: white; }
+    .integration__icon--google { background: var(--cream-50); border: 1px solid var(--stone-200); color: var(--ink); }
+    .integration__info { flex: 1; }
+    .integration__name { font-weight: 600; font-size: 15px; }
+    .integration__desc { font-size: 13px; color: var(--fg-muted); margin-top: 2px; }
+    .integration__status {
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+    }
+    .integration__status--connected { background: var(--success-50); color: var(--success-500); }
+    .integration__status--disconnected { background: var(--stone-100); color: var(--fg-muted); }
+
+    /* Payment method cards */
+    .pay-method {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      background: var(--cream-100);
+    }
+    .pay-method__icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .pay-method__info { flex: 1; }
+    .pay-method__name { font-weight: 600; font-size: 14px; }
+    .pay-method__detail { font-size: 12px; color: var(--fg-muted); margin-top: 2px; }
+
+    .settings-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--stone-200);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <a class="sidebar__brand" href="index.html"><img src="../assets/logo-wordmark.svg" alt="nailed" /></a>
+
+      <button class="nav-item" onclick="location.href='index.html'"><i data-lucide="layout-dashboard"></i> Oversikt</button>
+      <button class="nav-item"><i data-lucide="calendar"></i> Kalender</button>
+      <button class="nav-item"><i data-lucide="list"></i> Bookinger <span class="nav-item__count">7</span></button>
+      <button class="nav-item"><i data-lucide="sparkles"></i> Tjenester</button>
+      <button class="nav-item"><i data-lucide="users"></i> Kunder</button>
+      <button class="nav-item"><i data-lucide="message-circle"></i> Meldinger <span class="nav-item__count">2</span></button>
+
+      <div class="sidebar__section">Salong</div>
+      <button class="nav-item"><i data-lucide="image"></i> Profil</button>
+      <button class="nav-item"><i data-lucide="bar-chart-3"></i> Innsikt</button>
+      <button class="nav-item"><i data-lucide="credit-card"></i> Utbetaling</button>
+      <button class="nav-item active"><i data-lucide="settings"></i> Innstillinger</button>
+
+      <div class="sidebar__footer">
+        <div class="sidebar__avatar">SL</div>
+        <div>
+          <div class="sidebar__user">Studio Lakk</div>
+          <div class="sidebar__role">Linn Andersen</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1 class="topbar__title">Innstillinger</h1>
+          <div class="topbar__sub">Administrer profil, utbetalinger og integrasjoner.</div>
+        </div>
+      </div>
+
+      <!-- Settings tabs -->
+      <div class="settings-nav" id="settingsNav">
+        <button class="settings-nav__tab active" data-tab="profile">Profil</button>
+        <button class="settings-nav__tab" data-tab="payout">Utbetalinger</button>
+        <button class="settings-nav__tab" data-tab="integrations">Integrasjoner</button>
+        <button class="settings-nav__tab" data-tab="notifications">Varsler</button>
+      </div>
+
+      <!-- ============================================================
+           Profil
+           ============================================================ -->
+      <div class="settings-section active" id="tab-profile">
+        <div class="settings-card">
+          <div class="settings-card__head">
+            <div>
+              <h3 class="settings-card__title">Salonginformasjon</h3>
+              <p class="settings-card__desc">Informasjonen vises på din offentlige profil.</p>
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="field-row">
+              <div class="field">
+                <label class="field__label">Salongnavn</label>
+                <input class="field__input" value="Studio Lakk" />
+              </div>
+              <div class="field">
+                <label class="field__label">Kontaktperson</label>
+                <input class="field__input" value="Linn Andersen" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field__label">E-post</label>
+                <input class="field__input" type="email" value="hei@studiolakk.no" />
+              </div>
+              <div class="field">
+                <label class="field__label">Telefon</label>
+                <input class="field__input" value="+47 22 35 12 34" />
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label">Beskrivelse</label>
+              <textarea class="field__input">Et lite atelier på Grünerløkka som tror at en negl kan være et lerret. Vi jobber med bio-gel og giftfrie produkter.</textarea>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field__label">Adresse</label>
+                <input class="field__input" value="Markveien 22, 0554 Oslo" />
+              </div>
+              <div class="field">
+                <label class="field__label">Org.nummer</label>
+                <input class="field__input" value="912 345 678" />
+              </div>
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-ghost">Avbryt</button>
+            <button class="btn btn-primary">Lagre endringer</button>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card__head">
+            <div>
+              <h3 class="settings-card__title">Åpningstider</h3>
+              <p class="settings-card__desc">Kundene ser disse tidene når de booker.</p>
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="field-row">
+              <div class="field">
+                <label class="field__label">Mandag – fredag</label>
+                <input class="field__input" value="09:00 – 18:00" />
+              </div>
+              <div class="field">
+                <label class="field__label">Lørdag</label>
+                <input class="field__input" value="10:00 – 16:00" />
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label">Søndag</label>
+              <input class="field__input" value="Stengt" />
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-primary">Lagre åpningstider</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           Utbetalinger
+           ============================================================ -->
+      <div class="settings-section" id="tab-payout">
+        <div class="settings-card">
+          <div class="settings-card__head">
+            <div>
+              <h3 class="settings-card__title">Bankkonto</h3>
+              <p class="settings-card__desc">Kunden betaler direkte hos deg. Denne kontoen brukes kun for eventuell fakturering via nailed.</p>
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="field-row">
+              <div class="field">
+                <label class="field__label">Kontonummer</label>
+                <input class="field__input" value="1234 56 78901" placeholder="Skriv inn kontonummer" />
+              </div>
+              <div class="field">
+                <label class="field__label">Kontoinnehaver</label>
+                <input class="field__input" value="Studio Lakk AS" />
+              </div>
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-primary">Lagre bankkonto</button>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card__head">
+            <div>
+              <h3 class="settings-card__title">Betalingsmetoder i salongen</h3>
+              <p class="settings-card__desc">Vis kundene hvilke betalingsmetoder du aksepterer.</p>
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="field__toggle">
+              <div class="field__toggle-text">
+                <strong>Vipps</strong>
+                <span>Kunden betaler med Vipps i salongen</span>
+              </div>
+              <button class="toggle on" id="toggleVipps"></button>
+            </div>
+            <div class="field__toggle">
+              <div class="field__toggle-text">
+                <strong>Kort / terminal</strong>
+                <span>Kortterminal i salongen</span>
+              </div>
+              <button class="toggle on" id="toggleCard"></button>
+            </div>
+            <div class="field__toggle">
+              <div class="field__toggle-text">
+                <strong>Kontant</strong>
+                <span>Aksepterer kontant betaling</span>
+              </div>
+              <button class="toggle" id="toggleCash"></button>
+            </div>
+            <div class="field__toggle">
+              <div class="field__toggle-text">
+                <strong>Faktura</strong>
+                <span>Send faktura etter behandling</span>
+              </div>
+              <button class="toggle" id="toggleInvoice"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           Integrasjoner
+           ============================================================ -->
+      <div class="settings-section" id="tab-integrations">
+        <div class="settings-card">
+          <div class="settings-card__head">
+            <div>
+              <h3 class="settings-card__title">Regnskap</h3>
+              <p class="settings-card__desc">Koble til regnskapssystemet ditt for automatisk bokføring av bookinger og inntekter.</p>
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="integration">
+              <div class="integration__icon integration__icon--fiken">fiken</div>
+              <div class="integration__info">
+                <div class="integration__name">Fiken</div>
+                <div class="integration__desc">Automatisk bokføring, faktura og MVA-rapportering.</div>
+              </div>
+              <button class="btn btn-ghost btn-sm">Koble til</button>
+            </div>
+            <div class="integration">
+              <div class="integration__icon integration__icon--tripletex">T</div>
+              <div class="integration__info">
+                <div class="integration__name">Tripletex</div>
+                <div class="integration__desc">Synkroniser inntekter, kunder og fakturering.</div>
+              </div>
+              <button class="btn btn-ghost btn-sm">Koble til</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card__head">
+            <div>
+              <h3 class="settings-card__title">Betaling & verifisering</h3>
+              <p class="settings-card__desc">Tjenester som er koblet til din nailed-konto.</p>
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="integration connected">
+              <div class="integration__icon integration__icon--vipps">vipps</div>
+              <div class="integration__info">
+                <div class="integration__name">Vipps MobilePay</div>
+                <div class="integration__desc">Brukes til kundeverifisering ved booking.</div>
+              </div>
+              <span class="integration__status integration__status--connected"><i data-lucide="check" style="width:12px;height:12px;"></i> Tilkoblet</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card__head">
+            <div>
+              <h3 class="settings-card__title">Kalender & sosiale medier</h3>
+              <p class="settings-card__desc">Synkroniser bookinger med kalenderen din og vis profilen på sosiale medier.</p>
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="integration">
+              <div class="integration__icon integration__icon--google">G</div>
+              <div class="integration__info">
+                <div class="integration__name">Google Calendar</div>
+                <div class="integration__desc">Synkroniser bookinger til Google-kalenderen din automatisk.</div>
+              </div>
+              <button class="btn btn-ghost btn-sm">Koble til</button>
+            </div>
+            <div class="integration">
+              <div class="integration__icon" style="background:linear-gradient(135deg, #833AB4, #FD1D1D, #F77737); color:white;">
+                <i data-lucide="instagram" style="width:20px;height:20px;"></i>
+              </div>
+              <div class="integration__info">
+                <div class="integration__name">Instagram</div>
+                <div class="integration__desc">Vis Instagram-feeden din på salongsiden.</div>
+              </div>
+              <button class="btn btn-ghost btn-sm">Koble til</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           Varsler
+           ============================================================ -->
+      <div class="settings-section" id="tab-notifications">
+        <div class="settings-card">
+          <div class="settings-card__head">
+            <div>
+              <h3 class="settings-card__title">Varsler</h3>
+              <p class="settings-card__desc">Velg hvordan du vil bli varslet om nye bookinger og endringer.</p>
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="field__toggle">
+              <div class="field__toggle-text">
+                <strong>Ny booking</strong>
+                <span>Få varsel når en kunde booker en time</span>
+              </div>
+              <button class="toggle on"></button>
+            </div>
+            <div class="field__toggle">
+              <div class="field__toggle-text">
+                <strong>Avbestilling</strong>
+                <span>Få varsel når en kunde avbestiller</span>
+              </div>
+              <button class="toggle on"></button>
+            </div>
+            <div class="field__toggle">
+              <div class="field__toggle-text">
+                <strong>Ny anmeldelse</strong>
+                <span>Få varsel når en kunde legger igjen en anmeldelse</span>
+              </div>
+              <button class="toggle on"></button>
+            </div>
+            <div class="field__toggle">
+              <div class="field__toggle-text">
+                <strong>Daglig oppsummering</strong>
+                <span>Motta en e-post hver morgen med dagens bookinger</span>
+              </div>
+              <button class="toggle"></button>
+            </div>
+            <div class="field__toggle">
+              <div class="field__toggle-text">
+                <strong>Ukentlig rapport</strong>
+                <span>Omsetning, belegg og anmeldelser — sendt hver mandag</span>
+              </div>
+              <button class="toggle on"></button>
+            </div>
+          </div>
+          <div class="field-row" style="margin-top:20px;">
+            <div class="field">
+              <label class="field__label">Varsel via</label>
+              <select class="field__input">
+                <option>SMS og e-post</option>
+                <option>Kun e-post</option>
+                <option>Kun SMS</option>
+                <option>Push-varsler (kommer snart)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Tab switching
+    document.getElementById('settingsNav').addEventListener('click', function(e) {
+      var tab = e.target.closest('[data-tab]');
+      if (!tab) return;
+      document.querySelectorAll('.settings-nav__tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.settings-section').forEach(function(s) { s.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+
+    // Toggle switches
+    document.querySelectorAll('.toggle').forEach(function(toggle) {
+      toggle.addEventListener('click', function() {
+        toggle.classList.toggle('on');
+      });
+    });
+  </script>
+</body>
+</html>
