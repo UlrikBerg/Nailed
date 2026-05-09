@@ -28,16 +28,30 @@ function isFavorite(salonId) {
   return getFavorites().indexOf(salonId) >= 0;
 }
 
+function styleHeart(btn, active) {
+  var icon = btn.querySelector('svg') || btn.querySelector('i');
+  if (!icon) return;
+  if (active) {
+    icon.style.color = 'var(--rouge-500)';
+    icon.style.fill = 'var(--rouge-500)';
+    icon.setAttribute('fill', '#EE3F7E');
+    icon.style.stroke = '#EE3F7E';
+  } else {
+    icon.style.color = '';
+    icon.style.fill = '';
+    icon.removeAttribute('fill');
+    icon.style.stroke = '';
+  }
+}
+
 function initFavorites() {
   var favs = getFavorites();
 
   // Style all heart buttons based on saved state
   document.querySelectorAll('[data-fav]').forEach(function(btn) {
     var id = btn.getAttribute('data-fav');
-    var icon = btn.querySelector('i');
-    if (favs.indexOf(id) >= 0 && icon) {
-      icon.style.color = 'var(--rouge-500)';
-      icon.style.fill = 'var(--rouge-500)';
+    if (favs.indexOf(id) >= 0) {
+      styleHeart(btn, true);
     }
   });
 
@@ -48,11 +62,8 @@ function initFavorites() {
       e.preventDefault();
       var id = btn.getAttribute('data-fav');
       var isNowFav = toggleFavorite(id);
-      var icon = btn.querySelector('i');
-      if (icon) {
-        icon.style.color = isNowFav ? 'var(--rouge-500)' : '';
-        icon.style.fill = isNowFav ? 'var(--rouge-500)' : '';
-      }
+      styleHeart(btn, isNowFav);
+      updateNavHeart();
     });
   });
 
@@ -61,9 +72,8 @@ function initFavorites() {
 }
 
 function updateNavHeart() {
-  var navHeart = document.querySelector('.btn-icon [data-lucide="heart"]');
-  if (!navHeart) return;
-  var btn = navHeart.closest('.btn-icon');
+  var btn = document.querySelector('.btn-icon[data-fav]') || document.querySelector('.top-nav__actions .btn-icon');
+  if (!btn) return;
   if (!btn) return;
   var count = getFavorites().length;
   var badge = btn.querySelector('.fav-badge');
