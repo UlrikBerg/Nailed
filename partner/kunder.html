@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kunder — nailed partner</title>
+  <link rel="icon" href="../assets/logo-mark.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="partner.css" />
+  <style>
+    .customers-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .customers-search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill);
+      padding: 8px 16px;
+      flex: 1;
+      max-width: 400px;
+    }
+    .customers-search i { width: 16px; height: 16px; color: var(--fg-muted); flex-shrink: 0; }
+    .customers-search input {
+      border: 0; outline: 0; background: transparent;
+      font-family: var(--font-body); font-size: 14px; color: var(--ink); width: 100%;
+    }
+    .customers-search input::placeholder { color: var(--stone-400); }
+
+    .customers-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .cstat {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+    }
+    .cstat__label { font-size: 12px; color: var(--fg-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .cstat__value { font-family: var(--font-display); font-weight: 700; font-size: 32px; color: var(--ink); margin-top: 6px; line-height: 1; }
+    .cstat__sub { font-size: 12px; color: var(--fg-muted); margin-top: 4px; }
+
+    .customers-table {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .ct-head {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr 1fr 1fr 0.8fr 60px;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--stone-200);
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--fg-muted);
+      align-items: center;
+    }
+    .ct-row {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr 1fr 1fr 0.8fr 60px;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--stone-200);
+      align-items: center;
+      transition: background var(--dur-fast);
+    }
+    .ct-row:last-child { border-bottom: 0; }
+    .ct-row:hover { background: var(--cream-100); }
+
+    .ct-customer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ct-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-pill);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .ct-name { font-weight: 600; font-size: 14px; }
+    .ct-contact { font-size: 12px; color: var(--fg-muted); margin-top: 1px; }
+    .ct-cell { font-size: 14px; }
+    .ct-cell--muted { color: var(--fg-muted); font-size: 13px; }
+
+    .ct-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .ct-rating i { width: 12px; height: 12px; color: var(--rouge-500); fill: var(--rouge-500); }
+
+    .ct-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      display: inline-block;
+    }
+    .ct-tag--loyal { background: var(--rouge-50); color: var(--rouge-700); }
+    .ct-tag--new { background: var(--success-50); color: var(--success-500); }
+    .ct-tag--inactive { background: var(--stone-100); color: var(--fg-muted); }
+
+    .ct-actions {
+      display: flex;
+      gap: 4px;
+      justify-content: flex-end;
+    }
+    .ct-action {
+      width: 28px; height: 28px;
+      border-radius: var(--radius-pill);
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg-muted);
+      transition: all var(--dur-fast);
+    }
+    .ct-action:hover { background: var(--stone-100); color: var(--ink); }
+    .ct-action i { width: 14px; height: 14px; }
+
+    .customers-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+    .customers-pager {
+      display: flex;
+      gap: 4px;
+    }
+    .customers-pager button {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--ink);
+    }
+    .customers-pager button.active { background: var(--ink); color: var(--cream-50); border-color: var(--ink); }
+    .customers-pager button:hover:not(.active) { background: var(--stone-100); }
+
+    /* Customer detail drawer */
+    .drawer {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 420px; max-width: 100vw;
+      background: var(--cream-50);
+      border-left: 1px solid var(--stone-200);
+      box-shadow: -20px 0 60px rgba(40,30,20,0.12);
+      z-index: 100;
+      padding: 28px;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.28s var(--ease-out-soft);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer__backdrop {
+      position: fixed; inset: 0;
+      background: rgba(27,18,24,0.3);
+      z-index: 99;
+      display: none;
+    }
+    .drawer__backdrop.open { display: block; }
+    .drawer__close {
+      position: absolute; top: 18px; right: 18px;
+      width: 36px; height: 36px; border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200); background: var(--cream-50);
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .drawer__close i { width: 16px; height: 16px; }
+    .drawer__avatar {
+      width: 56px; height: 56px; border-radius: var(--radius-pill);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 700; font-size: 22px;
+      margin-bottom: 12px;
+    }
+    .drawer__name { font-family: var(--font-display); font-weight: 700; font-size: 24px; margin: 0 0 4px; }
+    .drawer__meta { font-size: 13px; color: var(--fg-muted); margin: 0 0 20px; }
+    .drawer__section { font-family: var(--font-body); font-weight: 700; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-muted); margin: 24px 0 10px; }
+    .drawer__row {
+      display: flex; justify-content: space-between; padding: 8px 0;
+      border-bottom: 1px solid var(--stone-200); font-size: 14px;
+    }
+    .drawer__row:last-child { border: 0; }
+    .drawer__row-label { color: var(--fg-muted); }
+    .drawer__row-val { font-weight: 600; }
+    .drawer__history { display: flex; flex-direction: column; gap: 8px; }
+    .drawer__booking {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 12px; background: var(--cream-100); border-radius: var(--radius-sm); font-size: 13px;
+    }
+    .drawer__booking-svc { font-weight: 600; }
+    .drawer__booking-date { color: var(--fg-muted); }
+    .drawer__booking-price { font-family: var(--font-display); font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <aside class="sidebar">
+      <a class="sidebar__brand" href="index.html"><img src="../assets/logo-wordmark.svg" alt="nailed" /></a>
+      <button class="nav-item" onclick="location.href='index.html'"><i data-lucide="layout-dashboard"></i> Oversikt</button>
+      <button class="nav-item"><i data-lucide="calendar"></i> Kalender</button>
+      <button class="nav-item"><i data-lucide="list"></i> Bookinger <span class="nav-item__count">7</span></button>
+      <button class="nav-item"><i data-lucide="sparkles"></i> Tjenester</button>
+      <button class="nav-item active"><i data-lucide="users"></i> Kunder</button>
+      <button class="nav-item"><i data-lucide="message-circle"></i> Meldinger <span class="nav-item__count">2</span></button>
+      <div class="sidebar__section">Salong</div>
+      <button class="nav-item" onclick="location.href='profil.html'"><i data-lucide="image"></i> Profil</button>
+      <button class="nav-item" onclick="location.href='innsikt.html'"><i data-lucide="bar-chart-3"></i> Innsikt</button>
+      <button class="nav-item"><i data-lucide="crown"></i> Abonnement</button>
+      <button class="nav-item" onclick="location.href='settings.html'"><i data-lucide="settings"></i> Innstillinger</button>
+      <div class="sidebar__footer">
+        <div class="sidebar__avatar">SL</div>
+        <div><div class="sidebar__user">Studio Lakk</div><div class="sidebar__role">Linn Andersen</div></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1 class="topbar__title">Kunder</h1>
+          <div class="topbar__sub">Alle kunder som har booket hos Studio Lakk.</div>
+        </div>
+        <div class="topbar__actions">
+          <button class="btn btn-ghost"><i data-lucide="download"></i> Eksporter</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="customers-stats">
+        <div class="cstat">
+          <div class="cstat__label">Totalt kunder</div>
+          <div class="cstat__value">248</div>
+          <div class="cstat__sub">+38 nye siste 30 dager</div>
+        </div>
+        <div class="cstat">
+          <div class="cstat__label">Returkunder</div>
+          <div class="cstat__value">68%</div>
+          <div class="cstat__sub">169 av 248 booker igjen</div>
+        </div>
+        <div class="cstat">
+          <div class="cstat__label">Snitt bookinger</div>
+          <div class="cstat__value">3.2</div>
+          <div class="cstat__sub">per kunde</div>
+        </div>
+        <div class="cstat">
+          <div class="cstat__label">Snitt verdi</div>
+          <div class="cstat__value">2 195 <span style="font-size:16px; color:var(--fg-muted);">kr</span></div>
+          <div class="cstat__sub">livstidsverdi per kunde</div>
+        </div>
+      </div>
+
+      <!-- Search + filters -->
+      <div class="customers-toolbar">
+        <div class="customers-search">
+          <i data-lucide="search"></i>
+          <input placeholder="Søk etter navn, telefon eller e-post.." id="customerSearch" />
+        </div>
+        <div style="display:flex; gap:8px;">
+          <select class="btn btn-ghost btn-sm" style="padding-right:12px;">
+            <option>Alle kunder</option>
+            <option>Lojale (5+ bookinger)</option>
+            <option>Nye (siste 30 dager)</option>
+            <option>Inaktive (90+ dager)</option>
+          </select>
+          <select class="btn btn-ghost btn-sm" style="padding-right:12px;">
+            <option>Sist booket</option>
+            <option>Flest bookinger</option>
+            <option>Høyest verdi</option>
+            <option>Navn A–Å</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="customers-table">
+        <div class="ct-head">
+          <div>Kunde</div>
+          <div>Siste booking</div>
+          <div>Bookinger</div>
+          <div>Totalverdi</div>
+          <div>Status</div>
+          <div></div>
+        </div>
+
+        <div class="ct-row" data-drawer="ida">
+          <div class="ct-customer">
+            <div class="ct-avatar" style="background:linear-gradient(135deg, #FFE0E9, #FB6B9A); color:#fff;">IS</div>
+            <div><div class="ct-name">Ida Skogen</div><div class="ct-contact">+47 912 34 567</div></div>
+          </div>
+          <div class="ct-cell ct-cell--muted">I dag · Klassisk manikyr</div>
+          <div class="ct-cell"><strong>12</strong></div>
+          <div class="ct-cell"><strong>8 280 kr</strong></div>
+          <div><span class="ct-tag ct-tag--loyal">Lojal</span></div>
+          <div class="ct-actions"><button class="ct-action"><i data-lucide="message-circle"></i></button><button class="ct-action"><i data-lucide="more-horizontal"></i></button></div>
+        </div>
+
+        <div class="ct-row">
+          <div class="ct-customer">
+            <div class="ct-avatar" style="background:linear-gradient(135deg, #DDE3D2, #8DA079); color:#fff;">MK</div>
+            <div><div class="ct-name">Maria Kvam</div><div class="ct-contact">+47 923 45 678</div></div>
+          </div>
+          <div class="ct-cell ct-cell--muted">I dag · Gel manikyr</div>
+          <div class="ct-cell"><strong>8</strong></div>
+          <div class="ct-cell"><strong>5 920 kr</strong></div>
+          <div><span class="ct-tag ct-tag--loyal">Lojal</span></div>
+          <div class="ct-actions"><button class="ct-action"><i data-lucide="message-circle"></i></button><button class="ct-action"><i data-lucide="more-horizontal"></i></button></div>
+        </div>
+
+        <div class="ct-row">
+          <div class="ct-customer">
+            <div class="ct-avatar" style="background:linear-gradient(135deg, #FFC4D6, #82103D); color:#fff;">TH</div>
+            <div><div class="ct-name">Thea Hauge</div><div class="ct-contact">+47 934 56 789</div></div>
+          </div>
+          <div class="ct-cell ct-cell--muted">I dag · Gel + neglekunst</div>
+          <div class="ct-cell"><strong>6</strong></div>
+          <div class="ct-cell"><strong>5 340 kr</strong></div>
+          <div><span class="ct-tag ct-tag--loyal">Lojal</span></div>
+          <div class="ct-actions"><button class="ct-action"><i data-lucide="message-circle"></i></button><button class="ct-action"><i data-lucide="more-horizontal"></i></button></div>
+        </div>
+
+        <div class="ct-row">
+          <div class="ct-customer">
+            <div class="ct-avatar" style="background:linear-gradient(135deg, #F4ECDF, #C9B79A); color:var(--ink);">SB</div>
+            <div><div class="ct-name">Sara Berg</div><div class="ct-contact">+47 945 67 890</div></div>
+          </div>
+          <div class="ct-cell ct-cell--muted">I dag · Pedikyr luksus</div>
+          <div class="ct-cell"><strong>3</strong></div>
+          <div class="ct-cell"><strong>2 370 kr</strong></div>
+          <div><span class="ct-tag ct-tag--new">Ny</span></div>
+          <div class="ct-actions"><button class="ct-action"><i data-lucide="message-circle"></i></button><button class="ct-action"><i data-lucide="more-horizontal"></i></button></div>
+        </div>
+
+        <div class="ct-row">
+          <div class="ct-customer">
+            <div class="ct-avatar" style="background:linear-gradient(135deg, #FFE0E9, #FB6B9A); color:#fff;">EL</div>
+            <div><div class="ct-name">Emilie Lund</div><div class="ct-contact">+47 956 78 901</div></div>
+          </div>
+          <div class="ct-cell ct-cell--muted">I dag · Fjerning av gel</div>
+          <div class="ct-cell"><strong>2</strong></div>
+          <div class="ct-cell"><strong>980 kr</strong></div>
+          <div><span class="ct-tag ct-tag--new">Ny</span></div>
+          <div class="ct-actions"><button class="ct-action"><i data-lucide="message-circle"></i></button><button class="ct-action"><i data-lucide="more-horizontal"></i></button></div>
+        </div>
+
+        <div class="ct-row">
+          <div class="ct-customer">
+            <div class="ct-avatar" style="background:linear-gradient(135deg, #ECDFCB, #C9B79A); color:var(--ink);">MH</div>
+            <div><div class="ct-name">Mari Haugen</div><div class="ct-contact">+47 967 89 012</div></div>
+          </div>
+          <div class="ct-cell ct-cell--muted">3 dager siden · Gel manikyr</div>
+          <div class="ct-cell"><strong>15</strong></div>
+          <div class="ct-cell"><strong>11 850 kr</strong></div>
+          <div><span class="ct-tag ct-tag--loyal">Lojal</span></div>
+          <div class="ct-actions"><button class="ct-action"><i data-lucide="message-circle"></i></button><button class="ct-action"><i data-lucide="more-horizontal"></i></button></div>
+        </div>
+
+        <div class="ct-row">
+          <div class="ct-customer">
+            <div class="ct-avatar" style="background:linear-gradient(135deg, #DDE3D2, #8DA079); color:#fff;">LK</div>
+            <div><div class="ct-name">Linnea Kristiansen</div><div class="ct-contact">+47 978 90 123</div></div>
+          </div>
+          <div class="ct-cell ct-cell--muted">1 uke siden · Bio-gel</div>
+          <div class="ct-cell"><strong>4</strong></div>
+          <div class="ct-cell"><strong>3 160 kr</strong></div>
+          <div><span class="ct-tag ct-tag--loyal">Lojal</span></div>
+          <div class="ct-actions"><button class="ct-action"><i data-lucide="message-circle"></i></button><button class="ct-action"><i data-lucide="more-horizontal"></i></button></div>
+        </div>
+
+        <div class="ct-row">
+          <div class="ct-customer">
+            <div class="ct-avatar" style="background:linear-gradient(135deg, #F4ECDF, #E8DCC4); color:var(--ink);">AJ</div>
+            <div><div class="ct-name">Anna Johansen</div><div class="ct-contact">+47 989 01 234</div></div>
+          </div>
+          <div class="ct-cell ct-cell--muted">2 uker siden · French manikyr</div>
+          <div class="ct-cell"><strong>1</strong></div>
+          <div class="ct-cell"><strong>590 kr</strong></div>
+          <div><span class="ct-tag ct-tag--new">Ny</span></div>
+          <div class="ct-actions"><button class="ct-action"><i data-lucide="message-circle"></i></button><button class="ct-action"><i data-lucide="more-horizontal"></i></button></div>
+        </div>
+
+        <div class="ct-row">
+          <div class="ct-customer">
+            <div class="ct-avatar" style="background:linear-gradient(135deg, #FFC4D6, #EE3F7E); color:#fff;">KN</div>
+            <div><div class="ct-name">Kristine Nordli</div><div class="ct-contact">+47 990 12 345</div></div>
+          </div>
+          <div class="ct-cell ct-cell--muted">3 mnd siden · Gel manikyr</div>
+          <div class="ct-cell"><strong>7</strong></div>
+          <div class="ct-cell"><strong>4 830 kr</strong></div>
+          <div><span class="ct-tag ct-tag--inactive">Inaktiv</span></div>
+          <div class="ct-actions"><button class="ct-action"><i data-lucide="message-circle"></i></button><button class="ct-action"><i data-lucide="more-horizontal"></i></button></div>
+        </div>
+
+        <div class="ct-row">
+          <div class="ct-customer">
+            <div class="ct-avatar" style="background:linear-gradient(135deg, #FFE0E9, #B8536F); color:#fff;">HV</div>
+            <div><div class="ct-name">Hanna Viken</div><div class="ct-contact">+47 901 23 456</div></div>
+          </div>
+          <div class="ct-cell ct-cell--muted">4 mnd siden · Press-on</div>
+          <div class="ct-cell"><strong>2</strong></div>
+          <div class="ct-cell"><strong>1 380 kr</strong></div>
+          <div><span class="ct-tag ct-tag--inactive">Inaktiv</span></div>
+          <div class="ct-actions"><button class="ct-action"><i data-lucide="message-circle"></i></button><button class="ct-action"><i data-lucide="more-horizontal"></i></button></div>
+        </div>
+      </div>
+
+      <div class="customers-footer">
+        <span>Viser 1–10 av 248 kunder</span>
+        <div class="customers-pager">
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button>...</button>
+          <button>25</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Customer detail drawer -->
+  <div class="drawer__backdrop" id="drawerBackdrop"></div>
+  <div class="drawer" id="drawer">
+    <button class="drawer__close" id="drawerClose"><i data-lucide="x"></i></button>
+    <div class="drawer__avatar" style="background:linear-gradient(135deg, #FFE0E9, #FB6B9A); color:#fff;">IS</div>
+    <h2 class="drawer__name">Ida Skogen</h2>
+    <p class="drawer__meta">+47 912 34 567 · ida.skogen@gmail.com</p>
+
+    <div style="display:flex; gap:8px; margin-bottom:8px;">
+      <span class="ct-tag ct-tag--loyal">Lojal kunde</span>
+      <span style="display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; background:var(--cream-100); color:var(--ink);"><i data-lucide="check" style="width:11px;height:11px;color:var(--rouge-500);"></i> Vipps-verifisert</span>
+    </div>
+
+    <div class="drawer__section">Oversikt</div>
+    <div class="drawer__row"><span class="drawer__row-label">Første booking</span><span class="drawer__row-val">14. jan 2026</span></div>
+    <div class="drawer__row"><span class="drawer__row-label">Totalt bookinger</span><span class="drawer__row-val">12</span></div>
+    <div class="drawer__row"><span class="drawer__row-label">Totalverdi</span><span class="drawer__row-val">8 280 kr</span></div>
+    <div class="drawer__row"><span class="drawer__row-label">Snittrating gitt</span><span class="drawer__row-val">5.0 ★</span></div>
+    <div class="drawer__row"><span class="drawer__row-label">No-shows</span><span class="drawer__row-val">0</span></div>
+    <div class="drawer__row"><span class="drawer__row-label">Favorittbehandling</span><span class="drawer__row-val">Gel manikyr</span></div>
+
+    <div class="drawer__section">Siste bookinger</div>
+    <div class="drawer__history">
+      <div class="drawer__booking"><div><div class="drawer__booking-svc">Klassisk manikyr</div><div class="drawer__booking-date">I dag · 09:00</div></div><div class="drawer__booking-price">490 kr</div></div>
+      <div class="drawer__booking"><div><div class="drawer__booking-svc">Gel manikyr</div><div class="drawer__booking-date">28. apr · 14:00</div></div><div class="drawer__booking-price">690 kr</div></div>
+      <div class="drawer__booking"><div><div class="drawer__booking-svc">Gel + neglekunst</div><div class="drawer__booking-date">12. apr · 11:00</div></div><div class="drawer__booking-price">890 kr</div></div>
+      <div class="drawer__booking"><div><div class="drawer__booking-svc">Gel manikyr</div><div class="drawer__booking-date">22. mar · 15:30</div></div><div class="drawer__booking-price">690 kr</div></div>
+    </div>
+
+    <div style="margin-top:20px; display:flex; gap:8px;">
+      <button class="btn btn-primary btn-sm" style="flex:1; justify-content:center;"><i data-lucide="calendar-plus"></i> Ny booking</button>
+      <button class="btn btn-ghost btn-sm" style="flex:1; justify-content:center;"><i data-lucide="message-circle"></i> Send melding</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Drawer open/close
+    var drawer = document.getElementById('drawer');
+    var backdrop = document.getElementById('drawerBackdrop');
+
+    document.querySelectorAll('.ct-row').forEach(function(row) {
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', function(e) {
+        if (e.target.closest('.ct-action')) return;
+        drawer.classList.add('open');
+        backdrop.classList.add('open');
+      });
+    });
+
+    document.getElementById('drawerClose').addEventListener('click', function() {
+      drawer.classList.remove('open');
+      backdrop.classList.remove('open');
+    });
+    backdrop.addEventListener('click', function() {
+      drawer.classList.remove('open');
+      backdrop.classList.remove('open');
+    });
+
+    // Search filter
+    document.getElementById('customerSearch').addEventListener('input', function(e) {
+      var q = e.target.value.toLowerCase();
+      document.querySelectorAll('.ct-row').forEach(function(row) {
+        var text = row.textContent.toLowerCase();
+        row.style.display = text.indexOf(q) >= 0 ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
