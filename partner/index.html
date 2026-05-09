@@ -46,8 +46,8 @@
           <div class="topbar__sub">Tirsdag 12. mai · Du har 7 bookinger i dag.</div>
         </div>
         <div class="topbar__actions">
-          <button class="btn btn-ghost"><i data-lucide="calendar-plus"></i> Ny booking</button>
-          <button class="btn btn-primary"><i data-lucide="plus"></i> Ny tjeneste</button>
+          <button class="btn btn-ghost" id="newBookingBtn"><i data-lucide="calendar-plus"></i> Ny booking</button>
+          <button class="btn btn-primary" onclick="location.href='tjenester.html'"><i data-lucide="plus"></i> Ny tjeneste</button>
         </div>
       </div>
 
@@ -247,7 +247,134 @@
   <!-- Decorative sticker -->
   <img src="../assets/sticker-nailed-it.svg" class="sticker-corner" alt="" />
 
+  <!-- Modal backdrop -->
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+
+  <!-- New booking modal -->
+  <div class="modal" id="newBookingModal">
+    <div class="modal__head">
+      <h2 class="modal__title">Ny booking</h2>
+      <button class="modal__close" id="modalClose"><i data-lucide="x"></i></button>
+    </div>
+    <form class="modal__form" id="newBookingForm">
+      <div class="modal__field">
+        <label>Kunde</label>
+        <input type="text" placeholder="Søk etter navn eller telefonnummer.." required id="bookingCustomerInput" />
+      </div>
+      <div class="modal__field">
+        <label>Behandling</label>
+        <select required>
+          <option value="">Velg behandling</option>
+          <option>Klassisk manikyr — 490 kr (45 min)</option>
+          <option>Gel manikyr — 690 kr (75 min)</option>
+          <option>Gel + neglekunst — 890 kr (90 min)</option>
+          <option>Bio-gel manikyr — 790 kr (75 min)</option>
+          <option>French manikyr — 590 kr (60 min)</option>
+          <option>Pedikyr — luksus — 790 kr (60 min)</option>
+          <option>Klassisk pedikyr — 590 kr (45 min)</option>
+          <option>Fjerning av gel — 290 kr (30 min)</option>
+          <option>Håndmassasje — 190 kr (15 min)</option>
+        </select>
+      </div>
+      <div class="modal__row">
+        <div class="modal__field">
+          <label>Dato</label>
+          <input type="date" value="2026-05-13" required />
+        </div>
+        <div class="modal__field">
+          <label>Tidspunkt</label>
+          <select required>
+            <option>09:00</option><option>10:00</option><option>11:00</option>
+            <option>12:00</option><option>13:00</option><option selected>14:00</option>
+            <option>15:00</option><option>16:00</option><option>17:00</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal__field">
+        <label>Artist</label>
+        <select>
+          <option>Linn Andersen</option>
+          <option>Maja Holm</option>
+          <option>Anna Kristiansen</option>
+        </select>
+      </div>
+      <div class="modal__field">
+        <label>Notat (valgfritt)</label>
+        <input type="text" placeholder="Intern merknad, f.eks. allergier.." />
+      </div>
+      <div class="modal__actions">
+        <button type="button" class="btn btn-ghost" id="modalCancel">Avbryt</button>
+        <button type="submit" class="btn btn-primary"><i data-lucide="calendar-plus"></i> Opprett booking</button>
+      </div>
+    </form>
+  </div>
+
+  <style>
+    .modal-backdrop { position:fixed; inset:0; background:rgba(27,18,24,0.35); z-index:200; display:none; }
+    .modal-backdrop.open { display:block; }
+    .modal {
+      position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.96);
+      width:500px; max-width:calc(100vw - 32px); max-height:calc(100vh - 64px);
+      background:var(--cream-50); border:1px solid var(--stone-200);
+      border-radius:var(--radius-xl); padding:32px; box-shadow:0 24px 60px rgba(40,30,20,0.18);
+      z-index:201; overflow-y:auto; display:none; opacity:0;
+      transition:opacity 0.2s var(--ease-out-soft), transform 0.2s var(--ease-out-soft);
+    }
+    .modal.open { display:block; opacity:1; transform:translate(-50%,-50%) scale(1); }
+    .modal__head { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+    .modal__title { font-family:var(--font-display); font-weight:700; font-size:24px; margin:0; }
+    .modal__close {
+      width:36px; height:36px; border-radius:var(--radius-pill);
+      border:1px solid var(--stone-200); background:var(--cream-50);
+      cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+    }
+    .modal__close i { width:16px; height:16px; }
+    .modal__form { display:flex; flex-direction:column; gap:18px; }
+    .modal__field { display:flex; flex-direction:column; gap:6px; }
+    .modal__field label { font-family:var(--font-body); font-weight:600; font-size:13px; color:var(--ink); }
+    .modal__field input, .modal__field select {
+      font-family:var(--font-body); font-size:15px; padding:12px 16px;
+      border:1px solid var(--stone-200); border-radius:var(--radius-md);
+      background:var(--cream-100); color:var(--ink); outline:none;
+    }
+    .modal__field input:focus, .modal__field select:focus { border-color:var(--rouge-500); }
+    .modal__field input::placeholder { color:var(--stone-400); }
+    .modal__row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .modal__actions {
+      display:flex; gap:10px; justify-content:flex-end;
+      padding-top:16px; border-top:1px solid var(--stone-200); margin-top:6px;
+    }
+  </style>
+
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script>lucide.createIcons();</script>
+  <script>
+    lucide.createIcons();
+
+    var modal = document.getElementById('newBookingModal');
+    var backdrop = document.getElementById('modalBackdrop');
+
+    function openModal() {
+      modal.classList.add('open');
+      backdrop.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      setTimeout(function() { document.getElementById('bookingCustomerInput').focus(); }, 100);
+      lucide.createIcons();
+    }
+    function closeModal() {
+      modal.classList.remove('open');
+      backdrop.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('newBookingBtn').addEventListener('click', openModal);
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('modalCancel').addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+    document.getElementById('newBookingForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      closeModal();
+    });
+  </script>
 </body>
 </html>
