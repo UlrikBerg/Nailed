@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Favoritter — nailed</title>
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .fav-page { padding: 48px 0 96px; }
+    .fav-header { margin-bottom: 32px; }
+    .fav-header__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(32px, 5vw, 48px);
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
+    }
+    .fav-header__sub { font-size: 15px; color: var(--fg-muted); margin: 0; }
+    .fav-empty {
+      text-align: center;
+      padding: 80px 24px;
+      background: var(--cream-50);
+      border: 1px dashed var(--stone-300);
+      border-radius: var(--radius-lg);
+    }
+    .fav-empty__icon {
+      width: 64px; height: 64px; border-radius: var(--radius-pill);
+      background: var(--rouge-50); display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .fav-empty__icon svg { width: 28px; height: 28px; color: var(--rouge-500); }
+    .fav-empty__title {
+      font-family: var(--font-display); font-weight: 700; font-size: 24px; margin: 0 0 8px;
+    }
+    .fav-empty__desc { font-size: 15px; color: var(--fg-muted); margin: 0 0 24px; max-width: 40ch; margin-left: auto; margin-right: auto; }
+  </style>
+</head>
+<body>
+
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="index.html"><img src="assets/logo-wordmark.svg" alt="nailed" /></a>
+      <nav class="top-nav__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="#">Gavekort</a>
+        <a href="for-salonger.html">For salonger</a>
+      </nav>
+      <div class="top-nav__actions">
+        <a href="favoritter.html" class="btn-icon" data-fav-nav><i data-lucide="heart"></i></a>
+        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="fav-page">
+    <div class="page">
+      <div class="fav-header">
+        <h1 class="fav-header__title">Favoritter</h1>
+        <p class="fav-header__sub" id="favCount"></p>
+      </div>
+
+      <div id="favGrid" class="grid-3"></div>
+
+      <div id="favEmpty" class="fav-empty" style="display:none;">
+        <div class="fav-empty__icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></div>
+        <h3 class="fav-empty__title">Ingen favoritter ennå</h3>
+        <p class="fav-empty__desc">Trykk på hjertet på en salong for å lagre den her. Favorittene dine synkroniseres på tvers av sider.</p>
+        <a href="utforsk.html" class="btn btn-primary">Utforsk salonger</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="page footer__inner">
+      <div class="footer__top">
+        <img src="assets/logo-wordmark-light.svg" alt="nailed" class="footer__brand" />
+        <p class="footer__tag">Nailed it. Nailed it again.</p>
+      </div>
+      <div class="footer__cols">
+        <div><div class="footer__h">Utforsk</div><a href="#">Salonger nær meg</a><a href="#">Kategorier</a><a href="#">Gavekort</a></div>
+        <div><div class="footer__h">For salonger</div><a href="for-salonger.html">Bli partner</a><a href="for-salonger.html">Priser</a><a href="login.html">Logg inn</a></div>
+        <div><div class="footer__h">Selskap</div><a href="#">Om oss</a><a href="#">Kontakt</a><a href="#">Personvern</a></div>
+      </div>
+      <div class="footer__bottom"><small>&copy; 2026 Neglet AS &middot; Made in Oslo</small></div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="favorites.js"></script>
+  <script>
+    // All salons data
+    var ALL_SALONS = {
+      'studio-lakk':    { name:'Studio Lakk',      area:'Grünerløkka · Oslo',     price:690,  rating:4.9, reviews:312, tags:['Gel','Bio'],               gradient:'linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 100%)' },
+      'lash-linn':      { name:'Lash & Linn',      area:'Frogner · Oslo',         price:890,  rating:4.8, reviews:184, tags:['Vipper','Bryn'],            gradient:'linear-gradient(135deg, #F4ECDF 0%, #E8DCC4 100%)' },
+      'bare-negler':    { name:'Bare Negler',      area:'Majorstuen · Oslo',      price:590,  rating:4.7, reviews:521, tags:['Klassisk'],                 gradient:'linear-gradient(135deg, #FFF1F5 0%, #FB6B9A 100%)' },
+      'studio-glow':    { name:'Studio Glow',      area:'St. Hanshaugen · Oslo',  price:1190, rating:5.0, reviews:92,  tags:['Brud','Makeup'],            gradient:'linear-gradient(135deg, #DDE3D2 0%, #8DA079 100%)' },
+      'neon-nails':     { name:'Neon Nails',       area:'Tøyen · Oslo',           price:750,  rating:4.6, reviews:268, tags:['Art','Gel'],                gradient:'linear-gradient(135deg, #FFC4D6 0%, #82103D 100%)' },
+      'rosa-atelier':   { name:'Rosa Atelier',     area:'Bislett · Oslo',         price:920,  rating:4.9, reviews:401, tags:['Press-on'],                 gradient:'linear-gradient(135deg, #ECDFCB 0%, #C9B79A 100%)' },
+      'brun-bryn':      { name:'Brun & Bryn',      area:'Bærum · Akershus',       price:590,  rating:4.8, reviews:156, tags:['Bryn','Microblading'],      gradient:'linear-gradient(135deg, #F4ECDF 0%, #B89870 100%)' },
+      'strok-studio':   { name:'Strøk Studio',     area:'Sentrum · Oslo',         price:790,  rating:4.7, reviews:245, tags:['Makeup','Brud'],            gradient:'linear-gradient(135deg, #FFE0E9 0%, #B8536F 100%)' },
+      'bergen-beauty':  { name:'Bergen Beauty',    area:'Bergen · Vestland',      price:850,  rating:4.9, reviews:198, tags:['Vipper'],                   gradient:'linear-gradient(135deg, #DDE3D2 0%, #7B8E68 100%)' },
+      'trondheim-nails':{ name:'Trondheim Nails',  area:'Trondheim · Trøndelag', price:650,  rating:4.7, reviews:312, tags:['Gel'],                      gradient:'linear-gradient(135deg, #FFE0E9 0%, #FB6B9A 100%)' },
+      'stavanger-glam': { name:'Stavanger Glam',   area:'Stavanger · Rogaland',  price:1090, rating:5.0, reviews:67,  tags:['Brud'],                     gradient:'linear-gradient(135deg, #ECDFCB 0%, #82103D 100%)' },
+      'asker-lash':     { name:'Asker Lash Bar',   area:'Asker · Akershus',      price:790,  rating:4.6, reviews:143, tags:['Vipper'],                   gradient:'linear-gradient(135deg, #F4ECDF 0%, #C9B79A 100%)' },
+    };
+
+    function renderFavorites() {
+      var favs = getFavorites();
+      var grid = document.getElementById('favGrid');
+      var empty = document.getElementById('favEmpty');
+      var countEl = document.getElementById('favCount');
+
+      if (favs.length === 0) {
+        grid.style.display = 'none';
+        empty.style.display = '';
+        countEl.textContent = 'Du har ingen lagrede favoritter.';
+        return;
+      }
+
+      grid.style.display = '';
+      empty.style.display = 'none';
+      countEl.textContent = favs.length + (favs.length === 1 ? ' lagret salong' : ' lagrede salonger');
+
+      var html = '';
+      favs.forEach(function(id) {
+        var s = ALL_SALONS[id];
+        if (!s) return;
+        var tagsHtml = s.tags.map(function(t) { return '<span class="service-card__tag">' + t + '</span>'; }).join('');
+        html += '<article class="service-card card" onclick="location.href=\'salon.html\'">' +
+          '<div class="service-card__photo" style="background:' + s.gradient + ';">' +
+          '<button class="service-card__heart" data-fav="' + id + '"><i data-lucide="heart"></i></button>' +
+          '</div>' +
+          '<div class="service-card__body">' +
+          '<div class="service-card__row"><div>' +
+          '<div class="service-card__name">' + s.name + '</div>' +
+          '<div class="service-card__meta"><i data-lucide="map-pin"></i>' + s.area + '</div>' +
+          '</div><div class="service-card__price"><span class="service-card__from">fra</span>' + s.price + '<span class="service-card__kr"> kr</span></div></div>' +
+          '<div class="service-card__row"><div class="service-card__meta">' +
+          '<i data-lucide="star" style="color:var(--rouge-500);fill:var(--rouge-500);"></i>' +
+          s.rating + ' · ' + s.reviews + ' anmeldelser</div>' +
+          '<div class="service-card__tags">' + tagsHtml + '</div></div>' +
+          '</div></article>';
+      });
+      grid.innerHTML = html;
+
+      lucide.createIcons();
+      initFavorites();
+    }
+
+    lucide.createIcons();
+    renderFavorites();
+
+    // Nav scroll
+    var nav = document.getElementById('topNav');
+    window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 30); });
+  </script>
+</body>
+</html>
