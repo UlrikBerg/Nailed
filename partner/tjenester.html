@@ -400,16 +400,192 @@
     </main>
   </div>
 
+  <!-- Modal backdrop -->
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+
+  <!-- New service modal -->
+  <div class="modal" id="newSvcModal">
+    <div class="modal__head">
+      <h2 class="modal__title">Ny tjeneste</h2>
+      <button class="modal__close" id="modalClose"><i data-lucide="x"></i></button>
+    </div>
+
+    <form class="modal__form" id="newSvcForm">
+      <div class="modal__field">
+        <label>Navn på behandling</label>
+        <input type="text" placeholder="F.eks. Gel manikyr, Brynsfarge.." required id="svcNameInput" />
+      </div>
+
+      <div class="modal__field">
+        <label>Beskrivelse</label>
+        <input type="text" placeholder="Kort beskrivelse som vises til kunden" />
+      </div>
+
+      <div class="modal__row">
+        <div class="modal__field">
+          <label>Kategori</label>
+          <select>
+            <option>Manikyr</option>
+            <option>Pedikyr</option>
+            <option>Tillegg</option>
+            <option>Vipper</option>
+            <option>Bryn</option>
+            <option>Makeup</option>
+            <option>Annet</option>
+          </select>
+        </div>
+        <div class="modal__field">
+          <label>Varighet</label>
+          <select>
+            <option>15 min</option>
+            <option>30 min</option>
+            <option selected>45 min</option>
+            <option>60 min</option>
+            <option>75 min</option>
+            <option>90 min</option>
+            <option>120 min</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal__field">
+        <label>Pris (kr)</label>
+        <input type="number" placeholder="490" min="0" step="10" required />
+      </div>
+
+      <div class="modal__field">
+        <label>Hvem utfører behandlingen?</label>
+        <div class="modal__checkboxes">
+          <label class="modal__check"><input type="checkbox" checked /> <span class="modal__check-dot" style="background:var(--rouge-100); color:var(--rouge-700);">LA</span> Linn Andersen</label>
+          <label class="modal__check"><input type="checkbox" /> <span class="modal__check-dot" style="background:#DDE3D2; color:var(--sage-700);">MH</span> Maja Holm</label>
+          <label class="modal__check"><input type="checkbox" /> <span class="modal__check-dot" style="background:var(--cream-200); color:var(--stone-700);">AK</span> Anna Kristiansen</label>
+        </div>
+      </div>
+
+      <div class="modal__field">
+        <label>Synlighet</label>
+        <div class="modal__radio-group">
+          <label class="modal__radio"><input type="radio" name="visibility" value="active" checked /> Aktiv — vises på profilen og kan bookes</label>
+          <label class="modal__radio"><input type="radio" name="visibility" value="hidden" /> Skjult — kun du kan se den</label>
+        </div>
+      </div>
+
+      <div class="modal__actions">
+        <button type="button" class="btn btn-ghost" id="modalCancel">Avbryt</button>
+        <button type="submit" class="btn btn-primary"><i data-lucide="plus"></i> Opprett tjeneste</button>
+      </div>
+    </form>
+  </div>
+
+  <style>
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(27,18,24,0.35);
+      z-index: 200; display: none;
+    }
+    .modal-backdrop.open { display: block; }
+    .modal {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.96);
+      width: 520px; max-width: calc(100vw - 32px); max-height: calc(100vh - 64px);
+      background: var(--cream-50); border: 1px solid var(--stone-200);
+      border-radius: var(--radius-xl); padding: 32px;
+      box-shadow: 0 24px 60px rgba(40,30,20,0.18);
+      z-index: 201; overflow-y: auto;
+      display: none; opacity: 0;
+      transition: opacity 0.2s var(--ease-out-soft), transform 0.2s var(--ease-out-soft);
+    }
+    .modal.open { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .modal__head {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;
+    }
+    .modal__title { font-family: var(--font-display); font-weight: 700; font-size: 24px; margin: 0; }
+    .modal__close {
+      width: 36px; height: 36px; border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200); background: var(--cream-50);
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .modal__close i { width: 16px; height: 16px; }
+    .modal__form { display: flex; flex-direction: column; gap: 18px; }
+    .modal__field { display: flex; flex-direction: column; gap: 6px; }
+    .modal__field label {
+      font-family: var(--font-body); font-weight: 600; font-size: 13px; color: var(--ink);
+    }
+    .modal__field input[type="text"],
+    .modal__field input[type="number"],
+    .modal__field select {
+      font-family: var(--font-body); font-size: 15px; padding: 12px 16px;
+      border: 1px solid var(--stone-200); border-radius: var(--radius-md);
+      background: var(--cream-100); color: var(--ink); outline: none;
+    }
+    .modal__field input:focus, .modal__field select:focus { border-color: var(--rouge-500); }
+    .modal__field input::placeholder { color: var(--stone-400); }
+    .modal__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal__checkboxes { display: flex; flex-direction: column; gap: 8px; }
+    .modal__check {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 14px; cursor: pointer;
+    }
+    .modal__check input { width: 16px; height: 16px; accent-color: var(--rouge-500); cursor: pointer; }
+    .modal__check-dot {
+      width: 26px; height: 26px; border-radius: var(--radius-pill);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+    }
+    .modal__radio-group { display: flex; flex-direction: column; gap: 8px; }
+    .modal__radio {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 14px; cursor: pointer;
+    }
+    .modal__radio input { width: 16px; height: 16px; accent-color: var(--rouge-500); cursor: pointer; }
+    .modal__actions {
+      display: flex; gap: 10px; justify-content: flex-end;
+      padding-top: 16px; border-top: 1px solid var(--stone-200); margin-top: 6px;
+    }
+  </style>
+
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script>
     lucide.createIcons();
 
+    // Toggles
     document.querySelectorAll('.svc-toggle').forEach(function(toggle) {
       toggle.addEventListener('click', function() {
         toggle.classList.toggle('on');
         var row = toggle.closest('.svc-row');
         row.style.opacity = toggle.classList.contains('on') ? '1' : '0.55';
       });
+    });
+
+    // Modal
+    var modal = document.getElementById('newSvcModal');
+    var backdrop = document.getElementById('modalBackdrop');
+
+    function openModal() {
+      modal.classList.add('open');
+      backdrop.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      setTimeout(function() { document.getElementById('svcNameInput').focus(); }, 100);
+      lucide.createIcons();
+    }
+    function closeModal() {
+      modal.classList.remove('open');
+      backdrop.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.querySelector('.btn-primary').addEventListener('click', function(e) {
+      if (this.closest('.modal__actions')) return;
+      e.preventDefault();
+      openModal();
+    });
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('modalCancel').addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+    document.getElementById('newSvcForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      closeModal();
     });
   </script>
 </body>
