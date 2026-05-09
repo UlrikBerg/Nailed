@@ -16,23 +16,24 @@
     }
     .auth__card {
       width: 100%;
-      max-width: 420px;
+      max-width: 460px;
       background: var(--cream-50);
       border: 1px solid var(--stone-200);
       border-radius: var(--radius-xl);
-      padding: 40px 36px;
+      padding: 48px 40px;
       box-shadow: var(--shadow-md);
+      text-align: center;
     }
     .auth__title {
       font-family: var(--font-display);
       font-weight: 700;
       font-size: 38px;
       letter-spacing: -0.02em;
-      text-align: left;
       margin: 0 0 10px;
       line-height: 1.05;
       display: flex;
       align-items: baseline;
+      justify-content: center;
       gap: .32em;
       flex-wrap: nowrap;
       white-space: nowrap;
@@ -52,68 +53,143 @@
       margin-bottom: .18em;
     }
     .auth__sub {
-      font-size: 14px;
+      font-size: 15px;
       color: var(--fg-muted);
-      text-align: center;
-      margin: 0 0 28px;
+      margin: 0 0 32px;
+      line-height: 1.5;
     }
-    .auth__form { display: flex; flex-direction: column; gap: 16px; }
-    .auth__field label {
-      display: block;
+
+    /* Role selector */
+    .auth__roles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .auth__role {
+      padding: 16px;
+      border: 1.5px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      background: var(--cream-100);
+      cursor: pointer;
+      transition: all var(--dur-fast) var(--ease-out-soft);
+      text-align: center;
+    }
+    .auth__role:hover { border-color: var(--stone-400); }
+    .auth__role.active { border-color: var(--rouge-500); background: var(--rouge-50); }
+    .auth__role-icon {
+      width: 40px;
+      height: 40px;
+      margin: 0 auto 10px;
+      border-radius: var(--radius-pill);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--cream-50);
+    }
+    .auth__role.active .auth__role-icon { background: var(--rouge-100); }
+    .auth__role-icon i { width: 20px; height: 20px; color: var(--fg-muted); }
+    .auth__role.active .auth__role-icon i { color: var(--rouge-500); }
+    .auth__role-label {
       font-family: var(--font-body);
       font-weight: 600;
-      font-size: 13px;
+      font-size: 14px;
       color: var(--ink);
-      margin-bottom: 6px;
     }
-    .auth__field input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1px solid var(--stone-200);
-      border-radius: var(--radius-md);
+    .auth__role-desc {
       font-family: var(--font-body);
-      font-size: 15px;
-      color: var(--ink);
-      background: var(--cream-100);
-      outline: none;
-      transition: border-color var(--dur-fast) var(--ease-out-soft);
-    }
-    .auth__field input:focus { border-color: var(--brand); }
-    .auth__field input::placeholder { color: var(--stone-400); }
-    .auth__submit {
-      width: 100%;
-      justify-content: center;
-      padding: 14px 24px;
-      font-size: 15px;
+      font-size: 12px;
+      color: var(--fg-muted);
       margin-top: 4px;
     }
-    .auth__error {
-      background: var(--danger-50);
-      color: var(--danger-500);
-      font-size: 13px;
-      font-weight: 500;
-      padding: 10px 14px;
+
+    /* Vipps button */
+    .auth__vipps {
+      width: 100%;
+      padding: 16px;
+      border: 0;
       border-radius: var(--radius-md);
-      display: none;
-    }
-    .auth__error.visible { display: block; }
-    .auth__switch {
-      text-align: center;
-      font-size: 14px;
-      color: var(--fg-muted);
-      margin-top: 20px;
-    }
-    .auth__switch a {
-      color: var(--brand);
-      font-weight: 600;
+      background: #FF5B24;
+      color: white;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 16px;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background var(--dur-fast);
     }
-    .auth__switch a:hover { color: var(--brand-hover); }
+    .auth__vipps:hover { background: #E64C18; }
+    .auth__vipps-logo {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    /* Phone input */
+    .auth__phone-wrap {
+      margin-bottom: 16px;
+    }
+    .auth__phone-label {
+      display: block;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--fg-muted);
+      margin-bottom: 8px;
+      text-align: left;
+    }
+    .auth__phone-field {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid var(--stone-300);
+      border-radius: var(--radius-md);
+      padding: 0 16px;
+      background: var(--cream-50);
+      transition: all var(--dur-fast);
+    }
+    .auth__phone-field:focus-within { border-color: #FF5B24; box-shadow: 0 0 0 4px rgba(255, 91, 36, 0.12); }
+    .auth__phone-prefix {
+      font-family: var(--font-body);
+      font-weight: 600;
+      color: var(--fg-muted);
+      font-size: 16px;
+      padding-right: 10px;
+      border-right: 1px solid var(--stone-200);
+      margin-right: 10px;
+    }
+    .auth__phone-input {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      padding: 16px 0;
+      font-family: var(--font-body);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      outline: none;
+      color: var(--ink);
+    }
+    .auth__phone-input::placeholder { color: var(--stone-400); font-weight: 400; }
+
+    .auth__fineprint {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--fg-muted);
+      margin: 16px 0 0;
+      line-height: 1.5;
+    }
+
     .auth__divider {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin: 4px 0;
+      margin: 24px 0;
       color: var(--fg-muted);
       font-size: 12px;
     }
@@ -125,194 +201,201 @@
       background: var(--stone-200);
     }
 
-    /* Logged-in state shown in nav */
-    .auth-user {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--ink);
+    .auth__benefits {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-align: left;
     }
-    .auth-user__avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: var(--radius-pill);
-      background: linear-gradient(135deg, #FFC4D6, #EE3F7E);
+    .auth__benefit {
       display: flex;
       align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: 700;
-      font-size: 12px;
+      gap: 10px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--fg-muted);
     }
+    .auth__benefit i { width: 16px; height: 16px; color: var(--rouge-500); flex-shrink: 0; }
+
+    /* Waiting state */
+    .auth__waiting { display: none; }
+    .auth__waiting.visible { display: block; }
+    .auth__waiting-phone {
+      width: 140px;
+      height: 190px;
+      margin: 0 auto 20px;
+      border-radius: 22px;
+      background: #1a1a1a;
+      padding: 8px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+      position: relative;
+    }
+    .auth__waiting-phone::before {
+      content: "";
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 36px;
+      height: 5px;
+      background: #444;
+      border-radius: var(--radius-pill);
+    }
+    .auth__waiting-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      background: #FF5B24;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 12px 14px;
+      gap: 6px;
+      color: white;
+      font-family: var(--font-body);
+    }
+    .auth__waiting-screen-logo { font-family: var(--font-display); font-weight: 900; font-size: 14px; opacity: 0.85; }
+    .auth__waiting-screen-text { font-size: 11px; opacity: 0.9; }
+    .auth__waiting-screen-name { font-family: var(--font-display); font-weight: 700; font-size: 16px; margin-top: 4px; }
+    .auth__waiting-slider { margin-top: 14px; width: 100%; height: 24px; background: rgba(255,255,255,0.18); border-radius: var(--radius-pill); position: relative; }
+    .auth__waiting-slider-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: var(--radius-pill); background: white; animation: vipps-slide 1.6s ease-in-out infinite; }
+    .auth__pulse { display: inline-flex; gap: 6px; margin-top: 16px; }
+    .auth__pulse span { width: 8px; height: 8px; border-radius: var(--radius-pill); background: #FF5B24; animation: vipps-pulse 1.2s ease-in-out infinite; }
+    .auth__pulse span:nth-child(2) { animation-delay: 0.15s; }
+    .auth__pulse span:nth-child(3) { animation-delay: 0.3s; }
   </style>
 </head>
 <body>
 
   <div class="auth">
     <div class="auth__card">
-      <!-- Login form -->
+
+      <!-- Main login view -->
       <div id="loginView">
         <h1 class="auth__title">Logg inn på <span class="auth__title-brand">nailed</span></h1>
-        <p class="auth__sub">Velkommen tilbake. Book deg pen.</p>
-        <div class="auth__error" id="loginError"></div>
-        <form class="auth__form" id="loginForm">
-          <div class="auth__field">
-            <label for="loginEmail">E-post</label>
-            <input type="email" id="loginEmail" placeholder="din@epost.no" required />
-          </div>
-          <div class="auth__field">
-            <label for="loginPassword">Passord</label>
-            <input type="password" id="loginPassword" placeholder="Skriv inn passord" required />
-          </div>
-          <button type="submit" class="btn btn-primary auth__submit">Logg inn</button>
-        </form>
-        <p class="auth__switch">
-          Har du ikke konto? <a id="showRegister">Registrer deg</a>
-        </p>
-      </div>
+        <p class="auth__sub">Enkel og trygg innlogging med Vipps — for både kunder og salonger.</p>
 
-      <!-- Register form -->
-      <div id="registerView" style="display:none;">
-        <h1 class="auth__title">Registrer deg</h1>
-        <p class="auth__sub">Opprett konto og book din første time.</p>
-        <div class="auth__error" id="registerError"></div>
-        <form class="auth__form" id="registerForm">
-          <div class="auth__field">
-            <label for="regName">Navn</label>
-            <input type="text" id="regName" placeholder="Ditt navn" required />
+        <!-- Role selector -->
+        <div class="auth__roles">
+          <div class="auth__role active" id="roleCustomer">
+            <div class="auth__role-icon"><i data-lucide="calendar-heart"></i></div>
+            <div class="auth__role-label">Jeg vil booke</div>
+            <div class="auth__role-desc">Finn og book behandlinger</div>
           </div>
-          <div class="auth__field">
-            <label for="regEmail">E-post</label>
-            <input type="email" id="regEmail" placeholder="din@epost.no" required />
+          <div class="auth__role" id="roleProvider">
+            <div class="auth__role-icon"><i data-lucide="store"></i></div>
+            <div class="auth__role-label">Jeg er salong</div>
+            <div class="auth__role-desc">Administrer bookinger</div>
           </div>
-          <div class="auth__field">
-            <label for="regPassword">Passord</label>
-            <input type="password" id="regPassword" placeholder="Minst 6 tegn" required minlength="6" />
-          </div>
-          <button type="submit" class="btn btn-primary auth__submit">Opprett konto</button>
-        </form>
-        <p class="auth__switch">
-          Har du allerede konto? <a id="showLogin">Logg inn</a>
-        </p>
-      </div>
+        </div>
 
-      <!-- Logged-in view -->
-      <div id="loggedInView" style="display:none;">
-        <h1 class="auth__title">Velkommen!</h1>
-        <p class="auth__sub" id="welcomeMsg"></p>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-top:24px;">
-          <a href="index.html" class="btn btn-primary auth__submit">Gå til forsiden</a>
-          <button class="btn btn-ghost auth__submit" id="logoutBtn">Logg ut</button>
+        <!-- Phone + Vipps -->
+        <div class="auth__phone-wrap">
+          <label class="auth__phone-label" for="phone">Mobilnummer</label>
+          <div class="auth__phone-field">
+            <span class="auth__phone-prefix">+47</span>
+            <input id="phone" class="auth__phone-input" inputmode="numeric" placeholder="Skriv ditt mobilnummer.." />
+          </div>
+        </div>
+
+        <button class="auth__vipps" id="vippsBtn">
+          Fortsett med <span class="auth__vipps-logo">vipps</span>
+        </button>
+
+        <p class="auth__fineprint">
+          Ved å fortsette godtar du at Vipps deler navn, e-post og telefon med nailed. Ingen betaling — kun verifisering.
+        </p>
+
+        <div class="auth__divider">Trygt og enkelt</div>
+
+        <div class="auth__benefits">
+          <div class="auth__benefit"><i data-lucide="shield-check"></i> Verifisert identitet med BankID via Vipps</div>
+          <div class="auth__benefit"><i data-lucide="zap"></i> Logg inn på 3 sekunder — ingen passord</div>
+          <div class="auth__benefit"><i data-lucide="lock"></i> Dine data deles kun med salongen du booker hos</div>
         </div>
       </div>
+
+      <!-- Waiting for Vipps confirmation -->
+      <div id="waitingView" class="auth__waiting">
+        <div class="auth__waiting-phone">
+          <div class="auth__waiting-screen">
+            <div class="auth__waiting-screen-logo">vipps</div>
+            <div class="auth__waiting-screen-text">Bekreft innlogging</div>
+            <div class="auth__waiting-screen-name">nailed</div>
+            <div class="auth__waiting-slider"><div class="auth__waiting-slider-thumb"></div></div>
+          </div>
+        </div>
+        <h3 style="font-family:var(--font-display); font-size:22px; margin:0 0 4px;">Åpne Vipps-appen</h3>
+        <p style="color:var(--fg-muted); font-size:14px; margin:0;">Vi venter på bekreftelse fra +47 <span id="waitingPhone"></span></p>
+        <div class="auth__pulse"><span></span><span></span><span></span></div>
+      </div>
+
+      <!-- Logged in -->
+      <div id="loggedInView" style="display:none;">
+        <div style="width:56px; height:56px; border-radius:var(--radius-pill); background:var(--rouge-100); color:var(--rouge-500); font-family:var(--font-display); font-weight:700; font-size:24px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">M</div>
+        <h2 style="font-family:var(--font-display); font-size:28px; margin:0 0 4px;">Velkommen, Maria!</h2>
+        <p style="color:var(--fg-muted); font-size:14px; margin:0 0 8px;">+47 123 45 678 · maria.solberg@gmail.com</p>
+        <span style="display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; padding:4px 8px; border-radius:var(--radius-pill); background:var(--cream-100); color:var(--ink); margin-bottom:24px;"><i data-lucide="check" style="width:11px;height:11px;color:var(--rouge-500);"></i> Verifisert med Vipps</span>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <a href="index.html" class="btn btn-primary" style="width:100%; justify-content:center; padding:14px 24px; font-size:15px;">Gå til forsiden</a>
+          <button class="btn btn-ghost" id="logoutBtn" style="width:100%; justify-content:center; padding:14px 24px; font-size:15px;">Logg ut</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script>
-    var loginView = document.getElementById('loginView');
-    var registerView = document.getElementById('registerView');
-    var loggedInView = document.getElementById('loggedInView');
+    lucide.createIcons();
 
-    // Toggle between login and register
-    document.getElementById('showRegister').addEventListener('click', function() {
-      loginView.style.display = 'none';
-      registerView.style.display = '';
+    // Role selector
+    var roleCustomer = document.getElementById('roleCustomer');
+    var roleProvider = document.getElementById('roleProvider');
+    roleCustomer.addEventListener('click', function() {
+      roleCustomer.classList.add('active');
+      roleProvider.classList.remove('active');
     });
-    document.getElementById('showLogin').addEventListener('click', function() {
-      registerView.style.display = 'none';
-      loginView.style.display = '';
-    });
-
-    function showError(el, msg) {
-      el.textContent = msg;
-      el.classList.add('visible');
-    }
-    function hideError(el) {
-      el.classList.remove('visible');
-    }
-
-    function showLoggedIn(user) {
-      loginView.style.display = 'none';
-      registerView.style.display = 'none';
-      loggedInView.style.display = '';
-      document.getElementById('welcomeMsg').textContent =
-        'Innlogget som ' + user.name + ' (' + user.email + ')';
-    }
-
-    // Check if already logged in
-    var token = localStorage.getItem('nailed_token');
-    if (token) {
-      fetch('/api/me', { headers: { Authorization: token } })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data.user) showLoggedIn(data.user);
-        });
-    }
-
-    // Login
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      var errorEl = document.getElementById('loginError');
-      hideError(errorEl);
-
-      fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: document.getElementById('loginEmail').value,
-          password: document.getElementById('loginPassword').value
-        })
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.error) {
-          showError(errorEl, data.error);
-        } else {
-          localStorage.setItem('nailed_token', data.token);
-          showLoggedIn(data.user);
-        }
-      });
+    roleProvider.addEventListener('click', function() {
+      roleProvider.classList.add('active');
+      roleCustomer.classList.remove('active');
     });
 
-    // Register
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      var errorEl = document.getElementById('registerError');
-      hideError(errorEl);
+    // Vipps login
+    document.getElementById('vippsBtn').addEventListener('click', function() {
+      var phone = document.getElementById('phone').value;
+      if (phone.replace(/\D/g, '').length < 8) {
+        document.getElementById('phone').focus();
+        return;
+      }
 
-      fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: document.getElementById('regName').value,
-          email: document.getElementById('regEmail').value,
-          password: document.getElementById('regPassword').value
-        })
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.error) {
-          showError(errorEl, data.error);
-        } else {
-          localStorage.setItem('nailed_token', data.token);
-          showLoggedIn(data.user);
-        }
-      });
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('waitingView').classList.add('visible');
+      document.getElementById('waitingPhone').textContent = phone;
+
+      // Simulate Vipps confirmation
+      setTimeout(function() {
+        document.getElementById('waitingView').classList.remove('visible');
+        document.getElementById('waitingView').style.display = 'none';
+        document.getElementById('loggedInView').style.display = '';
+        localStorage.setItem('nailed_token', 'vipps_' + Date.now());
+        lucide.createIcons();
+      }, 2400);
     });
 
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', function() {
-      var t = localStorage.getItem('nailed_token');
-      fetch('/api/logout', {
-        method: 'POST',
-        headers: { Authorization: t }
-      });
       localStorage.removeItem('nailed_token');
-      loggedInView.style.display = 'none';
-      loginView.style.display = '';
+      document.getElementById('loggedInView').style.display = 'none';
+      document.getElementById('loginView').style.display = '';
     });
+
+    // Check if already logged in
+    if (localStorage.getItem('nailed_token')) {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('loggedInView').style.display = '';
+    }
   </script>
 </body>
 </html>
