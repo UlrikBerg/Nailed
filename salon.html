@@ -363,27 +363,53 @@
 
     // Service list + all-services selection sync
     var cta = document.getElementById('bookCta');
+    var serviceList = document.getElementById('serviceList');
     var allSvcItems = document.querySelectorAll('.all-services__item');
-    var panelItems = document.querySelectorAll('#serviceList .service-list__item');
+    var popularNames = ['Klassisk manikyr', 'Gel manikyr', 'Gel + neglekunst', 'Pedikyr — luksus'];
 
-    function selectService(name, price) {
-      // Update all-services
+    function selectService(name, price, meta) {
+      // Update all-services radios
       allSvcItems.forEach(function(i) { i.classList.toggle('active', i.dataset.svcName === name); });
-      // Update panel items
+
+      // Remove any previously added non-popular item
+      var added = serviceList.querySelector('.service-list__item--added');
+      if (added) added.remove();
+
+      // Update popular panel items
+      var panelItems = serviceList.querySelectorAll('.service-list__item:not(.service-list__item--added)');
+      var isPopular = popularNames.indexOf(name) >= 0;
       panelItems.forEach(function(i) { i.classList.toggle('active', i.dataset.name === name); });
+
+      // If not a popular service, add it to the panel with fade-in
+      if (!isPopular && meta) {
+        var div = document.createElement('div');
+        div.className = 'service-list__item active service-list__item--added';
+        div.setAttribute('data-name', name);
+        div.setAttribute('data-price', price);
+        div.innerHTML = '<div><div class="service-list__name">' + name + '</div><div class="service-list__meta">' + meta + '</div></div><div class="service-list__price">' + price + ' kr</div>';
+        div.style.borderTop = '1px dashed var(--stone-300)';
+        div.style.marginTop = '8px';
+        serviceList.appendChild(div);
+        // Bind click on the new item
+        div.addEventListener('click', function() {
+          selectService(name, price, meta);
+        });
+      }
+
       // Update CTA
       cta.textContent = 'Book ' + name + ' · ' + price + ' kr';
     }
 
     allSvcItems.forEach(function(item) {
       item.addEventListener('click', function() {
-        selectService(item.dataset.svcName, item.dataset.svcPrice);
+        var meta = item.querySelector('.all-services__meta').textContent;
+        selectService(item.dataset.svcName, item.dataset.svcPrice, meta);
       });
     });
-    panelItems.forEach(function(item) {
-      item.addEventListener('click', function() {
-        selectService(item.dataset.name, item.dataset.price);
-      });
+    serviceList.addEventListener('click', function(e) {
+      var item = e.target.closest('.service-list__item');
+      if (!item) return;
+      selectService(item.dataset.name, item.dataset.price);
     });
 
     // Day picker
