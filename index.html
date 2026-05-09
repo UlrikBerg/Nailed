@@ -104,7 +104,7 @@
         <article class="service-card card service-card--featured" onclick="location.href='salon.html'">
           <div class="service-card__photo" style="background: linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 100%);">
             <span class="service-card__badge">Mest booket</span>
-            <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            <button class="service-card__heart" data-fav="studio-lakk"><i data-lucide="heart"></i></button>
           </div>
           <div class="service-card__body">
             <div class="service-card__row">
@@ -132,7 +132,7 @@
         <!-- Card 2 -->
         <article class="service-card card" onclick="location.href='salon.html'">
           <div class="service-card__photo" style="background: linear-gradient(135deg, #F4ECDF 0%, #E8DCC4 100%);">
-            <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            <button class="service-card__heart" data-fav="lash-linn"><i data-lucide="heart"></i></button>
           </div>
           <div class="service-card__body">
             <div class="service-card__row">
@@ -160,7 +160,7 @@
         <!-- Card 3 -->
         <article class="service-card card" onclick="location.href='salon.html'">
           <div class="service-card__photo" style="background: linear-gradient(135deg, #FFF1F5 0%, #FB6B9A 100%);">
-            <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            <button class="service-card__heart" data-fav="bare-negler"><i data-lucide="heart"></i></button>
           </div>
           <div class="service-card__body">
             <div class="service-card__row">
@@ -218,7 +218,7 @@
 
         <article class="service-card card" onclick="location.href='salon.html'">
           <div class="service-card__photo" style="background: linear-gradient(135deg, #DDE3D2 0%, #8DA079 100%);">
-            <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            <button class="service-card__heart" data-fav="studio-glow"><i data-lucide="heart"></i></button>
           </div>
           <div class="service-card__body">
             <div class="service-card__row">
@@ -245,7 +245,7 @@
 
         <article class="service-card card" onclick="location.href='salon.html'">
           <div class="service-card__photo" style="background: linear-gradient(135deg, #FFC4D6 0%, #82103D 100%);">
-            <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            <button class="service-card__heart" data-fav="neon-nails"><i data-lucide="heart"></i></button>
           </div>
           <div class="service-card__body">
             <div class="service-card__row">
@@ -272,7 +272,7 @@
 
         <article class="service-card card" onclick="location.href='salon.html'">
           <div class="service-card__photo" style="background: linear-gradient(135deg, #ECDFCB 0%, #C9B79A 100%);">
-            <button class="service-card__heart"><i data-lucide="heart"></i></button>
+            <button class="service-card__heart" data-fav="rosa-atelier"><i data-lucide="heart"></i></button>
           </div>
           <div class="service-card__body">
             <div class="service-card__row">
@@ -337,8 +337,10 @@
 
   <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="favorites.js"></script>
   <script>
     lucide.createIcons();
+    initFavorites();
 
     // Sticky nav scroll effect
     var nav = document.getElementById('topNav');

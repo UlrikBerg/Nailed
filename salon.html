@@ -21,7 +21,7 @@
         <a href="for-salonger.html">For salonger</a>
       </nav>
       <div class="top-nav__actions">
-        <button class="btn-icon"><i data-lucide="heart"></i></button>
+        <button class="btn-icon" data-fav="studio-lakk"><i data-lucide="heart"></i></button>
         <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
       </div>
     </div>
@@ -301,8 +301,10 @@
   </footer>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="favorites.js"></script>
   <script>
     lucide.createIcons();
+    initFavorites();
 
     // Sticky nav
     var nav = document.getElementById('topNav');
