@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meldinger — nailed partner</title>
+  <link rel="icon" href="../assets/logo-mark.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="partner.css" />
+  <style>
+    .msg-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      height: calc(100vh - 100px);
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    /* Conversation list */
+    .msg-list {
+      border-right: 1px solid var(--stone-200);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .msg-list__head {
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid var(--stone-200);
+    }
+    .msg-list__title { font-family: var(--font-display); font-weight: 600; font-size: 18px; margin: 0 0 12px; }
+    .msg-list__search {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--cream-100); border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill); padding: 7px 14px;
+    }
+    .msg-list__search i { width: 14px; height: 14px; color: var(--fg-muted); flex-shrink: 0; }
+    .msg-list__search input {
+      border: 0; outline: 0; background: transparent;
+      font-family: var(--font-body); font-size: 13px; color: var(--ink); width: 100%;
+    }
+    .msg-list__search input::placeholder { color: var(--stone-400); }
+
+    .msg-list__items { flex: 1; overflow-y: auto; }
+    .msg-item {
+      display: grid; grid-template-columns: 42px 1fr auto;
+      gap: 10px; padding: 14px 16px; cursor: pointer;
+      border-bottom: 1px solid var(--stone-100);
+      transition: background var(--dur-fast);
+      align-items: center;
+    }
+    .msg-item:hover { background: var(--cream-100); }
+    .msg-item.active { background: var(--rouge-50); }
+    .msg-item__avatar {
+      width: 42px; height: 42px; border-radius: var(--radius-pill);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 700; font-size: 15px;
+      flex-shrink: 0;
+    }
+    .msg-item__name { font-weight: 600; font-size: 14px; }
+    .msg-item__preview { font-size: 12px; color: var(--fg-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+    .msg-item__time { font-size: 11px; color: var(--fg-muted); white-space: nowrap; }
+    .msg-item__badge {
+      width: 8px; height: 8px; border-radius: var(--radius-pill);
+      background: var(--rouge-500); margin-top: 4px;
+    }
+
+    /* Chat area */
+    .msg-chat {
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .msg-chat__head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--stone-200);
+      gap: 12px;
+    }
+    .msg-chat__user { display: flex; align-items: center; gap: 10px; }
+    .msg-chat__avatar {
+      width: 36px; height: 36px; border-radius: var(--radius-pill);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 700; font-size: 14px;
+    }
+    .msg-chat__name { font-weight: 600; font-size: 15px; }
+    .msg-chat__status { font-size: 12px; color: var(--fg-muted); }
+    .msg-chat__actions { display: flex; gap: 4px; }
+    .msg-chat__action {
+      width: 32px; height: 32px; border-radius: var(--radius-pill);
+      border: 0; background: transparent; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--fg-muted);
+    }
+    .msg-chat__action:hover { background: var(--stone-100); color: var(--ink); }
+    .msg-chat__action i { width: 16px; height: 16px; }
+
+    .msg-chat__body {
+      flex: 1; overflow-y: auto; padding: 20px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .msg-date {
+      text-align: center; font-size: 11px; color: var(--fg-muted);
+      font-weight: 600; margin: 8px 0;
+    }
+    .msg-bubble {
+      max-width: 75%; padding: 12px 16px;
+      font-size: 14px; line-height: 1.5;
+      border-radius: 18px;
+    }
+    .msg-bubble--them {
+      background: var(--cream-100); color: var(--ink);
+      border-bottom-left-radius: 4px;
+      align-self: flex-start;
+    }
+    .msg-bubble--me {
+      background: var(--ink); color: var(--cream-50);
+      border-bottom-right-radius: 4px;
+      align-self: flex-end;
+    }
+    .msg-bubble__time { font-size: 10px; opacity: 0.6; margin-top: 4px; }
+    .msg-bubble--me .msg-bubble__time { text-align: right; }
+
+    .msg-bubble--booking {
+      background: var(--rouge-50);
+      border: 1px solid var(--rouge-100);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      align-self: center;
+      max-width: 85%;
+      text-align: center;
+    }
+    .msg-bubble--booking i { width: 14px; height: 14px; color: var(--rouge-500); vertical-align: -2px; }
+    .msg-bubble--booking strong { color: var(--ink); }
+
+    .msg-chat__input {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 20px; border-top: 1px solid var(--stone-200);
+    }
+    .msg-chat__field {
+      flex: 1; display: flex; align-items: center; gap: 10px;
+      background: var(--cream-100); border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill); padding: 10px 18px;
+    }
+    .msg-chat__field input {
+      border: 0; outline: 0; background: transparent;
+      font-family: var(--font-body); font-size: 14px; color: var(--ink); width: 100%;
+    }
+    .msg-chat__field input::placeholder { color: var(--stone-400); }
+    .msg-chat__send {
+      width: 40px; height: 40px; border-radius: var(--radius-pill);
+      border: 0; background: var(--rouge-500); color: white;
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+      transition: background var(--dur-fast); flex-shrink: 0;
+    }
+    .msg-chat__send:hover { background: var(--rouge-600); }
+    .msg-chat__send i { width: 16px; height: 16px; }
+
+    /* Quick replies */
+    .msg-quick {
+      display: flex; gap: 6px; padding: 0 20px 10px; overflow-x: auto; scrollbar-width: none;
+    }
+    .msg-quick::-webkit-scrollbar { display: none; }
+    .msg-quick__btn {
+      font-family: var(--font-body); font-size: 12px; font-weight: 500;
+      padding: 6px 12px; border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200); background: var(--cream-50);
+      cursor: pointer; white-space: nowrap; transition: all var(--dur-fast);
+    }
+    .msg-quick__btn:hover { border-color: var(--stone-400); background: var(--stone-100); }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <aside class="sidebar">
+      <a class="sidebar__brand" href="index.html"><img src="../assets/logo-wordmark.svg" alt="nailed" /></a>
+      <button class="nav-item" onclick="location.href='index.html'"><i data-lucide="layout-dashboard"></i> Oversikt</button>
+      <button class="nav-item"><i data-lucide="calendar"></i> Kalender</button>
+      <button class="nav-item"><i data-lucide="list"></i> Bookinger <span class="nav-item__count">7</span></button>
+      <button class="nav-item"><i data-lucide="sparkles"></i> Tjenester</button>
+      <button class="nav-item" onclick="location.href='kunder.html'"><i data-lucide="users"></i> Kunder</button>
+      <button class="nav-item active"><i data-lucide="message-circle"></i> Meldinger <span class="nav-item__count">2</span></button>
+      <div class="sidebar__section">Salong</div>
+      <button class="nav-item" onclick="location.href='profil.html'"><i data-lucide="image"></i> Profil</button>
+      <button class="nav-item" onclick="location.href='innsikt.html'"><i data-lucide="bar-chart-3"></i> Innsikt</button>
+      <button class="nav-item"><i data-lucide="crown"></i> Abonnement</button>
+      <button class="nav-item" onclick="location.href='settings.html'"><i data-lucide="settings"></i> Innstillinger</button>
+      <div class="sidebar__footer">
+        <div class="sidebar__avatar">SL</div>
+        <div><div class="sidebar__user">Studio Lakk</div><div class="sidebar__role">Linn Andersen</div></div>
+      </div>
+    </aside>
+
+    <main class="main" style="padding-bottom:0;">
+      <div class="topbar" style="margin-bottom:20px;">
+        <div>
+          <h1 class="topbar__title">Meldinger</h1>
+          <div class="topbar__sub">Kommuniser med kundene dine.</div>
+        </div>
+      </div>
+
+      <div class="msg-layout">
+        <!-- Conversation list -->
+        <div class="msg-list">
+          <div class="msg-list__head">
+            <h3 class="msg-list__title">Samtaler</h3>
+            <div class="msg-list__search">
+              <i data-lucide="search"></i>
+              <input placeholder="Søk i samtaler.." />
+            </div>
+          </div>
+          <div class="msg-list__items">
+            <div class="msg-item active" data-conv="ida">
+              <div class="msg-item__avatar" style="background:linear-gradient(135deg, #FFE0E9, #FB6B9A); color:#fff;">IS</div>
+              <div>
+                <div class="msg-item__name">Ida Skogen</div>
+                <div class="msg-item__preview">Hei! Har dere ledig tid på torsdag?</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="msg-item__time">12:34</div>
+                <div class="msg-item__badge"></div>
+              </div>
+            </div>
+
+            <div class="msg-item" data-conv="maria">
+              <div class="msg-item__avatar" style="background:linear-gradient(135deg, #DDE3D2, #8DA079); color:#fff;">MK</div>
+              <div>
+                <div class="msg-item__name">Maria Kvam</div>
+                <div class="msg-item__preview">Tusen takk for i dag! 💅</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="msg-item__time">10:15</div>
+                <div class="msg-item__badge"></div>
+              </div>
+            </div>
+
+            <div class="msg-item" data-conv="thea">
+              <div class="msg-item__avatar" style="background:linear-gradient(135deg, #FFC4D6, #82103D); color:#fff;">TH</div>
+              <div>
+                <div class="msg-item__name">Thea Hauge</div>
+                <div class="msg-item__preview">Kan jeg flytte timen til kl 13?</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="msg-item__time">I går</div>
+              </div>
+            </div>
+
+            <div class="msg-item" data-conv="sara">
+              <div class="msg-item__avatar" style="background:linear-gradient(135deg, #F4ECDF, #C9B79A); color:var(--ink);">SB</div>
+              <div>
+                <div class="msg-item__name">Sara Berg</div>
+                <div class="msg-item__preview">Ja, det passer fint! Sees da 😊</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="msg-item__time">I går</div>
+              </div>
+            </div>
+
+            <div class="msg-item" data-conv="emilie">
+              <div class="msg-item__avatar" style="background:linear-gradient(135deg, #FFE0E9, #FB6B9A); color:#fff;">EL</div>
+              <div>
+                <div class="msg-item__name">Emilie Lund</div>
+                <div class="msg-item__preview">Hvor lang tid tar gel fjerning?</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="msg-item__time">Man</div>
+              </div>
+            </div>
+
+            <div class="msg-item" data-conv="mari">
+              <div class="msg-item__avatar" style="background:linear-gradient(135deg, #ECDFCB, #C9B79A); color:var(--ink);">MH</div>
+              <div>
+                <div class="msg-item__name">Mari Haugen</div>
+                <div class="msg-item__preview">Du: Velkommen tilbake når som helst!</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="msg-item__time">Forrige uke</div>
+              </div>
+            </div>
+
+            <div class="msg-item" data-conv="linnea">
+              <div class="msg-item__avatar" style="background:linear-gradient(135deg, #DDE3D2, #8DA079); color:#fff;">LK</div>
+              <div>
+                <div class="msg-item__name">Linnea Kristiansen</div>
+                <div class="msg-item__preview">Du: Bio-gel varer ca 4-5 uker 👍</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="msg-item__time">2 uker</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat area -->
+        <div class="msg-chat">
+          <div class="msg-chat__head">
+            <div class="msg-chat__user">
+              <div class="msg-chat__avatar" style="background:linear-gradient(135deg, #FFE0E9, #FB6B9A); color:#fff;">IS</div>
+              <div>
+                <div class="msg-chat__name">Ida Skogen</div>
+                <div class="msg-chat__status">Lojal kunde · 12 bookinger</div>
+              </div>
+            </div>
+            <div class="msg-chat__actions">
+              <button class="msg-chat__action"><i data-lucide="phone"></i></button>
+              <button class="msg-chat__action"><i data-lucide="calendar-plus"></i></button>
+              <button class="msg-chat__action"><i data-lucide="more-horizontal"></i></button>
+            </div>
+          </div>
+
+          <div class="msg-chat__body">
+            <div class="msg-date">I dag</div>
+
+            <div class="msg-bubble msg-bubble--booking">
+              <i data-lucide="calendar-check"></i> <strong>Ida</strong> booket <strong>Klassisk manikyr</strong> · I dag 09:00
+            </div>
+
+            <div class="msg-bubble msg-bubble--them">
+              Hei Linn! Takk for timen i dag, ble kjempefint som alltid ✨
+              <div class="msg-bubble__time">10:02</div>
+            </div>
+
+            <div class="msg-bubble msg-bubble--me">
+              Hei Ida! Så hyggelig å høre, alltid like gøy å ha deg her 😊
+              <div class="msg-bubble__time">10:15</div>
+            </div>
+
+            <div class="msg-bubble msg-bubble--them">
+              Hei! Har dere ledig tid på torsdag? Tenkte å prøve gel + neglekunst denne gangen
+              <div class="msg-bubble__time">12:34</div>
+            </div>
+          </div>
+
+          <div class="msg-quick">
+            <button class="msg-quick__btn">Ja, vi har ledig!</button>
+            <button class="msg-quick__btn">Sjekker og kommer tilbake</button>
+            <button class="msg-quick__btn">Book direkte her: nailed.no</button>
+            <button class="msg-quick__btn">Takk for i dag!</button>
+          </div>
+
+          <div class="msg-chat__input">
+            <div class="msg-chat__field">
+              <input placeholder="Skriv en melding.." id="msgInput" />
+            </div>
+            <button class="msg-chat__send" id="msgSend"><i data-lucide="send"></i></button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Conversation switching
+    document.querySelectorAll('.msg-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        document.querySelectorAll('.msg-item').forEach(function(i) { i.classList.remove('active'); });
+        item.classList.add('active');
+        var badge = item.querySelector('.msg-item__badge');
+        if (badge) badge.remove();
+      });
+    });
+
+    // Send message
+    var msgInput = document.getElementById('msgInput');
+    var chatBody = document.querySelector('.msg-chat__body');
+
+    function sendMessage(text) {
+      if (!text.trim()) return;
+      var bubble = document.createElement('div');
+      bubble.className = 'msg-bubble msg-bubble--me';
+      var now = new Date();
+      bubble.innerHTML = text + '<div class="msg-bubble__time">' + now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0') + '</div>';
+      chatBody.appendChild(bubble);
+      chatBody.scrollTop = chatBody.scrollHeight;
+      msgInput.value = '';
+    }
+
+    document.getElementById('msgSend').addEventListener('click', function() { sendMessage(msgInput.value); });
+    msgInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') sendMessage(msgInput.value); });
+
+    // Quick replies
+    document.querySelectorAll('.msg-quick__btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { sendMessage(btn.textContent); });
+    });
+  </script>
+</body>
+</html>
