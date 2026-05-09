@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profil — nailed partner</title>
+  <link rel="icon" href="../assets/logo-mark.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="partner.css" />
+  <style>
+    /* Profile page */
+    .profile-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 8px;
+      aspect-ratio: 21/7;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .profile-hero__tile {
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      transition: filter var(--dur-fast);
+    }
+    .profile-hero__tile:hover { filter: brightness(0.94); }
+    .profile-hero__tile--main { grid-column: 1 / 3; grid-row: 1 / 3; }
+    .profile-hero__edit {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      z-index: 2;
+    }
+
+    .profile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .profile-header__info { flex: 1; min-width: 300px; }
+    .profile-header__name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 36px;
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
+    }
+    .profile-header__meta {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 14px;
+      color: var(--fg-muted);
+      flex-wrap: wrap;
+    }
+    .profile-header__meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .profile-header__meta i { width: 14px; height: 14px; }
+    .profile-header__actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 900px) { .profile-grid { grid-template-columns: 1fr; } }
+
+    .profile-card {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+    }
+    .profile-card__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .profile-card__title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .profile-about {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--ink);
+      margin: 0;
+    }
+
+    .profile-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .profile-chip {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 13px;
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-100);
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .profile-chip i { width: 14px; height: 14px; color: var(--fg-muted); }
+
+    .profile-hours {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .profile-hours__row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--stone-200);
+      font-size: 14px;
+    }
+    .profile-hours__row:last-child { border: 0; }
+    .profile-hours__day { font-weight: 600; }
+    .profile-hours__time { color: var(--fg-muted); }
+    .profile-hours__time.closed { color: var(--danger-500); }
+    .profile-hours__row.today { background: var(--rouge-50); margin: 0 -12px; padding: 10px 12px; border-radius: var(--radius-sm); }
+    .profile-hours__row.today .profile-hours__day { color: var(--rouge-500); }
+
+    .profile-team {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .profile-team__member {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background: var(--cream-100);
+    }
+    .profile-team__avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-pill);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .profile-team__name { font-weight: 600; font-size: 14px; }
+    .profile-team__role { font-size: 12px; color: var(--fg-muted); margin-top: 2px; }
+    .profile-team__status {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+    }
+    .profile-team__status--active { background: var(--success-50); color: var(--success-500); }
+
+    .profile-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .profile-stat {
+      background: var(--cream-100);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: center;
+    }
+    .profile-stat__value {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 28px;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .profile-stat__label {
+      font-size: 12px;
+      color: var(--fg-muted);
+      margin-top: 4px;
+    }
+
+    .profile-preview {
+      margin-top: 12px;
+      padding: 14px 16px;
+      background: var(--cream-100);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+    .profile-preview a {
+      color: var(--rouge-500);
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .profile-preview a i { width: 14px; height: 14px; }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <aside class="sidebar">
+      <a class="sidebar__brand" href="index.html"><img src="../assets/logo-wordmark.svg" alt="nailed" /></a>
+
+      <button class="nav-item" onclick="location.href='index.html'"><i data-lucide="layout-dashboard"></i> Oversikt</button>
+      <button class="nav-item"><i data-lucide="calendar"></i> Kalender</button>
+      <button class="nav-item"><i data-lucide="list"></i> Bookinger <span class="nav-item__count">7</span></button>
+      <button class="nav-item"><i data-lucide="sparkles"></i> Tjenester</button>
+      <button class="nav-item"><i data-lucide="users"></i> Kunder</button>
+      <button class="nav-item"><i data-lucide="message-circle"></i> Meldinger <span class="nav-item__count">2</span></button>
+
+      <div class="sidebar__section">Salong</div>
+      <button class="nav-item active"><i data-lucide="image"></i> Profil</button>
+      <button class="nav-item"><i data-lucide="bar-chart-3"></i> Innsikt</button>
+      <button class="nav-item"><i data-lucide="crown"></i> Abonnement</button>
+      <button class="nav-item" onclick="location.href='settings.html'"><i data-lucide="settings"></i> Innstillinger</button>
+
+      <div class="sidebar__footer">
+        <div class="sidebar__avatar">SL</div>
+        <div>
+          <div class="sidebar__user">Studio Lakk</div>
+          <div class="sidebar__role">Linn Andersen</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1 class="topbar__title">Salongprofil</h1>
+          <div class="topbar__sub">Slik ser salongen din ut for kundene på nailed.</div>
+        </div>
+      </div>
+
+      <!-- Photo gallery -->
+      <div class="profile-hero">
+        <button class="profile-hero__tile profile-hero__tile--main" style="background: linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 60%, #82103D 100%);"></button>
+        <button class="profile-hero__tile" style="background: linear-gradient(135deg, #F4ECDF, #E8DCC4);"></button>
+        <button class="profile-hero__tile" style="background: linear-gradient(135deg, #FFE0E9, #FFC4D6);"></button>
+        <button class="profile-hero__tile" style="background: linear-gradient(135deg, #DDE3D2, #8DA079);"></button>
+        <button class="profile-hero__tile" style="background: linear-gradient(135deg, #ECDFCB, #C9B79A);"></button>
+        <button class="btn btn-ghost btn-sm profile-hero__edit" style="background: rgba(251,246,238,0.95);">
+          <i data-lucide="pencil"></i> Rediger bilder
+        </button>
+      </div>
+
+      <!-- Header -->
+      <div class="profile-header">
+        <div class="profile-header__info">
+          <h2 class="profile-header__name">Studio Lakk</h2>
+          <div class="profile-header__meta">
+            <span><i data-lucide="star" style="color:var(--rouge-500); fill:var(--rouge-500);"></i> 4.9 (312 anmeldelser)</span>
+            <span><i data-lucide="map-pin"></i> Markveien 22, 0554 Oslo</span>
+            <span><i data-lucide="clock"></i> Åpent nå · stenger 18:00</span>
+          </div>
+        </div>
+        <div class="profile-header__actions">
+          <a href="../salon.html" class="btn btn-ghost btn-sm" target="_blank"><i data-lucide="external-link"></i> Se kundevisning</a>
+          <button class="btn btn-primary btn-sm"><i data-lucide="pencil"></i> Rediger profil</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="profile-stats" style="margin-bottom: 20px;">
+        <div class="profile-stat">
+          <div class="profile-stat__value">312</div>
+          <div class="profile-stat__label">Anmeldelser</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat__value">4.9</div>
+          <div class="profile-stat__label">Snittrating</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat__value">1 247</div>
+          <div class="profile-stat__label">Bookinger totalt</div>
+        </div>
+      </div>
+
+      <div class="profile-grid">
+        <!-- Left column -->
+        <div style="display:flex; flex-direction:column; gap:20px;">
+
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <h3 class="profile-card__title">Om salongen</h3>
+              <button class="btn btn-ghost btn-sm"><i data-lucide="pencil"></i> Rediger</button>
+            </div>
+            <p class="profile-about">
+              Et lite atelier på Grünerløkka som tror at en negl kan være et lerret. Vi jobber med bio-gel og giftfrie produkter, og vi serverer alltid kaffen mens du sitter. Bestill en time, så er resten på oss.
+            </p>
+            <div class="profile-chips">
+              <span class="profile-chip"><i data-lucide="leaf"></i> Bio-gel</span>
+              <span class="profile-chip"><i data-lucide="wifi"></i> Wifi</span>
+              <span class="profile-chip"><i data-lucide="coffee"></i> Kaffe</span>
+              <span class="profile-chip"><i data-lucide="accessibility"></i> Tilgjengelig</span>
+              <span class="profile-chip"><i data-lucide="car"></i> Parkering</span>
+            </div>
+          </div>
+
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <h3 class="profile-card__title">Team</h3>
+              <button class="btn btn-ghost btn-sm"><i data-lucide="plus"></i> Legg til</button>
+            </div>
+            <div class="profile-team">
+              <div class="profile-team__member">
+                <div class="profile-team__avatar" style="background:linear-gradient(135deg, #FFC4D6, #EE3F7E); color:#fff;">LA</div>
+                <div>
+                  <div class="profile-team__name">Linn Andersen</div>
+                  <div class="profile-team__role">Eier · Manikyr, Pedikyr</div>
+                </div>
+                <span class="profile-team__status profile-team__status--active">Aktiv</span>
+              </div>
+              <div class="profile-team__member">
+                <div class="profile-team__avatar" style="background:linear-gradient(135deg, #DDE3D2, #8DA079); color:#fff;">MH</div>
+                <div>
+                  <div class="profile-team__name">Maja Holm</div>
+                  <div class="profile-team__role">Neglestylist · Gel, Neglekunst</div>
+                </div>
+                <span class="profile-team__status profile-team__status--active">Aktiv</span>
+              </div>
+              <div class="profile-team__member">
+                <div class="profile-team__avatar" style="background:linear-gradient(135deg, #F4ECDF, #C9B79A); color:var(--ink);">AK</div>
+                <div>
+                  <div class="profile-team__name">Anna Kristiansen</div>
+                  <div class="profile-team__role">Lærling · Klassisk manikyr</div>
+                </div>
+                <span class="profile-team__status profile-team__status--active">Aktiv</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <h3 class="profile-card__title">Kontaktinformasjon</h3>
+              <button class="btn btn-ghost btn-sm"><i data-lucide="pencil"></i> Rediger</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px;">
+                <i data-lucide="mail" style="width:16px; height:16px; color:var(--fg-muted);"></i>
+                hei@studiolakk.no
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px;">
+                <i data-lucide="phone" style="width:16px; height:16px; color:var(--fg-muted);"></i>
+                +47 22 35 12 34
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px;">
+                <i data-lucide="map-pin" style="width:16px; height:16px; color:var(--fg-muted);"></i>
+                Markveien 22, 0554 Oslo
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px;">
+                <i data-lucide="building-2" style="width:16px; height:16px; color:var(--fg-muted);"></i>
+                Org.nr: 912 345 678
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column -->
+        <div style="display:flex; flex-direction:column; gap:20px;">
+
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <h3 class="profile-card__title">Åpningstider</h3>
+              <button class="btn btn-ghost btn-sm"><i data-lucide="pencil"></i> Rediger</button>
+            </div>
+            <div class="profile-hours">
+              <div class="profile-hours__row">
+                <span class="profile-hours__day">Mandag</span>
+                <span class="profile-hours__time">09:00 – 18:00</span>
+              </div>
+              <div class="profile-hours__row">
+                <span class="profile-hours__day">Tirsdag</span>
+                <span class="profile-hours__time">09:00 – 18:00</span>
+              </div>
+              <div class="profile-hours__row">
+                <span class="profile-hours__day">Onsdag</span>
+                <span class="profile-hours__time">09:00 – 18:00</span>
+              </div>
+              <div class="profile-hours__row">
+                <span class="profile-hours__day">Torsdag</span>
+                <span class="profile-hours__time">09:00 – 20:00</span>
+              </div>
+              <div class="profile-hours__row today">
+                <span class="profile-hours__day">Fredag</span>
+                <span class="profile-hours__time">09:00 – 18:00</span>
+              </div>
+              <div class="profile-hours__row">
+                <span class="profile-hours__day">Lørdag</span>
+                <span class="profile-hours__time">10:00 – 16:00</span>
+              </div>
+              <div class="profile-hours__row">
+                <span class="profile-hours__day">Søndag</span>
+                <span class="profile-hours__time closed">Stengt</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <h3 class="profile-card__title">Behandlinger</h3>
+              <button class="btn btn-ghost btn-sm"><i data-lucide="pencil"></i> Rediger</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0;">
+              <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--stone-200); font-size:14px;">
+                <div><strong>Klassisk manikyr</strong><br><span style="font-size:12px; color:var(--fg-muted);">45 min</span></div>
+                <span style="font-family:var(--font-display); font-weight:700;">490 kr</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--stone-200); font-size:14px;">
+                <div><strong>Gel manikyr</strong><br><span style="font-size:12px; color:var(--fg-muted);">75 min</span></div>
+                <span style="font-family:var(--font-display); font-weight:700;">690 kr</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--stone-200); font-size:14px;">
+                <div><strong>Gel + neglekunst</strong><br><span style="font-size:12px; color:var(--fg-muted);">90 min</span></div>
+                <span style="font-family:var(--font-display); font-weight:700;">890 kr</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:10px 0; font-size:14px;">
+                <div><strong>Pedikyr — luksus</strong><br><span style="font-size:12px; color:var(--fg-muted);">60 min</span></div>
+                <span style="font-family:var(--font-display); font-weight:700;">790 kr</span>
+              </div>
+            </div>
+            <div style="margin-top:12px; text-align:center;">
+              <button class="btn btn-ghost btn-sm">Vis alle 12 behandlinger</button>
+            </div>
+          </div>
+
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <h3 class="profile-card__title">Kundevisning</h3>
+            </div>
+            <div class="profile-preview">
+              <span>Se hvordan profilen din ser ut for kunder</span>
+              <a href="../salon.html" target="_blank">Åpne <i data-lucide="external-link"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
