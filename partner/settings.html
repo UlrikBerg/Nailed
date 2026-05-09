@@ -214,7 +214,7 @@
       <div class="sidebar__section">Salong</div>
       <button class="nav-item"><i data-lucide="image"></i> Profil</button>
       <button class="nav-item"><i data-lucide="bar-chart-3"></i> Innsikt</button>
-      <button class="nav-item"><i data-lucide="credit-card"></i> Utbetaling</button>
+      <button class="nav-item"><i data-lucide="crown"></i> Abonnement</button>
       <button class="nav-item active"><i data-lucide="settings"></i> Innstillinger</button>
 
       <div class="sidebar__footer">
@@ -231,14 +231,14 @@
       <div class="topbar">
         <div>
           <h1 class="topbar__title">Innstillinger</h1>
-          <div class="topbar__sub">Administrer profil, utbetalinger og integrasjoner.</div>
+          <div class="topbar__sub">Administrer profil, abonnement og integrasjoner.</div>
         </div>
       </div>
 
       <!-- Settings tabs -->
       <div class="settings-nav" id="settingsNav">
         <button class="settings-nav__tab active" data-tab="profile">Profil</button>
-        <button class="settings-nav__tab" data-tab="payout">Utbetalinger</button>
+        <button class="settings-nav__tab" data-tab="subscription">Abonnement</button>
         <button class="settings-nav__tab" data-tab="integrations">Integrasjoner</button>
         <button class="settings-nav__tab" data-tab="notifications">Varsler</button>
       </div>
@@ -326,68 +326,130 @@
       </div>
 
       <!-- ============================================================
-           Utbetalinger
+           Abonnement
            ============================================================ -->
-      <div class="settings-section" id="tab-payout">
-        <div class="settings-card">
-          <div class="settings-card__head">
+      <div class="settings-section" id="tab-subscription">
+        <div class="settings-card" style="border-color: var(--rouge-200); background: linear-gradient(135deg, var(--cream-50), var(--rouge-50));">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
             <div>
-              <h3 class="settings-card__title">Bankkonto</h3>
-              <p class="settings-card__desc">Kunden betaler direkte hos deg. Denne kontoen brukes kun for eventuell fakturering via nailed.</p>
-            </div>
-          </div>
-          <div class="field-group">
-            <div class="field-row">
-              <div class="field">
-                <label class="field__label">Kontonummer</label>
-                <input class="field__input" value="1234 56 78901" placeholder="Skriv inn kontonummer" />
+              <div style="display:inline-flex; align-items:center; gap:8px; margin-bottom:12px;">
+                <span style="font-family:var(--font-display); font-weight:800; font-size:22px; color:var(--ink);">nailed</span>
+                <span style="width:8px; height:8px; border-radius:50%; background:var(--rouge-500);"></span>
+                <span style="font-family:var(--font-body); font-weight:700; font-size:12px; letter-spacing:.1em; text-transform:uppercase; padding:4px 10px; border-radius:var(--radius-pill); background:var(--rouge-100); color:var(--rouge-700);">Prøveperiode</span>
               </div>
-              <div class="field">
-                <label class="field__label">Kontoinnehaver</label>
-                <input class="field__input" value="Studio Lakk AS" />
-              </div>
+              <h3 class="settings-card__title" style="font-size:28px; margin-bottom:4px;">Gratis i 6 måneder</h3>
+              <p class="settings-card__desc">Du har full tilgang til alle funksjoner i prøveperioden. Ingen betaling kreves før prøveperioden er over.</p>
             </div>
-          </div>
-          <div class="settings-actions">
-            <button class="btn btn-primary">Lagre bankkonto</button>
+            <div style="text-align:right;">
+              <div style="font-family:var(--font-display); font-weight:700; font-size:48px; color:var(--ink); line-height:1;">99<span style="font-size:20px; color:var(--fg-muted);"> kr/mnd</span></div>
+              <div style="font-size:12px; color:var(--fg-muted); margin-top:4px;">etter prøveperioden</div>
+            </div>
           </div>
         </div>
 
         <div class="settings-card">
           <div class="settings-card__head">
             <div>
-              <h3 class="settings-card__title">Betalingsmetoder i salongen</h3>
-              <p class="settings-card__desc">Vis kundene hvilke betalingsmetoder du aksepterer.</p>
+              <h3 class="settings-card__title">Prøveperiode</h3>
+              <p class="settings-card__desc">Din gratis prøveperiode startet 9. mai 2026.</p>
+            </div>
+          </div>
+          <div class="field-group">
+            <div style="background:var(--cream-100); border-radius:var(--radius-md); padding:20px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <span style="font-size:14px; font-weight:600;">Gjenstående tid</span>
+                <span style="font-family:var(--font-display); font-weight:700; font-size:20px; color:var(--rouge-500);">182 dager</span>
+              </div>
+              <div style="width:100%; height:8px; background:var(--stone-200); border-radius:var(--radius-pill); overflow:hidden;">
+                <div style="width:2%; height:100%; background:var(--rouge-500); border-radius:var(--radius-pill);"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:12px; color:var(--fg-muted);">
+                <span>Startet: 9. mai 2026</span>
+                <span>Utløper: 9. november 2026</span>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div style="background:var(--cream-100); border-radius:var(--radius-md); padding:16px; display:flex; align-items:center; gap:12px;">
+                <i data-lucide="calendar-check" style="width:20px; height:20px; color:var(--rouge-500); flex-shrink:0;"></i>
+                <div>
+                  <div style="font-weight:600; font-size:14px;">Opprettet</div>
+                  <div style="font-size:13px; color:var(--fg-muted);">9. mai 2026</div>
+                </div>
+              </div>
+              <div style="background:var(--cream-100); border-radius:var(--radius-md); padding:16px; display:flex; align-items:center; gap:12px;">
+                <i data-lucide="clock" style="width:20px; height:20px; color:var(--rouge-500); flex-shrink:0;"></i>
+                <div>
+                  <div style="font-weight:600; font-size:14px;">Neste faktura</div>
+                  <div style="font-size:13px; color:var(--fg-muted);">9. november 2026 · 99 kr</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card__head">
+            <div>
+              <h3 class="settings-card__title">Automatisk fornyelse</h3>
+              <p class="settings-card__desc">Når prøveperioden utløper fortsetter abonnementet automatisk til 99 kr/mnd. Du kan skru av når som helst.</p>
             </div>
           </div>
           <div class="field-group">
             <div class="field__toggle">
               <div class="field__toggle-text">
-                <strong>Vipps</strong>
-                <span>Kunden betaler med Vipps i salongen</span>
+                <strong>Automatisk fornyelse</strong>
+                <span>Abonnementet fornyes automatisk etter prøveperioden</span>
               </div>
-              <button class="toggle on" id="toggleVipps"></button>
+              <button class="toggle on" id="toggleAutoRenew"></button>
             </div>
-            <div class="field__toggle">
-              <div class="field__toggle-text">
-                <strong>Kort / terminal</strong>
-                <span>Kortterminal i salongen</span>
-              </div>
-              <button class="toggle on" id="toggleCard"></button>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card__head">
+            <div>
+              <h3 class="settings-card__title">Betalingsmetode for abonnement</h3>
+              <p class="settings-card__desc">Brukes kun til å betale ditt nailed-abonnement. Kunder betaler deg direkte i salongen.</p>
             </div>
-            <div class="field__toggle">
-              <div class="field__toggle-text">
-                <strong>Kontant</strong>
-                <span>Aksepterer kontant betaling</span>
+          </div>
+          <div class="field-group">
+            <div class="pay-method">
+              <div class="pay-method__icon" style="background:var(--ink); color:var(--cream-50); border-radius:var(--radius-sm);">
+                <i data-lucide="credit-card" style="width:18px; height:18px;"></i>
               </div>
-              <button class="toggle" id="toggleCash"></button>
+              <div class="pay-method__info">
+                <div class="pay-method__name">Visa •••• 4821</div>
+                <div class="pay-method__detail">Utløper 03/2029</div>
+              </div>
+              <button class="btn btn-ghost btn-sm">Endre</button>
             </div>
-            <div class="field__toggle">
-              <div class="field__toggle-text">
-                <strong>Faktura</strong>
-                <span>Send faktura etter behandling</span>
-              </div>
-              <button class="toggle" id="toggleInvoice"></button>
+            <div style="background:var(--cream-100); border-radius:var(--radius-md); padding:14px 16px; display:flex; align-items:center; gap:10px; font-size:13px; color:var(--fg-muted);">
+              <i data-lucide="info" style="width:14px; height:14px; color:var(--rouge-500); flex-shrink:0;"></i>
+              nailed håndterer ingen kundebetalinger. Alle betalinger for behandlinger skjer direkte mellom kunden og salongen — med kontant, Vipps, kort eller faktura, slik du selv foretrekker.
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-card__head">
+            <div>
+              <h3 class="settings-card__title">Hva er inkludert?</h3>
+            </div>
+          </div>
+          <div class="field-group">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px;"><i data-lucide="check-circle" style="width:16px; height:16px; color:var(--success-500); flex-shrink:0;"></i> Ubegrensede bookinger</div>
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px;"><i data-lucide="check-circle" style="width:16px; height:16px; color:var(--success-500); flex-shrink:0;"></i> Offentlig salongprofil</div>
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px;"><i data-lucide="check-circle" style="width:16px; height:16px; color:var(--success-500); flex-shrink:0;"></i> Kundebehandling</div>
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px;"><i data-lucide="check-circle" style="width:16px; height:16px; color:var(--success-500); flex-shrink:0;"></i> Kalender & tjenestestyring</div>
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px;"><i data-lucide="check-circle" style="width:16px; height:16px; color:var(--success-500); flex-shrink:0;"></i> Vipps-verifisering av kunder</div>
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px;"><i data-lucide="check-circle" style="width:16px; height:16px; color:var(--success-500); flex-shrink:0;"></i> Anmeldelser fra kunder</div>
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px;"><i data-lucide="check-circle" style="width:16px; height:16px; color:var(--success-500); flex-shrink:0;"></i> Innsikt & statistikk</div>
+              <div style="display:flex; align-items:center; gap:10px; font-size:14px;"><i data-lucide="check-circle" style="width:16px; height:16px; color:var(--success-500); flex-shrink:0;"></i> Integrasjoner (Fiken, Tripletex)</div>
+            </div>
+            <div style="margin-top:12px; padding:14px 16px; background:var(--cream-100); border-radius:var(--radius-md); font-size:13px; color:var(--fg-muted);">
+              <strong style="color:var(--ink);">Ingen provisjon, ingen skjulte kostnader.</strong> Du betaler kun 99 kr/mnd — vi tar aldri en andel av inntektene dine.
             </div>
           </div>
         </div>
@@ -427,8 +489,8 @@
         <div class="settings-card">
           <div class="settings-card__head">
             <div>
-              <h3 class="settings-card__title">Betaling & verifisering</h3>
-              <p class="settings-card__desc">Tjenester som er koblet til din nailed-konto.</p>
+              <h3 class="settings-card__title">Verifisering</h3>
+              <p class="settings-card__desc">Kundene verifiserer seg med Vipps når de booker hos deg.</p>
             </div>
           </div>
           <div class="field-group">
