@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kalender — nailed partner</title>
+  <link rel="icon" href="../assets/logo-mark.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="partner.css" />
+  <style>
+    .cal-toolbar {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+    }
+    .cal-toolbar__left { display: flex; align-items: center; gap: 12px; }
+    .cal-toolbar__title { font-family: var(--font-display); font-weight: 700; font-size: 24px; margin: 0; }
+    .cal-toolbar__nav { display: flex; gap: 4px; }
+    .cal-toolbar__nav button {
+      width: 34px; height: 34px; border-radius: var(--radius-sm);
+      border: 1px solid var(--stone-200); background: var(--cream-50);
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .cal-toolbar__nav button:hover { background: var(--stone-100); }
+    .cal-toolbar__nav button i { width: 16px; height: 16px; }
+    .cal-toolbar__today {
+      font-family: var(--font-body); font-weight: 600; font-size: 13px;
+      padding: 7px 14px; border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200); background: var(--cream-50); cursor: pointer;
+    }
+    .cal-toolbar__today:hover { background: var(--stone-100); }
+
+    .cal-views { display: flex; gap: 4px; }
+    .cal-view-btn {
+      font-family: var(--font-body); font-weight: 500; font-size: 13px;
+      padding: 7px 14px; border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200); background: var(--cream-50); cursor: pointer;
+    }
+    .cal-view-btn:hover { border-color: var(--stone-400); }
+    .cal-view-btn.active { background: var(--ink); color: var(--cream-50); border-color: var(--ink); }
+
+    /* Artist filter */
+    .cal-artists {
+      display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto;
+      scrollbar-width: none; padding-bottom: 4px;
+    }
+    .cal-artists::-webkit-scrollbar { display: none; }
+    .cal-artist {
+      display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px;
+      border-radius: var(--radius-pill); border: 1px solid var(--stone-200);
+      background: var(--cream-50); cursor: pointer; white-space: nowrap;
+      font-size: 13px; font-weight: 500; transition: all var(--dur-fast);
+    }
+    .cal-artist:hover { border-color: var(--stone-400); }
+    .cal-artist.active { border-color: var(--ink); background: var(--cream-100); }
+    .cal-artist__dot {
+      width: 28px; height: 28px; border-radius: var(--radius-pill);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 11px; flex-shrink: 0;
+    }
+
+    /* Week view */
+    .cal-week {
+      background: var(--cream-50); border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg); overflow: hidden;
+    }
+    .cal-week__header {
+      display: grid; grid-template-columns: 60px repeat(7, 1fr);
+      border-bottom: 1px solid var(--stone-200);
+    }
+    .cal-week__day-head {
+      padding: 12px 8px; text-align: center;
+      font-family: var(--font-body); font-size: 12px; font-weight: 600;
+      color: var(--fg-muted); text-transform: uppercase; letter-spacing: .06em;
+      border-left: 1px solid var(--stone-200);
+    }
+    .cal-week__day-head:first-child { border: 0; }
+    .cal-week__day-num {
+      font-family: var(--font-display); font-weight: 700; font-size: 20px;
+      color: var(--ink); margin-top: 2px;
+    }
+    .cal-week__day-head.today { background: var(--rouge-50); }
+    .cal-week__day-head.today .cal-week__day-num { color: var(--rouge-500); }
+
+    .cal-week__body {
+      display: grid; grid-template-columns: 60px repeat(7, 1fr);
+      position: relative;
+    }
+    .cal-week__time-col {
+      border-right: 1px solid var(--stone-200);
+    }
+    .cal-week__time {
+      height: 60px; padding: 4px 8px 0;
+      font-family: var(--font-body); font-size: 11px; font-weight: 600;
+      color: var(--fg-muted); text-align: right;
+    }
+    .cal-week__day-col {
+      border-left: 1px solid var(--stone-200);
+      position: relative; min-height: 540px;
+    }
+    .cal-week__hour-line {
+      position: absolute; left: 0; right: 0;
+      border-top: 1px solid var(--stone-100);
+    }
+
+    /* Calendar events */
+    .cal-event {
+      position: absolute; left: 3px; right: 3px;
+      border-radius: 8px; padding: 6px 8px;
+      font-family: var(--font-body); font-size: 11px;
+      cursor: pointer; overflow: hidden;
+      transition: filter var(--dur-fast);
+      z-index: 2;
+    }
+    .cal-event:hover { filter: brightness(0.95); }
+    .cal-event__name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cal-event__svc { opacity: 0.8; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cal-event__time { opacity: 0.7; margin-top: 1px; }
+
+    .cal-event--linn { background: var(--rouge-100); color: var(--rouge-800); border-left: 3px solid var(--rouge-500); }
+    .cal-event--maja { background: #DDE3D2; color: var(--sage-700); border-left: 3px solid var(--sage-500); }
+    .cal-event--anna { background: var(--cream-200); color: var(--stone-700); border-left: 3px solid var(--champagne-500); }
+
+    /* Now indicator */
+    .cal-now {
+      position: absolute; left: 0; right: 0; z-index: 3;
+      display: flex; align-items: center;
+    }
+    .cal-now__dot { width: 10px; height: 10px; border-radius: var(--radius-pill); background: var(--rouge-500); margin-left: -5px; flex-shrink: 0; }
+    .cal-now__line { flex: 1; height: 2px; background: var(--rouge-500); }
+
+    /* Legend */
+    .cal-legend {
+      display: flex; gap: 16px; padding: 14px 20px;
+      border-top: 1px solid var(--stone-200);
+      font-size: 12px; color: var(--fg-muted);
+    }
+    .cal-legend__item { display: flex; align-items: center; gap: 6px; }
+    .cal-legend__dot { width: 10px; height: 10px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <aside class="sidebar">
+      <a class="sidebar__brand" href="index.html"><img src="../assets/logo-wordmark.svg" alt="nailed" /></a>
+      <button class="nav-item" onclick="location.href='index.html'"><i data-lucide="layout-dashboard"></i> Oversikt</button>
+      <button class="nav-item active"><i data-lucide="calendar"></i> Kalender</button>
+      <button class="nav-item" onclick="location.href='bookinger.html'"><i data-lucide="list"></i> Bookinger <span class="nav-item__count">7</span></button>
+      <button class="nav-item"><i data-lucide="sparkles"></i> Tjenester</button>
+      <button class="nav-item" onclick="location.href='kunder.html'"><i data-lucide="users"></i> Kunder</button>
+      <button class="nav-item" onclick="location.href='meldinger.html'"><i data-lucide="message-circle"></i> Meldinger <span class="nav-item__count">2</span></button>
+      <div class="sidebar__section">Salong</div>
+      <button class="nav-item" onclick="location.href='profil.html'"><i data-lucide="image"></i> Profil</button>
+      <button class="nav-item" onclick="location.href='innsikt.html'"><i data-lucide="bar-chart-3"></i> Innsikt</button>
+      <button class="nav-item"><i data-lucide="crown"></i> Abonnement</button>
+      <button class="nav-item" onclick="location.href='settings.html'"><i data-lucide="settings"></i> Innstillinger</button>
+      <div class="sidebar__footer">
+        <div class="sidebar__avatar">SL</div>
+        <div><div class="sidebar__user">Studio Lakk</div><div class="sidebar__role">Linn Andersen</div></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1 class="topbar__title">Kalender</h1>
+          <div class="topbar__sub">Oversikt over alle bookinger denne uken.</div>
+        </div>
+        <div class="topbar__actions">
+          <button class="btn btn-primary"><i data-lucide="calendar-plus"></i> Ny booking</button>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="cal-toolbar">
+        <div class="cal-toolbar__left">
+          <div class="cal-toolbar__nav">
+            <button><i data-lucide="chevron-left"></i></button>
+            <button><i data-lucide="chevron-right"></i></button>
+          </div>
+          <h2 class="cal-toolbar__title">12. – 18. mai 2026</h2>
+          <button class="cal-toolbar__today">I dag</button>
+        </div>
+        <div class="cal-views" id="calViews">
+          <button class="cal-view-btn">Dag</button>
+          <button class="cal-view-btn active">Uke</button>
+          <button class="cal-view-btn">Måned</button>
+        </div>
+      </div>
+
+      <!-- Artist filter -->
+      <div class="cal-artists">
+        <div class="cal-artist active">
+          <div class="cal-artist__dot" style="background:var(--stone-100); color:var(--ink);">Alle</div>
+          Alle artister
+        </div>
+        <div class="cal-artist active">
+          <div class="cal-artist__dot" style="background:var(--rouge-100); color:var(--rouge-700);">LA</div>
+          Linn
+        </div>
+        <div class="cal-artist active">
+          <div class="cal-artist__dot" style="background:#DDE3D2; color:var(--sage-700);">MH</div>
+          Maja
+        </div>
+        <div class="cal-artist active">
+          <div class="cal-artist__dot" style="background:var(--cream-200); color:var(--stone-700);">AK</div>
+          Anna
+        </div>
+      </div>
+
+      <!-- Week grid -->
+      <div class="cal-week">
+        <div class="cal-week__header">
+          <div class="cal-week__day-head"></div>
+          <div class="cal-week__day-head today">
+            <div>Tir</div>
+            <div class="cal-week__day-num">12</div>
+          </div>
+          <div class="cal-week__day-head">
+            <div>Ons</div>
+            <div class="cal-week__day-num">13</div>
+          </div>
+          <div class="cal-week__day-head">
+            <div>Tor</div>
+            <div class="cal-week__day-num">14</div>
+          </div>
+          <div class="cal-week__day-head">
+            <div>Fre</div>
+            <div class="cal-week__day-num">15</div>
+          </div>
+          <div class="cal-week__day-head">
+            <div>Lør</div>
+            <div class="cal-week__day-num">16</div>
+          </div>
+          <div class="cal-week__day-head">
+            <div>Søn</div>
+            <div class="cal-week__day-num">17</div>
+          </div>
+          <div class="cal-week__day-head">
+            <div>Man</div>
+            <div class="cal-week__day-num">18</div>
+          </div>
+        </div>
+
+        <div class="cal-week__body">
+          <!-- Time column -->
+          <div class="cal-week__time-col">
+            <div class="cal-week__time">09:00</div>
+            <div class="cal-week__time">10:00</div>
+            <div class="cal-week__time">11:00</div>
+            <div class="cal-week__time">12:00</div>
+            <div class="cal-week__time">13:00</div>
+            <div class="cal-week__time">14:00</div>
+            <div class="cal-week__time">15:00</div>
+            <div class="cal-week__time">16:00</div>
+            <div class="cal-week__time">17:00</div>
+          </div>
+
+          <!-- Tuesday 12 (today) -->
+          <div class="cal-week__day-col">
+            <div class="cal-week__hour-line" style="top:0;"></div>
+            <div class="cal-week__hour-line" style="top:60px;"></div>
+            <div class="cal-week__hour-line" style="top:120px;"></div>
+            <div class="cal-week__hour-line" style="top:180px;"></div>
+            <div class="cal-week__hour-line" style="top:240px;"></div>
+            <div class="cal-week__hour-line" style="top:300px;"></div>
+            <div class="cal-week__hour-line" style="top:360px;"></div>
+            <div class="cal-week__hour-line" style="top:420px;"></div>
+            <div class="cal-week__hour-line" style="top:480px;"></div>
+
+            <div class="cal-event cal-event--linn" style="top:0; height:45px;">
+              <div class="cal-event__name">Ida Skogen</div>
+              <div class="cal-event__svc">Klassisk manikyr</div>
+            </div>
+            <div class="cal-event cal-event--maja" style="top:90px; height:75px;">
+              <div class="cal-event__name">Maria Kvam</div>
+              <div class="cal-event__svc">Gel manikyr</div>
+              <div class="cal-event__time">10:30 – 11:45</div>
+            </div>
+            <div class="cal-event cal-event--maja" style="top:180px; height:90px;">
+              <div class="cal-event__name">Thea Hauge</div>
+              <div class="cal-event__svc">Gel + neglekunst</div>
+              <div class="cal-event__time">12:00 – 13:30</div>
+            </div>
+            <div class="cal-event cal-event--linn" style="top:330px; height:60px;">
+              <div class="cal-event__name">Sara Berg</div>
+              <div class="cal-event__svc">Pedikyr — luksus</div>
+              <div class="cal-event__time">14:30 – 15:30</div>
+            </div>
+            <div class="cal-event cal-event--anna" style="top:420px; height:30px;">
+              <div class="cal-event__name">Emilie Lund</div>
+              <div class="cal-event__svc">Fjerning av gel</div>
+            </div>
+
+            <div class="cal-now" style="top:210px;">
+              <div class="cal-now__dot"></div>
+              <div class="cal-now__line"></div>
+            </div>
+          </div>
+
+          <!-- Wednesday 13 -->
+          <div class="cal-week__day-col">
+            <div class="cal-week__hour-line" style="top:0;"></div><div class="cal-week__hour-line" style="top:60px;"></div><div class="cal-week__hour-line" style="top:120px;"></div><div class="cal-week__hour-line" style="top:180px;"></div><div class="cal-week__hour-line" style="top:240px;"></div><div class="cal-week__hour-line" style="top:300px;"></div><div class="cal-week__hour-line" style="top:360px;"></div><div class="cal-week__hour-line" style="top:420px;"></div><div class="cal-week__hour-line" style="top:480px;"></div>
+
+            <div class="cal-event cal-event--linn" style="top:0; height:75px;">
+              <div class="cal-event__name">Mari Haugen</div>
+              <div class="cal-event__svc">Gel manikyr</div>
+              <div class="cal-event__time">09:00 – 10:15</div>
+            </div>
+            <div class="cal-event cal-event--maja" style="top:120px; height:90px;">
+              <div class="cal-event__name">Linnea Kristiansen</div>
+              <div class="cal-event__svc">Bio-gel manikyr</div>
+              <div class="cal-event__time">11:00 – 12:30</div>
+            </div>
+            <div class="cal-event cal-event--linn" style="top:300px; height:60px;">
+              <div class="cal-event__name">Ida Skogen</div>
+              <div class="cal-event__svc">Gel manikyr</div>
+              <div class="cal-event__time">14:00 – 15:15</div>
+            </div>
+          </div>
+
+          <!-- Thursday 14 -->
+          <div class="cal-week__day-col">
+            <div class="cal-week__hour-line" style="top:0;"></div><div class="cal-week__hour-line" style="top:60px;"></div><div class="cal-week__hour-line" style="top:120px;"></div><div class="cal-week__hour-line" style="top:180px;"></div><div class="cal-week__hour-line" style="top:240px;"></div><div class="cal-week__hour-line" style="top:300px;"></div><div class="cal-week__hour-line" style="top:360px;"></div><div class="cal-week__hour-line" style="top:420px;"></div><div class="cal-week__hour-line" style="top:480px;"></div>
+
+            <div class="cal-event cal-event--maja" style="top:0; height:90px;">
+              <div class="cal-event__name">Thea Hauge</div>
+              <div class="cal-event__svc">Gel + neglekunst</div>
+              <div class="cal-event__time">09:00 – 10:30</div>
+            </div>
+            <div class="cal-event cal-event--anna" style="top:120px; height:45px;">
+              <div class="cal-event__name">Anna J.</div>
+              <div class="cal-event__svc">Klassisk manikyr</div>
+            </div>
+            <div class="cal-event cal-event--linn" style="top:240px; height:60px;">
+              <div class="cal-event__name">Sara Berg</div>
+              <div class="cal-event__svc">Pedikyr — luksus</div>
+              <div class="cal-event__time">13:00 – 14:00</div>
+            </div>
+            <div class="cal-event cal-event--maja" style="top:360px; height:75px;">
+              <div class="cal-event__name">Kristine Nordli</div>
+              <div class="cal-event__svc">Gel manikyr</div>
+              <div class="cal-event__time">15:00 – 16:15</div>
+            </div>
+          </div>
+
+          <!-- Friday 15 -->
+          <div class="cal-week__day-col">
+            <div class="cal-week__hour-line" style="top:0;"></div><div class="cal-week__hour-line" style="top:60px;"></div><div class="cal-week__hour-line" style="top:120px;"></div><div class="cal-week__hour-line" style="top:180px;"></div><div class="cal-week__hour-line" style="top:240px;"></div><div class="cal-week__hour-line" style="top:300px;"></div><div class="cal-week__hour-line" style="top:360px;"></div><div class="cal-week__hour-line" style="top:420px;"></div><div class="cal-week__hour-line" style="top:480px;"></div>
+
+            <div class="cal-event cal-event--linn" style="top:0; height:75px;">
+              <div class="cal-event__name">Maria Kvam</div>
+              <div class="cal-event__svc">Gel manikyr</div>
+              <div class="cal-event__time">09:00 – 10:15</div>
+            </div>
+            <div class="cal-event cal-event--maja" style="top:90px; height:90px;">
+              <div class="cal-event__name">Hanna Viken</div>
+              <div class="cal-event__svc">Gel + neglekunst</div>
+              <div class="cal-event__time">10:30 – 12:00</div>
+            </div>
+            <div class="cal-event cal-event--anna" style="top:180px; height:30px;">
+              <div class="cal-event__name">Emilie Lund</div>
+              <div class="cal-event__svc">Fjerning av gel</div>
+            </div>
+            <div class="cal-event cal-event--linn" style="top:240px; height:60px;">
+              <div class="cal-event__name">Mari Haugen</div>
+              <div class="cal-event__svc">Pedikyr — luksus</div>
+              <div class="cal-event__time">13:00 – 14:00</div>
+            </div>
+            <div class="cal-event cal-event--maja" style="top:360px; height:75px;">
+              <div class="cal-event__name">Ida Skogen</div>
+              <div class="cal-event__svc">Bio-gel manikyr</div>
+              <div class="cal-event__time">15:00 – 16:15</div>
+            </div>
+            <div class="cal-event cal-event--linn" style="top:450px; height:45px;">
+              <div class="cal-event__name">Linnea K.</div>
+              <div class="cal-event__svc">French manikyr</div>
+            </div>
+          </div>
+
+          <!-- Saturday 16 -->
+          <div class="cal-week__day-col">
+            <div class="cal-week__hour-line" style="top:0;"></div><div class="cal-week__hour-line" style="top:60px;"></div><div class="cal-week__hour-line" style="top:120px;"></div><div class="cal-week__hour-line" style="top:180px;"></div><div class="cal-week__hour-line" style="top:240px;"></div><div class="cal-week__hour-line" style="top:300px;"></div><div class="cal-week__hour-line" style="top:360px;"></div><div class="cal-week__hour-line" style="top:420px;"></div><div class="cal-week__hour-line" style="top:480px;"></div>
+
+            <div class="cal-event cal-event--linn" style="top:60px; height:75px;">
+              <div class="cal-event__name">Thea Hauge</div>
+              <div class="cal-event__svc">Gel manikyr</div>
+              <div class="cal-event__time">10:00 – 11:15</div>
+            </div>
+            <div class="cal-event cal-event--maja" style="top:180px; height:90px;">
+              <div class="cal-event__name">Sara Berg</div>
+              <div class="cal-event__svc">Gel + neglekunst</div>
+              <div class="cal-event__time">12:00 – 13:30</div>
+            </div>
+          </div>
+
+          <!-- Sunday 17 (closed) -->
+          <div class="cal-week__day-col" style="background:var(--stone-50); opacity:0.6;">
+            <div class="cal-week__hour-line" style="top:0;"></div><div class="cal-week__hour-line" style="top:60px;"></div><div class="cal-week__hour-line" style="top:120px;"></div><div class="cal-week__hour-line" style="top:180px;"></div><div class="cal-week__hour-line" style="top:240px;"></div><div class="cal-week__hour-line" style="top:300px;"></div><div class="cal-week__hour-line" style="top:360px;"></div><div class="cal-week__hour-line" style="top:420px;"></div><div class="cal-week__hour-line" style="top:480px;"></div>
+            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:13px; color:var(--fg-muted); font-weight:600;">Stengt</div>
+          </div>
+
+          <!-- Monday 18 -->
+          <div class="cal-week__day-col">
+            <div class="cal-week__hour-line" style="top:0;"></div><div class="cal-week__hour-line" style="top:60px;"></div><div class="cal-week__hour-line" style="top:120px;"></div><div class="cal-week__hour-line" style="top:180px;"></div><div class="cal-week__hour-line" style="top:240px;"></div><div class="cal-week__hour-line" style="top:300px;"></div><div class="cal-week__hour-line" style="top:360px;"></div><div class="cal-week__hour-line" style="top:420px;"></div><div class="cal-week__hour-line" style="top:480px;"></div>
+
+            <div class="cal-event cal-event--maja" style="top:0; height:75px;">
+              <div class="cal-event__name">Maria Kvam</div>
+              <div class="cal-event__svc">Gel manikyr</div>
+              <div class="cal-event__time">09:00 – 10:15</div>
+            </div>
+            <div class="cal-event cal-event--linn" style="top:120px; height:60px;">
+              <div class="cal-event__name">Ida Skogen</div>
+              <div class="cal-event__svc">Pedikyr — luksus</div>
+              <div class="cal-event__time">11:00 – 12:00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cal-legend">
+          <div class="cal-legend__item"><div class="cal-legend__dot" style="background:var(--rouge-100); border-left:3px solid var(--rouge-500);"></div> Linn</div>
+          <div class="cal-legend__item"><div class="cal-legend__dot" style="background:#DDE3D2; border-left:3px solid var(--sage-500);"></div> Maja</div>
+          <div class="cal-legend__item"><div class="cal-legend__dot" style="background:var(--cream-200); border-left:3px solid var(--champagne-500);"></div> Anna</div>
+          <span style="margin-left:auto; font-size:12px;">5 bookinger i dag · 22 denne uken</span>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // View toggle
+    document.getElementById('calViews').addEventListener('click', function(e) {
+      var btn = e.target.closest('.cal-view-btn');
+      if (!btn) return;
+      document.querySelectorAll('.cal-view-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+
+    // Artist toggle
+    document.querySelectorAll('.cal-artist').forEach(function(a, i) {
+      if (i === 0) return;
+      a.addEventListener('click', function() { a.classList.toggle('active'); });
+    });
+  </script>
+</body>
+</html>
