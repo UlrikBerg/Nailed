@@ -31,11 +31,34 @@
   <section class="salon-detail">
     <div class="page">
 
-      <!-- Hero cover photo placeholder -->
-      <div class="salon-detail__hero">
-        <a href="index.html" class="btn btn-ghost btn-sm salon-detail__back">
+      <!-- Airbnb-style photo gallery -->
+      <div class="salon-gallery" id="gallery">
+        <a href="index.html" class="btn btn-ghost btn-sm salon-gallery__back">
           <i data-lucide="arrow-left"></i> Tilbake
         </a>
+        <button class="salon-gallery__tile salon-gallery__tile--hero" style="background: linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 60%, #82103D 100%);"></button>
+        <button class="salon-gallery__tile" style="background: linear-gradient(135deg, #F4ECDF, #E8DCC4);"></button>
+        <button class="salon-gallery__tile" style="background: linear-gradient(135deg, #FFE0E9, #FFC4D6);"></button>
+        <button class="salon-gallery__tile" style="background: linear-gradient(135deg, #DDE3D2, #8DA079);"></button>
+        <button class="salon-gallery__tile" style="background: linear-gradient(135deg, #ECDFCB, #C9B79A);"></button>
+        <button class="salon-gallery__show-all" id="showAllPhotos">
+          <i data-lucide="grid-2x2"></i> Vis alle bilder
+        </button>
+      </div>
+
+      <!-- Lightbox (hidden by default) -->
+      <div class="lightbox" id="lightbox" style="display:none;">
+        <div class="lightbox__topbar">
+          <span class="lightbox__counter" id="lightboxCounter">1 / 5</span>
+          <button class="lightbox__close" id="lightboxClose"><i data-lucide="x"></i></button>
+        </div>
+        <button class="lightbox__nav lightbox__nav--prev" id="lightboxPrev"><i data-lucide="chevron-left"></i></button>
+        <div class="lightbox__stage">
+          <div class="lightbox__photo" id="lightboxPhoto"></div>
+          <div class="lightbox__caption" id="lightboxCaption"></div>
+        </div>
+        <button class="lightbox__nav lightbox__nav--next" id="lightboxNext"><i data-lucide="chevron-right"></i></button>
+        <div class="lightbox__thumbs" id="lightboxThumbs"></div>
       </div>
 
       <div class="salon-detail__grid">
@@ -47,6 +70,10 @@
             <i data-lucide="star" style="width:16px; height:16px; color:var(--rouge-500); fill:var(--rouge-500);"></i>
             4.9 (312 anmeldelser) · 0.4 km unna
           </p>
+          <p class="salon-detail__addr">
+            <i data-lucide="map-pin" style="width:14px; height:14px; vertical-align:-2px;"></i>
+            Markveien 22, 0554 Oslo · <a href="#">Vis på kart</a>
+          </p>
           <p class="salon-detail__about">
             Et lite atelier på Grünerløkka som tror at en negl kan være et lerret. Vi jobber med bio-gel og giftfrie produkter, og vi serverer alltid kaffen mens du sitter. Bestill en time, så er resten på oss.
           </p>
@@ -57,55 +84,166 @@
             <span class="chip"><i data-lucide="accessibility"></i> Tilgjengelig</span>
           </div>
 
-          <h3 style="margin-top: 40px; margin-bottom: 16px; font-size: 24px;">I studio</h3>
-          <div class="salon-detail__photos">
-            <div class="salon-detail__photo" style="background: linear-gradient(135deg, #F4ECDF, #E8DCC4);"></div>
-            <div class="salon-detail__photo" style="background: linear-gradient(135deg, #FFE0E9, #FFC4D6);"></div>
-            <div class="salon-detail__photo" style="background: linear-gradient(135deg, #DDE3D2, #8DA079);"></div>
+          <!-- Alle behandlinger -->
+          <div style="display:flex; align-items:baseline; justify-content:space-between; margin-top: 40px; margin-bottom: 8px;">
+            <h3 style="margin: 0; font-size: 24px;">Alle behandlinger</h3>
+            <span style="font-family:var(--font-body); font-size:13px; color:var(--fg-muted);">Trykk for å velge — tider vises til høyre</span>
+          </div>
+
+          <!-- Manikyr -->
+          <div class="svc-cat">
+            <div class="svc-cat__head">Manikyr</div>
+            <ul class="all-services">
+              <li class="all-services__item" data-svc-name="Klassisk manikyr" data-svc-price="490">
+                <div class="all-services__radio"></div>
+                <div class="all-services__body"><div class="all-services__name">Klassisk manikyr <span class="all-services__badge">Populær</span></div><div class="all-services__meta">45 min · Linn</div></div>
+                <div class="all-services__price">490 kr</div>
+                <div class="all-services__cta"></div>
+              </li>
+              <li class="all-services__item active" data-svc-name="Gel manikyr" data-svc-price="690">
+                <div class="all-services__radio"></div>
+                <div class="all-services__body"><div class="all-services__name">Gel manikyr <span class="all-services__badge">Populær</span></div><div class="all-services__meta">75 min · Linn eller Maja</div></div>
+                <div class="all-services__price">690 kr</div>
+                <div class="all-services__cta"></div>
+              </li>
+              <li class="all-services__item" data-svc-name="Gel + neglekunst" data-svc-price="890">
+                <div class="all-services__radio"></div>
+                <div class="all-services__body"><div class="all-services__name">Gel + neglekunst <span class="all-services__badge">Populær</span></div><div class="all-services__meta">90 min · Maja</div></div>
+                <div class="all-services__price">890 kr</div>
+                <div class="all-services__cta"></div>
+              </li>
+              <li class="all-services__item" data-svc-name="Bio-gel manikyr" data-svc-price="790">
+                <div class="all-services__radio"></div>
+                <div class="all-services__body"><div class="all-services__name">Bio-gel manikyr</div><div class="all-services__meta">75 min · Linn</div></div>
+                <div class="all-services__price">790 kr</div>
+                <div class="all-services__cta"></div>
+              </li>
+              <li class="all-services__item" data-svc-name="French manikyr" data-svc-price="590">
+                <div class="all-services__radio"></div>
+                <div class="all-services__body"><div class="all-services__name">French manikyr</div><div class="all-services__meta">60 min · Maja</div></div>
+                <div class="all-services__price">590 kr</div>
+                <div class="all-services__cta"></div>
+              </li>
+              <li class="all-services__item" data-svc-name="Press-on negler" data-svc-price="690">
+                <div class="all-services__radio"></div>
+                <div class="all-services__body"><div class="all-services__name">Press-on negler</div><div class="all-services__meta">45 min · Maja</div></div>
+                <div class="all-services__price">690 kr</div>
+                <div class="all-services__cta"></div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Pedikyr -->
+          <div class="svc-cat">
+            <div class="svc-cat__head">Pedikyr</div>
+            <ul class="all-services">
+              <li class="all-services__item" data-svc-name="Pedikyr — luksus" data-svc-price="790">
+                <div class="all-services__radio"></div>
+                <div class="all-services__body"><div class="all-services__name">Pedikyr — luksus <span class="all-services__badge">Populær</span></div><div class="all-services__meta">60 min · Linn</div></div>
+                <div class="all-services__price">790 kr</div>
+                <div class="all-services__cta"></div>
+              </li>
+              <li class="all-services__item" data-svc-name="Klassisk pedikyr" data-svc-price="590">
+                <div class="all-services__radio"></div>
+                <div class="all-services__body"><div class="all-services__name">Klassisk pedikyr</div><div class="all-services__meta">45 min · Linn</div></div>
+                <div class="all-services__price">590 kr</div>
+                <div class="all-services__cta"></div>
+              </li>
+              <li class="all-services__item" data-svc-name="Gel pedikyr" data-svc-price="890">
+                <div class="all-services__radio"></div>
+                <div class="all-services__body"><div class="all-services__name">Gel pedikyr</div><div class="all-services__meta">75 min · Linn</div></div>
+                <div class="all-services__price">890 kr</div>
+                <div class="all-services__cta"></div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Tillegg -->
+          <div class="svc-cat">
+            <div class="svc-cat__head">Tillegg</div>
+            <ul class="all-services">
+              <li class="all-services__item" data-svc-name="Fjerning av gel" data-svc-price="290">
+                <div class="all-services__radio"></div>
+                <div class="all-services__body"><div class="all-services__name">Fjerning av gel</div><div class="all-services__meta">30 min · Hvem som helst</div></div>
+                <div class="all-services__price">290 kr</div>
+                <div class="all-services__cta"></div>
+              </li>
+              <li class="all-services__item" data-svc-name="Reparasjon (per negl)" data-svc-price="90">
+                <div class="all-services__radio"></div>
+                <div class="all-services__body"><div class="all-services__name">Reparasjon (per negl)</div><div class="all-services__meta">15 min · Hvem som helst</div></div>
+                <div class="all-services__price">90 kr</div>
+                <div class="all-services__cta"></div>
+              </li>
+              <li class="all-services__item" data-svc-name="Håndmassasje 15 min" data-svc-price="190">
+                <div class="all-services__radio"></div>
+                <div class="all-services__body"><div class="all-services__name">Håndmassasje 15 min</div><div class="all-services__meta">15 min · Linn</div></div>
+                <div class="all-services__price">190 kr</div>
+                <div class="all-services__cta"></div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Anmeldelser -->
+          <div style="display:flex; align-items:baseline; justify-content:space-between; margin-top: 56px; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 24px;">
+              Anmeldelser
+              <span style="font-family:var(--font-body); font-size:14px; font-weight:500; color:var(--fg-muted); margin-left:10px;">
+                <i data-lucide="star" style="width:14px; height:14px; color:var(--rouge-500); fill:var(--rouge-500); vertical-align:-2px;"></i>
+                4.9 av 5 · 312 stemmer
+              </span>
+            </h3>
+            <a href="#" style="font-family:var(--font-body); font-size:13px; color:var(--ink);">Se alle ›</a>
+          </div>
+          <div class="reviews">
+            <article class="review">
+              <div class="review__head">
+                <div class="review__avatar">M</div>
+                <div><div class="review__name">Mari H.</div><div class="review__meta">Klassisk gel · 2 uker siden</div></div>
+                <div class="review__stars"><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i></div>
+              </div>
+              <p class="review__text">Helt fantastisk! Anna er rolig, presis, og kaffen var utrolig god. Negler holdt seg perfekt i fire uker.</p>
+            </article>
+            <article class="review">
+              <div class="review__head">
+                <div class="review__avatar">L</div>
+                <div><div class="review__name">Linnea K.</div><div class="review__meta">Bio-gel manikyr · 1 måned siden</div></div>
+                <div class="review__stars"><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i></div>
+              </div>
+              <p class="review__text">Jeg har lett lenge etter en salong som gjør bio-gel ordentlig. Studio Lakk leverer hver gang.</p>
+            </article>
+            <article class="review">
+              <div class="review__head">
+                <div class="review__avatar">S</div>
+                <div><div class="review__name">Sara T.</div><div class="review__meta">French fade · 1 måned siden</div></div>
+                <div class="review__stars"><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:var(--rouge-500);"></i><i data-lucide="star" style="width:14px;height:14px;color:var(--rouge-500);fill:transparent;"></i></div>
+              </div>
+              <p class="review__text">Vakkert resultat og koselig atmosfære. Hadde litt kort tid mellom timer, men jeg booker igjen.</p>
+            </article>
           </div>
         </div>
 
         <!-- Right column: booking panel -->
         <div class="booking-panel">
           <div class="booking-panel__header">
-            <h3>Velg behandling</h3>
+            <h3>Populært hos Studio Lakk</h3>
           </div>
 
-          <div class="service-list">
-            <div class="service-list__item active" data-price="490" data-name="Klassisk manikyr">
-              <div>
-                <div class="service-list__name">Klassisk manikyr</div>
-                <div class="service-list__meta">45 min · Linn</div>
-              </div>
+          <div class="service-list" id="serviceList">
+            <div class="service-list__item" data-price="490" data-name="Klassisk manikyr">
+              <div><div class="service-list__name">Klassisk manikyr</div><div class="service-list__meta">45 min · Linn</div></div>
               <div class="service-list__price">490 kr</div>
             </div>
-            <div class="service-list__item" data-price="690" data-name="Gel manikyr">
-              <div>
-                <div class="service-list__name">Gel manikyr</div>
-                <div class="service-list__meta">75 min · Linn eller Maja</div>
-              </div>
+            <div class="service-list__item active" data-price="690" data-name="Gel manikyr">
+              <div><div class="service-list__name">Gel manikyr</div><div class="service-list__meta">75 min · Linn eller Maja</div></div>
               <div class="service-list__price">690 kr</div>
             </div>
             <div class="service-list__item" data-price="890" data-name="Gel + neglekunst">
-              <div>
-                <div class="service-list__name">Gel + neglekunst</div>
-                <div class="service-list__meta">90 min · Maja</div>
-              </div>
+              <div><div class="service-list__name">Gel + neglekunst</div><div class="service-list__meta">90 min · Maja</div></div>
               <div class="service-list__price">890 kr</div>
             </div>
             <div class="service-list__item" data-price="790" data-name="Pedikyr — luksus">
-              <div>
-                <div class="service-list__name">Pedikyr — luksus</div>
-                <div class="service-list__meta">60 min · Linn</div>
-              </div>
+              <div><div class="service-list__name">Pedikyr — luksus</div><div class="service-list__meta">60 min · Linn</div></div>
               <div class="service-list__price">790 kr</div>
-            </div>
-            <div class="service-list__item" data-price="290" data-name="Fjerning av gel">
-              <div>
-                <div class="service-list__name">Fjerning av gel</div>
-                <div class="service-list__meta">30 min · Hvem som helst</div>
-              </div>
-              <div class="service-list__price">290 kr</div>
             </div>
           </div>
 
@@ -115,39 +253,27 @@
           </div>
 
           <div class="day-row">
-            <button class="day-pick">
-              <div class="day-pick__dow">Tirs</div>
-              <div class="day-pick__num">12</div>
-            </button>
-            <button class="day-pick active">
-              <div class="day-pick__dow">Ons</div>
-              <div class="day-pick__num">13</div>
-            </button>
-            <button class="day-pick">
-              <div class="day-pick__dow">Tor</div>
-              <div class="day-pick__num">14</div>
-            </button>
-            <button class="day-pick">
-              <div class="day-pick__dow">Fre</div>
-              <div class="day-pick__num">15</div>
-            </button>
-            <button class="day-pick">
-              <div class="day-pick__dow">Lør</div>
-              <div class="day-pick__num">16</div>
-            </button>
+            <button class="day-pick"><div class="day-pick__dow">Tirs</div><div class="day-pick__num">12</div></button>
+            <button class="day-pick active"><div class="day-pick__dow">Ons</div><div class="day-pick__num">13</div></button>
+            <button class="day-pick"><div class="day-pick__dow">Tor</div><div class="day-pick__num">14</div></button>
+            <button class="day-pick"><div class="day-pick__dow">Fre</div><div class="day-pick__num">15</div></button>
+            <button class="day-pick"><div class="day-pick__dow">Lør</div><div class="day-pick__num">16</div></button>
           </div>
 
           <div class="slots">
-            <button class="slot taken" disabled>09:00</button>
-            <button class="slot">10:30</button>
+            <button class="slot">09:00</button>
+            <button class="slot taken" disabled>10:00</button>
+            <button class="slot">11:00</button>
             <button class="slot taken" disabled>12:00</button>
-            <button class="slot active">14:30</button>
+            <button class="slot">13:00</button>
+            <button class="slot active">14:00</button>
+            <button class="slot">15:00</button>
             <button class="slot">16:00</button>
-            <button class="slot">17:30</button>
+            <button class="slot">17:00</button>
           </div>
 
           <button class="btn btn-primary btn-lg booking-panel__cta" id="bookCta" onclick="location.href='confirmation.html'">
-            Book Klassisk manikyr · 490 kr
+            Book Gel manikyr · 690 kr
           </button>
           <div class="booking-panel__fineprint">
             <i data-lucide="shield-check"></i> Avbestill gratis inntil 24 timer før
@@ -166,28 +292,11 @@
         <p class="footer__tag">Nailed it. Nailed it again.</p>
       </div>
       <div class="footer__cols">
-        <div>
-          <div class="footer__h">Utforsk</div>
-          <a href="#">Salonger nær meg</a>
-          <a href="#">Kategorier</a>
-          <a href="#">Gavekort</a>
-        </div>
-        <div>
-          <div class="footer__h">For salonger</div>
-          <a href="#">Bli partner</a>
-          <a href="#">Priser</a>
-          <a href="#">Logg inn</a>
-        </div>
-        <div>
-          <div class="footer__h">Selskap</div>
-          <a href="#">Om oss</a>
-          <a href="#">Kontakt</a>
-          <a href="#">Personvern</a>
-        </div>
+        <div><div class="footer__h">Utforsk</div><a href="#">Salonger nær meg</a><a href="#">Kategorier</a><a href="#">Gavekort</a></div>
+        <div><div class="footer__h">For salonger</div><a href="#">Bli partner</a><a href="#">Priser</a><a href="#">Logg inn</a></div>
+        <div><div class="footer__h">Selskap</div><a href="#">Om oss</a><a href="#">Kontakt</a><a href="#">Personvern</a></div>
       </div>
-      <div class="footer__bottom">
-        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
-      </div>
+      <div class="footer__bottom"><small>&copy; 2026 Neglet AS &middot; Made in Oslo</small></div>
     </div>
   </footer>
 
@@ -195,37 +304,98 @@
   <script>
     lucide.createIcons();
 
-    // Sticky nav scroll effect
+    // Sticky nav
     var nav = document.getElementById('topNav');
-    window.addEventListener('scroll', function() {
-      nav.classList.toggle('scrolled', window.scrollY > 30);
+    window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 30); });
+
+    // Lightbox
+    var photos = [
+      { gradient: 'linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 60%, #82103D 100%)', label: 'Studio fra inngangen' },
+      { gradient: 'linear-gradient(135deg, #F4ECDF, #E8DCC4)', label: 'Manikyr-bord' },
+      { gradient: 'linear-gradient(135deg, #FFE0E9, #FFC4D6)', label: 'Detalj — produkter' },
+      { gradient: 'linear-gradient(135deg, #DDE3D2, #8DA079)', label: 'Sittegruppe' },
+      { gradient: 'linear-gradient(135deg, #ECDFCB, #C9B79A)', label: 'Vindu mot Markveien' },
+    ];
+    var lightbox = document.getElementById('lightbox');
+    var lbIdx = 0;
+
+    function openLightbox(idx) {
+      lbIdx = idx;
+      lightbox.style.display = 'grid';
+      document.body.style.overflow = 'hidden';
+      renderLightbox();
+      lucide.createIcons();
+    }
+    function closeLightbox() {
+      lightbox.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    function renderLightbox() {
+      document.getElementById('lightboxPhoto').style.background = photos[lbIdx].gradient;
+      document.getElementById('lightboxCaption').textContent = photos[lbIdx].label;
+      document.getElementById('lightboxCounter').textContent = (lbIdx + 1) + ' / ' + photos.length;
+      var thumbsHtml = '';
+      photos.forEach(function(p, i) {
+        thumbsHtml += '<button class="lightbox__thumb ' + (i === lbIdx ? 'active' : '') + '" style="background:' + p.gradient + ';" data-idx="' + i + '"></button>';
+      });
+      document.getElementById('lightboxThumbs').innerHTML = thumbsHtml;
+    }
+
+    document.querySelectorAll('.salon-gallery__tile').forEach(function(tile, i) {
+      tile.addEventListener('click', function() { openLightbox(i); });
+    });
+    document.getElementById('showAllPhotos').addEventListener('click', function(e) { e.stopPropagation(); openLightbox(0); });
+    document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', closeLightbox);
+    document.querySelector('.lightbox__stage').addEventListener('click', function(e) { e.stopPropagation(); });
+    document.getElementById('lightboxPrev').addEventListener('click', function(e) { e.stopPropagation(); lbIdx = (lbIdx - 1 + photos.length) % photos.length; renderLightbox(); });
+    document.getElementById('lightboxNext').addEventListener('click', function(e) { e.stopPropagation(); lbIdx = (lbIdx + 1) % photos.length; renderLightbox(); });
+    document.getElementById('lightboxThumbs').addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-idx]');
+      if (btn) { lbIdx = parseInt(btn.dataset.idx); renderLightbox(); }
+    });
+    document.addEventListener('keydown', function(e) {
+      if (lightbox.style.display === 'none') return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') { lbIdx = (lbIdx + 1) % photos.length; renderLightbox(); }
+      if (e.key === 'ArrowLeft') { lbIdx = (lbIdx - 1 + photos.length) % photos.length; renderLightbox(); }
     });
 
-    // Service list selection
-    var items = document.querySelectorAll('.service-list__item');
+    // Service list + all-services selection sync
     var cta = document.getElementById('bookCta');
-    items.forEach(function(item) {
+    var allSvcItems = document.querySelectorAll('.all-services__item');
+    var panelItems = document.querySelectorAll('#serviceList .service-list__item');
+
+    function selectService(name, price) {
+      // Update all-services
+      allSvcItems.forEach(function(i) { i.classList.toggle('active', i.dataset.svcName === name); });
+      // Update panel items
+      panelItems.forEach(function(i) { i.classList.toggle('active', i.dataset.name === name); });
+      // Update CTA
+      cta.textContent = 'Book ' + name + ' · ' + price + ' kr';
+    }
+
+    allSvcItems.forEach(function(item) {
       item.addEventListener('click', function() {
-        items.forEach(function(i) { i.classList.remove('active'); });
-        item.classList.add('active');
-        var name = item.getAttribute('data-name');
-        var price = item.getAttribute('data-price');
-        cta.textContent = 'Book ' + name + ' · ' + price + ' kr';
+        selectService(item.dataset.svcName, item.dataset.svcPrice);
+      });
+    });
+    panelItems.forEach(function(item) {
+      item.addEventListener('click', function() {
+        selectService(item.dataset.name, item.dataset.price);
       });
     });
 
     // Day picker
-    var days = document.querySelectorAll('.day-pick');
-    days.forEach(function(day) {
+    document.querySelectorAll('.day-pick').forEach(function(day) {
       day.addEventListener('click', function() {
-        days.forEach(function(d) { d.classList.remove('active'); });
+        document.querySelectorAll('.day-pick').forEach(function(d) { d.classList.remove('active'); });
         day.classList.add('active');
       });
     });
 
     // Slot picker
-    var slots = document.querySelectorAll('.slot:not(.taken)');
-    slots.forEach(function(slot) {
+    document.querySelectorAll('.slot:not(.taken)').forEach(function(slot) {
       slot.addEventListener('click', function() {
         document.querySelectorAll('.slot').forEach(function(s) { s.classList.remove('active'); });
         slot.classList.add('active');

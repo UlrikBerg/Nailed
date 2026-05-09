@@ -31,26 +31,94 @@
   <section class="confirm">
     <div class="page">
       <img src="assets/sticker-nailed-it.svg" class="confirm__sticker" alt="" />
-      <h1 class="confirm__title"><em>Nailed it.</em></h1>
-      <p class="confirm__sub">Time bekreftet. Vi har sendt en SMS til deg, og en påminnelse dukker opp dagen før.</p>
-      <div class="confirm__card">
-        <div class="confirm__row">
-          <span class="confirm__label">Hva</span>
-          <span class="confirm__val">Klassisk manikyr</span>
+      <h1 class="confirm__title"><em>Nailed it,</em> Maria.</h1>
+      <p class="confirm__sub">Time bekreftet og betalt med Vipps. Vi har sendt en SMS til +47 123 45 678, og en påminnelse dukker opp dagen før.</p>
+
+      <div class="confirm__layout">
+        <!-- Left: booking details -->
+        <div class="confirm__card">
+          <div class="confirm__card-head">
+            <span class="confirm__card-eyebrow">Din time</span>
+            <span class="confirm__paid"><i data-lucide="shield-check"></i> Betalt med Vipps</span>
+          </div>
+          <div class="confirm__row"><span class="confirm__label">Hva</span><span class="confirm__val">Gel manikyr</span></div>
+          <div class="confirm__row"><span class="confirm__label">Hos</span><span class="confirm__val">Studio Lakk</span></div>
+          <div class="confirm__row"><span class="confirm__label">Når</span><span class="confirm__val">Ons 13. mai · 14:00</span></div>
+          <div class="confirm__row"><span class="confirm__label">Varighet</span><span class="confirm__val">75 min · Linn eller Maja</span></div>
+          <div class="confirm__row"><span class="confirm__label">Pris</span><span class="confirm__val">690 kr</span></div>
+
+          <div class="confirm__divider"></div>
+          <div class="confirm__card-eyebrow">Booket av</div>
+          <div class="confirm__user">
+            <div class="confirm__avatar">M</div>
+            <div>
+              <div class="confirm__user-name">Maria Solberg</div>
+              <div class="confirm__user-meta">+47 123 45 678 · maria.solberg@gmail.com</div>
+            </div>
+            <span class="confirm__badge"><i data-lucide="check"></i> Verifisert</span>
+          </div>
         </div>
-        <div class="confirm__row">
-          <span class="confirm__label">Hos</span>
-          <span class="confirm__val">Studio Lakk</span>
-        </div>
-        <div class="confirm__row">
-          <span class="confirm__label">Når</span>
-          <span class="confirm__val">Ons 13. mai · 14:30</span>
-        </div>
-        <div class="confirm__row">
-          <span class="confirm__label">Pris</span>
-          <span class="confirm__val">490 kr</span>
+
+        <!-- Right: location + map -->
+        <div class="confirm__location">
+          <div class="confirm__location-head">
+            <div>
+              <div class="confirm__card-eyebrow">Slik finner du oss</div>
+              <div class="confirm__location-name">Studio Lakk</div>
+              <div class="confirm__location-addr">Markveien 22, 0554 Oslo</div>
+            </div>
+            <a class="btn btn-ghost btn-sm" href="https://maps.google.com/?q=Markveien+22+Oslo" target="_blank" rel="noopener">
+              <i data-lucide="navigation"></i> Veibeskrivelse
+            </a>
+          </div>
+          <div class="studio-map">
+            <div class="studio-map__viewport">
+              <svg class="studio-map__svg" viewBox="0 0 320 240" preserveAspectRatio="xMidYMid slice">
+                <rect width="320" height="240" fill="#F7EFE2"/>
+                <path d="M0 200 L80 188 L120 220 L80 240 L0 240 Z" fill="#DDE3D2" opacity=".7"/>
+                <path d="M250 0 L320 0 L320 80 L290 100 L260 60 Z" fill="#ECDFCB" opacity=".55"/>
+                <path d="M-10 130 L340 115" stroke="#FBF6EE" stroke-width="18"/>
+                <path d="M165 -10 L178 260" stroke="#FBF6EE" stroke-width="18"/>
+                <path d="M-10 60 L340 50" stroke="#FBF6EE" stroke-width="7"/>
+                <path d="M-10 200 L340 210" stroke="#FBF6EE" stroke-width="7"/>
+                <path d="M70 -10 L78 260" stroke="#FBF6EE" stroke-width="7"/>
+                <path d="M255 -10 L268 260" stroke="#FBF6EE" stroke-width="7"/>
+                <rect x="92" y="14" width="58" height="26" fill="#E8DCC4" rx="2"/>
+                <rect x="190" y="10" width="56" height="32" fill="#E8DCC4" rx="2"/>
+                <rect x="92" y="68" width="58" height="42" fill="#E8DCC4" rx="2"/>
+                <rect x="190" y="65" width="56" height="38" fill="#E8DCC4" rx="2"/>
+                <rect x="190" y="125" width="58" height="68" fill="#E8DCC4" rx="2"/>
+                <rect x="92" y="155" width="58" height="38" fill="#E8DCC4" rx="2"/>
+              </svg>
+              <!-- Pin -->
+              <button class="studio-map__pin" id="mapPin" style="left:50%;top:50%;">
+                <span class="studio-map__pin-halo"></span>
+                <span class="studio-map__pin-mark">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2C7.6 2 4 5.6 4 10c0 5.5 7 12 8 12s8-6.5 8-12c0-4.4-3.6-8-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
+                </span>
+              </button>
+              <!-- Callout (hidden by default) -->
+              <div class="studio-map__callout" id="mapCallout" style="display:none;">
+                <div class="studio-map__callout-name">Studio Lakk</div>
+                <div class="studio-map__callout-addr">Markveien 22, 0554 Oslo</div>
+                <a class="studio-map__callout-link" href="https://maps.google.com/?q=Markveien+22+Oslo" target="_blank" rel="noopener">
+                  <i data-lucide="navigation"></i> Få veibeskrivelse
+                </a>
+                <div class="studio-map__callout-arrow"></div>
+              </div>
+              <div class="studio-map__zoom">
+                <button>+</button>
+                <button>−</button>
+              </div>
+            </div>
+          </div>
+          <div class="confirm__location-foot">
+            <span><i data-lucide="train-front"></i> 5 min fra Grünerløkka T-bane</span>
+            <span><i data-lucide="phone"></i> +47 22 35 12 34</span>
+          </div>
         </div>
       </div>
+
       <div class="confirm__actions">
         <a href="index.html" class="btn btn-ghost">Tilbake til forsiden</a>
         <button class="btn btn-primary"><i data-lucide="calendar-plus"></i> Legg til i kalender</button>
@@ -66,28 +134,11 @@
         <p class="footer__tag">Nailed it. Nailed it again.</p>
       </div>
       <div class="footer__cols">
-        <div>
-          <div class="footer__h">Utforsk</div>
-          <a href="#">Salonger nær meg</a>
-          <a href="#">Kategorier</a>
-          <a href="#">Gavekort</a>
-        </div>
-        <div>
-          <div class="footer__h">For salonger</div>
-          <a href="#">Bli partner</a>
-          <a href="#">Priser</a>
-          <a href="#">Logg inn</a>
-        </div>
-        <div>
-          <div class="footer__h">Selskap</div>
-          <a href="#">Om oss</a>
-          <a href="#">Kontakt</a>
-          <a href="#">Personvern</a>
-        </div>
+        <div><div class="footer__h">Utforsk</div><a href="#">Salonger nær meg</a><a href="#">Kategorier</a><a href="#">Gavekort</a></div>
+        <div><div class="footer__h">For salonger</div><a href="#">Bli partner</a><a href="#">Priser</a><a href="#">Logg inn</a></div>
+        <div><div class="footer__h">Selskap</div><a href="#">Om oss</a><a href="#">Kontakt</a><a href="#">Personvern</a></div>
       </div>
-      <div class="footer__bottom">
-        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
-      </div>
+      <div class="footer__bottom"><small>&copy; 2026 Neglet AS &middot; Made in Oslo</small></div>
     </div>
   </footer>
 
@@ -96,8 +147,16 @@
     lucide.createIcons();
 
     var nav = document.getElementById('topNav');
-    window.addEventListener('scroll', function() {
-      nav.classList.toggle('scrolled', window.scrollY > 30);
+    window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 30); });
+
+    // Map pin toggle
+    var pin = document.getElementById('mapPin');
+    var callout = document.getElementById('mapCallout');
+    pin.addEventListener('click', function() {
+      var open = callout.style.display !== 'none';
+      callout.style.display = open ? 'none' : '';
+      pin.classList.toggle('is-open', !open);
+      lucide.createIcons();
     });
   </script>
 </body>

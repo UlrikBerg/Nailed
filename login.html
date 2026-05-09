@@ -23,18 +23,33 @@
       padding: 40px 36px;
       box-shadow: var(--shadow-md);
     }
-    .auth__brand {
-      display: block;
-      height: 32px;
-      margin: 0 auto 32px;
-    }
     .auth__title {
       font-family: var(--font-display);
       font-weight: 700;
-      font-size: 28px;
+      font-size: 38px;
       letter-spacing: -0.02em;
-      text-align: center;
-      margin: 0 0 8px;
+      text-align: left;
+      margin: 0 0 10px;
+      line-height: 1.05;
+      display: flex;
+      align-items: baseline;
+      gap: .32em;
+      flex-wrap: nowrap;
+      white-space: nowrap;
+    }
+    .auth__title-brand {
+      display: inline-flex;
+      align-items: baseline;
+      gap: .12em;
+    }
+    .auth__title-brand::after {
+      content: "";
+      width: .22em;
+      height: .22em;
+      border-radius: 50%;
+      background: var(--rouge-500);
+      align-self: flex-end;
+      margin-bottom: .18em;
     }
     .auth__sub {
       font-size: 14px;
@@ -137,11 +152,9 @@
 
   <div class="auth">
     <div class="auth__card">
-      <img src="assets/logo-wordmark.svg" alt="nailed" class="auth__brand" />
-
       <!-- Login form -->
       <div id="loginView">
-        <h1 class="auth__title">Logg inn</h1>
+        <h1 class="auth__title">Logg inn på <span class="auth__title-brand">nailed</span></h1>
         <p class="auth__sub">Velkommen tilbake. Book deg pen.</p>
         <div class="auth__error" id="loginError"></div>
         <form class="auth__form" id="loginForm">
