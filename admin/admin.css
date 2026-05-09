@@ -916,3 +916,86 @@ p { margin: 0 0 var(--space-4) 0; }
 .mt-0 { margin-top: 0; }
 .mb-24 { margin-bottom: 24px; }
 .text-right { text-align: right; }
+
+/* =========================================================================
+   Booking & User analyse
+   ========================================================================= */
+
+.kpi-grid--5 { grid-template-columns: repeat(5, 1fr); }
+@media (max-width: 1100px) { .kpi-grid--5 { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 720px) { .kpi-grid--5 { grid-template-columns: 1fr 1fr; } }
+
+.period-btn {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--stone-200);
+  background: var(--cream-50);
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--ink);
+}
+.period-btn:hover { border-color: var(--stone-400); }
+.period-btn.active { background: var(--ink); color: var(--cream-50); border-color: var(--ink); }
+
+.admin-card {
+  background: var(--cream-50);
+  border: 1px solid var(--stone-200);
+  border-radius: 20px;
+  padding: 24px;
+}
+.admin-card__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+  margin: 0;
+}
+
+.admin-table--compact { font-size: 13px; }
+.admin-table--compact th { font-size: 11px; }
+.admin-table--compact td { padding: 10px 12px; }
+
+.text-muted { color: var(--fg-muted); font-size: 12px; }
+
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-row__label {
+  width: 60px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--fg-muted);
+  flex-shrink: 0;
+}
+.bar-row__track {
+  flex: 1;
+  height: 8px;
+  background: var(--stone-100);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar-row__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--rouge-200);
+}
+.bar-row__fill--highlight { background: var(--rouge-500); }
+.bar-row__val {
+  width: 50px;
+  text-align: right;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.status-badge--new { background: #E0F5E4; color: #2D7A3A; }
+.status-badge--inactive { background: var(--stone-100); color: var(--fg-muted); }
+.status-badge--noshow { background: var(--stone-100); color: var(--fg-muted); }
+
+.kpi-card__delta { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; margin-top: 6px; padding: 3px 8px; border-radius: 999px; }
+.kpi-card__delta i { width: 12px; height: 12px; }
+.kpi-card__delta.up { background: #E7F1E7; color: #4F8A5B; }
+.kpi-card__delta.down { background: #FBE2E5; color: #C8324A; }
