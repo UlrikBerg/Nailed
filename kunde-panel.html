@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Min konto — nailed</title>
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="admin/admin.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <span class="sidebar__brand-logo">nailed</span>
+        <span class="sidebar__badge">Konto</span>
+      </div>
+
+      <div class="sidebar__divider"></div>
+
+      <button class="nav-item active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+      <button class="nav-item" data-tab="bookinger"><i data-lucide="calendar-check"></i> Mine bookinger</button>
+      <button class="nav-item" data-tab="favoritter"><i data-lucide="heart"></i> Favoritter</button>
+
+      <div class="sidebar__section">Konto</div>
+      <button class="nav-item" data-tab="profil"><i data-lucide="user"></i> Profil</button>
+      <button class="nav-item" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
+
+      <div class="sidebar__footer">
+        <div class="sidebar__avatar" id="avatar">U</div>
+        <div>
+          <div class="sidebar__user" id="userName">Laster …</div>
+          <div class="sidebar__role" id="userEmail"></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <!-- DASHBOARD -->
+      <div class="tab-content active" id="tab-dashboard">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title">Hei, <em id="greetingName">der!</em></h1>
+            <div class="topbar__sub">Velkommen tilbake til kontoen din.</div>
+          </div>
+          <div class="topbar__actions">
+            <a class="btn btn-ghost" href="/utforsk.html"><i data-lucide="search"></i> Utforsk salonger</a>
+          </div>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--pink"><i data-lucide="calendar-check"></i></div>
+            <div class="kpi__label">Neste booking</div>
+            <div class="kpi__value" id="kpiNext" style="font-size: 22px;">—</div>
+            <div class="kpi__delta" id="kpiNextSub" style="background: var(--stone-100); color: var(--stone-600);">Ingen kommende</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--green"><i data-lucide="check-circle"></i></div>
+            <div class="kpi__label">Fullførte bookinger</div>
+            <div class="kpi__value" id="kpiCompleted">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--amber"><i data-lucide="heart"></i></div>
+            <div class="kpi__label">Favoritter</div>
+            <div class="kpi__value" id="kpiFavorites">0</div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:24px;">
+          <div class="panel__head"><h3>Bli salong på nailed</h3></div>
+          <p style="margin:0 0 12px; color: var(--fg-muted);">
+            Tilbyr du behandlinger? Søk om å bli registrert salong, og start å motta bookinger gjennom nailed.
+          </p>
+          <div id="becomeSalonStatus"></div>
+          <a class="btn btn-primary" id="becomeSalonBtn" href="/bli-salong.html">
+            <i data-lucide="store"></i> Søk om å bli salong
+          </a>
+        </div>
+      </div>
+
+      <!-- MINE BOOKINGER -->
+      <div class="tab-content" id="tab-bookinger">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title">Mine bookinger</h1>
+            <div class="topbar__sub">Kommende og tidligere avtaler.</div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:6px; margin-bottom:20px;" id="bookingFilter">
+          <button class="period-btn active" data-filter="upcoming">Kommende</button>
+          <button class="period-btn" data-filter="past">Tidligere</button>
+        </div>
+
+        <div class="panel">
+          <table class="data-table" id="bookingsTable">
+            <thead>
+              <tr>
+                <th>Når</th>
+                <th>Salong</th>
+                <th>Behandling</th>
+                <th>Pris</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div id="bookingsEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
+            Du har ingen bookinger her.
+          </div>
+        </div>
+      </div>
+
+      <!-- FAVORITTER -->
+      <div class="tab-content" id="tab-favoritter">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title">Favoritter</h1>
+            <div class="topbar__sub">Salonger du har lagret.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <table class="data-table" id="favoritesTable">
+            <thead>
+              <tr><th>Salong</th><th>By</th><th>Lagt til</th><th></th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div id="favoritesEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
+            Du har ingen favoritter ennå. <a href="/utforsk.html">Utforsk salonger →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFIL -->
+      <div class="tab-content" id="tab-profil">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title">Profil</h1>
+            <div class="topbar__sub">Disse opplysningene brukes ved booking.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <form id="profileForm" class="settings-grid">
+            <div class="form-group">
+              <label>Navn</label>
+              <input class="form-input" name="name" type="text" required />
+            </div>
+            <div class="form-group">
+              <label>E-post (fra innloggings-leverandør)</label>
+              <input class="form-input" name="email" type="email" disabled />
+            </div>
+            <div class="form-group">
+              <label>Telefon</label>
+              <input class="form-input" name="phone" type="tel" placeholder="+47 ..." />
+            </div>
+            <div class="form-group">
+              <label>Adresse</label>
+              <input class="form-input" name="address_line" type="text" />
+            </div>
+            <div class="form-group">
+              <label>Postnummer</label>
+              <input class="form-input" name="postal_code" type="text" maxlength="16" />
+            </div>
+            <div class="form-group">
+              <label>By</label>
+              <input class="form-input" name="city" type="text" />
+            </div>
+            <div style="grid-column: 1 / -1; display:flex; gap:8px;">
+              <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
+              <span id="profileMsg" style="align-self:center; color: var(--fg-muted); font-size: 13px;"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- INNSTILLINGER -->
+      <div class="tab-content" id="tab-innstillinger">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title">Innstillinger</h1>
+            <div class="topbar__sub">Aktive sesjoner, sikkerhet og kontosletting.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel__head"><h3>Aktive sesjoner</h3></div>
+          <table class="data-table data-table--compact" id="sessionsTable">
+            <thead><tr><th>Enhet</th><th>IP</th><th>Sist brukt</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="panel" style="border-color: var(--danger-50);">
+          <div class="panel__head"><h3>Slett konto</h3></div>
+          <p style="margin:0 0 12px; color: var(--fg-muted);">
+            Sletter all profilinformasjon og logger deg ut. Tidligere booking-historikk for salongene
+            beholdes anonymisert i samsvar med bokføringsloven.
+          </p>
+          <button class="btn btn-danger" id="deleteAccountBtn"><i data-lucide="trash-2"></i> Slett konto</button>
+        </div>
+
+        <div style="margin-top:16px;">
+          <button class="btn btn-ghost" id="logoutBtn"><i data-lucide="log-out"></i> Logg ut</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="/assets/auth.js"></script>
+  <script>
+    var navItems = document.querySelectorAll('.nav-item[data-tab]');
+    var tabContents = document.querySelectorAll('.tab-content');
+    navItems.forEach(function (item) {
+      item.addEventListener('click', function () {
+        var tab = this.getAttribute('data-tab');
+        navItems.forEach(function (n) { n.classList.remove('active'); });
+        this.classList.add('active');
+        tabContents.forEach(function (t) { t.classList.remove('active'); });
+        var target = document.getElementById('tab-' + tab);
+        if (target) target.classList.add('active');
+      });
+    });
+
+    var statusLabel = {
+      pending: 'Avventer',
+      confirmed: 'Bekreftet',
+      completed: 'Fullført',
+      cancelled: 'Kansellert',
+      no_show: 'No-show',
+    };
+    var statusClass = {
+      pending: 'status status--pending',
+      confirmed: 'status status--confirmed',
+      completed: 'status status--completed',
+      cancelled: 'status status--cancelled',
+      no_show: 'status status--noshow',
+    };
+
+    function formatDateTime(iso) {
+      var d = new Date(iso);
+      var date = d.toLocaleDateString('no-NO', { day: '2-digit', month: 'short' });
+      var time = d.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+      return date + ' · ' + time;
+    }
+
+    async function loadDashboard() {
+      var [bookingsRes, favoritesRes, completedRes, appRes] = await Promise.all([
+        NailedAuth.api('/api/v1/bookings/mine?filter=upcoming'),
+        NailedAuth.api('/api/v1/favorites'),
+        NailedAuth.api('/api/v1/bookings/mine?filter=past'),
+        NailedAuth.api('/api/v1/salon-applications/mine'),
+      ]);
+      var bookings = (await bookingsRes.json()).bookings || [];
+      var favs = (await favoritesRes.json()).favorites || [];
+      var completed = ((await completedRes.json()).bookings || []).filter(function (b) { return b.status === 'completed'; });
+
+      var next = bookings[0];
+      var nextEl = document.getElementById('kpiNext');
+      var nextSub = document.getElementById('kpiNextSub');
+      if (next) {
+        nextEl.textContent = formatDateTime(next.start_at);
+        nextSub.textContent = next.salon_name + ' · ' + next.service_name;
+        nextSub.style.background = 'var(--success-50)';
+        nextSub.style.color = 'var(--success-500)';
+      }
+      document.getElementById('kpiCompleted').textContent = completed.length;
+      document.getElementById('kpiFavorites').textContent = favs.length;
+
+      var appData = (await appRes.json()).application;
+      var statusEl = document.getElementById('becomeSalonStatus');
+      var btn = document.getElementById('becomeSalonBtn');
+      if (appData) {
+        if (appData.status === 'pending') {
+          statusEl.innerHTML = '<span class="status status--pending">Søknad sendt</span> ' +
+            '<span style="color: var(--fg-muted); margin-left: 8px;">Vi gir beskjed når den er behandlet.</span>';
+          btn.style.display = 'none';
+        } else if (appData.status === 'approved') {
+          statusEl.innerHTML = '<span class="status status--confirmed">Godkjent</span>';
+          btn.outerHTML = '<a class="btn btn-primary" href="/salong-panel.html"><i data-lucide="store"></i> Gå til salongpanel</a>';
+        } else if (appData.status === 'rejected') {
+          statusEl.innerHTML = '<span class="status status--cancelled">Avslått</span>' +
+            (appData.reviewer_notes ? '<div style="margin-top:8px; color: var(--fg-muted); font-size:13px;">' + appData.reviewer_notes + '</div>' : '');
+        }
+      }
+      window.lucide && window.lucide.createIcons();
+    }
+
+    async function loadBookings(filter) {
+      var res = await NailedAuth.api('/api/v1/bookings/mine?filter=' + filter);
+      var data = await res.json();
+      var tbody = document.querySelector('#bookingsTable tbody');
+      tbody.innerHTML = '';
+      var bookings = data.bookings || [];
+      document.getElementById('bookingsEmpty').style.display = bookings.length === 0 ? 'block' : 'none';
+      document.getElementById('bookingsTable').style.display = bookings.length === 0 ? 'none' : '';
+      bookings.forEach(function (b) {
+        var tr = document.createElement('tr');
+        var canCancel = filter === 'upcoming' && (b.status === 'pending' || b.status === 'confirmed');
+        tr.innerHTML =
+          '<td><strong>' + formatDateTime(b.start_at) + '</strong></td>' +
+          '<td><a href="/salon.html?slug=' + encodeURIComponent(b.salon_slug) + '">' + escapeHtml(b.salon_name) + '</a><br>' +
+            '<span class="td-muted">' + escapeHtml(b.salon_city || '') + '</span></td>' +
+          '<td>' + escapeHtml(b.service_name) + '</td>' +
+          '<td><strong>' + b.price_nok + ' kr</strong></td>' +
+          '<td><span class="' + (statusClass[b.status] || 'status') + '">' + (statusLabel[b.status] || b.status) + '</span></td>' +
+          '<td>' + (canCancel ? '<button class="btn btn-ghost btn-sm" data-cancel="' + b.id + '">Avbestill</button>' : '') + '</td>';
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('button[data-cancel]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          if (!confirm('Avbestille denne bookingen?')) return;
+          var id = this.getAttribute('data-cancel');
+          var res = await NailedAuth.api('/api/v1/bookings/' + id, { method: 'PATCH', body: { status: 'cancelled' } });
+          if (res.ok) loadBookings(filter); else alert('Kunne ikke avbestille.');
+        });
+      });
+    }
+
+    async function loadFavorites() {
+      var res = await NailedAuth.api('/api/v1/favorites');
+      var data = await res.json();
+      var tbody = document.querySelector('#favoritesTable tbody');
+      tbody.innerHTML = '';
+      var favs = data.favorites || [];
+      document.getElementById('favoritesEmpty').style.display = favs.length === 0 ? 'block' : 'none';
+      document.getElementById('favoritesTable').style.display = favs.length === 0 ? 'none' : '';
+      favs.forEach(function (f) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td><a href="/salon.html?slug=' + encodeURIComponent(f.slug) + '"><strong>' + escapeHtml(f.name) + '</strong></a></td>' +
+          '<td>' + escapeHtml(f.city || '') + '</td>' +
+          '<td class="td-muted">' + new Date(f.created_at).toLocaleDateString('no-NO') + '</td>' +
+          '<td><button class="btn btn-ghost btn-sm" data-unfav="' + f.id + '"><i data-lucide="x"></i></button></td>';
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('button[data-unfav]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          var id = this.getAttribute('data-unfav');
+          await NailedAuth.api('/api/v1/favorites/' + id, { method: 'DELETE' });
+          loadFavorites();
+        });
+      });
+      window.lucide && window.lucide.createIcons();
+    }
+
+    async function loadProfile() {
+      var res = await NailedAuth.api('/api/v1/me');
+      var data = await res.json();
+      var u = data.user;
+      document.querySelector('input[name=name]').value = u.name || '';
+      document.querySelector('input[name=email]').value = u.email || '';
+      document.querySelector('input[name=phone]').value = u.phone || '';
+      document.querySelector('input[name=address_line]').value = u.address_line || '';
+      document.querySelector('input[name=postal_code]').value = u.postal_code || '';
+      document.querySelector('input[name=city]').value = u.city || '';
+    }
+
+    async function loadSessions() {
+      var res = await NailedAuth.api('/api/v1/me/sessions');
+      var data = await res.json();
+      var tbody = document.querySelector('#sessionsTable tbody');
+      tbody.innerHTML = '';
+      (data.sessions || []).forEach(function (s) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + escapeHtml((s.user_agent || 'Ukjent').slice(0, 60)) + '</td>' +
+          '<td class="td-muted">' + escapeHtml(s.ip || '—') + '</td>' +
+          '<td>' + new Date(s.last_used_at).toLocaleString('no-NO') + '</td>' +
+          '<td><button class="btn btn-ghost btn-sm" data-revoke="' + s.id + '">Avslutt</button></td>';
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('button[data-revoke]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          var id = this.getAttribute('data-revoke');
+          await NailedAuth.api('/api/v1/me/sessions/' + id, { method: 'DELETE' });
+          loadSessions();
+        });
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+      });
+    }
+
+    document.getElementById('bookingFilter').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-filter]');
+      if (!btn) return;
+      this.querySelectorAll('[data-filter]').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      loadBookings(btn.getAttribute('data-filter'));
+    });
+
+    document.getElementById('profileForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var fd = new FormData(this);
+      var body = {};
+      ['name','phone','address_line','postal_code','city'].forEach(function (k) {
+        body[k] = (fd.get(k) || '').toString().trim() || null;
+      });
+      if (!body.name) { document.getElementById('profileMsg').textContent = 'Navn er påkrevd.'; return; }
+      var res = await NailedAuth.api('/api/v1/me', { method: 'PATCH', body: body });
+      document.getElementById('profileMsg').textContent = res.ok ? 'Lagret.' : 'Kunne ikke lagre.';
+      if (res.ok) setTimeout(function () { document.getElementById('profileMsg').textContent = ''; }, 2000);
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async function () {
+      await NailedAuth.logout();
+      window.location.replace('/');
+    });
+
+    document.getElementById('deleteAccountBtn').addEventListener('click', async function () {
+      if (!confirm('Er du sikker? Dette sletter kontoen din.')) return;
+      var res = await NailedAuth.api('/api/v1/me', { method: 'DELETE' });
+      if (res.ok) {
+        await NailedAuth.logout();
+        window.location.replace('/?account_deleted=1');
+      } else {
+        var data = await res.json();
+        alert((data.error && data.error.message) || 'Kunne ikke slette kontoen.');
+      }
+    });
+
+    (async function init() {
+      var user = await NailedAuth.requireAuth('user');
+      if (!user) return;
+      document.getElementById('userName').textContent = user.name;
+      document.getElementById('userEmail').textContent = user.email;
+      document.getElementById('avatar').textContent = (user.name || '?').charAt(0).toUpperCase();
+      document.getElementById('greetingName').textContent = (user.name || '').split(' ')[0] + '!';
+      loadDashboard();
+      loadBookings('upcoming');
+      loadFavorites();
+      loadProfile();
+      loadSessions();
+      window.lucide && window.lucide.createIcons();
+    })();
+  </script>
+</body>
+</html>

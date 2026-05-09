@@ -1,13 +1,5 @@
-# Nailed — Product Idea
+# Nailed — memory index
 
-Nailed is a peer-to-peer platform where users can buy services from "behandlere" (treatment providers / beauty professionals), starting with nails.
-
-## Platforms
-- Web app
-- iOS app
-- Android app
-
-## Concept
-- Peer-to-peer marketplace.
-- Customers browse and buy services directly from individual behandlere.
-- Initial vertical: nails. Other treatment categories can follow.
+- [Product concept](product_concept.md) — peer-to-peer marketplace for beauty services, nails first, web+iOS+Android
+- [Platform targets](platform_targets.md) — three clients share one API; auth must be token-based; PKCE for OIDC
+- [Hosting preference](hosting_preference.md) — Hostinger preferred, but plan must support Node.js (Cloud/VPS)

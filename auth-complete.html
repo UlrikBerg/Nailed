@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Logger inn — nailed</title>
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main style="min-height:100vh; display:flex; align-items:center; justify-content:center; font-family: var(--font-body, system-ui);">
+    <div style="text-align:center;">
+      <div style="font-family: var(--font-display, serif); font-size: 28px; margin-bottom: 8px;">Logger inn …</div>
+      <div id="msg" style="color: var(--fg-muted, #666); font-size: 14px;">Et øyeblikk.</div>
+    </div>
+  </main>
+  <script src="/assets/auth.js"></script>
+  <script>
+    (function () {
+      var msg = document.getElementById('msg');
+      try {
+        var hash = window.location.hash || '';
+        if (hash.startsWith('#')) hash = hash.slice(1);
+        var params = new URLSearchParams(hash);
+        var access = params.get('access_token');
+        var refresh = params.get('refresh_token');
+        var role = params.get('role');
+        var redirect = params.get('redirect') || '/';
+
+        if (!access || !refresh) {
+          msg.textContent = 'Mangler innloggings-token. Prøv igjen.';
+          setTimeout(function () { window.location.replace('/login.html?error=missing_token'); }, 1500);
+          return;
+        }
+        window.NailedAuth.setTokens({ accessToken: access, refreshToken: refresh, role: role });
+        // Strip the fragment from history so tokens don't linger in URL bar.
+        window.history.replaceState({}, document.title, '/auth-complete.html');
+        window.location.replace(redirect);
+      } catch (err) {
+        msg.textContent = 'Innlogging feilet: ' + (err && err.message ? err.message : err);
+      }
+    })();
+  </script>
+</body>
+</html>

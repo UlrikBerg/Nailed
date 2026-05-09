@@ -59,130 +59,62 @@
       line-height: 1.5;
     }
 
-    /* Role selector */
-    .auth__roles {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-    .auth__role {
-      padding: 16px;
-      border: 1.5px solid var(--stone-200);
-      border-radius: var(--radius-lg);
-      background: var(--cream-100);
-      cursor: pointer;
-      transition: all var(--dur-fast) var(--ease-out-soft);
-      text-align: center;
-    }
-    .auth__role:hover { border-color: var(--stone-400); }
-    .auth__role.active { border-color: var(--rouge-500); background: var(--rouge-50); }
-    .auth__role-icon {
-      width: 40px;
-      height: 40px;
-      margin: 0 auto 10px;
-      border-radius: var(--radius-pill);
+    .auth__providers {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--cream-50);
-    }
-    .auth__role.active .auth__role-icon { background: var(--rouge-100); }
-    .auth__role-icon i { width: 20px; height: 20px; color: var(--fg-muted); }
-    .auth__role.active .auth__role-icon i { color: var(--rouge-500); }
-    .auth__role-label {
-      font-family: var(--font-body);
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--ink);
-    }
-    .auth__role-desc {
-      font-family: var(--font-body);
-      font-size: 12px;
-      color: var(--fg-muted);
-      margin-top: 4px;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    /* Vipps button */
-    .auth__vipps {
+    .provider-btn {
       width: 100%;
-      padding: 16px;
-      border: 0;
+      padding: 16px 20px;
+      border: 1.5px solid var(--stone-200);
       border-radius: var(--radius-md);
-      background: #FF5B24;
-      color: white;
+      background: var(--cream-50);
       font-family: var(--font-body);
-      font-weight: 700;
-      font-size: 16px;
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--ink);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      transition: background var(--dur-fast);
+      gap: 12px;
+      transition: all var(--dur-fast) var(--ease-out-soft);
+      text-decoration: none;
     }
-    .auth__vipps:hover { background: #E64C18; }
-    .auth__vipps-logo {
+    .provider-btn:hover { border-color: var(--stone-400); background: var(--cream-100); }
+    .provider-btn[disabled],
+    .provider-btn.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background: var(--stone-50);
+    }
+    .provider-btn__logo {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .provider-btn__hint {
+      display: block;
+      margin-top: 4px;
+      font-weight: 500;
+      font-size: 12px;
+      color: var(--fg-muted);
+    }
+
+    .provider-btn--vipps {
+      background: #FF5B24;
+      color: white;
+      border-color: #FF5B24;
+    }
+    .provider-btn--vipps:hover { background: #E64C18; border-color: #E64C18; }
+    .provider-btn--vipps[disabled] { background: var(--stone-100); color: var(--stone-500); border-color: var(--stone-200); }
+    .provider-btn--vipps .provider-btn__brand {
       font-family: var(--font-display);
       font-weight: 900;
-      font-size: 18px;
+      font-size: 17px;
       letter-spacing: -0.02em;
-    }
-
-    /* Phone input */
-    .auth__phone-wrap {
-      margin-bottom: 16px;
-    }
-    .auth__phone-label {
-      display: block;
-      font-family: var(--font-body);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--fg-muted);
-      margin-bottom: 8px;
-      text-align: left;
-    }
-    .auth__phone-field {
-      display: flex;
-      align-items: center;
-      border: 1.5px solid var(--stone-300);
-      border-radius: var(--radius-md);
-      padding: 0 16px;
-      background: var(--cream-50);
-      transition: all var(--dur-fast);
-    }
-    .auth__phone-field:focus-within { border-color: #FF5B24; box-shadow: 0 0 0 4px rgba(255, 91, 36, 0.12); }
-    .auth__phone-prefix {
-      font-family: var(--font-body);
-      font-weight: 600;
-      color: var(--fg-muted);
-      font-size: 16px;
-      padding-right: 10px;
-      border-right: 1px solid var(--stone-200);
-      margin-right: 10px;
-    }
-    .auth__phone-input {
-      flex: 1;
-      border: 0;
-      background: transparent;
-      padding: 16px 0;
-      font-family: var(--font-body);
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      outline: none;
-      color: var(--ink);
-    }
-    .auth__phone-input::placeholder { color: var(--stone-400); font-weight: 400; }
-
-    .auth__fineprint {
-      font-family: var(--font-body);
-      font-size: 12px;
-      color: var(--fg-muted);
-      margin: 16px 0 0;
-      line-height: 1.5;
     }
 
     .auth__divider {
@@ -206,6 +138,7 @@
       flex-direction: column;
       gap: 10px;
       text-align: left;
+      margin-top: 8px;
     }
     .auth__benefit {
       display: flex;
@@ -217,186 +150,148 @@
     }
     .auth__benefit i { width: 16px; height: 16px; color: var(--rouge-500); flex-shrink: 0; }
 
-    /* Waiting state */
-    .auth__waiting { display: none; }
-    .auth__waiting.visible { display: block; }
-    .auth__waiting-phone {
-      width: 140px;
-      height: 190px;
-      margin: 0 auto 20px;
-      border-radius: 22px;
-      background: #1a1a1a;
-      padding: 8px;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
-      position: relative;
+    .auth__notice {
+      margin: 16px 0 0;
+      padding: 12px 14px;
+      background: var(--warning-50);
+      border: 1px solid var(--warning-500);
+      border-radius: var(--radius-md);
+      color: var(--stone-700);
+      font-size: 13px;
+      text-align: left;
+      line-height: 1.5;
     }
-    .auth__waiting-phone::before {
-      content: "";
-      position: absolute;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 36px;
-      height: 5px;
-      background: #444;
-      border-radius: var(--radius-pill);
+    .auth__notice--error {
+      background: var(--danger-50);
+      border-color: var(--danger-500);
+      color: var(--danger-500);
     }
-    .auth__waiting-screen {
-      width: 100%;
-      height: 100%;
-      border-radius: 16px;
-      background: #FF5B24;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px 12px 14px;
-      gap: 6px;
-      color: white;
+
+    .auth__fineprint {
       font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--fg-muted);
+      margin: 24px 0 0;
+      line-height: 1.5;
     }
-    .auth__waiting-screen-logo { font-family: var(--font-display); font-weight: 900; font-size: 14px; opacity: 0.85; }
-    .auth__waiting-screen-text { font-size: 11px; opacity: 0.9; }
-    .auth__waiting-screen-name { font-family: var(--font-display); font-weight: 700; font-size: 16px; margin-top: 4px; }
-    .auth__waiting-slider { margin-top: 14px; width: 100%; height: 24px; background: rgba(255,255,255,0.18); border-radius: var(--radius-pill); position: relative; }
-    .auth__waiting-slider-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: var(--radius-pill); background: white; animation: vipps-slide 1.6s ease-in-out infinite; }
-    .auth__pulse { display: inline-flex; gap: 6px; margin-top: 16px; }
-    .auth__pulse span { width: 8px; height: 8px; border-radius: var(--radius-pill); background: #FF5B24; animation: vipps-pulse 1.2s ease-in-out infinite; }
-    .auth__pulse span:nth-child(2) { animation-delay: 0.15s; }
-    .auth__pulse span:nth-child(3) { animation-delay: 0.3s; }
   </style>
 </head>
 <body>
 
   <div class="auth">
     <div class="auth__card">
+      <h1 class="auth__title">Logg inn på <span class="auth__title-brand">nailed</span></h1>
+      <p class="auth__sub">Velg innloggingsmetode. Trygt og enkelt — ingen passord å huske.</p>
 
-      <!-- Main login view -->
-      <div id="loginView">
-        <h1 class="auth__title">Logg inn på <span class="auth__title-brand">nailed</span></h1>
-        <p class="auth__sub">Enkel og trygg innlogging med Vipps — for både kunder og salonger.</p>
+      <div id="errorBanner" class="auth__notice auth__notice--error" style="display:none;"></div>
 
-        <!-- Role selector -->
-        <div class="auth__roles">
-          <div class="auth__role active" id="roleCustomer">
-            <div class="auth__role-icon"><i data-lucide="calendar-heart"></i></div>
-            <div class="auth__role-label">Jeg vil booke</div>
-            <div class="auth__role-desc">Finn og book behandlinger</div>
-          </div>
-          <div class="auth__role" id="roleProvider">
-            <div class="auth__role-icon"><i data-lucide="store"></i></div>
-            <div class="auth__role-label">Jeg er salong</div>
-            <div class="auth__role-desc">Administrer bookinger</div>
-          </div>
-        </div>
+      <div class="auth__providers">
+        <a class="provider-btn provider-btn--vipps disabled" id="vippsBtn" href="#" aria-disabled="true">
+          Fortsett med <span class="provider-btn__brand">vipps</span>
+          <span class="provider-btn__hint" style="color: rgba(255,255,255,0.85)">Kommer snart — venter på godkjenning</span>
+        </a>
 
-        <!-- Phone + Vipps -->
-        <div class="auth__phone-wrap">
-          <label class="auth__phone-label" for="phone">Mobilnummer</label>
-          <div class="auth__phone-field">
-            <span class="auth__phone-prefix">+47</span>
-            <input id="phone" class="auth__phone-input" inputmode="numeric" placeholder="Skriv ditt mobilnummer.." />
-          </div>
-        </div>
-
-        <button class="auth__vipps" id="vippsBtn">
-          Fortsett med <span class="auth__vipps-logo">vipps</span>
-        </button>
-
-        <p class="auth__fineprint">
-          Ved å fortsette godtar du at Vipps deler navn, e-post, telefon og adresse med nailed. Ingen betaling — kun verifisering.
-        </p>
-
-        <div class="auth__divider">Trygt og enkelt</div>
-
-        <div class="auth__benefits">
-          <div class="auth__benefit"><i data-lucide="shield-check"></i> Verifisert identitet med BankID via Vipps</div>
-          <div class="auth__benefit"><i data-lucide="zap"></i> Logg inn på 3 sekunder — ingen passord</div>
-          <div class="auth__benefit"><i data-lucide="map-pin"></i> Adressen din brukes til å vise salonger nær deg</div>
-          <div class="auth__benefit"><i data-lucide="lock"></i> Dine data deles kun med salongen du booker hos</div>
-        </div>
+        <a class="provider-btn" id="googleBtn" href="#">
+          <svg class="provider-btn__logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC04"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Fortsett med Google
+        </a>
       </div>
 
-      <!-- Waiting for Vipps confirmation -->
-      <div id="waitingView" class="auth__waiting">
-        <div class="auth__waiting-phone">
-          <div class="auth__waiting-screen">
-            <div class="auth__waiting-screen-logo">vipps</div>
-            <div class="auth__waiting-screen-text">Bekreft innlogging</div>
-            <div class="auth__waiting-screen-name">nailed</div>
-            <div class="auth__waiting-slider"><div class="auth__waiting-slider-thumb"></div></div>
-          </div>
-        </div>
-        <h3 style="font-family:var(--font-display); font-size:22px; margin:0 0 4px;">Åpne Vipps-appen</h3>
-        <p style="color:var(--fg-muted); font-size:14px; margin:0;">Vi venter på bekreftelse fra +47 <span id="waitingPhone"></span></p>
-        <div class="auth__pulse"><span></span><span></span><span></span></div>
-      </div>
+      <p class="auth__fineprint" id="vippsNotice">
+        Vipps Login er under godkjenning hos Vipps. Inntil videre kan du logge inn med Google.
+      </p>
 
-      <!-- Logged in -->
-      <div id="loggedInView" style="display:none;">
-        <div style="width:56px; height:56px; border-radius:var(--radius-pill); background:var(--rouge-100); color:var(--rouge-500); font-family:var(--font-display); font-weight:700; font-size:24px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">M</div>
-        <h2 style="font-family:var(--font-display); font-size:28px; margin:0 0 4px;">Velkommen, Maria!</h2>
-        <p style="color:var(--fg-muted); font-size:14px; margin:0 0 8px;">+47 123 45 678 · maria.solberg@gmail.com</p>
-        <span style="display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; padding:4px 8px; border-radius:var(--radius-pill); background:var(--cream-100); color:var(--ink); margin-bottom:24px;"><i data-lucide="check" style="width:11px;height:11px;color:var(--rouge-500);"></i> Verifisert med Vipps</span>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <a href="index.html" class="btn btn-primary" style="width:100%; justify-content:center; padding:14px 24px; font-size:15px;">Gå til forsiden</a>
-          <button class="btn btn-ghost" id="logoutBtn" style="width:100%; justify-content:center; padding:14px 24px; font-size:15px;">Logg ut</button>
-        </div>
-      </div>
+      <div class="auth__divider">Trygt og enkelt</div>
 
+      <div class="auth__benefits">
+        <div class="auth__benefit"><i data-lucide="zap"></i> Logg inn på sekunder — ingen passord</div>
+        <div class="auth__benefit"><i data-lucide="lock"></i> Dataene dine deles kun med salongen du booker hos</div>
+        <div class="auth__benefit"><i data-lucide="map-pin"></i> Adressen brukes til å vise salonger i nærheten</div>
+      </div>
     </div>
   </div>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="/assets/auth.js"></script>
   <script>
-    lucide.createIcons();
+    var qs = new URLSearchParams(window.location.search);
+    var error = qs.get('error');
+    var next = qs.get('next');
 
-    // Role selector
-    var roleCustomer = document.getElementById('roleCustomer');
-    var roleProvider = document.getElementById('roleProvider');
-    roleCustomer.addEventListener('click', function() {
-      roleCustomer.classList.add('active');
-      roleProvider.classList.remove('active');
-    });
-    roleProvider.addEventListener('click', function() {
-      roleProvider.classList.add('active');
-      roleCustomer.classList.remove('active');
-    });
+    if (error) {
+      var msg = ({
+        account_suspended: 'Kontoen din er suspendert. Kontakt support@nailed.no.',
+        provider_disabled: 'Denne innloggingsmetoden er ikke tilgjengelig akkurat nå.',
+        missing_token:     'Innlogging feilet. Prøv igjen.',
+        access_denied:     'Du avbrøt innloggingen.',
+      })[error] || 'Innlogging feilet (' + error + '). Prøv igjen.';
+      var banner = document.getElementById('errorBanner');
+      banner.textContent = msg;
+      banner.style.display = 'block';
+    }
 
-    // Vipps login
-    document.getElementById('vippsBtn').addEventListener('click', function() {
-      var phone = document.getElementById('phone').value;
-      if (phone.replace(/\D/g, '').length < 8) {
-        document.getElementById('phone').focus();
-        return;
+    function startProvider(id) {
+      var url = '/api/v1/auth/' + id + '/start';
+      if (next) url += '?redirect=' + encodeURIComponent(next);
+      window.location.href = url;
+    }
+
+    fetch('/api/v1/auth/providers').then(function (r) { return r.json(); }).then(function (data) {
+      var enabled = (data.providers || []).map(function (p) { return p.id; });
+
+      var googleBtn = document.getElementById('googleBtn');
+      if (enabled.indexOf('google') >= 0) {
+        googleBtn.addEventListener('click', function (e) { e.preventDefault(); startProvider('google'); });
+      } else {
+        googleBtn.classList.add('disabled');
+        googleBtn.setAttribute('aria-disabled', 'true');
+        googleBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          alert('Google-innlogging er ikke konfigurert på serveren ennå. Se GOOGLE_OAUTH_SETUP.md.');
+        });
       }
 
-      document.getElementById('loginView').style.display = 'none';
-      document.getElementById('waitingView').classList.add('visible');
-      document.getElementById('waitingPhone').textContent = phone;
-
-      // Simulate Vipps confirmation
-      setTimeout(function() {
-        document.getElementById('waitingView').classList.remove('visible');
-        document.getElementById('waitingView').style.display = 'none';
-        document.getElementById('loggedInView').style.display = '';
-        localStorage.setItem('nailed_token', 'vipps_' + Date.now());
-        lucide.createIcons();
-      }, 2400);
+      var vippsBtn = document.getElementById('vippsBtn');
+      if (enabled.indexOf('vipps') >= 0) {
+        vippsBtn.classList.remove('disabled');
+        vippsBtn.removeAttribute('aria-disabled');
+        vippsBtn.querySelector('.provider-btn__hint').remove();
+        vippsBtn.addEventListener('click', function (e) { e.preventDefault(); startProvider('vipps'); });
+        document.getElementById('vippsNotice').style.display = 'none';
+      } else {
+        vippsBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          alert('Vipps Login er under godkjenning. Bruk Google i mellomtiden.');
+        });
+      }
+    }).catch(function () {
+      document.getElementById('googleBtn').addEventListener('click', function (e) {
+        e.preventDefault();
+        alert('Kunne ikke kontakte serveren.');
+      });
     });
 
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', function() {
-      localStorage.removeItem('nailed_token');
-      document.getElementById('loggedInView').style.display = 'none';
-      document.getElementById('loginView').style.display = '';
-    });
-
-    // Check if already logged in
-    if (localStorage.getItem('nailed_token')) {
-      document.getElementById('loginView').style.display = 'none';
-      document.getElementById('loggedInView').style.display = '';
+    if (window.NailedAuth && NailedAuth.isLoggedIn()) {
+      // Already logged in — verify token still valid and route to role home.
+      NailedAuth.api('/api/v1/me').then(function (r) {
+        if (!r.ok) return;
+        return r.json();
+      }).then(function (d) {
+        if (!d) return;
+        var role = d.user && d.user.role;
+        var home = role === 'admin' ? '/admin/'
+                 : role === 'salon_owner' ? '/salong-panel.html'
+                 : '/kunde-panel.html';
+        window.location.replace(next || home);
+      });
     }
+
+    window.lucide && window.lucide.createIcons();
   </script>
 </body>
 </html>

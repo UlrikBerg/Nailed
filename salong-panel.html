@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Salongpanel — nailed</title>
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="admin/admin.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <span class="sidebar__brand-logo">nailed</span>
+        <span class="sidebar__badge">Salong</span>
+      </div>
+
+      <div class="sidebar__divider"></div>
+
+      <button class="nav-item active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+      <button class="nav-item" data-tab="bookinger"><i data-lucide="calendar-check"></i> Bookinger</button>
+      <button class="nav-item" data-tab="tjenester"><i data-lucide="sparkles"></i> Tjenester</button>
+
+      <div class="sidebar__section">Salong</div>
+      <button class="nav-item" data-tab="profil"><i data-lucide="store"></i> Salongprofil</button>
+      <button class="nav-item" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
+
+      <div class="sidebar__footer">
+        <div class="sidebar__avatar" id="avatar">U</div>
+        <div>
+          <div class="sidebar__user" id="userName">Laster …</div>
+          <div class="sidebar__role" id="userRole">Salongeier</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <!-- DASHBOARD -->
+      <div class="tab-content active" id="tab-dashboard">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title" id="dashTitle">Salongpanel</h1>
+            <div class="topbar__sub" id="dashSub">Oversikt over driften.</div>
+          </div>
+          <div class="topbar__actions">
+            <a class="btn btn-ghost" id="publicLink" href="#" target="_blank"><i data-lucide="external-link"></i> Vis offentlig profil</a>
+          </div>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--pink"><i data-lucide="calendar-clock"></i></div>
+            <div class="kpi__label">Bookinger i dag</div>
+            <div class="kpi__value" id="kpiToday">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--amber"><i data-lucide="hourglass"></i></div>
+            <div class="kpi__label">Avventer bekreftelse</div>
+            <div class="kpi__value" id="kpiPending">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--green"><i data-lucide="check-circle"></i></div>
+            <div class="kpi__label">Fullført denne måneden</div>
+            <div class="kpi__value" id="kpiCompletedMonth">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--ink"><i data-lucide="banknote"></i></div>
+            <div class="kpi__label">Omsetning denne måneden</div>
+            <div class="kpi__value" id="kpiRevenue">0 <span class="kpi__unit">kr</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOOKINGER -->
+      <div class="tab-content" id="tab-bookinger">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title">Innkommende bookinger</h1>
+            <div class="topbar__sub">Bekreft eller avvis bookinger og marker fullføring.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <table class="data-table" id="incomingTable">
+            <thead>
+              <tr>
+                <th>Når</th>
+                <th>Kunde</th>
+                <th>Behandling</th>
+                <th>Pris</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div id="incomingEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
+            Ingen bookinger ennå.
+          </div>
+        </div>
+      </div>
+
+      <!-- TJENESTER -->
+      <div class="tab-content" id="tab-tjenester">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title">Tjenester</h1>
+            <div class="topbar__sub">Behandlingene salongen tilbyr.</div>
+          </div>
+          <div class="topbar__actions">
+            <button class="btn btn-primary" id="newServiceBtn"><i data-lucide="plus"></i> Ny tjeneste</button>
+          </div>
+        </div>
+
+        <div class="panel" id="serviceFormPanel" style="display:none;">
+          <div class="panel__head"><h3 id="serviceFormTitle">Ny tjeneste</h3></div>
+          <form id="serviceForm" class="settings-grid">
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Navn</label>
+              <input class="form-input" name="name" type="text" required maxlength="255" />
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Beskrivelse</label>
+              <textarea class="form-input" name="description" rows="3" maxlength="2000"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Varighet (minutter)</label>
+              <input class="form-input" name="duration_min" type="number" min="5" max="600" required />
+            </div>
+            <div class="form-group">
+              <label>Pris (kr)</label>
+              <input class="form-input" name="price_nok" type="number" min="0" max="100000" required />
+            </div>
+            <div style="grid-column: 1 / -1; display:flex; gap:8px;">
+              <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
+              <button class="btn btn-ghost" type="button" id="cancelServiceBtn">Avbryt</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <table class="data-table" id="servicesTable">
+            <thead>
+              <tr>
+                <th>Navn</th>
+                <th>Varighet</th>
+                <th>Pris</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div id="servicesEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
+            Du har ingen tjenester. Legg til en for å starte.
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFIL -->
+      <div class="tab-content" id="tab-profil">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title">Salongprofil</h1>
+            <div class="topbar__sub">Slik vises salongen offentlig.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <form id="salonForm" class="settings-grid">
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Navn</label>
+              <input class="form-input" name="name" type="text" required />
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Bio</label>
+              <textarea class="form-input" name="bio" rows="4" maxlength="4000" placeholder="Fortell kundene hvem dere er.."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Adresse</label>
+              <input class="form-input" name="address_line" type="text" />
+            </div>
+            <div class="form-group">
+              <label>Postnummer</label>
+              <input class="form-input" name="postal_code" type="text" maxlength="16" />
+            </div>
+            <div class="form-group">
+              <label>By</label>
+              <input class="form-input" name="city" type="text" required />
+            </div>
+            <div class="form-group">
+              <label>Instagram-URL</label>
+              <input class="form-input" name="instagram_url" type="url" placeholder="https://instagram.com/.." />
+            </div>
+            <div class="form-group">
+              <label>TikTok-URL</label>
+              <input class="form-input" name="tiktok_url" type="url" />
+            </div>
+            <div class="form-group">
+              <label>Facebook-URL</label>
+              <input class="form-input" name="facebook_url" type="url" />
+            </div>
+            <div class="form-group">
+              <label>Nettside</label>
+              <input class="form-input" name="website_url" type="url" />
+            </div>
+            <div style="grid-column: 1 / -1; display:flex; gap:8px;">
+              <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
+              <span id="salonMsg" style="align-self:center; color: var(--fg-muted); font-size: 13px;"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- INNSTILLINGER -->
+      <div class="tab-content" id="tab-innstillinger">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title">Innstillinger</h1>
+            <div class="topbar__sub">Personlig konto og sesjoner.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p style="margin:0; color: var(--fg-muted);">
+            Personlige profil-innstillinger og kontosletting administreres fra
+            <a href="/kunde-panel.html#tab-innstillinger">kontosiden din</a>.
+          </p>
+        </div>
+
+        <div style="margin-top:16px;">
+          <button class="btn btn-ghost" id="logoutBtn"><i data-lucide="log-out"></i> Logg ut</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="/assets/auth.js"></script>
+  <script>
+    var salon = null;
+
+    var navItems = document.querySelectorAll('.nav-item[data-tab]');
+    var tabContents = document.querySelectorAll('.tab-content');
+    navItems.forEach(function (item) {
+      item.addEventListener('click', function () {
+        var tab = this.getAttribute('data-tab');
+        navItems.forEach(function (n) { n.classList.remove('active'); });
+        this.classList.add('active');
+        tabContents.forEach(function (t) { t.classList.remove('active'); });
+        var target = document.getElementById('tab-' + tab);
+        if (target) target.classList.add('active');
+      });
+    });
+
+    var statusLabel = {
+      pending: 'Avventer', confirmed: 'Bekreftet', completed: 'Fullført',
+      cancelled: 'Kansellert', no_show: 'No-show',
+    };
+    var statusClass = {
+      pending: 'status status--pending', confirmed: 'status status--confirmed',
+      completed: 'status status--completed', cancelled: 'status status--cancelled',
+      no_show: 'status status--noshow',
+    };
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+      });
+    }
+    function fmt(iso) {
+      var d = new Date(iso);
+      return d.toLocaleDateString('no-NO', { day: '2-digit', month: 'short' }) + ' · ' +
+             d.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function loadSalon() {
+      var res = await NailedAuth.api('/api/v1/salons/me/own');
+      if (res.status === 404) {
+        // No salon — should never happen for salon_owner; redirect.
+        document.querySelector('main').innerHTML =
+          '<div class="topbar"><div><h1 class="topbar__title">Ingen salong</h1>' +
+          '<div class="topbar__sub">Du er ikke registrert som salongeier ennå.</div></div></div>';
+        return null;
+      }
+      var data = await res.json();
+      salon = data.salon;
+      document.getElementById('dashTitle').innerHTML = escapeHtml(salon.name);
+      document.getElementById('dashSub').textContent = salon.city;
+      document.getElementById('publicLink').href = '/salon.html?slug=' + encodeURIComponent(salon.slug);
+      document.querySelector('input[name=name]').value = salon.name || '';
+      document.querySelector('textarea[name=bio]').value = salon.bio || '';
+      document.querySelector('input[name=address_line]').value = salon.address_line || '';
+      document.querySelector('input[name=postal_code]').value = salon.postal_code || '';
+      document.querySelector('input[name=city]').value = salon.city || '';
+      document.querySelector('input[name=instagram_url]').value = salon.instagram_url || '';
+      document.querySelector('input[name=tiktok_url]').value = salon.tiktok_url || '';
+      document.querySelector('input[name=facebook_url]').value = salon.facebook_url || '';
+      document.querySelector('input[name=website_url]').value = salon.website_url || '';
+      return salon;
+    }
+
+    async function loadIncoming() {
+      var res = await NailedAuth.api('/api/v1/bookings/incoming');
+      var data = await res.json();
+      var bookings = data.bookings || [];
+
+      // KPI computation
+      var today = new Date(); today.setHours(0,0,0,0);
+      var tomorrow = new Date(today.getTime() + 86400000);
+      var todayCount = 0, pendingCount = 0, completedMonth = 0, revenueMonth = 0;
+      var monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+      bookings.forEach(function (b) {
+        var s = new Date(b.start_at);
+        if (s >= today && s < tomorrow && (b.status === 'pending' || b.status === 'confirmed')) todayCount++;
+        if (b.status === 'pending') pendingCount++;
+        if (b.status === 'completed' && s >= monthStart) { completedMonth++; revenueMonth += b.price_nok; }
+      });
+      document.getElementById('kpiToday').textContent = todayCount;
+      document.getElementById('kpiPending').textContent = pendingCount;
+      document.getElementById('kpiCompletedMonth').textContent = completedMonth;
+      document.getElementById('kpiRevenue').innerHTML = revenueMonth.toLocaleString('no-NO') + ' <span class="kpi__unit">kr</span>';
+
+      var tbody = document.querySelector('#incomingTable tbody');
+      tbody.innerHTML = '';
+      document.getElementById('incomingEmpty').style.display = bookings.length === 0 ? 'block' : 'none';
+      document.getElementById('incomingTable').style.display = bookings.length === 0 ? 'none' : '';
+      bookings.forEach(function (b) {
+        var actions = '';
+        if (b.status === 'pending') {
+          actions += '<button class="btn btn-success btn-sm" data-action="confirmed" data-id="' + b.id + '">Bekreft</button> ';
+          actions += '<button class="btn btn-ghost btn-sm" data-action="cancelled" data-id="' + b.id + '">Avvis</button>';
+        } else if (b.status === 'confirmed') {
+          actions += '<button class="btn btn-success btn-sm" data-action="completed" data-id="' + b.id + '">Marker fullført</button> ';
+          actions += '<button class="btn btn-ghost btn-sm" data-action="no_show" data-id="' + b.id + '">No-show</button> ';
+          actions += '<button class="btn btn-ghost btn-sm" data-action="cancelled" data-id="' + b.id + '">Avbestill</button>';
+        }
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td><strong>' + fmt(b.start_at) + '</strong></td>' +
+          '<td><strong>' + escapeHtml(b.customer_name) + '</strong>' +
+            (b.customer_note ? '<br><span class="td-muted">' + escapeHtml(b.customer_note) + '</span>' : '') + '</td>' +
+          '<td>' + escapeHtml(b.service_name) + '</td>' +
+          '<td><strong>' + b.price_nok + ' kr</strong></td>' +
+          '<td><span class="' + (statusClass[b.status] || 'status') + '">' + (statusLabel[b.status] || b.status) + '</span></td>' +
+          '<td>' + actions + '</td>';
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('button[data-action]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          var id = this.getAttribute('data-id');
+          var status = this.getAttribute('data-action');
+          var res = await NailedAuth.api('/api/v1/bookings/' + id, { method: 'PATCH', body: { status: status } });
+          if (res.ok) loadIncoming(); else alert('Kunne ikke oppdatere booking.');
+        });
+      });
+    }
+
+    async function loadServices() {
+      if (!salon) return;
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/services');
+      var data = await res.json();
+      var services = data.services || [];
+      var tbody = document.querySelector('#servicesTable tbody');
+      tbody.innerHTML = '';
+      document.getElementById('servicesEmpty').style.display = services.length === 0 ? 'block' : 'none';
+      document.getElementById('servicesTable').style.display = services.length === 0 ? 'none' : '';
+      services.forEach(function (s) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td><strong>' + escapeHtml(s.name) + '</strong>' +
+            (s.description ? '<br><span class="td-muted">' + escapeHtml(s.description) + '</span>' : '') + '</td>' +
+          '<td>' + s.duration_min + ' min</td>' +
+          '<td><strong>' + s.price_nok + ' kr</strong></td>' +
+          '<td><span class="' + (s.active ? 'status status--active' : 'status status--inactive') + '">' + (s.active ? 'Aktiv' : 'Skjult') + '</span></td>' +
+          '<td>' +
+            '<button class="btn btn-ghost btn-sm" data-edit="' + s.id + '">Rediger</button> ' +
+            (s.active ? '<button class="btn btn-ghost btn-sm" data-delete="' + s.id + '">Skjul</button>' : '<button class="btn btn-ghost btn-sm" data-restore="' + s.id + '">Vis igjen</button>') +
+          '</td>';
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('button[data-delete]').forEach(function (b) {
+        b.addEventListener('click', async function () {
+          if (!confirm('Skjule denne tjenesten?')) return;
+          await NailedAuth.api('/api/v1/salons/' + salon.id + '/services/' + this.getAttribute('data-delete'), { method: 'DELETE' });
+          loadServices();
+        });
+      });
+      tbody.querySelectorAll('button[data-restore]').forEach(function (b) {
+        b.addEventListener('click', async function () {
+          await NailedAuth.api('/api/v1/salons/' + salon.id + '/services/' + this.getAttribute('data-restore'), { method: 'PATCH', body: { active: true } });
+          loadServices();
+        });
+      });
+      tbody.querySelectorAll('button[data-edit]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var s = services.find(function (sv) { return sv.id == this.getAttribute('data-edit'); }.bind(this));
+          openServiceForm(s);
+        });
+      });
+    }
+
+    function openServiceForm(svc) {
+      var panel = document.getElementById('serviceFormPanel');
+      panel.style.display = 'block';
+      document.getElementById('serviceFormTitle').textContent = svc ? 'Rediger tjeneste' : 'Ny tjeneste';
+      var form = document.getElementById('serviceForm');
+      form.dataset.id = svc ? svc.id : '';
+      form.querySelector('input[name=name]').value = svc ? svc.name : '';
+      form.querySelector('textarea[name=description]').value = svc ? (svc.description || '') : '';
+      form.querySelector('input[name=duration_min]').value = svc ? svc.duration_min : '';
+      form.querySelector('input[name=price_nok]').value = svc ? svc.price_nok : '';
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    document.getElementById('newServiceBtn').addEventListener('click', function () { openServiceForm(null); });
+    document.getElementById('cancelServiceBtn').addEventListener('click', function () {
+      document.getElementById('serviceFormPanel').style.display = 'none';
+    });
+
+    document.getElementById('serviceForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var fd = new FormData(this);
+      var body = {
+        name: (fd.get('name') || '').toString().trim(),
+        description: ((fd.get('description') || '').toString().trim() || null),
+        duration_min: parseInt(fd.get('duration_min'), 10),
+        price_nok: parseInt(fd.get('price_nok'), 10),
+      };
+      var id = this.dataset.id;
+      var res = id
+        ? await NailedAuth.api('/api/v1/salons/' + salon.id + '/services/' + id, { method: 'PATCH', body: body })
+        : await NailedAuth.api('/api/v1/salons/' + salon.id + '/services', { method: 'POST', body: body });
+      if (!res.ok) { alert('Kunne ikke lagre tjeneste.'); return; }
+      document.getElementById('serviceFormPanel').style.display = 'none';
+      loadServices();
+    });
+
+    document.getElementById('salonForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var fd = new FormData(this);
+      var body = {};
+      ['name','bio','address_line','postal_code','city','instagram_url','tiktok_url','facebook_url','website_url'].forEach(function (k) {
+        body[k] = (fd.get(k) || '').toString().trim() || null;
+      });
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id, { method: 'PATCH', body: body });
+      var msg = document.getElementById('salonMsg');
+      msg.textContent = res.ok ? 'Lagret.' : 'Kunne ikke lagre.';
+      if (res.ok) {
+        await loadSalon();
+        setTimeout(function () { msg.textContent = ''; }, 2000);
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async function () {
+      await NailedAuth.logout();
+      window.location.replace('/');
+    });
+
+    (async function init() {
+      var user = await NailedAuth.requireAuth('salon_owner');
+      if (!user) return;
+      document.getElementById('userName').textContent = user.name;
+      document.getElementById('userRole').textContent = user.role === 'admin' ? 'Admin' : 'Salongeier';
+      document.getElementById('avatar').textContent = (user.name || '?').charAt(0).toUpperCase();
+      var s = await loadSalon();
+      if (!s) return;
+      await loadIncoming();
+      await loadServices();
+      window.lucide && window.lucide.createIcons();
+    })();
+  </script>
+</body>
+</html>

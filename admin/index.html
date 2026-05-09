@@ -21,7 +21,7 @@
       <div class="sidebar__divider"></div>
 
       <button class="nav-item active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-      <button class="nav-item" data-tab="salonger"><i data-lucide="store"></i> Salonger <span class="nav-item__count">3</span></button>
+      <button class="nav-item" data-tab="salonger"><i data-lucide="store"></i> Salonger <span class="nav-item__count" id="navSalongerCount">0</span></button>
       <button class="nav-item" data-tab="brukere"><i data-lucide="users"></i> Brukere</button>
       <button class="nav-item" data-tab="bookinger"><i data-lucide="calendar-check"></i> Bookinger</button>
 
@@ -31,15 +31,16 @@
       <button class="nav-item" data-tab="bruker-analyse"><i data-lucide="user-check"></i> Brukeranalyse</button>
 
       <div class="sidebar__section">System</div>
-      <button class="nav-item" data-tab="moderering"><i data-lucide="shield-alert"></i> Moderering <span class="nav-item__count">4</span></button>
+      <button class="nav-item" data-tab="moderering"><i data-lucide="shield-alert"></i> Moderering <span class="nav-item__count" id="navModereringCount">0</span></button>
       <button class="nav-item" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
 
       <div class="sidebar__footer">
-        <div class="sidebar__avatar">UB</div>
-        <div>
-          <div class="sidebar__user">Ulrik Berg</div>
-          <div class="sidebar__role">Superadmin</div>
+        <div class="sidebar__avatar" id="adminAvatar">--</div>
+        <div style="flex:1; min-width:0;">
+          <div class="sidebar__user" id="adminName">--</div>
+          <div class="sidebar__role" id="adminRole">--</div>
         </div>
+        <button class="btn btn-ghost btn-sm" id="logoutBtn" title="Logg ut" style="margin-left:8px;"><i data-lucide="log-out"></i></button>
       </div>
     </aside>
 
@@ -60,39 +61,69 @@
         <div class="kpi-row">
           <div class="kpi">
             <div class="kpi__icon kpi__icon--pink"><i data-lucide="store"></i></div>
-            <div class="kpi__label">Totalt salonger</div>
-            <div class="kpi__value">128</div>
-            <div class="kpi__delta"><i data-lucide="trending-up"></i> +8 denne uken</div>
+            <div class="kpi__label">Aktive salonger</div>
+            <div class="kpi__value" id="kpiSalons">--</div>
           </div>
           <div class="kpi">
             <div class="kpi__icon kpi__icon--green"><i data-lucide="users"></i></div>
             <div class="kpi__label">Totalt brukere</div>
-            <div class="kpi__value">4&thinsp;312</div>
-            <div class="kpi__delta"><i data-lucide="trending-up"></i> +142 siste 7 dager</div>
+            <div class="kpi__value" id="kpiUsers">--</div>
           </div>
           <div class="kpi">
             <div class="kpi__icon kpi__icon--amber"><i data-lucide="calendar-check"></i></div>
             <div class="kpi__label">Bookinger i dag</div>
-            <div class="kpi__value">87</div>
-            <div class="kpi__delta"><i data-lucide="trending-up"></i> +12% vs. i gar</div>
+            <div class="kpi__value" id="kpiTodaysBookings">--</div>
           </div>
           <div class="kpi">
             <div class="kpi__icon kpi__icon--ink"><i data-lucide="calendar-range"></i></div>
-            <div class="kpi__label">Bookinger denne uken</div>
-            <div class="kpi__value">412</div>
-            <div class="kpi__delta"><i data-lucide="trending-up"></i> +18% vs. forrige uke</div>
+            <div class="kpi__label">Apne bookinger</div>
+            <div class="kpi__value" id="kpiOpenBookings">--</div>
           </div>
           <div class="kpi">
-            <div class="kpi__icon kpi__icon--pink"><i data-lucide="banknote"></i></div>
-            <div class="kpi__label">Omsetning (booking-verdi)</div>
-            <div class="kpi__value">284&thinsp;600 <span class="kpi__unit">kr</span></div>
-            <div class="kpi__delta"><i data-lucide="trending-up"></i> +22% denne mnd</div>
+            <div class="kpi__icon kpi__icon--pink"><i data-lucide="shield-alert"></i></div>
+            <div class="kpi__label">Soknader til behandling</div>
+            <div class="kpi__value" id="kpiPendingApps">--</div>
           </div>
           <div class="kpi kpi--dark">
-            <div class="kpi__icon kpi__icon--pink"><i data-lucide="user-plus"></i></div>
-            <div class="kpi__label">Nye registreringer (7d)</div>
-            <div class="kpi__value" style="color: var(--cream-50)">142</div>
-            <div class="kpi__delta" style="background: rgba(255,255,255,0.08); color: var(--rouge-300)">+34% vs. forrige uke</div>
+            <div class="kpi__icon kpi__icon--pink"><i data-lucide="banknote"></i></div>
+            <div class="kpi__label">Omsetning (7d)</div>
+            <div class="kpi__value" style="color: var(--cream-50)">&mdash;</div>
+            <div class="kpi__delta" style="background: rgba(255,255,255,0.08); color: var(--rouge-300)">Ikke koblet til backend</div>
+          </div>
+        </div>
+
+        <div class="grid-2-col">
+          <div class="panel mt-0">
+            <div class="panel__head"><h3>Nye salonger</h3></div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Salong</th>
+                  <th>Eier</th>
+                  <th>Sted</th>
+                  <th>Registrert</th>
+                </tr>
+              </thead>
+              <tbody id="dashRecentSalonsBody">
+                <tr><td colspan="4" class="td-muted">Laster...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="panel mt-0">
+            <div class="panel__head"><h3>Nye brukere</h3></div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Navn</th>
+                  <th>E-post</th>
+                  <th>Rolle</th>
+                  <th>Registrert</th>
+                </tr>
+              </thead>
+              <tbody id="dashRecentUsersBody">
+                <tr><td colspan="4" class="td-muted">Laster...</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -104,7 +135,7 @@
         <div class="topbar">
           <div>
             <h1 class="topbar__title">Salonger</h1>
-            <div class="topbar__sub">128 registrerte salonger</div>
+            <div class="topbar__sub" id="salongerSub">Laster...</div>
           </div>
         </div>
 
@@ -115,9 +146,8 @@
           </div>
           <select class="filter-select" id="salongerStatusFilter">
             <option value="">Alle statuser</option>
-            <option value="Aktiv">Aktiv</option>
-            <option value="Suspendert">Suspendert</option>
-            <option value="Under vurdering">Under vurdering</option>
+            <option value="active">Aktiv</option>
+            <option value="suspended">Suspendert</option>
           </select>
         </div>
 
@@ -126,111 +156,15 @@
             <thead>
               <tr>
                 <th>Salong</th>
+                <th>Eier</th>
                 <th>Sted</th>
                 <th>Status</th>
-                <th>Plan</th>
                 <th>Registrert</th>
-                <th>Bookinger</th>
                 <th>Handlinger</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td class="td-name">Studio Lakk</td>
-                <td class="td-muted">Oslo, Grunerlokka</td>
-                <td><span class="status status--active"><i data-lucide="check-circle"></i> Aktiv</span></td>
-                <td><span class="status status--paid">Betalt</span></td>
-                <td class="td-muted">12.01.2026</td>
-                <td>342</td>
-                <td class="td-actions">
-                  <button class="btn btn-ghost btn-sm"><i data-lucide="eye"></i></button>
-                  <button class="btn btn-danger btn-sm"><i data-lucide="pause-circle"></i> Suspender</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Polished by Mia</td>
-                <td class="td-muted">Bergen, Bryggen</td>
-                <td><span class="status status--active"><i data-lucide="check-circle"></i> Aktiv</span></td>
-                <td><span class="status status--trial">Proveperiode</span></td>
-                <td class="td-muted">28.03.2026</td>
-                <td>87</td>
-                <td class="td-actions">
-                  <button class="btn btn-ghost btn-sm"><i data-lucide="eye"></i></button>
-                  <button class="btn btn-danger btn-sm"><i data-lucide="pause-circle"></i> Suspender</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Nail Queen</td>
-                <td class="td-muted">Trondheim, Midtbyen</td>
-                <td><span class="status status--pending"><i data-lucide="clock"></i> Under vurdering</span></td>
-                <td><span class="status status--trial">Proveperiode</span></td>
-                <td class="td-muted">05.05.2026</td>
-                <td>0</td>
-                <td class="td-actions">
-                  <button class="btn btn-success btn-sm"><i data-lucide="check"></i> Godkjenn</button>
-                  <button class="btn btn-danger btn-sm"><i data-lucide="x"></i> Avvis</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Glow Studio</td>
-                <td class="td-muted">Stavanger, Sentrum</td>
-                <td><span class="status status--suspended"><i data-lucide="alert-circle"></i> Suspendert</span></td>
-                <td><span class="status status--paid">Betalt</span></td>
-                <td class="td-muted">14.11.2025</td>
-                <td>198</td>
-                <td class="td-actions">
-                  <button class="btn btn-success btn-sm"><i data-lucide="play-circle"></i> Aktiver</button>
-                  <button class="btn btn-danger btn-sm"><i data-lucide="trash-2"></i> Slett</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Negle Drommen</td>
-                <td class="td-muted">Drammen, Bragernes</td>
-                <td><span class="status status--active"><i data-lucide="check-circle"></i> Aktiv</span></td>
-                <td><span class="status status--paid">Betalt</span></td>
-                <td class="td-muted">20.02.2026</td>
-                <td>256</td>
-                <td class="td-actions">
-                  <button class="btn btn-ghost btn-sm"><i data-lucide="eye"></i></button>
-                  <button class="btn btn-danger btn-sm"><i data-lucide="pause-circle"></i> Suspender</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Luxe Nails</td>
-                <td class="td-muted">Oslo, Majorstuen</td>
-                <td><span class="status status--active"><i data-lucide="check-circle"></i> Aktiv</span></td>
-                <td><span class="status status--paid">Betalt</span></td>
-                <td class="td-muted">08.12.2025</td>
-                <td>401</td>
-                <td class="td-actions">
-                  <button class="btn btn-ghost btn-sm"><i data-lucide="eye"></i></button>
-                  <button class="btn btn-danger btn-sm"><i data-lucide="pause-circle"></i> Suspender</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Nail Art Oslo</td>
-                <td class="td-muted">Oslo, Toyen</td>
-                <td><span class="status status--pending"><i data-lucide="clock"></i> Under vurdering</span></td>
-                <td><span class="status status--trial">Proveperiode</span></td>
-                <td class="td-muted">07.05.2026</td>
-                <td>0</td>
-                <td class="td-actions">
-                  <button class="btn btn-success btn-sm"><i data-lucide="check"></i> Godkjenn</button>
-                  <button class="btn btn-danger btn-sm"><i data-lucide="x"></i> Avvis</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Pretty Pedi</td>
-                <td class="td-muted">Tromso, Sentrum</td>
-                <td><span class="status status--active"><i data-lucide="check-circle"></i> Aktiv</span></td>
-                <td><span class="status status--trial">Proveperiode</span></td>
-                <td class="td-muted">15.04.2026</td>
-                <td>34</td>
-                <td class="td-actions">
-                  <button class="btn btn-ghost btn-sm"><i data-lucide="eye"></i></button>
-                  <button class="btn btn-danger btn-sm"><i data-lucide="pause-circle"></i> Suspender</button>
-                </td>
-              </tr>
+            <tbody id="salongerTableBody">
+              <tr><td colspan="6" class="td-muted">Laster...</td></tr>
             </tbody>
           </table>
         </div>
@@ -243,7 +177,7 @@
         <div class="topbar">
           <div>
             <h1 class="topbar__title">Brukere</h1>
-            <div class="topbar__sub">4 312 registrerte brukere</div>
+            <div class="topbar__sub" id="brukereSub">Laster...</div>
           </div>
         </div>
 
@@ -261,102 +195,15 @@
                 <th>Navn</th>
                 <th>Telefon</th>
                 <th>E-post</th>
+                <th>Rolle</th>
                 <th>Registrert</th>
                 <th>Bookinger</th>
                 <th>Status</th>
                 <th>Handlinger</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td class="td-name">Ida Skogen</td>
-                <td class="td-mono">+47 912 34 567</td>
-                <td class="td-muted">ida.skogen@gmail.com</td>
-                <td class="td-muted">15.01.2026</td>
-                <td>12</td>
-                <td><span class="status status--active">Aktiv</span></td>
-                <td class="td-actions">
-                  <button class="btn btn-danger btn-sm"><i data-lucide="pause-circle"></i> Suspender</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Maria Kvam</td>
-                <td class="td-mono">+47 923 45 678</td>
-                <td class="td-muted">maria.kvam@outlook.com</td>
-                <td class="td-muted">02.02.2026</td>
-                <td>8</td>
-                <td><span class="status status--active">Aktiv</span></td>
-                <td class="td-actions">
-                  <button class="btn btn-danger btn-sm"><i data-lucide="pause-circle"></i> Suspender</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Thea Hauge</td>
-                <td class="td-mono">+47 934 56 789</td>
-                <td class="td-muted">thea.h@icloud.com</td>
-                <td class="td-muted">18.03.2026</td>
-                <td>5</td>
-                <td><span class="status status--active">Aktiv</span></td>
-                <td class="td-actions">
-                  <button class="btn btn-danger btn-sm"><i data-lucide="pause-circle"></i> Suspender</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Sara Berg</td>
-                <td class="td-mono">+47 945 67 890</td>
-                <td class="td-muted">sara.berg@gmail.com</td>
-                <td class="td-muted">22.03.2026</td>
-                <td>3</td>
-                <td><span class="status status--suspended">Suspendert</span></td>
-                <td class="td-actions">
-                  <button class="btn btn-success btn-sm"><i data-lucide="play-circle"></i> Aktiver</button>
-                  <button class="btn btn-danger btn-sm"><i data-lucide="trash-2"></i> Slett</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Emilie Lund</td>
-                <td class="td-mono">+47 956 78 901</td>
-                <td class="td-muted">emilie.lund@hotmail.com</td>
-                <td class="td-muted">10.04.2026</td>
-                <td>7</td>
-                <td><span class="status status--active">Aktiv</span></td>
-                <td class="td-actions">
-                  <button class="btn btn-danger btn-sm"><i data-lucide="pause-circle"></i> Suspender</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Nora Eriksen</td>
-                <td class="td-mono">+47 967 89 012</td>
-                <td class="td-muted">nora.e@gmail.com</td>
-                <td class="td-muted">01.05.2026</td>
-                <td>1</td>
-                <td><span class="status status--active">Aktiv</span></td>
-                <td class="td-actions">
-                  <button class="btn btn-danger btn-sm"><i data-lucide="pause-circle"></i> Suspender</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Julie Strand</td>
-                <td class="td-mono">+47 978 90 123</td>
-                <td class="td-muted">julie.strand@live.no</td>
-                <td class="td-muted">04.05.2026</td>
-                <td>2</td>
-                <td><span class="status status--active">Aktiv</span></td>
-                <td class="td-actions">
-                  <button class="btn btn-danger btn-sm"><i data-lucide="pause-circle"></i> Suspender</button>
-                </td>
-              </tr>
-              <tr>
-                <td class="td-name">Kristine Dahl</td>
-                <td class="td-mono">+47 989 01 234</td>
-                <td class="td-muted">kristine.d@yahoo.no</td>
-                <td class="td-muted">08.05.2026</td>
-                <td>0</td>
-                <td><span class="status status--active">Aktiv</span></td>
-                <td class="td-actions">
-                  <button class="btn btn-danger btn-sm"><i data-lucide="pause-circle"></i> Suspender</button>
-                </td>
-              </tr>
+            <tbody id="brukereTableBody">
+              <tr><td colspan="8" class="td-muted">Laster...</td></tr>
             </tbody>
           </table>
         </div>
@@ -376,15 +223,11 @@
         <div class="toolbar">
           <select class="filter-select" id="bookingerStatusFilter">
             <option value="">Alle statuser</option>
-            <option value="Bekreftet">Bekreftet</option>
-            <option value="Fullfort">Fullfort</option>
-            <option value="Kansellert">Kansellert</option>
-          </select>
-          <select class="filter-select" id="bookingerDateFilter">
-            <option value="">Alle datoer</option>
-            <option value="today">I dag</option>
-            <option value="week">Denne uken</option>
-            <option value="month">Denne maneden</option>
+            <option value="pending">Venter</option>
+            <option value="confirmed">Bekreftet</option>
+            <option value="completed">Fullfort</option>
+            <option value="cancelled">Kansellert</option>
+            <option value="no_show">No-show</option>
           </select>
         </div>
 
@@ -392,95 +235,17 @@
           <table class="data-table" id="bookingerTable">
             <thead>
               <tr>
+                <th>Dato/tid</th>
                 <th>Kunde</th>
+                <th>Adresse</th>
                 <th>Salong</th>
                 <th>Behandling</th>
-                <th>Dato/tid</th>
                 <th>Pris</th>
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody>
-              <tr data-status="Bekreftet" data-date="2026-05-09">
-                <td class="td-name">Ida Skogen</td>
-                <td class="td-muted">Studio Lakk</td>
-                <td>Klassisk manikyr</td>
-                <td class="td-muted">09.05 kl. 09:00</td>
-                <td>490 kr</td>
-                <td><span class="status status--confirmed"><i data-lucide="check-circle"></i> Bekreftet</span></td>
-              </tr>
-              <tr data-status="Bekreftet" data-date="2026-05-09">
-                <td class="td-name">Maria Kvam</td>
-                <td class="td-muted">Studio Lakk</td>
-                <td>Gel manikyr</td>
-                <td class="td-muted">09.05 kl. 10:30</td>
-                <td>690 kr</td>
-                <td><span class="status status--confirmed"><i data-lucide="check-circle"></i> Bekreftet</span></td>
-              </tr>
-              <tr data-status="Fullfort" data-date="2026-05-08">
-                <td class="td-name">Thea Hauge</td>
-                <td class="td-muted">Polished by Mia</td>
-                <td>Gel + neglekunst</td>
-                <td class="td-muted">08.05 kl. 12:00</td>
-                <td>890 kr</td>
-                <td><span class="status status--completed"><i data-lucide="check"></i> Fullfort</span></td>
-              </tr>
-              <tr data-status="Kansellert" data-date="2026-05-08">
-                <td class="td-name">Sara Berg</td>
-                <td class="td-muted">Luxe Nails</td>
-                <td>Pedikyr luksus</td>
-                <td class="td-muted">08.05 kl. 14:30</td>
-                <td>790 kr</td>
-                <td><span class="status status--cancelled"><i data-lucide="x-circle"></i> Kansellert</span></td>
-              </tr>
-              <tr data-status="Bekreftet" data-date="2026-05-09">
-                <td class="td-name">Emilie Lund</td>
-                <td class="td-muted">Negle Drommen</td>
-                <td>Fjerning av gel</td>
-                <td class="td-muted">09.05 kl. 16:00</td>
-                <td>290 kr</td>
-                <td><span class="status status--confirmed"><i data-lucide="check-circle"></i> Bekreftet</span></td>
-              </tr>
-              <tr data-status="Bekreftet" data-date="2026-05-10">
-                <td class="td-name">Nora Eriksen</td>
-                <td class="td-muted">Pretty Pedi</td>
-                <td>Klassisk pedikyr</td>
-                <td class="td-muted">10.05 kl. 11:00</td>
-                <td>590 kr</td>
-                <td><span class="status status--confirmed"><i data-lucide="check-circle"></i> Bekreftet</span></td>
-              </tr>
-              <tr data-status="Fullfort" data-date="2026-05-07">
-                <td class="td-name">Julie Strand</td>
-                <td class="td-muted">Studio Lakk</td>
-                <td>Bio-gel manikyr</td>
-                <td class="td-muted">07.05 kl. 13:00</td>
-                <td>790 kr</td>
-                <td><span class="status status--completed"><i data-lucide="check"></i> Fullfort</span></td>
-              </tr>
-              <tr data-status="Bekreftet" data-date="2026-05-10">
-                <td class="td-name">Kristine Dahl</td>
-                <td class="td-muted">Glow Studio</td>
-                <td>French manikyr</td>
-                <td class="td-muted">10.05 kl. 09:30</td>
-                <td>590 kr</td>
-                <td><span class="status status--confirmed"><i data-lucide="check-circle"></i> Bekreftet</span></td>
-              </tr>
-              <tr data-status="Fullfort" data-date="2026-05-06">
-                <td class="td-name">Ida Skogen</td>
-                <td class="td-muted">Luxe Nails</td>
-                <td>Gel manikyr</td>
-                <td class="td-muted">06.05 kl. 10:00</td>
-                <td>690 kr</td>
-                <td><span class="status status--completed"><i data-lucide="check"></i> Fullfort</span></td>
-              </tr>
-              <tr data-status="Kansellert" data-date="2026-05-09">
-                <td class="td-name">Maria Kvam</td>
-                <td class="td-muted">Nail Queen</td>
-                <td>Handmassasje</td>
-                <td class="td-muted">09.05 kl. 15:00</td>
-                <td>190 kr</td>
-                <td><span class="status status--cancelled"><i data-lucide="x-circle"></i> Kansellert</span></td>
-              </tr>
+            <tbody id="bookingerTableBody">
+              <tr><td colspan="7" class="td-muted">Laster...</td></tr>
             </tbody>
           </table>
         </div>
@@ -493,7 +258,7 @@
         <div class="topbar">
           <div>
             <h1 class="topbar__title">Rapporter</h1>
-            <div class="topbar__sub">Plattformanalyse og noekkeltall</div>
+            <div class="topbar__sub">Plattformanalyse og noekkeltall &middot; <em>Mock-data — kobles til i Fase 3</em></div>
           </div>
         </div>
 
@@ -559,7 +324,7 @@
         <div class="topbar">
           <div>
             <h1 class="topbar__title">Innstillinger</h1>
-            <div class="topbar__sub">Plattformkonfigurasjon</div>
+            <div class="topbar__sub">Plattformkonfigurasjon &middot; <em>Mock-data — kobles til i Fase 3</em></div>
           </div>
           <div class="topbar__actions">
             <button class="btn btn-primary" id="saveSettingsBtn"><i data-lucide="save"></i> Lagre endringer</button>
@@ -674,114 +439,13 @@
         <div class="topbar">
           <div>
             <h1 class="topbar__title">Moderering</h1>
-            <div class="topbar__sub">Flaggede anmeldelser og rapporterte salonger</div>
+            <div class="topbar__sub">Salongsoknader til vurdering</div>
           </div>
         </div>
 
-        <div class="grid-2-col">
-          <div>
-            <h3 style="font-size: 18px; margin-bottom: 16px;">Flaggede anmeldelser</h3>
-
-            <div class="review-card" id="review-1">
-              <div class="review-card__head">
-                <div class="review-card__avatar">SB</div>
-                <div class="review-card__info">
-                  <div class="review-card__name">Sara Berg</div>
-                  <div class="review-card__meta">om Studio Lakk &middot; 06.05.2026</div>
-                </div>
-                <div class="review-card__stars">
-                  <i data-lucide="star"></i>
-                </div>
-                <span class="review-card__flag"><i data-lucide="flag"></i> Stotende sprak</span>
-              </div>
-              <div class="review-card__text">
-                Helt forferdelig opplevelse. Neglene ble oedelagt og personalet var ekstremt uhoflige. Aldri igjen!!! Denne salongen er en komplett svindel.
-              </div>
-              <div class="review-card__actions">
-                <button class="btn btn-success btn-sm" onclick="approveReview('review-1')"><i data-lucide="check"></i> Godkjenn</button>
-                <button class="btn btn-danger btn-sm" onclick="rejectReview('review-1')"><i data-lucide="trash-2"></i> Fjern</button>
-              </div>
-            </div>
-
-            <div class="review-card" id="review-2">
-              <div class="review-card__head">
-                <div class="review-card__avatar">NE</div>
-                <div class="review-card__info">
-                  <div class="review-card__name">Nora Eriksen</div>
-                  <div class="review-card__meta">om Polished by Mia &middot; 03.05.2026</div>
-                </div>
-                <div class="review-card__stars">
-                  <i data-lucide="star"></i><i data-lucide="star"></i>
-                </div>
-                <span class="review-card__flag"><i data-lucide="flag"></i> Mulig spam</span>
-              </div>
-              <div class="review-card__text">
-                Kjop billige negler pa www.fake-link.com!!!!! Beste tilbud! Klikk na for rabatt!
-              </div>
-              <div class="review-card__actions">
-                <button class="btn btn-success btn-sm" onclick="approveReview('review-2')"><i data-lucide="check"></i> Godkjenn</button>
-                <button class="btn btn-danger btn-sm" onclick="rejectReview('review-2')"><i data-lucide="trash-2"></i> Fjern</button>
-              </div>
-            </div>
-
-            <div class="review-card" id="review-3">
-              <div class="review-card__head">
-                <div class="review-card__avatar">JS</div>
-                <div class="review-card__info">
-                  <div class="review-card__name">Julie Strand</div>
-                  <div class="review-card__meta">om Luxe Nails &middot; 01.05.2026</div>
-                </div>
-                <div class="review-card__stars">
-                  <i data-lucide="star"></i><i data-lucide="star"></i><i data-lucide="star"></i>
-                </div>
-                <span class="review-card__flag"><i data-lucide="flag"></i> Rapportert av salong</span>
-              </div>
-              <div class="review-card__text">
-                Grei opplevelse, men ventetiden var alt for lang. Matte vente nesten 30 minutter etter avtalt tid. Resultatet ble ok, men servicen kan bli mye bedre.
-              </div>
-              <div class="review-card__actions">
-                <button class="btn btn-success btn-sm" onclick="approveReview('review-3')"><i data-lucide="check"></i> Godkjenn</button>
-                <button class="btn btn-danger btn-sm" onclick="rejectReview('review-3')"><i data-lucide="trash-2"></i> Fjern</button>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 style="font-size: 18px; margin-bottom: 16px;">Rapporterte salonger</h3>
-
-            <div class="report-card" id="report-1">
-              <div class="report-card__info">
-                <div class="report-card__name">Nail Queen</div>
-                <div class="report-card__reason">Rapportert for: Misvisende bilder i profilen. 2 rapporter.</div>
-              </div>
-              <div class="report-card__actions">
-                <button class="btn btn-ghost btn-sm" onclick="dismissReport('report-1')"><i data-lucide="x"></i> Avvis</button>
-                <button class="btn btn-danger btn-sm" onclick="suspendReport('report-1')"><i data-lucide="pause-circle"></i> Suspender</button>
-              </div>
-            </div>
-
-            <div class="report-card" id="report-2">
-              <div class="report-card__info">
-                <div class="report-card__name">Glow Studio</div>
-                <div class="report-card__reason">Rapportert for: Ingen svarer pa meldinger. 5 rapporter.</div>
-              </div>
-              <div class="report-card__actions">
-                <button class="btn btn-ghost btn-sm" onclick="dismissReport('report-2')"><i data-lucide="x"></i> Avvis</button>
-                <button class="btn btn-danger btn-sm" onclick="suspendReport('report-2')"><i data-lucide="pause-circle"></i> Suspender</button>
-              </div>
-            </div>
-
-            <div class="report-card" id="report-3">
-              <div class="report-card__info">
-                <div class="report-card__name">Nail Art Oslo</div>
-                <div class="report-card__reason">Rapportert for: Avlyser bookinger gjentatte ganger. 3 rapporter.</div>
-              </div>
-              <div class="report-card__actions">
-                <button class="btn btn-ghost btn-sm" onclick="dismissReport('report-3')"><i data-lucide="x"></i> Avvis</button>
-                <button class="btn btn-danger btn-sm" onclick="suspendReport('report-3')"><i data-lucide="pause-circle"></i> Suspender</button>
-              </div>
-            </div>
-          </div>
+        <h3 style="font-size: 18px; margin-bottom: 16px;">Ventende salongsoknader</h3>
+        <div id="modereringList">
+          <div class="td-muted">Laster...</div>
         </div>
       </div>
 
@@ -792,7 +456,7 @@
         <div class="topbar">
           <div>
             <h1 class="topbar__title">Booking-analyse</h1>
-            <div class="topbar__sub">Detaljert oversikt over alle bookinger med brukerdata fra Vipps.</div>
+            <div class="topbar__sub">Detaljert oversikt over alle bookinger med brukerdata fra Vipps. &middot; <em>Mock-data — kobles til i Fase 3</em></div>
           </div>
           <div class="topbar__actions">
             <button class="btn btn-ghost"><i data-lucide="download"></i> Eksporter CSV</button>
@@ -1042,7 +706,7 @@
         <div class="topbar">
           <div>
             <h1 class="topbar__title">Brukeranalyse</h1>
-            <div class="topbar__sub">Detaljert oversikt over alle brukere registrert via Vipps.</div>
+            <div class="topbar__sub">Detaljert oversikt over alle brukere registrert via Vipps. &middot; <em>Mock-data — kobles til i Fase 3</em></div>
           </div>
           <div class="topbar__actions">
             <button class="btn btn-ghost"><i data-lucide="download"></i> Eksporter CSV</button>
@@ -1175,8 +839,81 @@
   </div>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="/assets/auth.js"></script>
   <script>
     lucide.createIcons();
+
+    /* ================================================================
+       Helpers
+       ================================================================ */
+
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return '';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '';
+      try {
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('no-NO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      } catch (_) { return ''; }
+    }
+
+    function formatDateTime(iso) {
+      if (!iso) return '';
+      try {
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleString('no-NO', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+      } catch (_) { return ''; }
+    }
+
+    function initials(name) {
+      if (!name) return '--';
+      var parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function debounce(fn, ms) {
+      var t;
+      return function () {
+        var ctx = this, args = arguments;
+        clearTimeout(t);
+        t = setTimeout(function () { fn.apply(ctx, args); }, ms);
+      };
+    }
+
+    function statusPill(status) {
+      var map = {
+        active:    ['status--active', 'Aktiv'],
+        suspended: ['status--suspended', 'Suspendert'],
+        pending:   ['status--pending', 'Venter'],
+        confirmed: ['status--confirmed', 'Bekreftet'],
+        completed: ['status--completed', 'Fullfort'],
+        cancelled: ['status--cancelled', 'Kansellert'],
+        no_show:   ['status--noshow', 'No-show']
+      };
+      var entry = map[status] || ['status--inactive', status || '--'];
+      return '<span class="status ' + entry[0] + '">' + escapeHtml(entry[1]) + '</span>';
+    }
+
+    function rolePill(role) {
+      var map = {
+        admin:       ['status--paid', 'Admin'],
+        salon_owner: ['status--trial', 'Salongeier'],
+        user:        ['status--inactive', 'Bruker']
+      };
+      var entry = map[role] || ['status--inactive', role || '--'];
+      return '<span class="status ' + entry[0] + '">' + escapeHtml(entry[1]) + '</span>';
+    }
 
     /* ================================================================
        Tab switching
@@ -1203,139 +940,448 @@
     });
 
     /* ================================================================
-       Salonger — search & filter
+       Auth gate + sidebar wiring
        ================================================================ */
 
+    var currentUser = null;
+
+    async function gateAndBoot() {
+      currentUser = await NailedAuth.requireAuth('admin');
+      if (!currentUser) return;
+
+      // Sidebar footer.
+      var nameEl = document.getElementById('adminName');
+      var roleEl = document.getElementById('adminRole');
+      var avatarEl = document.getElementById('adminAvatar');
+      if (nameEl) nameEl.textContent = currentUser.name || currentUser.email || 'Admin';
+      if (roleEl) roleEl.textContent = currentUser.email || '';
+      if (avatarEl) avatarEl.textContent = initials(currentUser.name || currentUser.email);
+
+      // Logout.
+      var logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async function () {
+          try { await NailedAuth.logout(); } catch (_) {}
+          window.location.replace('/');
+        });
+      }
+
+      // Initial loads.
+      loadDashboard();
+      loadSalonger();
+      loadBrukere('');
+      loadBookinger('');
+      loadModerering();
+
+      lucide.createIcons();
+    }
+
+    /* ================================================================
+       Dashboard
+       ================================================================ */
+
+    async function loadDashboard() {
+      try {
+        var res = await NailedAuth.api('/api/v1/admin/dashboard');
+        if (!res.ok) throw new Error('dashboard ' + res.status);
+        var data = await res.json();
+        document.getElementById('kpiSalons').textContent = data.salons;
+        document.getElementById('kpiUsers').textContent = data.users;
+        document.getElementById('kpiTodaysBookings').textContent = data.todays_bookings;
+        document.getElementById('kpiOpenBookings').textContent = data.open_bookings;
+        document.getElementById('kpiPendingApps').textContent = data.pending_applications;
+
+        // Sidebar badges.
+        var sb = document.getElementById('navSalongerCount');
+        if (sb) sb.textContent = data.salons;
+        var mb = document.getElementById('navModereringCount');
+        if (mb) mb.textContent = data.pending_applications;
+      } catch (err) {
+        console.error('[admin] dashboard failed', err);
+        ['kpiSalons','kpiUsers','kpiTodaysBookings','kpiOpenBookings','kpiPendingApps'].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el && el.textContent === '--') el.textContent = '!';
+        });
+      }
+
+      // Recent salons (top 5).
+      try {
+        var rs = await NailedAuth.api('/api/v1/admin/salons?limit=5');
+        if (rs.ok) {
+          var rsd = await rs.json();
+          var tb = document.getElementById('dashRecentSalonsBody');
+          if (!rsd.salons.length) {
+            tb.innerHTML = '<tr><td colspan="4" class="td-muted">Ingen salonger enna.</td></tr>';
+          } else {
+            tb.innerHTML = rsd.salons.map(function (s) {
+              return '<tr>' +
+                '<td class="td-name">' + escapeHtml(s.name) + '</td>' +
+                '<td class="td-muted">' + escapeHtml(s.owner_name || s.owner_email || '--') + '</td>' +
+                '<td class="td-muted">' + escapeHtml(s.city || '--') + '</td>' +
+                '<td class="td-muted">' + formatDate(s.created_at) + '</td>' +
+              '</tr>';
+            }).join('');
+          }
+        }
+      } catch (err) { console.error('[admin] recent salons failed', err); }
+
+      // Recent users (top 5).
+      try {
+        var ru = await NailedAuth.api('/api/v1/admin/users?limit=5');
+        if (ru.ok) {
+          var rud = await ru.json();
+          var tb2 = document.getElementById('dashRecentUsersBody');
+          if (!rud.users.length) {
+            tb2.innerHTML = '<tr><td colspan="4" class="td-muted">Ingen brukere enna.</td></tr>';
+          } else {
+            tb2.innerHTML = rud.users.map(function (u) {
+              return '<tr>' +
+                '<td class="td-name">' + escapeHtml(u.name || '--') + '</td>' +
+                '<td class="td-muted">' + escapeHtml(u.email) + '</td>' +
+                '<td>' + rolePill(u.role) + '</td>' +
+                '<td class="td-muted">' + formatDate(u.created_at) + '</td>' +
+              '</tr>';
+            }).join('');
+          }
+        }
+      } catch (err) { console.error('[admin] recent users failed', err); }
+    }
+
+    /* ================================================================
+       Salonger
+       ================================================================ */
+
+    var allSalons = [];
     var salongerSearch = document.getElementById('salongerSearch');
     var salongerStatusFilter = document.getElementById('salongerStatusFilter');
 
-    function filterSalonger() {
-      var query = salongerSearch.value.toLowerCase();
-      var status = salongerStatusFilter.value;
-      var rows = document.querySelectorAll('#salongerTable tbody tr');
-
-      rows.forEach(function(row) {
-        var name = row.cells[0].textContent.toLowerCase();
-        var location = row.cells[1].textContent.toLowerCase();
-        var rowStatus = row.cells[2].textContent.trim();
-
-        var matchesSearch = name.indexOf(query) !== -1 || location.indexOf(query) !== -1;
-        var matchesStatus = !status || rowStatus.indexOf(status) !== -1;
-
-        row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
-      });
+    async function loadSalonger() {
+      try {
+        var res = await NailedAuth.api('/api/v1/admin/salons?limit=200');
+        if (!res.ok) throw new Error('salons ' + res.status);
+        var data = await res.json();
+        allSalons = data.salons || [];
+        var sub = document.getElementById('salongerSub');
+        if (sub) sub.textContent = allSalons.length + ' registrerte salonger';
+        renderSalonger();
+      } catch (err) {
+        console.error('[admin] salons failed', err);
+        var body = document.getElementById('salongerTableBody');
+        if (body) body.innerHTML = '<tr><td colspan="6" class="td-muted">Kunne ikke laste salonger.</td></tr>';
+      }
     }
 
-    salongerSearch.addEventListener('input', filterSalonger);
-    salongerStatusFilter.addEventListener('change', filterSalonger);
+    function renderSalonger() {
+      var q = (salongerSearch.value || '').toLowerCase();
+      var statusF = salongerStatusFilter.value;
+      var body = document.getElementById('salongerTableBody');
+      if (!body) return;
+
+      var rows = allSalons.filter(function (s) {
+        if (statusF && s.status !== statusF) return false;
+        if (!q) return true;
+        var hay = ((s.name || '') + ' ' + (s.city || '') + ' ' + (s.owner_name || '') + ' ' + (s.owner_email || '')).toLowerCase();
+        return hay.indexOf(q) !== -1;
+      });
+
+      if (!rows.length) {
+        body.innerHTML = '<tr><td colspan="6" class="td-muted">Ingen treff.</td></tr>';
+        return;
+      }
+
+      body.innerHTML = rows.map(function (s) {
+        var actionBtn = (s.status === 'active')
+          ? '<button class="btn btn-danger btn-sm" data-act="suspend" data-id="' + s.id + '"><i data-lucide="pause-circle"></i> Suspender</button>'
+          : '<button class="btn btn-success btn-sm" data-act="activate" data-id="' + s.id + '"><i data-lucide="play-circle"></i> Aktiver</button>';
+        return '<tr>' +
+          '<td class="td-name">' + escapeHtml(s.name) + '</td>' +
+          '<td class="td-muted">' + escapeHtml(s.owner_name || s.owner_email || '--') + '</td>' +
+          '<td class="td-muted">' + escapeHtml(s.city || '--') + '</td>' +
+          '<td>' + statusPill(s.status) + '</td>' +
+          '<td class="td-muted">' + formatDate(s.created_at) + '</td>' +
+          '<td class="td-actions">' + actionBtn + '</td>' +
+        '</tr>';
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    salongerSearch.addEventListener('input', renderSalonger);
+    salongerStatusFilter.addEventListener('change', renderSalonger);
+
+    document.getElementById('salongerTableBody').addEventListener('click', async function (e) {
+      var btn = e.target.closest('button[data-act]');
+      if (!btn) return;
+      var id = btn.getAttribute('data-id');
+      var act = btn.getAttribute('data-act');
+      btn.disabled = true;
+      try {
+        var res = await NailedAuth.api('/api/v1/admin/salons/' + id + '/' + act, { method: 'POST' });
+        if (!res.ok) throw new Error('salon ' + act + ' ' + res.status);
+        await loadSalonger();
+        await loadDashboard();
+      } catch (err) {
+        console.error('[admin] salon action failed', err);
+        alert('Handlingen feilet. Prov igjen.');
+        btn.disabled = false;
+      }
+    });
 
     /* ================================================================
-       Brukere — search
+       Brukere
        ================================================================ */
 
     var brukereSearch = document.getElementById('brukereSearch');
 
-    brukereSearch.addEventListener('input', function() {
-      var query = this.value.toLowerCase();
-      var rows = document.querySelectorAll('#brukereTable tbody tr');
+    async function loadBrukere(search) {
+      var url = '/api/v1/admin/users?limit=200';
+      if (search) url += '&search=' + encodeURIComponent(search);
+      try {
+        var res = await NailedAuth.api(url);
+        if (!res.ok) throw new Error('users ' + res.status);
+        var data = await res.json();
+        renderBrukere(data.users || []);
+        var sub = document.getElementById('brukereSub');
+        if (sub) sub.textContent = (data.users || []).length + ' brukere vist';
+      } catch (err) {
+        console.error('[admin] users failed', err);
+        var body = document.getElementById('brukereTableBody');
+        if (body) body.innerHTML = '<tr><td colspan="8" class="td-muted">Kunne ikke laste brukere.</td></tr>';
+      }
+    }
 
-      rows.forEach(function(row) {
-        var name = row.cells[0].textContent.toLowerCase();
-        var phone = row.cells[1].textContent.toLowerCase();
-        var email = row.cells[2].textContent.toLowerCase();
+    function renderBrukere(users) {
+      var body = document.getElementById('brukereTableBody');
+      if (!body) return;
+      if (!users.length) {
+        body.innerHTML = '<tr><td colspan="8" class="td-muted">Ingen brukere.</td></tr>';
+        return;
+      }
+      body.innerHTML = users.map(function (u) {
+        var suspended = !!u.suspended_at;
+        var statusHtml = suspended
+          ? '<span class="status status--cancelled">Suspendert</span>'
+          : '<span class="status status--active">Aktiv</span>';
+        var actionBtn = suspended
+          ? '<button class="btn btn-success btn-sm" data-act="unsuspend" data-id="' + u.id + '"><i data-lucide="play-circle"></i> Aktiver</button>'
+          : '<button class="btn btn-danger btn-sm" data-act="suspend" data-id="' + u.id + '"><i data-lucide="pause-circle"></i> Suspender</button>';
+        return '<tr>' +
+          '<td class="td-name">' + escapeHtml(u.name || '--') + '</td>' +
+          '<td class="td-mono">' + escapeHtml(u.phone || '--') + '</td>' +
+          '<td class="td-muted">' + escapeHtml(u.email) + '</td>' +
+          '<td>' + rolePill(u.role) + '</td>' +
+          '<td class="td-muted">' + formatDate(u.created_at) + '</td>' +
+          '<td>' + (u.booking_count || 0) + '</td>' +
+          '<td>' + statusHtml + '</td>' +
+          '<td class="td-actions">' + actionBtn + '</td>' +
+        '</tr>';
+      }).join('');
+      lucide.createIcons();
+    }
 
-        var matches = name.indexOf(query) !== -1 || phone.indexOf(query) !== -1 || email.indexOf(query) !== -1;
-        row.style.display = matches ? '' : 'none';
-      });
+    brukereSearch.addEventListener('input', debounce(function () {
+      loadBrukere(brukereSearch.value.trim());
+    }, 250));
+
+    document.getElementById('brukereTableBody').addEventListener('click', async function (e) {
+      var btn = e.target.closest('button[data-act]');
+      if (!btn) return;
+      var id = btn.getAttribute('data-id');
+      var act = btn.getAttribute('data-act');
+      btn.disabled = true;
+      try {
+        var res = await NailedAuth.api('/api/v1/admin/users/' + id + '/' + act, { method: 'POST' });
+        if (!res.ok) throw new Error('user ' + act + ' ' + res.status);
+        await loadBrukere(brukereSearch.value.trim());
+        await loadDashboard();
+      } catch (err) {
+        console.error('[admin] user action failed', err);
+        alert('Handlingen feilet. Prov igjen.');
+        btn.disabled = false;
+      }
     });
 
     /* ================================================================
-       Bookinger — filter by status & date
+       Bookinger
        ================================================================ */
 
     var bookingerStatusFilter = document.getElementById('bookingerStatusFilter');
-    var bookingerDateFilter = document.getElementById('bookingerDateFilter');
 
-    function filterBookinger() {
-      var status = bookingerStatusFilter.value;
-      var dateRange = bookingerDateFilter.value;
-      var rows = document.querySelectorAll('#bookingerTable tbody tr');
-      var today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      rows.forEach(function(row) {
-        var rowStatus = row.getAttribute('data-status');
-        var rowDate = new Date(row.getAttribute('data-date'));
-
-        var matchesStatus = !status || rowStatus === status;
-        var matchesDate = true;
-
-        if (dateRange === 'today') {
-          matchesDate = rowDate.toDateString() === today.toDateString();
-        } else if (dateRange === 'week') {
-          var weekStart = new Date(today);
-          weekStart.setDate(today.getDate() - today.getDay() + 1);
-          var weekEnd = new Date(weekStart);
-          weekEnd.setDate(weekStart.getDate() + 6);
-          matchesDate = rowDate >= weekStart && rowDate <= weekEnd;
-        } else if (dateRange === 'month') {
-          matchesDate = rowDate.getMonth() === today.getMonth() && rowDate.getFullYear() === today.getFullYear();
-        }
-
-        row.style.display = (matchesStatus && matchesDate) ? '' : 'none';
-      });
+    async function loadBookinger(status) {
+      var url = '/api/v1/admin/bookings?limit=200';
+      if (status) url += '&status=' + encodeURIComponent(status);
+      try {
+        var res = await NailedAuth.api(url);
+        if (!res.ok) throw new Error('bookings ' + res.status);
+        var data = await res.json();
+        renderBookinger(data.bookings || []);
+      } catch (err) {
+        console.error('[admin] bookings failed', err);
+        var body = document.getElementById('bookingerTableBody');
+        if (body) body.innerHTML = '<tr><td colspan="7" class="td-muted">Kunne ikke laste bookinger.</td></tr>';
+      }
     }
 
-    bookingerStatusFilter.addEventListener('change', filterBookinger);
-    bookingerDateFilter.addEventListener('change', filterBookinger);
+    function renderBookinger(bookings) {
+      var body = document.getElementById('bookingerTableBody');
+      if (!body) return;
+      if (!bookings.length) {
+        body.innerHTML = '<tr><td colspan="7" class="td-muted">Ingen bookinger.</td></tr>';
+        return;
+      }
+      body.innerHTML = bookings.map(function (b) {
+        var addrParts = [b.customer_address, b.customer_postal, b.customer_city].filter(Boolean);
+        var addr = addrParts.join(', ') || '--';
+        var customerLine = escapeHtml(b.customer_name || '--');
+        var contactBits = [];
+        if (b.customer_phone) contactBits.push(escapeHtml(b.customer_phone));
+        if (b.customer_email) contactBits.push(escapeHtml(b.customer_email));
+        if (b.customer_birth_year) contactBits.push('f. ' + b.customer_birth_year);
+        var contactLine = contactBits.length
+          ? '<br><span class="td-muted" style="font-size:11px;">' + contactBits.join(' &middot; ') + '</span>'
+          : '';
+        return '<tr>' +
+          '<td><strong>' + formatDateTime(b.start_at) + '</strong></td>' +
+          '<td><strong>' + customerLine + '</strong>' + contactLine + '</td>' +
+          '<td class="td-muted">' + escapeHtml(addr) + '</td>' +
+          '<td>' + escapeHtml(b.salon_name || '--') + '</td>' +
+          '<td>' + escapeHtml(b.service_name || '--') + '</td>' +
+          '<td><strong>' + (b.price_nok != null ? b.price_nok + ' kr' : '--') + '</strong></td>' +
+          '<td>' + statusPill(b.status) + '</td>' +
+        '</tr>';
+      }).join('');
+      lucide.createIcons();
+    }
+
+    bookingerStatusFilter.addEventListener('change', function () {
+      loadBookinger(bookingerStatusFilter.value);
+    });
 
     /* ================================================================
-       Moderering — approve / reject / dismiss / suspend
+       Moderering — pending salon applications
        ================================================================ */
 
-    function approveReview(id) {
-      var el = document.getElementById(id);
-      if (el) {
-        el.style.transition = 'opacity 0.3s, transform 0.3s';
-        el.style.opacity = '0';
-        el.style.transform = 'translateX(20px)';
-        setTimeout(function() { el.remove(); }, 300);
+    async function loadModerering() {
+      var container = document.getElementById('modereringList');
+      if (!container) return;
+      try {
+        var res = await NailedAuth.api('/api/v1/admin/salon-applications?status=pending');
+        if (!res.ok) throw new Error('apps ' + res.status);
+        var data = await res.json();
+        renderModerering(data.applications || []);
+        var badge = document.getElementById('navModereringCount');
+        if (badge) badge.textContent = (data.applications || []).length;
+      } catch (err) {
+        console.error('[admin] applications failed', err);
+        container.innerHTML = '<div class="td-muted">Kunne ikke laste soknader.</div>';
       }
     }
 
-    function rejectReview(id) {
-      var el = document.getElementById(id);
-      if (el) {
-        el.style.transition = 'opacity 0.3s, transform 0.3s';
-        el.style.opacity = '0';
-        el.style.transform = 'translateX(-20px)';
-        setTimeout(function() { el.remove(); }, 300);
+    function renderModerering(apps) {
+      var container = document.getElementById('modereringList');
+      if (!container) return;
+      if (!apps.length) {
+        container.innerHTML = '<div class="td-muted">Ingen ventende soknader.</div>';
+        return;
       }
+      container.innerHTML = apps.map(function (a) {
+        var text = a.application_text || '';
+        var truncated = text.length > 200;
+        var shortText = truncated ? text.slice(0, 200) + '...' : text;
+
+        var socials = [];
+        if (a.instagram_url) socials.push('<a class="status status--paid" target="_blank" rel="noopener" href="' + escapeHtml(a.instagram_url) + '"><i data-lucide="instagram"></i> Instagram</a>');
+        if (a.tiktok_url)    socials.push('<a class="status status--paid" target="_blank" rel="noopener" href="' + escapeHtml(a.tiktok_url) + '"><i data-lucide="music"></i> TikTok</a>');
+        if (a.facebook_url)  socials.push('<a class="status status--paid" target="_blank" rel="noopener" href="' + escapeHtml(a.facebook_url) + '"><i data-lucide="facebook"></i> Facebook</a>');
+        if (a.website_url)   socials.push('<a class="status status--paid" target="_blank" rel="noopener" href="' + escapeHtml(a.website_url) + '"><i data-lucide="globe"></i> Nettside</a>');
+        var socialsHtml = socials.length
+          ? '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">' + socials.join('') + '</div>'
+          : '';
+
+        var textHtml = '<span data-text-short>' + escapeHtml(shortText) + '</span>' +
+          (truncated
+            ? '<span data-text-full hidden>' + escapeHtml(text) + '</span>' +
+              ' <button class="btn btn-ghost btn-sm" data-toggle-text style="padding:2px 8px;">Vis mer</button>'
+            : '');
+
+        return '<div class="review-card" data-app-id="' + a.id + '">' +
+          '<div class="review-card__head">' +
+            '<div class="review-card__avatar">' + escapeHtml(initials(a.applicant_name || a.applicant_email)) + '</div>' +
+            '<div class="review-card__info">' +
+              '<div class="review-card__name">' + escapeHtml(a.salon_name) + '</div>' +
+              '<div class="review-card__meta">' +
+                escapeHtml(a.applicant_name || '') +
+                (a.applicant_email ? ' &middot; ' + escapeHtml(a.applicant_email) : '') +
+                (a.city ? ' &middot; ' + escapeHtml(a.city) : '') +
+                ' &middot; ' + formatDate(a.created_at) +
+              '</div>' +
+            '</div>' +
+            '<span class="status status--pending"><i data-lucide="clock"></i> Venter</span>' +
+          '</div>' +
+          '<div class="review-card__text">' + textHtml + socialsHtml + '</div>' +
+          '<div class="review-card__actions">' +
+            '<button class="btn btn-success btn-sm" data-act="approve"><i data-lucide="check"></i> Godkjenn</button>' +
+            '<button class="btn btn-danger btn-sm" data-act="reject"><i data-lucide="x"></i> Avvis</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      lucide.createIcons();
     }
 
-    function dismissReport(id) {
-      var el = document.getElementById(id);
-      if (el) {
-        el.style.transition = 'opacity 0.3s';
-        el.style.opacity = '0';
-        setTimeout(function() { el.remove(); }, 300);
+    document.getElementById('modereringList').addEventListener('click', async function (e) {
+      var toggle = e.target.closest('button[data-toggle-text]');
+      if (toggle) {
+        var card = toggle.closest('.review-card');
+        var shortEl = card.querySelector('[data-text-short]');
+        var fullEl = card.querySelector('[data-text-full]');
+        if (fullEl.hidden) {
+          shortEl.hidden = true;
+          fullEl.hidden = false;
+          toggle.textContent = 'Vis mindre';
+        } else {
+          shortEl.hidden = false;
+          fullEl.hidden = true;
+          toggle.textContent = 'Vis mer';
+        }
+        return;
       }
-    }
 
-    function suspendReport(id) {
-      var el = document.getElementById(id);
-      if (el) {
-        el.style.background = 'var(--danger-50)';
-        el.style.borderColor = 'var(--danger-500)';
-        var nameEl = el.querySelector('.report-card__name');
-        if (nameEl) { nameEl.textContent += ' (Suspendert)'; }
-        var actions = el.querySelector('.report-card__actions');
-        if (actions) { actions.innerHTML = '<span class="status status--suspended">Suspendert</span>'; }
+      var btn = e.target.closest('button[data-act]');
+      if (!btn) return;
+      var card = btn.closest('.review-card');
+      if (!card) return;
+      var id = card.getAttribute('data-app-id');
+      var act = btn.getAttribute('data-act');
+
+      var promptMsg = act === 'approve' ? 'Notater (valgfritt) for godkjenning:' : 'Begrunnelse (valgfritt) for avvisning:';
+      var notes = window.prompt(promptMsg, '');
+      // prompt returning null = cancelled. Empty string is "no notes, but proceed".
+      if (notes === null) return;
+
+      var actBtns = card.querySelectorAll('button');
+      actBtns.forEach(function (b) { b.disabled = true; });
+      try {
+        var res = await NailedAuth.api('/api/v1/admin/salon-applications/' + id + '/' + act, {
+          method: 'POST',
+          body: { notes: notes || undefined }
+        });
+        if (!res.ok) {
+          var errBody = {};
+          try { errBody = await res.json(); } catch (_) {}
+          throw new Error(errBody.message || ('app ' + act + ' ' + res.status));
+        }
+        await loadModerering();
+        await loadDashboard();
+        if (act === 'approve') await loadSalonger();
+      } catch (err) {
+        console.error('[admin] application action failed', err);
+        alert('Handlingen feilet: ' + err.message);
+        actBtns.forEach(function (b) { b.disabled = false; });
       }
-    }
+    });
 
     /* ================================================================
-       Settings — save button feedback
+       Mock-only UI handlers (analytics tabs left intact for Fase 1)
        ================================================================ */
 
     var saveBtn = document.getElementById('saveSettingsBtn');
@@ -1354,7 +1400,6 @@
       });
     }
 
-    // Period selectors for booking-analyse and bruker-analyse
     document.querySelectorAll('#baPeriod, #buPeriod').forEach(function(row) {
       row.addEventListener('click', function(e) {
         var btn = e.target.closest('.period-btn');
@@ -1364,11 +1409,10 @@
       });
     });
 
-    // Search for booking-analyse
     var baSearch = document.getElementById('baSearch');
     var baFilter = document.getElementById('baFilter');
     if (baSearch) {
-      function filterBA() {
+      var filterBA = function () {
         var q = baSearch.value.toLowerCase();
         var status = baFilter.value;
         document.querySelectorAll('#baTable tbody tr').forEach(function(row) {
@@ -1376,23 +1420,27 @@
           var statusMatch = !status || text.indexOf(status.toLowerCase()) >= 0;
           row.style.display = (text.indexOf(q) >= 0 && statusMatch) ? '' : 'none';
         });
-      }
+      };
       baSearch.addEventListener('input', filterBA);
       baFilter.addEventListener('change', filterBA);
     }
 
-    // Search for bruker-analyse
     var buSearch = document.getElementById('buSearch');
-    var buFilter = document.getElementById('buFilter');
     if (buSearch) {
-      function filterBU() {
+      var filterBU = function () {
         var q = buSearch.value.toLowerCase();
         document.querySelectorAll('#buTable tbody tr').forEach(function(row) {
           row.style.display = row.textContent.toLowerCase().indexOf(q) >= 0 ? '' : 'none';
         });
-      }
+      };
       buSearch.addEventListener('input', filterBU);
     }
+
+    /* ================================================================
+       Boot
+       ================================================================ */
+
+    gateAndBoot();
   </script>
 </body>
 </html>
