@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bookinger — nailed partner</title>
+  <link rel="icon" href="../assets/logo-mark.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="partner.css" />
+  <style>
+    .bookings-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--stone-200); }
+    .bookings-tab {
+      font-family: var(--font-body); font-weight: 600; font-size: 14px;
+      padding: 12px 20px; border: 0; background: transparent; color: var(--fg-muted);
+      cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .bookings-tab:hover { color: var(--ink); }
+    .bookings-tab.active { color: var(--ink); border-bottom-color: var(--rouge-500); }
+    .bookings-tab__count {
+      font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: var(--radius-pill);
+      background: var(--rouge-100); color: var(--rouge-700); margin-left: 6px;
+    }
+    .bookings-tab.active .bookings-tab__count { background: var(--rouge-500); color: #fff; }
+
+    .bookings-toolbar {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .bookings-search {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--cream-50); border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill); padding: 8px 16px; flex: 1; max-width: 360px;
+    }
+    .bookings-search i { width: 16px; height: 16px; color: var(--fg-muted); }
+    .bookings-search input {
+      border: 0; outline: 0; background: transparent;
+      font-family: var(--font-body); font-size: 14px; color: var(--ink); width: 100%;
+    }
+    .bookings-search input::placeholder { color: var(--stone-400); }
+
+    .bookings-panel { display: none; }
+    .bookings-panel.active { display: block; }
+
+    /* Date group */
+    .bk-date {
+      font-family: var(--font-body); font-weight: 700; font-size: 13px;
+      color: var(--fg-muted); text-transform: uppercase; letter-spacing: .08em;
+      padding: 20px 0 10px;
+    }
+    .bk-date:first-child { padding-top: 0; }
+
+    .bk-table {
+      background: var(--cream-50); border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 16px;
+    }
+    .bk-row {
+      display: grid;
+      grid-template-columns: 90px 2fr 1.5fr 1fr 110px 80px;
+      gap: 12px; padding: 14px 20px; align-items: center;
+      border-bottom: 1px solid var(--stone-200);
+      transition: background var(--dur-fast);
+    }
+    .bk-row:last-child { border: 0; }
+    .bk-row:hover { background: var(--cream-100); }
+
+    .bk-time {
+      font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink);
+    }
+    .bk-time small {
+      display: block; font-family: var(--font-body); font-weight: 500;
+      font-size: 11px; color: var(--fg-muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 2px;
+    }
+
+    .bk-customer { display: flex; align-items: center; gap: 10px; }
+    .bk-avatar {
+      width: 36px; height: 36px; border-radius: var(--radius-pill);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 700; font-size: 13px; flex-shrink: 0;
+    }
+    .bk-name { font-weight: 600; font-size: 14px; }
+    .bk-phone { font-size: 12px; color: var(--fg-muted); margin-top: 1px; }
+
+    .bk-service { font-size: 14px; }
+    .bk-service__name { font-weight: 600; }
+    .bk-service__artist { font-size: 12px; color: var(--fg-muted); margin-top: 1px; }
+
+    .bk-price { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+
+    .bk-status {
+      font-family: var(--font-body); font-weight: 600; font-size: 11px;
+      letter-spacing: .06em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: var(--radius-pill);
+      display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+    }
+    .bk-status i { width: 10px; height: 10px; }
+    .bk-status--confirmed { background: var(--success-50); color: var(--success-500); }
+    .bk-status--pending { background: var(--warning-50); color: var(--warning-500); }
+    .bk-status--completed { background: var(--rouge-50); color: var(--rouge-700); }
+    .bk-status--cancelled { background: var(--danger-50); color: var(--danger-500); }
+    .bk-status--noshow { background: var(--stone-100); color: var(--fg-muted); }
+
+    .bk-actions { display: flex; gap: 4px; justify-content: flex-end; }
+    .bk-action {
+      width: 28px; height: 28px; border-radius: var(--radius-pill);
+      border: 0; background: transparent; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--fg-muted);
+    }
+    .bk-action:hover { background: var(--stone-100); color: var(--ink); }
+    .bk-action i { width: 14px; height: 14px; }
+
+    .bk-empty {
+      text-align: center; padding: 48px 24px;
+      background: var(--cream-50); border: 1px dashed var(--stone-300);
+      border-radius: var(--radius-lg);
+    }
+    .bk-empty h3 { font-family: var(--font-display); font-size: 20px; margin: 0 0 6px; }
+    .bk-empty p { font-size: 14px; color: var(--fg-muted); margin: 0; }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <aside class="sidebar">
+      <a class="sidebar__brand" href="index.html"><img src="../assets/logo-wordmark.svg" alt="nailed" /></a>
+      <button class="nav-item" onclick="location.href='index.html'"><i data-lucide="layout-dashboard"></i> Oversikt</button>
+      <button class="nav-item"><i data-lucide="calendar"></i> Kalender</button>
+      <button class="nav-item active"><i data-lucide="list"></i> Bookinger <span class="nav-item__count">7</span></button>
+      <button class="nav-item"><i data-lucide="sparkles"></i> Tjenester</button>
+      <button class="nav-item" onclick="location.href='kunder.html'"><i data-lucide="users"></i> Kunder</button>
+      <button class="nav-item" onclick="location.href='meldinger.html'"><i data-lucide="message-circle"></i> Meldinger <span class="nav-item__count">2</span></button>
+      <div class="sidebar__section">Salong</div>
+      <button class="nav-item" onclick="location.href='profil.html'"><i data-lucide="image"></i> Profil</button>
+      <button class="nav-item" onclick="location.href='innsikt.html'"><i data-lucide="bar-chart-3"></i> Innsikt</button>
+      <button class="nav-item"><i data-lucide="crown"></i> Abonnement</button>
+      <button class="nav-item" onclick="location.href='settings.html'"><i data-lucide="settings"></i> Innstillinger</button>
+      <div class="sidebar__footer">
+        <div class="sidebar__avatar">SL</div>
+        <div><div class="sidebar__user">Studio Lakk</div><div class="sidebar__role">Linn Andersen</div></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1 class="topbar__title">Bookinger</h1>
+          <div class="topbar__sub">Alle bookinger for Studio Lakk.</div>
+        </div>
+        <div class="topbar__actions">
+          <button class="btn btn-ghost"><i data-lucide="download"></i> Eksporter</button>
+          <button class="btn btn-primary"><i data-lucide="calendar-plus"></i> Ny booking</button>
+        </div>
+      </div>
+
+      <div class="bookings-tabs" id="bkTabs">
+        <button class="bookings-tab active" data-tab="upcoming">Kommende <span class="bookings-tab__count">7</span></button>
+        <button class="bookings-tab" data-tab="today">I dag <span class="bookings-tab__count">5</span></button>
+        <button class="bookings-tab" data-tab="past">Tidligere</button>
+        <button class="bookings-tab" data-tab="cancelled">Avbestilt</button>
+      </div>
+
+      <div class="bookings-toolbar">
+        <div class="bookings-search">
+          <i data-lucide="search"></i>
+          <input placeholder="Søk etter kunde, behandling.." />
+        </div>
+        <div style="display:flex; gap:8px;">
+          <select class="btn btn-ghost btn-sm" style="padding-right:12px;">
+            <option>Alle artister</option>
+            <option>Linn Andersen</option>
+            <option>Maja Holm</option>
+            <option>Anna Kristiansen</option>
+          </select>
+          <select class="btn btn-ghost btn-sm" style="padding-right:12px;">
+            <option>Alle behandlinger</option>
+            <option>Gel manikyr</option>
+            <option>Gel + neglekunst</option>
+            <option>Klassisk manikyr</option>
+            <option>Pedikyr — luksus</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Kommende -->
+      <div class="bookings-panel active" id="panel-upcoming">
+        <div class="bk-date">I dag · tirsdag 12. mai</div>
+        <div class="bk-table">
+          <div class="bk-row">
+            <div class="bk-time">09:00<small>45 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #FFE0E9, #FB6B9A); color:#fff;">IS</div><div><div class="bk-name">Ida Skogen</div><div class="bk-phone">+47 912 34 567</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Klassisk manikyr</div><div class="bk-service__artist">Linn</div></div>
+            <div class="bk-price">490 kr</div>
+            <div><span class="bk-status bk-status--completed"><i data-lucide="check"></i> Fullført</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="message-circle"></i></button><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+          <div class="bk-row">
+            <div class="bk-time">10:30<small>75 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #DDE3D2, #8DA079); color:#fff;">MK</div><div><div class="bk-name">Maria Kvam</div><div class="bk-phone">+47 923 45 678</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Gel manikyr</div><div class="bk-service__artist">Maja</div></div>
+            <div class="bk-price">690 kr</div>
+            <div><span class="bk-status bk-status--confirmed">Bekreftet</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="message-circle"></i></button><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+          <div class="bk-row">
+            <div class="bk-time">12:00<small>90 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #FFC4D6, #82103D); color:#fff;">TH</div><div><div class="bk-name">Thea Hauge</div><div class="bk-phone">+47 934 56 789</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Gel + neglekunst</div><div class="bk-service__artist">Maja</div></div>
+            <div class="bk-price">890 kr</div>
+            <div><span class="bk-status bk-status--confirmed">Bekreftet</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="message-circle"></i></button><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+          <div class="bk-row">
+            <div class="bk-time">14:30<small>60 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #F4ECDF, #C9B79A); color:var(--ink);">SB</div><div><div class="bk-name">Sara Berg</div><div class="bk-phone">+47 945 67 890</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Pedikyr — luksus</div><div class="bk-service__artist">Linn</div></div>
+            <div class="bk-price">790 kr</div>
+            <div><span class="bk-status bk-status--pending"><i data-lucide="clock"></i> Ubekreftet</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="message-circle"></i></button><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+          <div class="bk-row">
+            <div class="bk-time">16:00<small>30 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #FFE0E9, #FB6B9A); color:#fff;">EL</div><div><div class="bk-name">Emilie Lund</div><div class="bk-phone">+47 956 78 901</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Fjerning av gel</div><div class="bk-service__artist">Anna</div></div>
+            <div class="bk-price">290 kr</div>
+            <div><span class="bk-status bk-status--confirmed">Bekreftet</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="message-circle"></i></button><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+        </div>
+
+        <div class="bk-date">I morgen · onsdag 13. mai</div>
+        <div class="bk-table">
+          <div class="bk-row">
+            <div class="bk-time">09:00<small>75 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #ECDFCB, #C9B79A); color:var(--ink);">MH</div><div><div class="bk-name">Mari Haugen</div><div class="bk-phone">+47 967 89 012</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Gel manikyr</div><div class="bk-service__artist">Linn</div></div>
+            <div class="bk-price">690 kr</div>
+            <div><span class="bk-status bk-status--confirmed">Bekreftet</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="message-circle"></i></button><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+          <div class="bk-row">
+            <div class="bk-time">11:00<small>90 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #DDE3D2, #8DA079); color:#fff;">LK</div><div><div class="bk-name">Linnea Kristiansen</div><div class="bk-phone">+47 978 90 123</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Bio-gel manikyr</div><div class="bk-service__artist">Maja</div></div>
+            <div class="bk-price">790 kr</div>
+            <div><span class="bk-status bk-status--pending"><i data-lucide="clock"></i> Ubekreftet</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="message-circle"></i></button><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Avbestilt -->
+      <div class="bookings-panel" id="panel-cancelled">
+        <div class="bk-date">Siste 30 dager</div>
+        <div class="bk-table">
+          <div class="bk-row">
+            <div class="bk-time">14:00<small>75 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #FFC4D6, #EE3F7E); color:#fff;">KN</div><div><div class="bk-name">Kristine Nordli</div><div class="bk-phone">+47 990 12 345</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Gel manikyr</div><div class="bk-service__artist">Linn</div></div>
+            <div class="bk-price">690 kr</div>
+            <div><span class="bk-status bk-status--cancelled">Avbestilt</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+          <div class="bk-row">
+            <div class="bk-time">10:00<small>45 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #FFE0E9, #B8536F); color:#fff;">HV</div><div><div class="bk-name">Hanna Viken</div><div class="bk-phone">+47 901 23 456</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Klassisk manikyr</div><div class="bk-service__artist">Anna</div></div>
+            <div class="bk-price">490 kr</div>
+            <div><span class="bk-status bk-status--noshow">No-show</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tidligere (placeholder) -->
+      <div class="bookings-panel" id="panel-past">
+        <div class="bk-date">Forrige uke · 5.–9. mai</div>
+        <div class="bk-table">
+          <div class="bk-row">
+            <div class="bk-time">09:30<small>75 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #FFE0E9, #FB6B9A); color:#fff;">IS</div><div><div class="bk-name">Ida Skogen</div><div class="bk-phone">+47 912 34 567</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Gel manikyr</div><div class="bk-service__artist">Linn</div></div>
+            <div class="bk-price">690 kr</div>
+            <div><span class="bk-status bk-status--completed"><i data-lucide="check"></i> Fullført</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+          <div class="bk-row">
+            <div class="bk-time">11:00<small>90 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #FFC4D6, #82103D); color:#fff;">TH</div><div><div class="bk-name">Thea Hauge</div><div class="bk-phone">+47 934 56 789</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Gel + neglekunst</div><div class="bk-service__artist">Maja</div></div>
+            <div class="bk-price">890 kr</div>
+            <div><span class="bk-status bk-status--completed"><i data-lucide="check"></i> Fullført</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+          <div class="bk-row">
+            <div class="bk-time">14:00<small>60 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #DDE3D2, #8DA079); color:#fff;">MK</div><div><div class="bk-name">Maria Kvam</div><div class="bk-phone">+47 923 45 678</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Pedikyr — luksus</div><div class="bk-service__artist">Linn</div></div>
+            <div class="bk-price">790 kr</div>
+            <div><span class="bk-status bk-status--completed"><i data-lucide="check"></i> Fullført</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- I dag (same as upcoming today section) -->
+      <div class="bookings-panel" id="panel-today">
+        <div class="bk-table">
+          <div class="bk-row">
+            <div class="bk-time">09:00<small>45 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #FFE0E9, #FB6B9A); color:#fff;">IS</div><div><div class="bk-name">Ida Skogen</div><div class="bk-phone">+47 912 34 567</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Klassisk manikyr</div><div class="bk-service__artist">Linn</div></div>
+            <div class="bk-price">490 kr</div>
+            <div><span class="bk-status bk-status--completed"><i data-lucide="check"></i> Fullført</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="message-circle"></i></button><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+          <div class="bk-row">
+            <div class="bk-time">10:30<small>75 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #DDE3D2, #8DA079); color:#fff;">MK</div><div><div class="bk-name">Maria Kvam</div><div class="bk-phone">+47 923 45 678</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Gel manikyr</div><div class="bk-service__artist">Maja</div></div>
+            <div class="bk-price">690 kr</div>
+            <div><span class="bk-status bk-status--confirmed">Bekreftet</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="message-circle"></i></button><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+          <div class="bk-row">
+            <div class="bk-time">12:00<small>90 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #FFC4D6, #82103D); color:#fff;">TH</div><div><div class="bk-name">Thea Hauge</div><div class="bk-phone">+47 934 56 789</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Gel + neglekunst</div><div class="bk-service__artist">Maja</div></div>
+            <div class="bk-price">890 kr</div>
+            <div><span class="bk-status bk-status--confirmed">Bekreftet</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="message-circle"></i></button><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+          <div class="bk-row">
+            <div class="bk-time">14:30<small>60 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #F4ECDF, #C9B79A); color:var(--ink);">SB</div><div><div class="bk-name">Sara Berg</div><div class="bk-phone">+47 945 67 890</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Pedikyr — luksus</div><div class="bk-service__artist">Linn</div></div>
+            <div class="bk-price">790 kr</div>
+            <div><span class="bk-status bk-status--pending"><i data-lucide="clock"></i> Ubekreftet</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="message-circle"></i></button><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+          <div class="bk-row">
+            <div class="bk-time">16:00<small>30 min</small></div>
+            <div class="bk-customer"><div class="bk-avatar" style="background:linear-gradient(135deg, #FFE0E9, #FB6B9A); color:#fff;">EL</div><div><div class="bk-name">Emilie Lund</div><div class="bk-phone">+47 956 78 901</div></div></div>
+            <div class="bk-service"><div class="bk-service__name">Fjerning av gel</div><div class="bk-service__artist">Anna</div></div>
+            <div class="bk-price">290 kr</div>
+            <div><span class="bk-status bk-status--confirmed">Bekreftet</span></div>
+            <div class="bk-actions"><button class="bk-action"><i data-lucide="message-circle"></i></button><button class="bk-action"><i data-lucide="more-horizontal"></i></button></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    document.getElementById('bkTabs').addEventListener('click', function(e) {
+      var tab = e.target.closest('[data-tab]');
+      if (!tab) return;
+      document.querySelectorAll('.bookings-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.bookings-panel').forEach(function(p) { p.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
