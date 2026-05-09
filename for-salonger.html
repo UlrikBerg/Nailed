@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>For salonger — nailed</title>
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .lp-hero {
+      padding: 80px 0 96px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .lp-hero__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(40px, 7vw, 72px);
+      letter-spacing: -0.03em;
+      line-height: 1.06;
+      margin: 0 0 16px;
+      color: var(--ink);
+    }
+    .lp-hero__title em {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rouge-500);
+    }
+    .lp-hero__sub {
+      font-size: 19px;
+      color: var(--fg-muted);
+      max-width: 52ch;
+      margin: 0 auto 32px;
+      line-height: 1.55;
+    }
+    .lp-hero__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .lp-hero__note {
+      font-size: 13px;
+      color: var(--fg-muted);
+      margin-top: 16px;
+    }
+
+    .lp-section { padding: 80px 0; }
+    .lp-section--cream { background: var(--cream-50); }
+    .lp-section--dark { background: var(--ink); color: var(--cream-50); border-radius: var(--radius-2xl); margin: 0 24px; }
+
+    .lp-section__head {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 48px;
+    }
+    .lp-section__eyebrow {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--rouge-500);
+      margin-bottom: 12px;
+    }
+    .lp-section__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(28px, 4vw, 44px);
+      letter-spacing: -0.02em;
+      margin: 0 0 12px;
+    }
+    .lp-section__sub {
+      font-size: 16px;
+      color: var(--fg-muted);
+      margin: 0;
+    }
+    .lp-section--dark .lp-section__sub { color: var(--stone-300); }
+
+    /* Features grid */
+    .lp-features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 900px) { .lp-features { grid-template-columns: 1fr; } }
+    .lp-feature {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+    }
+    .lp-feature__icon {
+      width: 48px; height: 48px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+    }
+    .lp-feature__icon i { width: 22px; height: 22px; }
+    .lp-feature__title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 18px;
+      margin: 0 0 8px;
+    }
+    .lp-feature__desc { font-size: 14px; color: var(--fg-muted); margin: 0; line-height: 1.55; }
+
+    /* Pricing */
+    .lp-pricing {
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--cream-50);
+      border: 2px solid var(--rouge-200);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      text-align: center;
+    }
+    .lp-pricing__badge {
+      display: inline-block;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 12px; border-radius: 6px;
+      background: var(--rouge-100); color: var(--rouge-700);
+      margin-bottom: 16px;
+    }
+    .lp-pricing__price {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 56px;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .lp-pricing__unit { font-size: 20px; color: var(--fg-muted); font-weight: 500; }
+    .lp-pricing__trial {
+      font-size: 16px;
+      color: var(--rouge-500);
+      font-weight: 600;
+      margin: 8px 0 20px;
+    }
+    .lp-pricing__list {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .lp-pricing__item {
+      display: flex; align-items: center; gap: 10px; font-size: 14px;
+    }
+    .lp-pricing__item i { width: 16px; height: 16px; color: var(--success-500); flex-shrink: 0; }
+    .lp-pricing__note { font-size: 12px; color: var(--fg-muted); margin-top: 12px; }
+
+    /* Testimonials */
+    .lp-testimonials {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 900px) { .lp-testimonials { grid-template-columns: 1fr; } }
+    .lp-testimonial {
+      background: rgba(251,246,238,0.08);
+      border: 1px solid rgba(251,246,238,0.12);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+    }
+    .lp-testimonial__text {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-size: 17px;
+      line-height: 1.5;
+      color: var(--cream-50);
+      margin: 0 0 16px;
+    }
+    .lp-testimonial__author { display: flex; align-items: center; gap: 10px; }
+    .lp-testimonial__avatar {
+      width: 36px; height: 36px; border-radius: var(--radius-pill);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px;
+    }
+    .lp-testimonial__name { font-weight: 600; font-size: 14px; }
+    .lp-testimonial__role { font-size: 12px; color: var(--stone-300); }
+
+    /* CTA */
+    .lp-cta {
+      text-align: center;
+      padding: 80px 0;
+    }
+    .lp-cta__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(32px, 5vw, 52px);
+      letter-spacing: -0.02em;
+      margin: 0 0 12px;
+    }
+    .lp-cta__title em {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rouge-500);
+    }
+    .lp-cta__sub {
+      font-size: 17px; color: var(--fg-muted); margin: 0 0 28px;
+    }
+
+    /* Steps */
+    .lp-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      counter-reset: step;
+    }
+    @media (max-width: 900px) { .lp-steps { grid-template-columns: 1fr; } }
+    .lp-step {
+      text-align: center;
+      counter-increment: step;
+    }
+    .lp-step__num {
+      width: 48px; height: 48px; border-radius: var(--radius-pill);
+      background: var(--rouge-50); color: var(--rouge-500);
+      font-family: var(--font-display); font-weight: 700; font-size: 20px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .lp-step__title { font-family: var(--font-display); font-weight: 600; font-size: 18px; margin: 0 0 6px; }
+    .lp-step__desc { font-size: 14px; color: var(--fg-muted); margin: 0; }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="index.html"><img src="assets/logo-wordmark.svg" alt="nailed" /></a>
+      <nav class="top-nav__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="#">Gavekort</a>
+        <a href="for-salonger.html" style="color:var(--rouge-500);">For salonger</a>
+      </nav>
+      <div class="top-nav__actions">
+        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="lp-hero">
+    <div class="page">
+      <h1 class="lp-hero__title">Fyll kalenderen.<br>Vi sender <em>kundene.</em></h1>
+      <p class="lp-hero__sub">nailed kobler kunder med salonger og behandlere i hele Norge. Du fokuserer på faget — vi tar seg av bookingen.</p>
+      <div class="lp-hero__actions">
+        <a href="login.html" class="btn btn-primary btn-lg">Kom i gang gratis</a>
+        <a href="#slik-fungerer-det" class="btn btn-ghost btn-lg">Se hvordan det fungerer</a>
+      </div>
+      <p class="lp-hero__note">6 måneder gratis prøveperiode · Ingen bindingstid · Ingen provisjon</p>
+    </div>
+    <img src="assets/sticker-nailed-it.svg" class="hero__sticker" alt="" />
+  </section>
+
+  <!-- How it works -->
+  <section class="lp-section lp-section--cream" id="slik-fungerer-det">
+    <div class="page">
+      <div class="lp-section__head">
+        <div class="lp-section__eyebrow">Slik fungerer det</div>
+        <h2 class="lp-section__title">Tre steg til flere bookinger</h2>
+      </div>
+      <div class="lp-steps">
+        <div class="lp-step">
+          <div class="lp-step__num">1</div>
+          <h3 class="lp-step__title">Opprett profil</h3>
+          <p class="lp-step__desc">Logg inn med Vipps, legg til behandlinger, priser, bilder og åpningstider. Ferdig på 10 minutter.</p>
+        </div>
+        <div class="lp-step">
+          <div class="lp-step__num">2</div>
+          <h3 class="lp-step__title">Kundene finner deg</h3>
+          <p class="lp-step__desc">Salongen din vises på nailed.no. Kunder filtrerer på sted, behandling og tilgjengelighet.</p>
+        </div>
+        <div class="lp-step">
+          <div class="lp-step__num">3</div>
+          <h3 class="lp-step__title">Bookinger ruller inn</h3>
+          <p class="lp-step__desc">Kunden velger tid og verifiserer med Vipps. Du får varsel og timen legges rett i kalenderen.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="lp-section">
+    <div class="page">
+      <div class="lp-section__head">
+        <div class="lp-section__eyebrow">Alt du trenger</div>
+        <h2 class="lp-section__title">Bygget for skjønnhetsbransjen</h2>
+        <p class="lp-section__sub">Verktøyene du trenger for å drive salongen smartere.</p>
+      </div>
+      <div class="lp-features">
+        <div class="lp-feature">
+          <div class="lp-feature__icon" style="background:var(--rouge-50);"><i data-lucide="calendar" style="color:var(--rouge-500);"></i></div>
+          <h3 class="lp-feature__title">Kalender</h3>
+          <p class="lp-feature__desc">Ukevisning med fargekodede bookinger per artist. Se hele teamets dag med ett blikk.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="lp-feature__icon" style="background:var(--success-50);"><i data-lucide="users" style="color:var(--success-500);"></i></div>
+          <h3 class="lp-feature__title">Kundebehandling</h3>
+          <p class="lp-feature__desc">Komplett kundeoversikt med historikk, favoritter, no-shows og livstidsverdi.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="lp-feature__icon" style="background:var(--cream-200);"><i data-lucide="message-circle" style="color:var(--champagne-500);"></i></div>
+          <h3 class="lp-feature__title">Meldinger</h3>
+          <p class="lp-feature__desc">Chat direkte med kundene dine. Hurtigsvar gjør kommunikasjonen rask og enkel.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="lp-feature__icon" style="background:var(--rouge-50);"><i data-lucide="bar-chart-3" style="color:var(--rouge-500);"></i></div>
+          <h3 class="lp-feature__title">Innsikt & statistikk</h3>
+          <p class="lp-feature__desc">Omsetning, belegg, populære behandlinger og teamprestasjoner. Data som hjelper deg vokse.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="lp-feature__icon" style="background:var(--success-50);"><i data-lucide="shield-check" style="color:var(--success-500);"></i></div>
+          <h3 class="lp-feature__title">Vipps-verifisering</h3>
+          <p class="lp-feature__desc">Kundene verifiserer seg med Vipps ved booking. Færre no-shows, ekte identitet.</p>
+        </div>
+        <div class="lp-feature">
+          <div class="lp-feature__icon" style="background:var(--cream-200);"><i data-lucide="puzzle" style="color:var(--champagne-500);"></i></div>
+          <h3 class="lp-feature__title">Integrasjoner</h3>
+          <p class="lp-feature__desc">Koble til Fiken eller Tripletex for automatisk bokføring. Google Calendar for synkronisering.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="lp-section lp-section--cream">
+    <div class="page">
+      <div class="lp-section__head">
+        <div class="lp-section__eyebrow">Enkel pris</div>
+        <h2 class="lp-section__title">Én plan. Alt inkludert.</h2>
+        <p class="lp-section__sub">Ingen provisjon på bookinger. Ingen skjulte kostnader. Du beholder alt du tjener.</p>
+      </div>
+      <div class="lp-pricing">
+        <div class="lp-pricing__badge">6 mnd gratis</div>
+        <div class="lp-pricing__price">99 <span class="lp-pricing__unit">kr/mnd</span></div>
+        <div class="lp-pricing__trial">Prøv gratis i 6 måneder — ingen kort kreves</div>
+        <div class="lp-pricing__list">
+          <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Ubegrensede bookinger</div>
+          <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Offentlig salongprofil</div>
+          <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Kalender & tjenestestyring</div>
+          <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Kundebehandling & meldinger</div>
+          <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Innsikt & statistikk</div>
+          <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Vipps-verifisering av kunder</div>
+          <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Integrasjoner (Fiken, Tripletex, Google)</div>
+          <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Ingen provisjon — aldri</div>
+        </div>
+        <a href="login.html" class="btn btn-primary btn-lg" style="width:100%; justify-content:center;">Start gratis prøveperiode</a>
+        <p class="lp-pricing__note">Ingen bindingstid. Avslutt når som helst.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social proof -->
+  <section class="lp-section lp-section--dark">
+    <div class="page" style="padding:64px 40px;">
+      <div class="lp-section__head">
+        <div class="lp-section__eyebrow" style="color:var(--rouge-300);">Det salonger sier</div>
+        <h2 class="lp-section__title">Elsket av behandlere over hele Norge</h2>
+      </div>
+      <div class="lp-testimonials">
+        <div class="lp-testimonial">
+          <p class="lp-testimonial__text">"Vi fylte opp to ekstra dager i uken etter bare tre uker på nailed. Verdt hver krone."</p>
+          <div class="lp-testimonial__author">
+            <div class="lp-testimonial__avatar" style="background:var(--rouge-100); color:var(--rouge-500);">LA</div>
+            <div><div class="lp-testimonial__name">Linn Andersen</div><div class="lp-testimonial__role">Studio Lakk · Oslo</div></div>
+          </div>
+        </div>
+        <div class="lp-testimonial">
+          <p class="lp-testimonial__text">"Endelig en plattform som ikke tar provisjon. 99 kr i måneden er ingenting sammenlignet med hva vi fikk igjen."</p>
+          <div class="lp-testimonial__author">
+            <div class="lp-testimonial__avatar" style="background:#DDE3D2; color:var(--sage-700);">KH</div>
+            <div><div class="lp-testimonial__name">Kristine Haugen</div><div class="lp-testimonial__role">Bergen Beauty · Bergen</div></div>
+          </div>
+        </div>
+        <div class="lp-testimonial">
+          <p class="lp-testimonial__text">"Vipps-verifiseringen har kuttet no-shows nesten helt. Kundene forplikter seg mer når de må verifisere."</p>
+          <div class="lp-testimonial__author">
+            <div class="lp-testimonial__avatar" style="background:var(--cream-200); color:var(--stone-700);">MH</div>
+            <div><div class="lp-testimonial__name">Maja Holm</div><div class="lp-testimonial__role">Stavanger Glam · Stavanger</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="lp-cta">
+    <div class="page">
+      <h2 class="lp-cta__title">Klar til å <em>nail it?</em></h2>
+      <p class="lp-cta__sub">Opprett profilen din på under 10 minutter. Helt gratis i 6 måneder.</p>
+      <a href="login.html" class="btn btn-primary btn-lg">Kom i gang gratis</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="page footer__inner">
+      <div class="footer__top">
+        <img src="assets/logo-wordmark-light.svg" alt="nailed" class="footer__brand" />
+        <p class="footer__tag">Nailed it. Nailed it again.</p>
+      </div>
+      <div class="footer__cols">
+        <div><div class="footer__h">Utforsk</div><a href="#">Salonger nær meg</a><a href="#">Kategorier</a><a href="#">Gavekort</a></div>
+        <div><div class="footer__h">For salonger</div><a href="for-salonger.html">Bli partner</a><a href="for-salonger.html">Priser</a><a href="login.html">Logg inn</a></div>
+        <div><div class="footer__h">Selskap</div><a href="#">Om oss</a><a href="#">Kontakt</a><a href="#">Personvern</a></div>
+      </div>
+      <div class="footer__bottom"><small>&copy; 2026 Neglet AS &middot; Made in Oslo</small></div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+    var nav = document.getElementById('topNav');
+    window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 30); });
+  </script>
+</body>
+</html>
