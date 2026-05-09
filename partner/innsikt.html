@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Innsikt — nailed partner</title>
+  <link rel="icon" href="../assets/logo-mark.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="partner.css" />
+  <style>
+    .period-nav { display: flex; gap: 6px; margin-bottom: 28px; }
+    .period-nav__btn {
+      font-family: var(--font-body); font-weight: 500; font-size: 13px;
+      padding: 8px 16px; border-radius: var(--radius-pill); border: 1px solid var(--stone-200);
+      background: var(--cream-50); cursor: pointer; transition: all var(--dur-fast);
+    }
+    .period-nav__btn:hover { border-color: var(--stone-400); }
+    .period-nav__btn.active { background: var(--ink); color: var(--cream-50); border-color: var(--ink); }
+
+    .insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    @media (max-width: 900px) { .insight-grid { grid-template-columns: 1fr; } }
+    .insight-grid--3 { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 900px) { .insight-grid--3 { grid-template-columns: 1fr; } }
+    .insight-full { grid-column: 1 / -1; }
+
+    .insight-card {
+      background: var(--cream-50); border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg); padding: 24px;
+    }
+    .insight-card__head {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+    }
+    .insight-card__title { font-family: var(--font-display); font-weight: 600; font-size: 18px; margin: 0; }
+    .insight-card__value {
+      font-family: var(--font-display); font-weight: 700; font-size: 36px;
+      letter-spacing: -0.02em; color: var(--ink); line-height: 1;
+    }
+    .insight-card__unit { font-size: 18px; color: var(--fg-muted); font-weight: 500; }
+    .insight-card__delta {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; font-weight: 600; margin-top: 6px;
+      padding: 3px 8px; border-radius: var(--radius-pill);
+    }
+    .insight-card__delta--up { background: var(--success-50); color: var(--success-500); }
+    .insight-card__delta--down { background: var(--danger-50); color: var(--danger-500); }
+    .insight-card__delta i { width: 12px; height: 12px; }
+
+    /* Bar chart */
+    .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 160px; padding-top: 8px; }
+    .chart-bar {
+      flex: 1; border-radius: 6px 6px 0 0; background: var(--rouge-100);
+      position: relative; min-width: 0; transition: background var(--dur-fast);
+    }
+    .chart-bar:hover { background: var(--rouge-300); }
+    .chart-bar.highlight { background: var(--rouge-500); }
+    .chart-bar.highlight:hover { background: var(--rouge-600); }
+    .chart-bar__label {
+      position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%);
+      font-size: 10px; color: var(--fg-muted); font-weight: 600; white-space: nowrap;
+    }
+    .chart-bar__val {
+      position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+      font-size: 10px; font-weight: 700; color: var(--ink); white-space: nowrap; display: none;
+    }
+    .chart-bar:hover .chart-bar__val { display: block; }
+
+    .chart-legend { display: flex; gap: 6px; margin-top: 32px; }
+    .chart-axis {
+      display: flex; justify-content: space-between; font-size: 10px; color: var(--fg-muted);
+      border-top: 1px solid var(--stone-200); padding-top: 6px; margin-top: 28px;
+    }
+
+    /* Donut */
+    .donut-wrap { display: flex; align-items: center; gap: 24px; }
+    .donut { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
+    .donut svg { transform: rotate(-90deg); }
+    .donut__center {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .donut__center-val { font-family: var(--font-display); font-weight: 700; font-size: 28px; }
+    .donut__center-label { font-size: 11px; color: var(--fg-muted); }
+    .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+    .donut-legend__item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .donut-legend__dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+    /* Top list */
+    .top-list { display: flex; flex-direction: column; gap: 0; }
+    .top-list__item {
+      display: grid; grid-template-columns: 24px 1fr auto; gap: 12px;
+      align-items: center; padding: 12px 0; border-bottom: 1px solid var(--stone-200);
+    }
+    .top-list__item:last-child { border: 0; }
+    .top-list__rank {
+      font-family: var(--font-display); font-weight: 700; font-size: 16px;
+      color: var(--fg-muted); text-align: center;
+    }
+    .top-list__item:nth-child(1) .top-list__rank { color: var(--rouge-500); }
+    .top-list__name { font-weight: 600; font-size: 14px; }
+    .top-list__meta { font-size: 12px; color: var(--fg-muted); margin-top: 1px; }
+    .top-list__val { font-family: var(--font-display); font-weight: 700; font-size: 16px; text-align: right; }
+    .top-list__sub { font-size: 11px; color: var(--fg-muted); text-align: right; }
+
+    /* Rating bars */
+    .rating-bars { display: flex; flex-direction: column; gap: 6px; }
+    .rating-bar {
+      display: grid; grid-template-columns: 50px 1fr 40px; gap: 10px; align-items: center; font-size: 13px;
+    }
+    .rating-bar__label { font-weight: 600; color: var(--fg-muted); display: flex; align-items: center; gap: 4px; }
+    .rating-bar__label i { width: 12px; height: 12px; color: var(--rouge-500); fill: var(--rouge-500); }
+    .rating-bar__track { height: 8px; background: var(--stone-100); border-radius: var(--radius-pill); overflow: hidden; }
+    .rating-bar__fill { height: 100%; border-radius: var(--radius-pill); background: var(--rouge-500); }
+    .rating-bar__count { color: var(--fg-muted); text-align: right; }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <aside class="sidebar">
+      <a class="sidebar__brand" href="index.html"><img src="../assets/logo-wordmark.svg" alt="nailed" /></a>
+      <button class="nav-item" onclick="location.href='index.html'"><i data-lucide="layout-dashboard"></i> Oversikt</button>
+      <button class="nav-item"><i data-lucide="calendar"></i> Kalender</button>
+      <button class="nav-item"><i data-lucide="list"></i> Bookinger <span class="nav-item__count">7</span></button>
+      <button class="nav-item"><i data-lucide="sparkles"></i> Tjenester</button>
+      <button class="nav-item"><i data-lucide="users"></i> Kunder</button>
+      <button class="nav-item"><i data-lucide="message-circle"></i> Meldinger <span class="nav-item__count">2</span></button>
+      <div class="sidebar__section">Salong</div>
+      <button class="nav-item" onclick="location.href='profil.html'"><i data-lucide="image"></i> Profil</button>
+      <button class="nav-item active"><i data-lucide="bar-chart-3"></i> Innsikt</button>
+      <button class="nav-item"><i data-lucide="crown"></i> Abonnement</button>
+      <button class="nav-item" onclick="location.href='settings.html'"><i data-lucide="settings"></i> Innstillinger</button>
+      <div class="sidebar__footer">
+        <div class="sidebar__avatar">SL</div>
+        <div><div class="sidebar__user">Studio Lakk</div><div class="sidebar__role">Linn Andersen</div></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1 class="topbar__title">Innsikt</h1>
+          <div class="topbar__sub">Statistikk og trender for Studio Lakk.</div>
+        </div>
+        <div class="topbar__actions">
+          <button class="btn btn-ghost"><i data-lucide="download"></i> Eksporter</button>
+        </div>
+      </div>
+
+      <div class="period-nav" id="periodNav">
+        <button class="period-nav__btn" data-period="7d">7 dager</button>
+        <button class="period-nav__btn active" data-period="30d">30 dager</button>
+        <button class="period-nav__btn" data-period="90d">90 dager</button>
+        <button class="period-nav__btn" data-period="12m">12 mnd</button>
+      </div>
+
+      <!-- KPI row -->
+      <div class="insight-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="insight-card">
+          <div style="font-size:13px; color:var(--fg-muted); font-weight:600; margin-bottom:8px;">Bookinger</div>
+          <div class="insight-card__value">164</div>
+          <div class="insight-card__delta insight-card__delta--up"><i data-lucide="trending-up"></i> +22% vs. forrige</div>
+        </div>
+        <div class="insight-card">
+          <div style="font-size:13px; color:var(--fg-muted); font-weight:600; margin-bottom:8px;">Omsetning</div>
+          <div class="insight-card__value">112 480 <span class="insight-card__unit">kr</span></div>
+          <div class="insight-card__delta insight-card__delta--up"><i data-lucide="trending-up"></i> +18%</div>
+        </div>
+        <div class="insight-card">
+          <div style="font-size:13px; color:var(--fg-muted); font-weight:600; margin-bottom:8px;">Belegg</div>
+          <div class="insight-card__value">84<span class="insight-card__unit">%</span></div>
+          <div class="insight-card__delta insight-card__delta--down"><i data-lucide="trending-down"></i> -2%</div>
+        </div>
+        <div class="insight-card">
+          <div style="font-size:13px; color:var(--fg-muted); font-weight:600; margin-bottom:8px;">Nye kunder</div>
+          <div class="insight-card__value">38</div>
+          <div class="insight-card__delta insight-card__delta--up"><i data-lucide="trending-up"></i> +31%</div>
+        </div>
+      </div>
+
+      <div class="insight-grid">
+        <!-- Bookinger per uke chart -->
+        <div class="insight-card insight-full">
+          <div class="insight-card__head">
+            <h3 class="insight-card__title">Bookinger siste 4 uker</h3>
+            <span style="font-size:13px; color:var(--fg-muted);">Totalt: 164</span>
+          </div>
+          <div class="chart-bars">
+            <div class="chart-bar" style="height:55%;"><span class="chart-bar__label">Man</span><span class="chart-bar__val">6</span></div>
+            <div class="chart-bar" style="height:75%;"><span class="chart-bar__label">Tir</span><span class="chart-bar__val">8</span></div>
+            <div class="chart-bar highlight" style="height:95%;"><span class="chart-bar__label">Ons</span><span class="chart-bar__val">10</span></div>
+            <div class="chart-bar" style="height:80%;"><span class="chart-bar__label">Tor</span><span class="chart-bar__val">9</span></div>
+            <div class="chart-bar highlight" style="height:100%;"><span class="chart-bar__label">Fre</span><span class="chart-bar__val">11</span></div>
+            <div class="chart-bar" style="height:65%;"><span class="chart-bar__label">Lør</span><span class="chart-bar__val">7</span></div>
+            <div class="chart-bar" style="height:10%;"><span class="chart-bar__label">Søn</span><span class="chart-bar__val">0</span></div>
+          </div>
+          <div class="chart-axis">
+            <span>Snitt per dag: 7.3</span>
+            <span>Mest populær: Fredag</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-grid">
+        <!-- Behandlinger fordeling -->
+        <div class="insight-card">
+          <div class="insight-card__head">
+            <h3 class="insight-card__title">Behandlinger</h3>
+          </div>
+          <div class="donut-wrap">
+            <div class="donut">
+              <svg width="140" height="140" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="55" fill="none" stroke="var(--stone-100)" stroke-width="16" />
+                <circle cx="70" cy="70" r="55" fill="none" stroke="var(--rouge-500)" stroke-width="16" stroke-dasharray="138 346" stroke-linecap="round" />
+                <circle cx="70" cy="70" r="55" fill="none" stroke="var(--rouge-300)" stroke-width="16" stroke-dasharray="90 346" stroke-dashoffset="-138" stroke-linecap="round" />
+                <circle cx="70" cy="70" r="55" fill="none" stroke="var(--champagne-500)" stroke-width="16" stroke-dasharray="69 346" stroke-dashoffset="-228" stroke-linecap="round" />
+                <circle cx="70" cy="70" r="55" fill="none" stroke="var(--sage-500)" stroke-width="16" stroke-dasharray="49 346" stroke-dashoffset="-297" stroke-linecap="round" />
+              </svg>
+              <div class="donut__center">
+                <div class="donut__center-val">164</div>
+                <div class="donut__center-label">bookinger</div>
+              </div>
+            </div>
+            <div class="donut-legend">
+              <div class="donut-legend__item"><span class="donut-legend__dot" style="background:var(--rouge-500);"></span> Gel manikyr · 40%</div>
+              <div class="donut-legend__item"><span class="donut-legend__dot" style="background:var(--rouge-300);"></span> Gel + neglekunst · 26%</div>
+              <div class="donut-legend__item"><span class="donut-legend__dot" style="background:var(--champagne-500);"></span> Pedikyr · 20%</div>
+              <div class="donut-legend__item"><span class="donut-legend__dot" style="background:var(--sage-500);"></span> Annet · 14%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Anmeldelser -->
+        <div class="insight-card">
+          <div class="insight-card__head">
+            <h3 class="insight-card__title">Anmeldelser</h3>
+            <span style="font-family:var(--font-display); font-weight:700; font-size:28px;">4.9</span>
+          </div>
+          <div class="rating-bars">
+            <div class="rating-bar">
+              <div class="rating-bar__label">5 <i data-lucide="star"></i></div>
+              <div class="rating-bar__track"><div class="rating-bar__fill" style="width:82%;"></div></div>
+              <div class="rating-bar__count">256</div>
+            </div>
+            <div class="rating-bar">
+              <div class="rating-bar__label">4 <i data-lucide="star"></i></div>
+              <div class="rating-bar__track"><div class="rating-bar__fill" style="width:12%; background:var(--rouge-300);"></div></div>
+              <div class="rating-bar__count">38</div>
+            </div>
+            <div class="rating-bar">
+              <div class="rating-bar__label">3 <i data-lucide="star"></i></div>
+              <div class="rating-bar__track"><div class="rating-bar__fill" style="width:4%; background:var(--champagne-500);"></div></div>
+              <div class="rating-bar__count">12</div>
+            </div>
+            <div class="rating-bar">
+              <div class="rating-bar__label">2 <i data-lucide="star"></i></div>
+              <div class="rating-bar__track"><div class="rating-bar__fill" style="width:1.5%; background:var(--stone-300);"></div></div>
+              <div class="rating-bar__count">4</div>
+            </div>
+            <div class="rating-bar">
+              <div class="rating-bar__label">1 <i data-lucide="star"></i></div>
+              <div class="rating-bar__track"><div class="rating-bar__fill" style="width:0.7%; background:var(--stone-300);"></div></div>
+              <div class="rating-bar__count">2</div>
+            </div>
+          </div>
+          <div style="margin-top:16px; font-size:13px; color:var(--fg-muted);">312 anmeldelser totalt · 14 nye denne måneden</div>
+        </div>
+      </div>
+
+      <div class="insight-grid">
+        <!-- Mest populære behandlinger -->
+        <div class="insight-card">
+          <div class="insight-card__head">
+            <h3 class="insight-card__title">Mest bookede behandlinger</h3>
+          </div>
+          <div class="top-list">
+            <div class="top-list__item">
+              <div class="top-list__rank">1</div>
+              <div><div class="top-list__name">Gel manikyr</div><div class="top-list__meta">75 min · Linn eller Maja</div></div>
+              <div><div class="top-list__val">66</div><div class="top-list__sub">bookinger</div></div>
+            </div>
+            <div class="top-list__item">
+              <div class="top-list__rank">2</div>
+              <div><div class="top-list__name">Gel + neglekunst</div><div class="top-list__meta">90 min · Maja</div></div>
+              <div><div class="top-list__val">43</div><div class="top-list__sub">bookinger</div></div>
+            </div>
+            <div class="top-list__item">
+              <div class="top-list__rank">3</div>
+              <div><div class="top-list__name">Pedikyr — luksus</div><div class="top-list__meta">60 min · Linn</div></div>
+              <div><div class="top-list__val">28</div><div class="top-list__sub">bookinger</div></div>
+            </div>
+            <div class="top-list__item">
+              <div class="top-list__rank">4</div>
+              <div><div class="top-list__name">Klassisk manikyr</div><div class="top-list__meta">45 min · Linn</div></div>
+              <div><div class="top-list__val">15</div><div class="top-list__sub">bookinger</div></div>
+            </div>
+            <div class="top-list__item">
+              <div class="top-list__rank">5</div>
+              <div><div class="top-list__name">French manikyr</div><div class="top-list__meta">60 min · Maja</div></div>
+              <div><div class="top-list__val">12</div><div class="top-list__sub">bookinger</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Topp-ansatte -->
+        <div class="insight-card">
+          <div class="insight-card__head">
+            <h3 class="insight-card__title">Teamprestasjoner</h3>
+          </div>
+          <div class="top-list">
+            <div class="top-list__item">
+              <div class="top-list__rank">1</div>
+              <div><div class="top-list__name">Maja Holm</div><div class="top-list__meta">Neglestylist · Gel, Neglekunst</div></div>
+              <div><div class="top-list__val">78</div><div class="top-list__sub">bookinger · 4.9 ★</div></div>
+            </div>
+            <div class="top-list__item">
+              <div class="top-list__rank">2</div>
+              <div><div class="top-list__name">Linn Andersen</div><div class="top-list__meta">Eier · Manikyr, Pedikyr</div></div>
+              <div><div class="top-list__val">72</div><div class="top-list__sub">bookinger · 4.9 ★</div></div>
+            </div>
+            <div class="top-list__item">
+              <div class="top-list__rank">3</div>
+              <div><div class="top-list__name">Anna Kristiansen</div><div class="top-list__meta">Lærling · Klassisk manikyr</div></div>
+              <div><div class="top-list__val">14</div><div class="top-list__sub">bookinger · 4.7 ★</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kundedata -->
+      <div class="insight-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="insight-card">
+          <div style="font-size:13px; color:var(--fg-muted); font-weight:600; margin-bottom:8px;">Returkunder</div>
+          <div class="insight-card__value">68<span class="insight-card__unit">%</span></div>
+          <div style="font-size:12px; color:var(--fg-muted); margin-top:6px;">av alle kunder booker igjen</div>
+        </div>
+        <div class="insight-card">
+          <div style="font-size:13px; color:var(--fg-muted); font-weight:600; margin-bottom:8px;">Snitt per kunde</div>
+          <div class="insight-card__value">686 <span class="insight-card__unit">kr</span></div>
+          <div style="font-size:12px; color:var(--fg-muted); margin-top:6px;">gjennomsnittlig ordrestørrelse</div>
+        </div>
+        <div class="insight-card">
+          <div style="font-size:13px; color:var(--fg-muted); font-weight:600; margin-bottom:8px;">No-shows</div>
+          <div class="insight-card__value">3<span class="insight-card__unit">%</span></div>
+          <div style="font-size:12px; color:var(--fg-muted); margin-top:6px;">5 av 164 bookinger</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+    lucide.createIcons();
+
+    document.getElementById('periodNav').addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-period]');
+      if (!btn) return;
+      document.querySelectorAll('.period-nav__btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+  </script>
+</body>
+</html>
