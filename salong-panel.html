@@ -1583,7 +1583,7 @@
       if (popEl) {
         popEl.innerHTML = '<i data-lucide="star" style="width:13px; height:13px; color:var(--rouge-500); fill:' +
           (popularTotal > 0 ? 'var(--rouge-500)' : 'transparent') + '; vertical-align:-2px;"></i> ' +
-          '<strong>' + popularTotal + '</strong> / 5 populære';
+          '<strong>' + popularTotal + '</strong> / 3 populære';
       }
 
       var teamById = {};
@@ -1631,8 +1631,8 @@
           // The popular star: disabled (with tooltip) when the cap is reached
           // AND this service isn't already flagged. Clicking toggles in place.
           var isPop = !!s.is_popular;
-          var capped = !isPop && popularTotal >= 5;
-          var btnTitle = isPop ? 'Fjern fra populære' : (capped ? 'Maks 5 populære' : 'Marker som populær');
+          var capped = !isPop && popularTotal >= 3;
+          var btnTitle = isPop ? 'Fjern fra populære' : (capped ? 'Maks 3 populære' : 'Marker som populær');
           var starBtn = '<button type="button" class="popular-btn' + (isPop ? ' is-popular' : '') + '" ' +
             'data-popular="' + s.id + '" ' +
             (capped ? 'disabled ' : '') +

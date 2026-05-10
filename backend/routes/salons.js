@@ -278,14 +278,14 @@ router.post('/:id/services', requireAuth, asyncRoute(async (req, res) => {
     if (!cat) throw new HttpError(400, 'bad_category', 'Ugyldig kategori.');
   }
 
-  // Cap of 5 popular services per salon.
+  // Cap of 3 popular services per salon.
   if (data.is_popular) {
     const popRow = await queryOne(
       `SELECT COUNT(*) AS n FROM services WHERE salon_id = ? AND is_popular = 1`,
       [id]
     );
-    if (Number(popRow.n) >= 5) {
-      throw new HttpError(409, 'too_many_popular', 'Du kan maks ha 5 populære behandlinger.');
+    if (Number(popRow.n) >= 3) {
+      throw new HttpError(409, 'too_many_popular', 'Du kan maks ha 3 populære behandlinger.');
     }
   }
 
@@ -342,7 +342,7 @@ router.patch('/:salonId/services/:serviceId', requireAuth, asyncRoute(async (req
     if (!cat) throw new HttpError(400, 'bad_category', 'Ugyldig kategori.');
   }
 
-  // Enforce the 5-popular cap when toggling on (and the service isn't already popular).
+  // Enforce the 3-popular cap when toggling on (and the service isn't already popular).
   if (patch.is_popular === true) {
     const current = await queryOne(
       `SELECT is_popular FROM services WHERE id = ?`,
@@ -353,8 +353,8 @@ router.patch('/:salonId/services/:serviceId', requireAuth, asyncRoute(async (req
         `SELECT COUNT(*) AS n FROM services WHERE salon_id = ? AND is_popular = 1`,
         [salonId]
       );
-      if (Number(popRow.n) >= 5) {
-        throw new HttpError(409, 'too_many_popular', 'Du kan maks ha 5 populære behandlinger.');
+      if (Number(popRow.n) >= 3) {
+        throw new HttpError(409, 'too_many_popular', 'Du kan maks ha 3 populære behandlinger.');
       }
     }
   }
