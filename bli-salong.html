@@ -78,8 +78,8 @@
         </div>
 
         <div class="form-group">
-          <label>By</label>
-          <input class="form-input" name="city" type="text" required maxlength="128" />
+          <label>By/område</label>
+          <input class="form-input" name="city" type="text" required maxlength="128" autocomplete="off" placeholder="Begynn å skrive…" />
         </div>
         <div class="form-group">
           <label>Postnummer</label>
@@ -135,6 +135,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="/assets/auth.js"></script>
   <script src="/assets/forms.js"></script>
+  <script src="/assets/no-places.js"></script>
   <script defer src="/assets/cookie-banner.js"></script>
   <script>
     var statusContainer = document.getElementById('statusContainer');
@@ -231,6 +232,10 @@
       var data = await res.json();
       renderStatus(data.application);
       NailedForms.enhanceUrlInputs();
+      var cityInputEl = document.querySelector('input[name=city]');
+      if (cityInputEl && window.NailedPlaces) {
+        window.NailedPlaces.attachTypeahead(cityInputEl);
+      }
       window.lucide && window.lucide.createIcons();
     })();
   </script>
