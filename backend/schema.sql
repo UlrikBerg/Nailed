@@ -248,6 +248,72 @@ CREATE TABLE IF NOT EXISTS salon_images (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
+-- salon_hours
+-- Opening hours per weekday. Weekday uses ISO 8601: 1=Monday … 7=Sunday.
+-- A row with is_closed=1 means the salon is closed that day.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS salon_hours (
+  salon_id    BIGINT UNSIGNED NOT NULL,
+  weekday     TINYINT UNSIGNED NOT NULL,
+  is_closed   TINYINT(1) NOT NULL DEFAULT 0,
+  open_at     TIME DEFAULT NULL,
+  close_at    TIME DEFAULT NULL,
+  updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (salon_id, weekday),
+  CONSTRAINT fk_hours_salon FOREIGN KEY (salon_id) REFERENCES salons(id) ON DELETE CASCADE,
+  CONSTRAINT chk_hours_weekday CHECK (weekday BETWEEN 1 AND 7)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- salon_amenities
+-- Pre-defined feature codes the salon advertises (bio_gel, wifi, parking, ...).
+-- The frontend owns the icon + label mapping; backend just stores the code.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS salon_amenities (
+  salon_id   BIGINT UNSIGNED NOT NULL,
+  amenity    VARCHAR(40) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (salon_id, amenity),
+  CONSTRAINT fk_amenities_salon FOREIGN KEY (salon_id) REFERENCES salons(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- team_members
+-- Stylists/staff at a salon. user_id is optional — set when a member is also
+-- a registered nailed user (so they can log in with their own account later).
+-- Names are not unique; a row is identified by id.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS team_members (
+  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  salon_id    BIGINT UNSIGNED NOT NULL,
+  user_id     BIGINT UNSIGNED DEFAULT NULL,
+  name        VARCHAR(255) NOT NULL,
+  role        VARCHAR(255) DEFAULT NULL,
+  bio         TEXT DEFAULT NULL,
+  active      TINYINT(1) NOT NULL DEFAULT 1,
+  position    SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_salon (salon_id, position),
+  CONSTRAINT fk_team_salon FOREIGN KEY (salon_id) REFERENCES salons(id) ON DELETE CASCADE,
+  CONSTRAINT fk_team_user  FOREIGN KEY (user_id)  REFERENCES users(id)  ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- service_team_members
+-- A service is offered by zero or more team members. Empty link means "anyone".
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS service_team_members (
+  service_id      BIGINT UNSIGNED NOT NULL,
+  team_member_id  BIGINT UNSIGNED NOT NULL,
+  PRIMARY KEY (service_id, team_member_id),
+  KEY idx_member (team_member_id),
+  CONSTRAINT fk_stm_service FOREIGN KEY (service_id)     REFERENCES services(id)     ON DELETE CASCADE,
+  CONSTRAINT fk_stm_member  FOREIGN KEY (team_member_id) REFERENCES team_members(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
 -- audit_log
 -- Append-only record of admin actions and sensitive state transitions.
 -- -----------------------------------------------------------------------------

@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const meRoutes = require('./routes/me');
 const salonRoutes = require('./routes/salons');
 const imageRoutes = require('./routes/images');
+const teamRoutes = require('./routes/team');
 const bookingRoutes = require('./routes/bookings');
 const favoriteRoutes = require('./routes/favorites');
 const salonApplicationRoutes = require('./routes/salon-applications');
@@ -79,6 +80,7 @@ function buildApp() {
   app.use('/api/v1/me', meRoutes);
   app.use('/api/v1/salons', salonRoutes);
   app.use('/api/v1/salons', imageRoutes);
+  app.use('/api/v1/salons', teamRoutes);
   app.use('/api/v1/bookings', bookingRoutes);
   app.use('/api/v1/favorites', favoriteRoutes);
   app.use('/api/v1/salon-applications', salonApplicationRoutes);

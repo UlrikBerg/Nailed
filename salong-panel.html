@@ -127,6 +127,115 @@
     }
     .profile-contact__row i { width: 16px; height: 16px; color: var(--fg-muted); flex-shrink: 0; }
     .profile-contact__row--empty { color: var(--fg-muted); font-style: italic; }
+
+    /* Åpningstider — match /partner/profil.html */
+    .profile-hours { display: flex; flex-direction: column; gap: 0; }
+    .profile-hours__row {
+      display: flex; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid var(--stone-200);
+      font-size: 14px;
+    }
+    .profile-hours__row:last-child { border: 0; }
+    .profile-hours__day { font-weight: 600; }
+    .profile-hours__time { color: var(--fg-muted); }
+    .profile-hours__time.closed { color: var(--danger-500); }
+    .profile-hours__row.today {
+      background: var(--rouge-50); margin: 0 -12px;
+      padding: 10px 12px; border-radius: var(--radius-sm);
+    }
+    .profile-hours__row.today .profile-hours__day { color: var(--rouge-500); }
+
+    /* Team — match /partner/profil.html */
+    .profile-team { display: flex; flex-direction: column; gap: 12px; }
+    .profile-team__member {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px; border-radius: var(--radius-md);
+      background: var(--cream-100);
+    }
+    .profile-team__avatar {
+      width: 44px; height: 44px; border-radius: var(--radius-pill);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 700; font-size: 16px;
+      flex-shrink: 0; color: #fff;
+    }
+    .profile-team__name { font-weight: 600; font-size: 14px; }
+    .profile-team__role { font-size: 12px; color: var(--fg-muted); margin-top: 2px; }
+    .profile-team__status {
+      margin-left: auto; font-size: 11px; font-weight: 600;
+      padding: 3px 8px; border-radius: var(--radius-pill);
+    }
+    .profile-team__status--active { background: var(--success-50); color: var(--success-500); }
+    .profile-team__status--inactive { background: var(--stone-200); color: var(--fg-muted); }
+    .profile-team__bio { font-size: 13px; color: var(--ink); margin-top: 4px; line-height: 1.4; }
+    .profile-team__empty {
+      color: var(--fg-muted); font-style: italic; font-size: 14px;
+      padding: 8px 0;
+    }
+
+    /* Hours editor */
+    .hours-edit-row {
+      display: grid; grid-template-columns: 110px 110px 1fr 1fr;
+      gap: 12px; align-items: center; padding: 10px 0;
+      border-bottom: 1px solid var(--stone-200);
+    }
+    .hours-edit-row:last-child { border: 0; }
+    .hours-edit-row__day { font-weight: 600; font-size: 14px; }
+    .hours-edit-row__closed { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--fg-muted); }
+
+    /* Amenities checkbox grid */
+    .amen-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .amen-card {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px; border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md); background: var(--cream-100);
+      cursor: pointer; font-size: 14px;
+      transition: border-color var(--dur-fast), background var(--dur-fast);
+    }
+    .amen-card:hover { border-color: var(--rouge-300); }
+    .amen-card input { margin: 0; }
+    .amen-card i { width: 16px; height: 16px; color: var(--fg-muted); }
+    .amen-card.checked { border-color: var(--rouge-500); background: var(--rouge-50); }
+
+    /* Team editor cards */
+    .team-edit-list { display: flex; flex-direction: column; gap: 12px; }
+    .team-edit-card {
+      border: 1px solid var(--stone-200); border-radius: var(--radius-md);
+      padding: 14px; background: var(--cream-100);
+    }
+    .team-edit-card__head {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .team-edit-card__main { flex: 1; min-width: 0; }
+    .team-edit-card__actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .team-edit-form {
+      margin-top: 12px; display: grid; gap: 10px;
+      grid-template-columns: 1fr 1fr;
+    }
+    .team-edit-form .form-group--full { grid-column: 1 / -1; }
+
+    /* Service team-member multiselect */
+    .service-team-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px; margin-top: 6px;
+    }
+    .service-team-grid label {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md); background: var(--cream-100);
+      font-size: 13px; cursor: pointer;
+    }
+    .service-team-grid label:hover { border-color: var(--rouge-300); }
+
+    /* Service-row team chips */
+    .service-team-chip {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: var(--radius-pill);
+      background: var(--cream-100); border: 1px solid var(--stone-200);
+      color: var(--fg-muted); margin-right: 4px;
+    }
   </style>
 </head>
 <body>
@@ -256,6 +365,16 @@
               <label>Pris (kr)</label>
               <input class="form-input" name="price_nok" type="number" min="0" max="100000" required />
             </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Tilbys av</label>
+              <div class="service-team-grid" id="serviceTeamGrid"></div>
+              <div id="serviceTeamEmpty" style="display:none; font-size: 13px; color: var(--fg-muted); margin-top: 6px;">
+                Ingen team-medlemmer lagt til ennå.
+              </div>
+              <div style="font-size: 12px; color: var(--fg-muted); margin-top: 6px;">
+                La være tom for at alle kan tilby tjenesten.
+              </div>
+            </div>
             <div style="grid-column: 1 / -1; display:flex; gap:8px;">
               <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
               <button class="btn btn-ghost" type="button" id="cancelServiceBtn">Avbryt</button>
@@ -342,6 +461,28 @@
 
               <div class="profile-card">
                 <div class="profile-card__head">
+                  <h3 class="profile-card__title">Hva tilbys</h3>
+                  <button class="btn btn-ghost btn-sm" data-edit="amenities"><i data-lucide="pencil"></i> Rediger</button>
+                </div>
+                <div class="profile-chips" id="phAmenities"></div>
+                <div id="phAmenitiesEmpty" class="profile-about profile-about--empty" style="display:none;">
+                  Ingen valgt — klikk Rediger for å markere fasiliteter.
+                </div>
+              </div>
+
+              <div class="profile-card">
+                <div class="profile-card__head">
+                  <h3 class="profile-card__title">Team</h3>
+                  <button class="btn btn-ghost btn-sm" data-edit="team"><i data-lucide="plus"></i> Legg til</button>
+                </div>
+                <div class="profile-team" id="phTeam"></div>
+                <div id="phTeamEmpty" class="profile-team__empty" style="display:none;">
+                  Ingen team-medlemmer enda.
+                </div>
+              </div>
+
+              <div class="profile-card">
+                <div class="profile-card__head">
                   <h3 class="profile-card__title">Kontaktinformasjon</h3>
                   <button class="btn btn-ghost btn-sm" data-edit="contact"><i data-lucide="pencil"></i> Rediger</button>
                 </div>
@@ -361,6 +502,14 @@
                 <div id="phServicesAll" style="margin-top:12px; text-align:center; display:none;">
                   <button class="btn btn-ghost btn-sm" data-tab-link="tjenester">Vis alle behandlinger</button>
                 </div>
+              </div>
+
+              <div class="profile-card">
+                <div class="profile-card__head">
+                  <h3 class="profile-card__title">Åpningstider</h3>
+                  <button class="btn btn-ghost btn-sm" data-edit="hours"><i data-lucide="pencil"></i> Rediger</button>
+                </div>
+                <div class="profile-hours" id="phHours"></div>
               </div>
 
               <div class="profile-card">
@@ -478,6 +627,61 @@
               </div>
             </form>
           </div>
+
+          <!-- Åpningstider editor -->
+          <div class="panel" id="hoursEditPanel">
+            <div class="panel__head">
+              <h3>Åpningstider</h3>
+              <div style="font-size: 13px; color: var(--fg-muted);">Sett start- og sluttid for hver dag, eller marker dagen som stengt.</div>
+            </div>
+            <div id="hoursEditList"></div>
+            <div style="margin-top:16px; display:flex; gap:8px;">
+              <button class="btn btn-primary" type="button" id="saveHoursBtn"><i data-lucide="save"></i> Lagre åpningstider</button>
+            </div>
+          </div>
+
+          <!-- Team editor -->
+          <div class="panel" id="teamEditPanel">
+            <div class="panel__head">
+              <h3>Team</h3>
+              <div style="font-size: 13px; color: var(--fg-muted);">Legg til, rediger og skjul team-medlemmer.</div>
+            </div>
+
+            <form id="teamAddForm" class="settings-grid" style="margin-bottom: 20px;">
+              <div class="form-group">
+                <label>Navn</label>
+                <input class="form-input" name="name" type="text" required maxlength="120" />
+              </div>
+              <div class="form-group">
+                <label>Rolle</label>
+                <input class="form-input" name="role" type="text" maxlength="120" placeholder="f.eks. Manikyrist" />
+              </div>
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Bio (valgfri)</label>
+                <textarea class="form-input" name="bio" rows="2" maxlength="500"></textarea>
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <button class="btn btn-primary" type="submit"><i data-lucide="plus"></i> Legg til medlem</button>
+              </div>
+            </form>
+
+            <div class="team-edit-list" id="teamEditList"></div>
+            <div id="teamEditEmpty" style="display:none; padding: 16px 0; color: var(--fg-muted); font-style: italic;">
+              Ingen team-medlemmer enda.
+            </div>
+          </div>
+
+          <!-- Amenities editor -->
+          <div class="panel" id="amenitiesEditPanel">
+            <div class="panel__head">
+              <h3>Hva tilbys</h3>
+              <div style="font-size: 13px; color: var(--fg-muted);">Marker fasilitetene salongen tilbyr.</div>
+            </div>
+            <div class="amen-grid" id="amenitiesEditGrid"></div>
+            <div style="margin-top:16px; display:flex; gap:8px;">
+              <button class="btn btn-primary" type="button" id="saveAmenitiesBtn"><i data-lucide="save"></i> Lagre fasiliteter</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -508,6 +712,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="/assets/auth.js"></script>
   <script src="/assets/forms.js"></script>
+  <script src="/assets/amenities.js"></script>
   <script>
     var salon = null;
 
@@ -546,6 +751,9 @@
     }
 
     var currentImages = [];
+    var currentHours = [];
+    var currentTeam = [];
+    var currentAmenities = [];
 
     async function loadSalon() {
       var res = await NailedAuth.api('/api/v1/salons/me/own');
@@ -558,6 +766,9 @@
       var data = await res.json();
       salon = data.salon;
       currentImages = data.images || [];
+      currentHours = data.hours || [];
+      currentTeam = data.team || [];
+      currentAmenities = data.amenities || [];
       document.getElementById('dashTitle').innerHTML = escapeHtml(salon.name);
       document.getElementById('dashSub').textContent = salon.city;
       document.getElementById('publicLink').href = '/salon.html?slug=' + encodeURIComponent(salon.slug);
@@ -575,7 +786,329 @@
       renderCover(salon, currentImages);
       renderGallery(salon, currentImages);
       renderProfileView(salon, currentImages);
+      renderHoursView();
+      renderTeamView();
+      renderAmenitiesView();
+      renderHoursEditor();
+      renderTeamEditor();
+      renderAmenitiesEditor();
       return salon;
+    }
+
+    /* ---------- HOURS (view + editor) ---------- */
+    function trimTime(t) {
+      if (!t) return '';
+      // backend may send "HH:MM:SS" — trim to HH:MM
+      return String(t).slice(0, 5);
+    }
+
+    function hoursByWeekday() {
+      var out = {};
+      currentHours.forEach(function (h) { out[h.weekday] = h; });
+      return out;
+    }
+
+    function renderHoursView() {
+      var el = document.getElementById('phHours');
+      if (!el) return;
+      var byDay = hoursByWeekday();
+      var todayIso = window.NailedWeekdays.todayIso();
+      var html = '';
+      for (var w = 1; w <= 7; w++) {
+        var row = byDay[w];
+        var isToday = w === todayIso;
+        var time;
+        if (!row || row.is_closed) {
+          time = '<span class="profile-hours__time closed">Stengt</span>';
+        } else {
+          time = '<span class="profile-hours__time">' +
+            escapeHtml(trimTime(row.open_at)) + ' – ' + escapeHtml(trimTime(row.close_at)) +
+            '</span>';
+        }
+        html += '<div class="profile-hours__row' + (isToday ? ' today' : '') + '">' +
+          '<span class="profile-hours__day">' + window.NailedWeekdays.long[w] + '</span>' +
+          time +
+          '</div>';
+      }
+      el.innerHTML = html;
+    }
+
+    function renderHoursEditor() {
+      var list = document.getElementById('hoursEditList');
+      if (!list) return;
+      var byDay = hoursByWeekday();
+      var html = '';
+      for (var w = 1; w <= 7; w++) {
+        var row = byDay[w] || { is_closed: 1, open_at: '09:00:00', close_at: '17:00:00' };
+        var closed = !!row.is_closed;
+        html += '<div class="hours-edit-row" data-weekday="' + w + '">' +
+          '<div class="hours-edit-row__day">' + window.NailedWeekdays.long[w] + '</div>' +
+          '<label class="hours-edit-row__closed">' +
+            '<input type="checkbox" data-closed' + (closed ? ' checked' : '') + ' /> Stengt' +
+          '</label>' +
+          '<input class="form-input" type="time" data-open value="' + escapeHtml(trimTime(row.open_at) || '09:00') + '"' + (closed ? ' disabled' : '') + ' />' +
+          '<input class="form-input" type="time" data-close value="' + escapeHtml(trimTime(row.close_at) || '17:00') + '"' + (closed ? ' disabled' : '') + ' />' +
+          '</div>';
+      }
+      list.innerHTML = html;
+      list.querySelectorAll('[data-closed]').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+          var rowEl = this.closest('.hours-edit-row');
+          var disabled = this.checked;
+          rowEl.querySelector('[data-open]').disabled = disabled;
+          rowEl.querySelector('[data-close]').disabled = disabled;
+        });
+      });
+    }
+
+    async function saveHours() {
+      var rows = document.querySelectorAll('#hoursEditList .hours-edit-row');
+      var hours = [];
+      var bad = false;
+      rows.forEach(function (r) {
+        var weekday = parseInt(r.getAttribute('data-weekday'), 10);
+        var closed = r.querySelector('[data-closed]').checked;
+        var open = r.querySelector('[data-open]').value;
+        var close = r.querySelector('[data-close]').value;
+        if (!closed && (!open || !close)) bad = true;
+        if (!closed && open >= close) bad = true;
+        hours.push({
+          weekday: weekday,
+          is_closed: closed ? 1 : 0,
+          open_at: closed ? null : open,
+          close_at: closed ? null : close,
+        });
+      });
+      if (bad) {
+        NailedForms.toast('Sjekk at åpningstider er gyldige (åpning før stenging).', { type: 'error' });
+        return;
+      }
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/hours', {
+        method: 'PUT', body: { hours: hours },
+      });
+      if (!res.ok) {
+        var data = await res.json().catch(function () { return {}; });
+        NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre åpningstider', { type: 'error' });
+        return;
+      }
+      NailedForms.toast('Åpningstider lagret');
+      await loadSalon();
+    }
+
+    /* ---------- TEAM (view + editor) ---------- */
+    function teamInitials(name) {
+      var parts = String(name || '').trim().split(/\s+/);
+      var ini = (parts[0] ? parts[0][0] : '') + (parts.length > 1 ? parts[parts.length - 1][0] : '');
+      return ini.toUpperCase() || '?';
+    }
+    var TEAM_GRADIENTS = [
+      'linear-gradient(135deg, #FFC4D6, #EE3F7E)',
+      'linear-gradient(135deg, #DDE3D2, #8DA079)',
+      'linear-gradient(135deg, #F4ECDF, #C9B79A)',
+      'linear-gradient(135deg, #FFE0E9, #FFC4D6)',
+      'linear-gradient(135deg, #ECDFCB, #C9B79A)',
+    ];
+    function teamGradient(id) {
+      return TEAM_GRADIENTS[Math.abs(parseInt(id, 10) || 0) % TEAM_GRADIENTS.length];
+    }
+
+    function renderTeamView() {
+      var el = document.getElementById('phTeam');
+      var empty = document.getElementById('phTeamEmpty');
+      if (!el) return;
+      var active = currentTeam.filter(function (m) { return m.active; });
+      if (!active.length) {
+        el.innerHTML = '';
+        empty.style.display = '';
+        return;
+      }
+      empty.style.display = 'none';
+      el.innerHTML = active.map(function (m) {
+        return '<div class="profile-team__member">' +
+          '<div class="profile-team__avatar" style="background:' + teamGradient(m.id) + ';">' + escapeHtml(teamInitials(m.name)) + '</div>' +
+          '<div>' +
+            '<div class="profile-team__name">' + escapeHtml(m.name || '') + '</div>' +
+            (m.role ? '<div class="profile-team__role">' + escapeHtml(m.role) + '</div>' : '') +
+          '</div>' +
+          '<span class="profile-team__status profile-team__status--active">Aktiv</span>' +
+        '</div>';
+      }).join('');
+    }
+
+    function renderTeamEditor() {
+      var list = document.getElementById('teamEditList');
+      var empty = document.getElementById('teamEditEmpty');
+      if (!list) return;
+      if (!currentTeam.length) {
+        list.innerHTML = '';
+        empty.style.display = '';
+        return;
+      }
+      empty.style.display = 'none';
+      list.innerHTML = currentTeam.map(function (m) {
+        var active = !!m.active;
+        return '<div class="team-edit-card" data-member="' + m.id + '">' +
+          '<div class="team-edit-card__head">' +
+            '<div class="profile-team__avatar" style="background:' + teamGradient(m.id) + ';">' + escapeHtml(teamInitials(m.name)) + '</div>' +
+            '<div class="team-edit-card__main">' +
+              '<div class="profile-team__name">' + escapeHtml(m.name || '') + '</div>' +
+              (m.role ? '<div class="profile-team__role">' + escapeHtml(m.role) + '</div>' : '') +
+              (m.bio ? '<div class="profile-team__bio">' + escapeHtml(m.bio) + '</div>' : '') +
+            '</div>' +
+            '<span class="profile-team__status ' + (active ? 'profile-team__status--active' : 'profile-team__status--inactive') + '">' +
+              (active ? 'Aktiv' : 'Skjult') + '</span>' +
+          '</div>' +
+          '<div class="team-edit-card__actions" style="margin-top:10px;">' +
+            '<button class="btn btn-ghost btn-sm" data-team-edit="' + m.id + '"><i data-lucide="pencil"></i> Rediger</button>' +
+            '<button class="btn btn-ghost btn-sm" data-team-toggle="' + m.id + '">' +
+              (active ? '<i data-lucide="eye-off"></i> Skjul' : '<i data-lucide="eye"></i> Vis') +
+            '</button>' +
+            '<button class="btn btn-ghost btn-sm" data-team-delete="' + m.id + '"><i data-lucide="trash-2"></i> Slett</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      list.querySelectorAll('[data-team-edit]').forEach(function (b) {
+        b.addEventListener('click', function () { openTeamInlineEdit(parseInt(this.getAttribute('data-team-edit'), 10)); });
+      });
+      list.querySelectorAll('[data-team-toggle]').forEach(function (b) {
+        b.addEventListener('click', function () { toggleTeamActive(parseInt(this.getAttribute('data-team-toggle'), 10)); });
+      });
+      list.querySelectorAll('[data-team-delete]').forEach(function (b) {
+        b.addEventListener('click', function () { deleteTeamMember(parseInt(this.getAttribute('data-team-delete'), 10)); });
+      });
+      window.lucide && window.lucide.createIcons();
+    }
+
+    function openTeamInlineEdit(id) {
+      var m = currentTeam.find(function (x) { return x.id === id; });
+      if (!m) return;
+      var card = document.querySelector('.team-edit-card[data-member="' + id + '"]');
+      if (!card) return;
+      // Replace card contents with inline edit form
+      card.innerHTML =
+        '<form class="team-edit-form" data-team-form="' + id + '">' +
+          '<div class="form-group">' +
+            '<label>Navn</label>' +
+            '<input class="form-input" name="name" type="text" required maxlength="120" value="' + escapeHtml(m.name || '') + '" />' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label>Rolle</label>' +
+            '<input class="form-input" name="role" type="text" maxlength="120" value="' + escapeHtml(m.role || '') + '" />' +
+          '</div>' +
+          '<div class="form-group form-group--full">' +
+            '<label>Bio</label>' +
+            '<textarea class="form-input" name="bio" rows="2" maxlength="500">' + escapeHtml(m.bio || '') + '</textarea>' +
+          '</div>' +
+          '<div class="form-group--full" style="display:flex; gap:8px;">' +
+            '<button class="btn btn-primary btn-sm" type="submit"><i data-lucide="save"></i> Lagre</button>' +
+            '<button class="btn btn-ghost btn-sm" type="button" data-team-cancel>Avbryt</button>' +
+          '</div>' +
+        '</form>';
+      card.querySelector('form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var fd = new FormData(this);
+        var body = {
+          name: (fd.get('name') || '').toString().trim(),
+          role: ((fd.get('role') || '').toString().trim() || null),
+          bio: ((fd.get('bio') || '').toString().trim() || null),
+        };
+        var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/team/' + id, { method: 'PATCH', body: body });
+        if (!res.ok) {
+          var data = await res.json().catch(function () { return {}; });
+          NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre medlem', { type: 'error' });
+          return;
+        }
+        NailedForms.toast('Team-medlem oppdatert');
+        await loadSalon();
+        await loadServices();
+      });
+      card.querySelector('[data-team-cancel]').addEventListener('click', function () {
+        renderTeamEditor();
+      });
+      window.lucide && window.lucide.createIcons();
+    }
+
+    async function toggleTeamActive(id) {
+      var m = currentTeam.find(function (x) { return x.id === id; });
+      if (!m) return;
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/team/' + id, {
+        method: 'PATCH', body: { active: !m.active },
+      });
+      if (!res.ok) {
+        NailedForms.toast('Kunne ikke oppdatere medlem', { type: 'error' });
+        return;
+      }
+      NailedForms.toast(m.active ? 'Medlem skjult' : 'Medlem vises igjen');
+      await loadSalon();
+      await loadServices();
+    }
+
+    async function deleteTeamMember(id) {
+      if (!confirm('Slette dette team-medlemmet? Tjenester de er knyttet til mister denne koblingen.')) return;
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/team/' + id, { method: 'DELETE' });
+      if (!res.ok) {
+        NailedForms.toast('Kunne ikke slette medlem', { type: 'error' });
+        return;
+      }
+      NailedForms.toast('Team-medlem slettet');
+      await loadSalon();
+      await loadServices();
+    }
+
+    /* ---------- AMENITIES (view + editor) ---------- */
+    function renderAmenitiesView() {
+      var el = document.getElementById('phAmenities');
+      var empty = document.getElementById('phAmenitiesEmpty');
+      if (!el) return;
+      if (!currentAmenities.length) {
+        el.innerHTML = '';
+        empty.style.display = '';
+        return;
+      }
+      empty.style.display = 'none';
+      el.innerHTML = currentAmenities.map(function (code) {
+        var a = window.NailedAmenities.get(code);
+        if (!a) return '';
+        return '<span class="profile-chip"><i data-lucide="' + escapeHtml(a.icon) + '"></i> ' + escapeHtml(a.label) + '</span>';
+      }).join('');
+    }
+
+    function renderAmenitiesEditor() {
+      var grid = document.getElementById('amenitiesEditGrid');
+      if (!grid) return;
+      var checked = {};
+      currentAmenities.forEach(function (c) { checked[c] = true; });
+      grid.innerHTML = window.NailedAmenities.catalog.map(function (a) {
+        var isChecked = !!checked[a.code];
+        return '<label class="amen-card' + (isChecked ? ' checked' : '') + '">' +
+          '<input type="checkbox" value="' + escapeHtml(a.code) + '"' + (isChecked ? ' checked' : '') + ' />' +
+          '<i data-lucide="' + escapeHtml(a.icon) + '"></i>' +
+          '<span>' + escapeHtml(a.label) + '</span>' +
+        '</label>';
+      }).join('');
+      grid.querySelectorAll('input[type=checkbox]').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+          this.closest('.amen-card').classList.toggle('checked', this.checked);
+        });
+      });
+      window.lucide && window.lucide.createIcons();
+    }
+
+    async function saveAmenities() {
+      var grid = document.getElementById('amenitiesEditGrid');
+      var codes = [];
+      grid.querySelectorAll('input[type=checkbox]:checked').forEach(function (cb) { codes.push(cb.value); });
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/amenities', {
+        method: 'PUT', body: { amenities: codes },
+      });
+      if (!res.ok) {
+        var data = await res.json().catch(function () { return {}; });
+        NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre fasiliteter', { type: 'error' });
+        return;
+      }
+      NailedForms.toast('Fasiliteter lagret');
+      await loadSalon();
     }
 
     function renderProfileView(s, images) {
@@ -701,11 +1234,27 @@
       }
     }
 
+    var EDIT_TARGET_PANEL = {
+      bio: 'salonForm', contact: 'salonForm', availability: 'salonForm',
+      hours: 'hoursEditPanel', team: 'teamEditPanel', amenities: 'amenitiesEditPanel',
+    };
+
     document.getElementById('editProfileBtn').addEventListener('click', function () { setProfileMode('edit'); });
     document.getElementById('cancelEditProfileBtn').addEventListener('click', function () { setProfileMode('view'); });
     document.getElementById('cancelEditProfileBtn2').addEventListener('click', function () { setProfileMode('view'); });
     document.querySelectorAll('[data-edit]').forEach(function (btn) {
-      btn.addEventListener('click', function () { setProfileMode('edit'); });
+      btn.addEventListener('click', function () {
+        var key = this.getAttribute('data-edit');
+        setProfileMode('edit');
+        var panelId = EDIT_TARGET_PANEL[key];
+        if (panelId) {
+          var target = document.getElementById(panelId);
+          if (target) {
+            // Wait for layout shift from showing edit mode, then scroll.
+            setTimeout(function () { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+          }
+        }
+      });
     });
     document.querySelectorAll('[data-tab-link]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -862,11 +1411,24 @@
       tbody.innerHTML = '';
       document.getElementById('servicesEmpty').style.display = services.length === 0 ? 'block' : 'none';
       document.getElementById('servicesTable').style.display = services.length === 0 ? 'none' : '';
+      var teamById = {};
+      currentTeam.forEach(function (m) { teamById[m.id] = m; });
       services.forEach(function (s) {
+        var teamChips = '';
+        var ids = s.team_member_ids || [];
+        if (ids.length) {
+          teamChips = '<div style="margin-top:4px;">' + ids.map(function (id) {
+            var m = teamById[id];
+            if (!m) return '';
+            var first = (m.name || '').split(/\s+/)[0] || '';
+            return '<span class="service-team-chip">' + escapeHtml(first) + '</span>';
+          }).join('') + '</div>';
+        }
         var tr = document.createElement('tr');
         tr.innerHTML =
           '<td><strong>' + escapeHtml(s.name) + '</strong>' +
-            (s.description ? '<br><span class="td-muted">' + escapeHtml(s.description) + '</span>' : '') + '</td>' +
+            (s.description ? '<br><span class="td-muted">' + escapeHtml(s.description) + '</span>' : '') +
+            teamChips + '</td>' +
           '<td>' + s.duration_min + ' min</td>' +
           '<td><strong>' + s.price_nok + ' kr</strong></td>' +
           '<td><span class="' + (s.active ? 'status status--active' : 'status status--inactive') + '">' + (s.active ? 'Aktiv' : 'Skjult') + '</span></td>' +
@@ -897,6 +1459,27 @@
       });
     }
 
+    function renderServiceTeamGrid(selectedIds) {
+      var grid = document.getElementById('serviceTeamGrid');
+      var empty = document.getElementById('serviceTeamEmpty');
+      if (!grid) return;
+      var active = currentTeam.filter(function (m) { return m.active; });
+      if (!active.length) {
+        grid.innerHTML = '';
+        empty.style.display = '';
+        return;
+      }
+      empty.style.display = 'none';
+      var sel = {};
+      (selectedIds || []).forEach(function (id) { sel[id] = true; });
+      grid.innerHTML = active.map(function (m) {
+        return '<label>' +
+          '<input type="checkbox" value="' + m.id + '"' + (sel[m.id] ? ' checked' : '') + ' />' +
+          '<span>' + escapeHtml(m.name || '') + '</span>' +
+        '</label>';
+      }).join('');
+    }
+
     function openServiceForm(svc) {
       var panel = document.getElementById('serviceFormPanel');
       panel.style.display = 'block';
@@ -907,6 +1490,7 @@
       form.querySelector('textarea[name=description]').value = svc ? (svc.description || '') : '';
       form.querySelector('input[name=duration_min]').value = svc ? svc.duration_min : '';
       form.querySelector('input[name=price_nok]').value = svc ? svc.price_nok : '';
+      renderServiceTeamGrid(svc ? (svc.team_member_ids || []) : []);
       panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -929,9 +1513,56 @@
         ? await NailedAuth.api('/api/v1/salons/' + salon.id + '/services/' + id, { method: 'PATCH', body: body })
         : await NailedAuth.api('/api/v1/salons/' + salon.id + '/services', { method: 'POST', body: body });
       if (!res.ok) { NailedForms.toast('Kunne ikke lagre tjeneste', { type: 'error' }); return; }
-      NailedForms.toast(id ? 'Tjeneste oppdatert' : 'Tjeneste lagt til');
+      var saved = await res.json().catch(function () { return null; });
+      var serviceId = id || (saved && (saved.id || (saved.service && saved.service.id)));
+      // Persist team-member links (always — including empty list, which means "all").
+      if (serviceId) {
+        var grid = document.getElementById('serviceTeamGrid');
+        var ids = [];
+        grid.querySelectorAll('input[type=checkbox]:checked').forEach(function (cb) {
+          ids.push(parseInt(cb.value, 10));
+        });
+        var teamRes = await NailedAuth.api('/api/v1/salons/' + salon.id + '/services/' + serviceId + '/team', {
+          method: 'PUT', body: { team_member_ids: ids },
+        });
+        if (!teamRes.ok) {
+          NailedForms.toast('Tjeneste lagret, men team-kobling feilet', { type: 'error' });
+        } else {
+          NailedForms.toast(id ? 'Tjeneste oppdatert' : 'Tjeneste lagt til');
+        }
+      } else {
+        NailedForms.toast(id ? 'Tjeneste oppdatert' : 'Tjeneste lagt til');
+      }
       document.getElementById('serviceFormPanel').style.display = 'none';
       loadServices();
+    });
+
+    /* ---------- Editor save handlers ---------- */
+    document.getElementById('saveHoursBtn').addEventListener('click', saveHours);
+    document.getElementById('saveAmenitiesBtn').addEventListener('click', saveAmenities);
+
+    document.getElementById('teamAddForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var fd = new FormData(this);
+      var body = {
+        name: (fd.get('name') || '').toString().trim(),
+        role: ((fd.get('role') || '').toString().trim() || null),
+        bio: ((fd.get('bio') || '').toString().trim() || null),
+      };
+      if (!body.name) {
+        NailedForms.toast('Navn er påkrevd', { type: 'error' });
+        return;
+      }
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/team', { method: 'POST', body: body });
+      if (!res.ok) {
+        var data = await res.json().catch(function () { return {}; });
+        NailedForms.toast((data.error && data.error.message) || 'Kunne ikke legge til medlem', { type: 'error' });
+        return;
+      }
+      NailedForms.toast('Team-medlem lagt til');
+      this.reset();
+      await loadSalon();
+      await loadServices();
     });
 
     document.getElementById('salonForm').addEventListener('submit', async function (e) {

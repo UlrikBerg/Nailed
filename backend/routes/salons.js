@@ -50,7 +50,7 @@ router.get('/:slug', asyncRoute(async (req, res) => {
     throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
   }
 
-  const [services, images] = await Promise.all([
+  const [services, images, hours, team, amenities, serviceTeamLinks] = await Promise.all([
     query(
       `SELECT id, name, description, duration_min, price_nok
          FROM services WHERE salon_id = ? AND active = 1 ORDER BY price_nok ASC`,
@@ -61,12 +61,48 @@ router.get('/:slug', asyncRoute(async (req, res) => {
          FROM salon_images WHERE salon_id = ? ORDER BY position ASC, id ASC`,
       [salon.id]
     ),
+    query(
+      `SELECT weekday, is_closed, open_at, close_at
+         FROM salon_hours WHERE salon_id = ? ORDER BY weekday ASC`,
+      [salon.id]
+    ),
+    query(
+      `SELECT id, name, role, bio, position
+         FROM team_members WHERE salon_id = ? AND active = 1
+         ORDER BY position ASC, id ASC`,
+      [salon.id]
+    ),
+    query(
+      `SELECT amenity FROM salon_amenities WHERE salon_id = ? ORDER BY amenity ASC`,
+      [salon.id]
+    ),
+    query(
+      `SELECT stm.service_id, stm.team_member_id
+         FROM service_team_members stm
+         JOIN services s ON s.id = stm.service_id
+        WHERE s.salon_id = ?`,
+      [salon.id]
+    ),
   ]);
+
+  // Fold team-member ids into each service for client-side rendering.
+  const linkMap = new Map();
+  for (const l of serviceTeamLinks) {
+    if (!linkMap.has(l.service_id)) linkMap.set(l.service_id, []);
+    linkMap.get(l.service_id).push(l.team_member_id);
+  }
+  const servicesWithTeam = services.map(s => ({
+    ...s,
+    team_member_ids: linkMap.get(s.id) || [],
+  }));
 
   res.json({
     salon: withCoverUrl(salon),
-    services,
+    services: servicesWithTeam,
     images: images.map(i => ({ ...i, url: storage.publicUrl(i.key) })),
+    hours,
+    team,
+    amenities: amenities.map(a => a.amenity),
   });
 }));
 
@@ -82,15 +118,34 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
   );
   if (!salon) throw new HttpError(404, 'no_salon', 'Du har ingen salong.');
 
-  const images = await query(
-    `SELECT id, image_key AS \`key\`, position, width, height
-       FROM salon_images WHERE salon_id = ? ORDER BY position ASC, id ASC`,
-    [salon.id]
-  );
+  const [images, hours, team, amenities] = await Promise.all([
+    query(
+      `SELECT id, image_key AS \`key\`, position, width, height
+         FROM salon_images WHERE salon_id = ? ORDER BY position ASC, id ASC`,
+      [salon.id]
+    ),
+    query(
+      `SELECT weekday, is_closed, open_at, close_at
+         FROM salon_hours WHERE salon_id = ? ORDER BY weekday ASC`,
+      [salon.id]
+    ),
+    query(
+      `SELECT id, name, role, bio, active, position
+         FROM team_members WHERE salon_id = ? ORDER BY position ASC, id ASC`,
+      [salon.id]
+    ),
+    query(
+      `SELECT amenity FROM salon_amenities WHERE salon_id = ? ORDER BY amenity ASC`,
+      [salon.id]
+    ),
+  ]);
 
   res.json({
     salon: withCoverUrl(salon),
     images: images.map(i => ({ ...i, url: storage.publicUrl(i.key) })),
+    hours,
+    team,
+    amenities: amenities.map(a => a.amenity),
   });
 }));
 
@@ -137,12 +192,28 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
 router.get('/:id/services', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
-  const rows = await query(
-    `SELECT id, name, description, duration_min, price_nok, active
-       FROM services WHERE salon_id = ? ORDER BY price_nok ASC`,
-    [id]
-  );
-  res.json({ services: rows });
+  const [rows, links] = await Promise.all([
+    query(
+      `SELECT id, name, description, duration_min, price_nok, active
+         FROM services WHERE salon_id = ? ORDER BY price_nok ASC`,
+      [id]
+    ),
+    query(
+      `SELECT stm.service_id, stm.team_member_id
+         FROM service_team_members stm
+         JOIN services s ON s.id = stm.service_id
+        WHERE s.salon_id = ?`,
+      [id]
+    ),
+  ]);
+  const linkMap = new Map();
+  for (const l of links) {
+    if (!linkMap.has(l.service_id)) linkMap.set(l.service_id, []);
+    linkMap.get(l.service_id).push(l.team_member_id);
+  }
+  res.json({
+    services: rows.map(r => ({ ...r, team_member_ids: linkMap.get(r.id) || [] })),
+  });
 }));
 
 router.post('/:id/services', requireAuth, asyncRoute(async (req, res) => {
