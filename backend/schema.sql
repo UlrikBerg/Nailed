@@ -145,22 +145,42 @@ CREATE TABLE IF NOT EXISTS salon_applications (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
+-- service_categories
+-- Owner-defined groups for the salon's services (e.g. "Vipper", "Negler").
+-- Used by the public salon page to render services grouped by category.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS service_categories (
+  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  salon_id    BIGINT UNSIGNED NOT NULL,
+  name        VARCHAR(255) NOT NULL,
+  position    SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_salon (salon_id, position),
+  CONSTRAINT fk_svccat_salon FOREIGN KEY (salon_id) REFERENCES salons(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
 -- services
 -- A salon offers one or more services.
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS services (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   salon_id        BIGINT UNSIGNED NOT NULL,
+  category_id     BIGINT UNSIGNED DEFAULT NULL,
   name            VARCHAR(255) NOT NULL,
   description     TEXT DEFAULT NULL,
   duration_min    SMALLINT UNSIGNED NOT NULL,
   price_nok       INT UNSIGNED NOT NULL,
+  is_popular      TINYINT(1) NOT NULL DEFAULT 0,
   active          TINYINT(1) NOT NULL DEFAULT 1,
   created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_salon (salon_id, active),
-  CONSTRAINT fk_services_salon FOREIGN KEY (salon_id) REFERENCES salons(id) ON DELETE CASCADE
+  KEY idx_category (category_id),
+  CONSTRAINT fk_services_salon FOREIGN KEY (salon_id) REFERENCES salons(id) ON DELETE CASCADE,
+  CONSTRAINT fk_services_category FOREIGN KEY (category_id) REFERENCES service_categories(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
@@ -349,3 +369,35 @@ ALTER TABLE salons
 
 ALTER TABLE team_members
   ADD COLUMN IF NOT EXISTS image_key VARCHAR(255) DEFAULT NULL;
+
+ALTER TABLE services
+  ADD COLUMN IF NOT EXISTS category_id BIGINT UNSIGNED DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS is_popular  TINYINT(1) NOT NULL DEFAULT 0;
+
+-- Add the FK on services.category_id only once. INFORMATION_SCHEMA check keeps
+-- this idempotent (MySQL has no ADD CONSTRAINT IF NOT EXISTS).
+SET @fk_exists := (
+  SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+   WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME = 'services'
+     AND CONSTRAINT_NAME = 'fk_services_category'
+);
+SET @fk_sql := IF(@fk_exists = 0,
+  'ALTER TABLE services ADD CONSTRAINT fk_services_category FOREIGN KEY (category_id) REFERENCES service_categories(id) ON DELETE SET NULL',
+  'SELECT 1');
+PREPARE stmt FROM @fk_sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- Index on services.category_id (idempotent). The FK auto-creates one if
+-- missing, so we only add an explicit idx_category when no index covers
+-- the column yet.
+SET @ix_exists := (
+  SELECT COUNT(*) FROM information_schema.STATISTICS
+   WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME = 'services'
+     AND COLUMN_NAME = 'category_id'
+     AND SEQ_IN_INDEX = 1
+);
+SET @ix_sql := IF(@ix_exists = 0,
+  'ALTER TABLE services ADD INDEX idx_category (category_id)',
+  'SELECT 1');
+PREPARE stmt FROM @ix_sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

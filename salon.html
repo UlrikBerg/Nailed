@@ -786,6 +786,7 @@
     function renderSalon(data) {
       var s = data.salon || {};
       var services = Array.isArray(data.services) ? data.services : [];
+      var categories = Array.isArray(data.categories) ? data.categories : [];
       var images = Array.isArray(data.images) ? data.images : [];
       var hours = Array.isArray(data.hours) ? data.hours : [];
       var team = Array.isArray(data.team) ? data.team : [];
@@ -876,31 +877,84 @@
         cta.textContent = 'Ingen behandlinger';
         cta.removeAttribute('onclick');
       } else {
-        var html = '';
-        services.forEach(function(svc, i) {
+        // ---- LEFT COLUMN: "Alle behandlinger" — grouped by category ----
+        // Group services by category_id; render categories in `position` order,
+        // with uncategorized last. Preserve the existing price-ascending sort
+        // inside each group (services arrive pre-sorted from the API).
+        function renderServiceRow(svc, isActive) {
           var name = escapeHtml(svc.name || '');
           var dur = (svc.duration_min != null) ? escapeHtml(String(svc.duration_min)) + ' min' : '';
           var price = (svc.price_nok != null) ? svc.price_nok : '';
-          var activeCls = i === 0 ? ' active' : '';
-          html += '<li class="all-services__item' + activeCls + '" data-id="' + svc.id + '" data-svc-name="' + name + '" data-svc-price="' + escapeHtml(String(price)) + '">' +
-                    '<div class="all-services__radio"></div>' +
-                    '<div class="all-services__body">' +
-                      '<div class="all-services__name">' + name + '</div>' +
-                      '<div class="all-services__meta">' + dur + '</div>' +
-                    '</div>' +
-                    '<div class="all-services__price">' + escapeHtml(String(price)) + ' kr</div>' +
-                    '<div class="all-services__cta"></div>' +
-                  '</li>';
-        });
-        listEl.innerHTML = html;
+          var activeCls = isActive ? ' active' : '';
+          return '<li class="all-services__item' + activeCls + '" data-id="' + svc.id + '" data-svc-name="' + name + '" data-svc-price="' + escapeHtml(String(price)) + '">' +
+            '<div class="all-services__radio"></div>' +
+            '<div class="all-services__body">' +
+              '<div class="all-services__name">' + name + '</div>' +
+              '<div class="all-services__meta">' + dur + '</div>' +
+            '</div>' +
+            '<div class="all-services__price">' + escapeHtml(String(price)) + ' kr</div>' +
+            '<div class="all-services__cta"></div>' +
+          '</li>';
+        }
 
-        // Mirror into the booking sidebar's "service-list".
+        var byCat = {};
+        var uncategorized = [];
+        services.forEach(function (svc) {
+          if (svc.category_id != null) {
+            (byCat[svc.category_id] = byCat[svc.category_id] || []).push(svc);
+          } else {
+            uncategorized.push(svc);
+          }
+        });
+
+        // Build a stable list of groups: defined categories (in `position`
+        // order) that actually have services, plus uncategorized last.
+        var groups = [];
+        categories.forEach(function (c) {
+          var list = byCat[c.id];
+          if (list && list.length) groups.push({ name: c.name, services: list });
+        });
+        if (uncategorized.length) {
+          // Only label the uncategorized bucket when there's another category;
+          // otherwise the heading would be redundant with "Alle behandlinger".
+          var label = groups.length ? 'Andre' : null;
+          groups.push({ name: label, services: uncategorized });
+        }
+
+        // Make sure the first service in document order is the one we mark as
+        // active so the visual state matches the CTA selection.
+        var firstSvc = groups.length ? groups[0].services[0] : services[0];
+
+        // Replace the flat <ul> with a series of category blocks. The existing
+        // styling for `.all-services` is preserved per-group; the inserted
+        // headings sit between them.
+        var groupedHtml = '';
+        groups.forEach(function (g, gi) {
+          if (g.name) {
+            groupedHtml += '<h4 style="margin:' + (gi === 0 ? '0' : '24px') + ' 0 8px 0; font-size:16px; font-family:var(--font-display);">' +
+              escapeHtml(g.name) + '</h4>';
+          }
+          groupedHtml += '<ul class="all-services">';
+          g.services.forEach(function (svc) {
+            groupedHtml += renderServiceRow(svc, svc.id === firstSvc.id);
+          });
+          groupedHtml += '</ul>';
+        });
+        // Swap the static <ul id="allServicesList"> out for the grouped markup.
+        catEl.innerHTML = groupedHtml;
+
+        // ---- RIGHT COLUMN: booking panel ----
+        // Show only popular services when any are flagged; otherwise show all.
+        var popularServices = services.filter(function (s) { return s.is_popular; });
+        var panelServices = popularServices.length ? popularServices : services;
+        var firstPanelSvc = panelServices[0];
+
         var panelHtml = '';
-        services.forEach(function(svc, i) {
+        panelServices.forEach(function(svc) {
           var name = escapeHtml(svc.name || '');
           var dur = (svc.duration_min != null) ? escapeHtml(String(svc.duration_min)) + ' min' : '';
           var price = (svc.price_nok != null) ? svc.price_nok : '';
-          var activeCls = i === 0 ? ' active' : '';
+          var activeCls = svc.id === firstPanelSvc.id ? ' active' : '';
           var offerText = teamOfferLine(svc.team_member_ids, teamById);
           var offerHtml = offerText ? '<div class="service-list__team">' + escapeHtml(offerText) + '</div>' : '';
           panelHtml += '<div class="service-list__item' + activeCls + '" data-id="' + svc.id + '" data-name="' + name + '" data-price="' + escapeHtml(String(price)) + '">' +
@@ -920,8 +974,8 @@
           });
         });
 
-        // Default-select first service for the CTA / picker.
-        selectService(services[0]);
+        // Default-select the first service (in display order) for the CTA / picker.
+        selectService(firstPanelSvc || firstSvc || services[0]);
 
         // Build the day picker and slots.
         renderDayPicker();

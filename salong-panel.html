@@ -236,6 +236,51 @@
       background: var(--cream-100); border: 1px solid var(--stone-200);
       color: var(--fg-muted); margin-right: 4px;
     }
+
+    /* Categories editor — rows with rename + reorder + delete */
+    .cat-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+    .cat-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md); background: var(--cream-100);
+    }
+    .cat-row__name {
+      flex: 1; border: 0; background: transparent; font-size: 14px;
+      padding: 4px 6px; border-radius: var(--radius-sm);
+    }
+    .cat-row__name:focus {
+      outline: 2px solid var(--rouge-300); background: #fff;
+    }
+    .cat-row__actions { display: flex; gap: 4px; }
+    .cat-empty {
+      padding: 12px; color: var(--fg-muted); font-style: italic; font-size: 13px;
+    }
+
+    /* Popular-toggle star button in the services table */
+    .popular-btn {
+      background: transparent; border: 0; cursor: pointer;
+      padding: 4px; border-radius: var(--radius-sm);
+      color: var(--stone-200);
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .popular-btn:hover { background: var(--rouge-50); color: var(--rouge-500); }
+    .popular-btn.is-popular { color: var(--rouge-500); }
+    .popular-btn.is-popular i { fill: var(--rouge-500); }
+    .popular-btn:disabled { cursor: not-allowed; opacity: 0.4; }
+    .popular-btn:disabled:hover { background: transparent; color: var(--stone-200); }
+
+    .popular-count {
+      font-size: 13px; color: var(--fg-muted); font-weight: 500;
+      margin-left: 12px;
+    }
+    .popular-count strong { color: var(--ink); }
+
+    /* Service rows: group label between category sections */
+    .svc-group-heading {
+      font-family: var(--font-display); font-weight: 700;
+      font-size: 14px; padding: 12px 12px 4px 12px;
+      color: var(--fg-muted);
+    }
   </style>
 </head>
 <body>
@@ -339,11 +384,23 @@
         <div class="topbar">
           <div>
             <h1 class="topbar__title">Tjenester</h1>
-            <div class="topbar__sub">Behandlingene salongen tilbyr.</div>
+            <div class="topbar__sub">Behandlingene salongen tilbyr. <span class="popular-count" id="popularCount"></span></div>
           </div>
           <div class="topbar__actions">
             <button class="btn btn-primary" id="newServiceBtn"><i data-lucide="plus"></i> Ny tjeneste</button>
           </div>
+        </div>
+
+        <!-- Kategorier -->
+        <div class="panel">
+          <div class="panel__head" style="display:flex; align-items:center; justify-content:space-between;">
+            <h3>Kategorier</h3>
+            <button class="btn btn-ghost btn-sm" id="newCategoryBtn"><i data-lucide="plus"></i> Ny kategori</button>
+          </div>
+          <div id="categoriesEmpty" class="cat-empty" style="display:none;">
+            Ingen kategorier ennå. Lag for eksempel "Vipper", "Negler" eller "Bryn" for å gruppere behandlingene.
+          </div>
+          <div class="cat-list" id="categoriesList"></div>
         </div>
 
         <div class="panel" id="serviceFormPanel" style="display:none;">
@@ -366,6 +423,12 @@
               <input class="form-input" name="price_nok" type="number" min="0" max="100000" required />
             </div>
             <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Kategori</label>
+              <select class="form-input" name="category_id" id="serviceCategorySelect">
+                <option value="">(Ingen kategori)</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
               <label>Tilbys av</label>
               <div class="service-team-grid" id="serviceTeamGrid"></div>
               <div id="serviceTeamEmpty" style="display:none; font-size: 13px; color: var(--fg-muted); margin-top: 6px;">
@@ -386,6 +449,7 @@
           <table class="data-table" id="servicesTable">
             <thead>
               <tr>
+                <th style="width: 44px;"></th>
                 <th>Navn</th>
                 <th>Varighet</th>
                 <th>Pris</th>
@@ -589,7 +653,7 @@
               </div>
               <div class="form-group" data-section="contact">
                 <label>By/område</label>
-                <input class="form-input" name="city" type="text" required />
+                <input class="form-input" name="city" type="text" required autocomplete="off" placeholder="Begynn å skrive…" />
               </div>
               <div class="form-group" data-section="contact">
                 <label>Instagram-URL</label>
@@ -716,6 +780,7 @@
   <script src="/assets/auth.js"></script>
   <script src="/assets/forms.js"></script>
   <script src="/assets/amenities.js"></script>
+  <script src="/assets/no-places.js"></script>
   <script>
     var salon = null;
 
@@ -757,6 +822,7 @@
     var currentHours = [];
     var currentTeam = [];
     var currentAmenities = [];
+    var currentCategories = [];
 
     async function loadSalon() {
       var res = await NailedAuth.api('/api/v1/salons/me/own');
@@ -786,6 +852,7 @@
       currentHours = data.hours || [];
       currentTeam = data.team || [];
       currentAmenities = data.amenities || [];
+      currentCategories = data.categories || [];
       document.getElementById('dashTitle').innerHTML = escapeHtml(salon.name);
       document.getElementById('dashSub').textContent = salon.city;
       document.getElementById('publicLink').href = '/salon.html?slug=' + encodeURIComponent(salon.slug);
@@ -793,7 +860,12 @@
       document.querySelector('textarea[name=bio]').value = salon.bio || '';
       document.querySelector('input[name=address_line]').value = salon.address_line || '';
       document.querySelector('input[name=postal_code]').value = salon.postal_code || '';
-      document.querySelector('input[name=city]').value = salon.city || '';
+      var cityInput = document.querySelector('input[name=city]');
+      if (cityInput && cityInput._nailedPlaces) {
+        cityInput._nailedPlaces.setValue(salon.city || '');
+      } else {
+        cityInput.value = salon.city || '';
+      }
       document.querySelector('input[name=instagram_url]').value = salon.instagram_url || '';
       document.querySelector('input[name=tiktok_url]').value = salon.tiktok_url || '';
       document.querySelector('input[name=facebook_url]').value = salon.facebook_url || '';
@@ -809,6 +881,7 @@
       renderHoursEditor();
       renderTeamEditor();
       renderAmenitiesEditor();
+      renderCategoriesUI();
       return salon;
     }
 
@@ -1503,33 +1576,88 @@
       tbody.innerHTML = '';
       document.getElementById('servicesEmpty').style.display = services.length === 0 ? 'block' : 'none';
       document.getElementById('servicesTable').style.display = services.length === 0 ? 'none' : '';
+
+      // Popular count header — counts ANY service flagged is_popular (incl. hidden).
+      var popularTotal = services.filter(function (s) { return s.is_popular; }).length;
+      var popEl = document.getElementById('popularCount');
+      if (popEl) {
+        popEl.innerHTML = '<i data-lucide="star" style="width:13px; height:13px; color:var(--rouge-500); fill:' +
+          (popularTotal > 0 ? 'var(--rouge-500)' : 'transparent') + '; vertical-align:-2px;"></i> ' +
+          '<strong>' + popularTotal + '</strong> / 5 populære';
+      }
+
       var teamById = {};
       currentTeam.forEach(function (m) { teamById[m.id] = m; });
+
+      // Group services by category for visual grouping in the panel table.
+      // Categories appear in `position` order, services with no category last.
+      var byCat = {};
+      var uncategorized = [];
       services.forEach(function (s) {
-        var teamChips = '';
-        var ids = s.team_member_ids || [];
-        if (ids.length) {
-          teamChips = '<div style="margin-top:4px;">' + ids.map(function (id) {
-            var m = teamById[id];
-            if (!m) return '';
-            var first = (m.name || '').split(/\s+/)[0] || '';
-            return '<span class="service-team-chip">' + escapeHtml(first) + '</span>';
-          }).join('') + '</div>';
+        if (s.category_id != null) {
+          (byCat[s.category_id] = byCat[s.category_id] || []).push(s);
+        } else {
+          uncategorized.push(s);
         }
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-          '<td><strong>' + escapeHtml(s.name) + '</strong>' +
-            (s.description ? '<br><span class="td-muted">' + escapeHtml(s.description) + '</span>' : '') +
-            teamChips + '</td>' +
-          '<td>' + s.duration_min + ' min</td>' +
-          '<td><strong>' + s.price_nok + ' kr</strong></td>' +
-          '<td><span class="' + (s.active ? 'status status--active' : 'status status--inactive') + '">' + (s.active ? 'Aktiv' : 'Skjult') + '</span></td>' +
-          '<td>' +
-            '<button class="btn btn-ghost btn-sm" data-edit="' + s.id + '">Rediger</button> ' +
-            (s.active ? '<button class="btn btn-ghost btn-sm" data-delete="' + s.id + '">Skjul</button>' : '<button class="btn btn-ghost btn-sm" data-restore="' + s.id + '">Vis igjen</button>') +
-          '</td>';
-        tbody.appendChild(tr);
       });
+      var groups = [];
+      currentCategories.forEach(function (c) {
+        var list = byCat[c.id];
+        if (list && list.length) groups.push({ label: c.name, services: list });
+      });
+      if (uncategorized.length) {
+        // Only show the "Uten kategori" heading when other groups exist.
+        groups.push({ label: groups.length ? 'Uten kategori' : null, services: uncategorized });
+      }
+
+      var colSpan = 6; // # of columns in the table
+      groups.forEach(function (g) {
+        if (g.label) {
+          var headTr = document.createElement('tr');
+          headTr.innerHTML = '<td colspan="' + colSpan + '" class="svc-group-heading">' + escapeHtml(g.label) + '</td>';
+          tbody.appendChild(headTr);
+        }
+        g.services.forEach(function (s) {
+          var teamChips = '';
+          var ids = s.team_member_ids || [];
+          if (ids.length) {
+            teamChips = '<div style="margin-top:4px;">' + ids.map(function (id) {
+              var m = teamById[id];
+              if (!m) return '';
+              var first = (m.name || '').split(/\s+/)[0] || '';
+              return '<span class="service-team-chip">' + escapeHtml(first) + '</span>';
+            }).join('') + '</div>';
+          }
+          // The popular star: disabled (with tooltip) when the cap is reached
+          // AND this service isn't already flagged. Clicking toggles in place.
+          var isPop = !!s.is_popular;
+          var capped = !isPop && popularTotal >= 5;
+          var btnTitle = isPop ? 'Fjern fra populære' : (capped ? 'Maks 5 populære' : 'Marker som populær');
+          var starBtn = '<button type="button" class="popular-btn' + (isPop ? ' is-popular' : '') + '" ' +
+            'data-popular="' + s.id + '" ' +
+            (capped ? 'disabled ' : '') +
+            'title="' + escapeHtml(btnTitle) + '" aria-label="' + escapeHtml(btnTitle) + '">' +
+            '<i data-lucide="star" style="width:18px; height:18px;' +
+              (isPop ? ' fill: var(--rouge-500);' : '') +
+            '"></i></button>';
+
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td>' + starBtn + '</td>' +
+            '<td><strong>' + escapeHtml(s.name) + '</strong>' +
+              (s.description ? '<br><span class="td-muted">' + escapeHtml(s.description) + '</span>' : '') +
+              teamChips + '</td>' +
+            '<td>' + s.duration_min + ' min</td>' +
+            '<td><strong>' + s.price_nok + ' kr</strong></td>' +
+            '<td><span class="' + (s.active ? 'status status--active' : 'status status--inactive') + '">' + (s.active ? 'Aktiv' : 'Skjult') + '</span></td>' +
+            '<td>' +
+              '<button class="btn btn-ghost btn-sm" data-edit="' + s.id + '">Rediger</button> ' +
+              (s.active ? '<button class="btn btn-ghost btn-sm" data-delete="' + s.id + '">Skjul</button>' : '<button class="btn btn-ghost btn-sm" data-restore="' + s.id + '">Vis igjen</button>') +
+            '</td>';
+          tbody.appendChild(tr);
+        });
+      });
+
       tbody.querySelectorAll('button[data-delete]').forEach(function (b) {
         b.addEventListener('click', async function () {
           if (!confirm('Skjule denne tjenesten?')) return;
@@ -1549,6 +1677,25 @@
           openServiceForm(s);
         });
       });
+      tbody.querySelectorAll('button[data-popular]').forEach(function (b) {
+        b.addEventListener('click', async function () {
+          var sid = this.getAttribute('data-popular');
+          var s = services.find(function (sv) { return String(sv.id) === String(sid); });
+          if (!s) return;
+          var nextVal = !s.is_popular;
+          var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/services/' + sid, {
+            method: 'PATCH', body: { is_popular: nextVal },
+          });
+          if (!res.ok) {
+            var d = await res.json().catch(function () { return {}; });
+            NailedForms.toast((d.error && d.error.message) || 'Kunne ikke endre populær-status', { type: 'error' });
+            return;
+          }
+          await loadServices();
+        });
+      });
+
+      window.lucide && window.lucide.createIcons();
     }
 
     function renderServiceTeamGrid(selectedIds) {
@@ -1572,6 +1719,17 @@
       }).join('');
     }
 
+    function renderServiceCategorySelect(selectedId) {
+      var sel = document.getElementById('serviceCategorySelect');
+      if (!sel) return;
+      var html = '<option value="">(Ingen kategori)</option>';
+      currentCategories.forEach(function (c) {
+        var s = (selectedId != null && Number(c.id) === Number(selectedId)) ? ' selected' : '';
+        html += '<option value="' + c.id + '"' + s + '>' + escapeHtml(c.name) + '</option>';
+      });
+      sel.innerHTML = html;
+    }
+
     function openServiceForm(svc) {
       var panel = document.getElementById('serviceFormPanel');
       panel.style.display = 'block';
@@ -1582,9 +1740,140 @@
       form.querySelector('textarea[name=description]').value = svc ? (svc.description || '') : '';
       form.querySelector('input[name=duration_min]').value = svc ? svc.duration_min : '';
       form.querySelector('input[name=price_nok]').value = svc ? svc.price_nok : '';
+      renderServiceCategorySelect(svc ? svc.category_id : null);
       renderServiceTeamGrid(svc ? (svc.team_member_ids || []) : []);
       panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+
+    /* ---------- Categories (Kategorier) ---------- */
+    function renderCategoriesUI() {
+      var list = document.getElementById('categoriesList');
+      var empty = document.getElementById('categoriesEmpty');
+      if (!list) return;
+      // Sort by position client-side too (defensive — server already orders).
+      var cats = currentCategories.slice().sort(function (a, b) {
+        return (a.position - b.position) || (a.id - b.id);
+      });
+      if (!cats.length) {
+        list.innerHTML = '';
+        if (empty) empty.style.display = '';
+        return;
+      }
+      if (empty) empty.style.display = 'none';
+      list.innerHTML = cats.map(function (c, i) {
+        var upDisabled = i === 0 ? ' disabled' : '';
+        var dnDisabled = i === cats.length - 1 ? ' disabled' : '';
+        return '<div class="cat-row" data-id="' + c.id + '">' +
+          '<input class="cat-row__name" type="text" maxlength="255" value="' + escapeHtml(c.name) + '" />' +
+          '<div class="cat-row__actions">' +
+            '<button class="btn btn-ghost btn-sm" data-cat-up="' + c.id + '"' + upDisabled + ' aria-label="Flytt opp"><i data-lucide="arrow-up"></i></button> ' +
+            '<button class="btn btn-ghost btn-sm" data-cat-down="' + c.id + '"' + dnDisabled + ' aria-label="Flytt ned"><i data-lucide="arrow-down"></i></button> ' +
+            '<button class="btn btn-ghost btn-sm" data-cat-delete="' + c.id + '" aria-label="Slett"><i data-lucide="trash-2"></i></button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      // Inline rename: commit on blur or Enter.
+      list.querySelectorAll('.cat-row__name').forEach(function (input) {
+        var original = input.value;
+        function commit() {
+          var newName = input.value.trim();
+          if (!newName || newName === original) {
+            input.value = original;
+            return;
+          }
+          var id = input.closest('.cat-row').getAttribute('data-id');
+          NailedAuth.api('/api/v1/salons/' + salon.id + '/categories/' + id, {
+            method: 'PATCH', body: { name: newName },
+          }).then(function (res) {
+            if (!res.ok) {
+              NailedForms.toast('Kunne ikke endre navn', { type: 'error' });
+              input.value = original;
+              return;
+            }
+            original = newName;
+            // Update local cache so the service-form dropdown stays in sync.
+            currentCategories.forEach(function (c) { if (String(c.id) === String(id)) c.name = newName; });
+            NailedForms.toast('Kategori oppdatert');
+          });
+        }
+        input.addEventListener('blur', commit);
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+          if (e.key === 'Escape') { input.value = original; input.blur(); }
+        });
+      });
+
+      list.querySelectorAll('button[data-cat-delete]').forEach(function (b) {
+        b.addEventListener('click', async function () {
+          var id = this.getAttribute('data-cat-delete');
+          if (!confirm('Slette denne kategorien? Behandlinger i den blir flyttet til "Uten kategori".')) return;
+          var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/categories/' + id, { method: 'DELETE' });
+          if (!res.ok) {
+            NailedForms.toast('Kunne ikke slette kategori', { type: 'error' });
+            return;
+          }
+          NailedForms.toast('Kategori slettet');
+          await reloadCategoriesAndServices();
+        });
+      });
+
+      function reorderCategory(id, delta) {
+        var idx = cats.findIndex(function (c) { return String(c.id) === String(id); });
+        var nextIdx = idx + delta;
+        if (idx < 0 || nextIdx < 0 || nextIdx >= cats.length) return;
+        var copy = cats.slice();
+        var tmp = copy[idx]; copy[idx] = copy[nextIdx]; copy[nextIdx] = tmp;
+        var order = copy.map(function (c) { return c.id; });
+        NailedAuth.api('/api/v1/salons/' + salon.id + '/categories/order', {
+          method: 'PUT', body: { order: order },
+        }).then(async function (res) {
+          if (!res.ok) {
+            NailedForms.toast('Kunne ikke endre rekkefølge', { type: 'error' });
+            return;
+          }
+          await reloadCategoriesAndServices();
+        });
+      }
+      list.querySelectorAll('button[data-cat-up]').forEach(function (b) {
+        b.addEventListener('click', function () { reorderCategory(this.getAttribute('data-cat-up'), -1); });
+      });
+      list.querySelectorAll('button[data-cat-down]').forEach(function (b) {
+        b.addEventListener('click', function () { reorderCategory(this.getAttribute('data-cat-down'), +1); });
+      });
+
+      window.lucide && window.lucide.createIcons();
+    }
+
+    // Refetch categories + services after any category change so the table
+    // grouping and the service-form dropdown stay in sync. Cheaper than
+    // calling the full loadSalon() (which re-renders every tab).
+    async function reloadCategoriesAndServices() {
+      try {
+        var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/categories');
+        if (res.ok) {
+          var data = await res.json();
+          currentCategories = data.categories || [];
+        }
+      } catch (err) { /* swallow — keep stale cache */ }
+      renderCategoriesUI();
+      await loadServices();
+    }
+
+    document.getElementById('newCategoryBtn').addEventListener('click', async function () {
+      var name = (prompt('Navn på ny kategori (f.eks. "Vipper")') || '').trim();
+      if (!name) return;
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/categories', {
+        method: 'POST', body: { name: name },
+      });
+      if (!res.ok) {
+        var d = await res.json().catch(function () { return {}; });
+        NailedForms.toast((d.error && d.error.message) || 'Kunne ikke lage kategori', { type: 'error' });
+        return;
+      }
+      NailedForms.toast('Kategori lagt til');
+      await reloadCategoriesAndServices();
+    });
 
     document.getElementById('newServiceBtn').addEventListener('click', function () { openServiceForm(null); });
     document.getElementById('cancelServiceBtn').addEventListener('click', function () {
@@ -1594,11 +1883,13 @@
     document.getElementById('serviceForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       var fd = new FormData(this);
+      var catVal = (fd.get('category_id') || '').toString().trim();
       var body = {
         name: (fd.get('name') || '').toString().trim(),
         description: ((fd.get('description') || '').toString().trim() || null),
         duration_min: parseInt(fd.get('duration_min'), 10),
         price_nok: parseInt(fd.get('price_nok'), 10),
+        category_id: catVal ? parseInt(catVal, 10) : null,
       };
       var id = this.dataset.id;
       var res = id
@@ -1688,6 +1979,12 @@
       document.getElementById('userName').textContent = user.name;
       document.getElementById('userRole').textContent = user.role === 'admin' ? 'Admin' : 'Salongeier';
       document.getElementById('avatar').textContent = (user.name || '?').charAt(0).toUpperCase();
+      // Wire the city autocomplete before loadSalon() so that the typeahead
+      // can canonicalize the loaded value via _nailedPlaces.setValue().
+      var cityInputEl = document.querySelector('input[name=city]');
+      if (cityInputEl && window.NailedPlaces) {
+        window.NailedPlaces.attachTypeahead(cityInputEl);
+      }
       var s = await loadSalon();
       if (!s) return;
       await loadIncoming();

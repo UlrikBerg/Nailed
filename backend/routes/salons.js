@@ -50,10 +50,15 @@ router.get('/:slug', asyncRoute(async (req, res) => {
     throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
   }
 
-  const [services, images, hours, team, amenities, serviceTeamLinks, reviewSummaryRow] = await Promise.all([
+  const [services, categories, images, hours, team, amenities, serviceTeamLinks, reviewSummaryRow] = await Promise.all([
     query(
-      `SELECT id, name, description, duration_min, price_nok
+      `SELECT id, category_id, name, description, duration_min, price_nok, is_popular
          FROM services WHERE salon_id = ? AND active = 1 ORDER BY price_nok ASC`,
+      [salon.id]
+    ),
+    query(
+      `SELECT id, name, position
+         FROM service_categories WHERE salon_id = ? ORDER BY position ASC, id ASC`,
       [salon.id]
     ),
     query(
@@ -98,12 +103,14 @@ router.get('/:slug', asyncRoute(async (req, res) => {
   }
   const servicesWithTeam = services.map(s => ({
     ...s,
+    is_popular: !!s.is_popular,
     team_member_ids: linkMap.get(s.id) || [],
   }));
 
   res.json({
     salon: withCoverUrl(salon),
     services: servicesWithTeam,
+    categories,
     images: images.map(i => ({ ...i, url: storage.publicUrl(i.key) })),
     hours,
     team: team.map(m => ({ ...m, image_url: m.image_key ? storage.publicUrl(m.image_key) : null })),
@@ -128,7 +135,7 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
   );
   if (!salon) throw new HttpError(404, 'no_salon', 'Du har ingen salong.');
 
-  const [images, hours, team, amenities] = await Promise.all([
+  const [images, hours, team, amenities, categories] = await Promise.all([
     query(
       `SELECT id, image_key AS \`key\`, position, width, height
          FROM salon_images WHERE salon_id = ? ORDER BY position ASC, id ASC`,
@@ -148,6 +155,11 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
       `SELECT amenity FROM salon_amenities WHERE salon_id = ? ORDER BY amenity ASC`,
       [salon.id]
     ),
+    query(
+      `SELECT id, name, position
+         FROM service_categories WHERE salon_id = ? ORDER BY position ASC, id ASC`,
+      [salon.id]
+    ),
   ]);
 
   res.json({
@@ -156,6 +168,7 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
     hours,
     team: team.map(m => ({ ...m, image_url: m.image_key ? storage.publicUrl(m.image_key) : null })),
     amenities: amenities.map(a => a.amenity),
+    categories,
   });
 }));
 
@@ -209,7 +222,7 @@ router.get('/:id/services', asyncRoute(async (req, res) => {
   const activeFilter = isOwner ? '' : 'AND active = 1';
   const [rows, links] = await Promise.all([
     query(
-      `SELECT id, name, description, duration_min, price_nok, active
+      `SELECT id, category_id, name, description, duration_min, price_nok, is_popular, active
          FROM services WHERE salon_id = ? ${activeFilter} ORDER BY price_nok ASC`,
       [id]
     ),
@@ -227,7 +240,11 @@ router.get('/:id/services', asyncRoute(async (req, res) => {
     linkMap.get(l.service_id).push(l.team_member_id);
   }
   res.json({
-    services: rows.map(r => ({ ...r, team_member_ids: linkMap.get(r.id) || [] })),
+    services: rows.map(r => ({
+      ...r,
+      is_popular: !!r.is_popular,
+      team_member_ids: linkMap.get(r.id) || [],
+    })),
   });
 }));
 
@@ -247,12 +264,44 @@ router.post('/:id/services', requireAuth, asyncRoute(async (req, res) => {
     duration_min: z.number().int().positive().max(600),
     price_nok: z.number().int().nonnegative().max(100000),
     active: z.boolean().optional(),
+    category_id: z.number().int().positive().nullable().optional(),
+    is_popular: z.boolean().optional(),
   });
   const data = schema.parse(req.body);
+
+  // Validate the category belongs to this salon (when provided).
+  if (data.category_id != null) {
+    const cat = await queryOne(
+      `SELECT id FROM service_categories WHERE id = ? AND salon_id = ?`,
+      [data.category_id, id]
+    );
+    if (!cat) throw new HttpError(400, 'bad_category', 'Ugyldig kategori.');
+  }
+
+  // Cap of 5 popular services per salon.
+  if (data.is_popular) {
+    const popRow = await queryOne(
+      `SELECT COUNT(*) AS n FROM services WHERE salon_id = ? AND is_popular = 1`,
+      [id]
+    );
+    if (Number(popRow.n) >= 5) {
+      throw new HttpError(409, 'too_many_popular', 'Du kan maks ha 5 populære behandlinger.');
+    }
+  }
+
   const result = await query(
-    `INSERT INTO services (salon_id, name, description, duration_min, price_nok, active)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [id, data.name, data.description ?? null, data.duration_min, data.price_nok, data.active === false ? 0 : 1]
+    `INSERT INTO services (salon_id, category_id, name, description, duration_min, price_nok, active, is_popular)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      id,
+      data.category_id ?? null,
+      data.name,
+      data.description ?? null,
+      data.duration_min,
+      data.price_nok,
+      data.active === false ? 0 : 1,
+      data.is_popular ? 1 : 0,
+    ]
   );
   res.status(201).json({ id: result.insertId });
 }));
@@ -279,12 +328,44 @@ router.patch('/:salonId/services/:serviceId', requireAuth, asyncRoute(async (req
     duration_min: z.number().int().positive().max(600).optional(),
     price_nok: z.number().int().nonnegative().max(100000).optional(),
     active: z.boolean().optional(),
+    category_id: z.number().int().positive().nullable().optional(),
+    is_popular: z.boolean().optional(),
   });
   const patch = schema.parse(req.body);
+
+  // If category_id is being set, validate it belongs to this salon.
+  if (patch.category_id != null) {
+    const cat = await queryOne(
+      `SELECT id FROM service_categories WHERE id = ? AND salon_id = ?`,
+      [patch.category_id, salonId]
+    );
+    if (!cat) throw new HttpError(400, 'bad_category', 'Ugyldig kategori.');
+  }
+
+  // Enforce the 5-popular cap when toggling on (and the service isn't already popular).
+  if (patch.is_popular === true) {
+    const current = await queryOne(
+      `SELECT is_popular FROM services WHERE id = ?`,
+      [serviceId]
+    );
+    if (current && !current.is_popular) {
+      const popRow = await queryOne(
+        `SELECT COUNT(*) AS n FROM services WHERE salon_id = ? AND is_popular = 1`,
+        [salonId]
+      );
+      if (Number(popRow.n) >= 5) {
+        throw new HttpError(409, 'too_many_popular', 'Du kan maks ha 5 populære behandlinger.');
+      }
+    }
+  }
+
   const fields = Object.keys(patch);
   if (fields.length === 0) return res.json({ ok: true });
   const setClause = fields.map(f => `${f} = ?`).join(', ');
-  const values = fields.map(f => f === 'active' ? (patch[f] ? 1 : 0) : patch[f]);
+  const values = fields.map(f => {
+    if (f === 'active' || f === 'is_popular') return patch[f] ? 1 : 0;
+    return patch[f];
+  });
   values.push(serviceId);
   await query(`UPDATE services SET ${setClause} WHERE id = ?`, values);
   res.json({ ok: true });
@@ -308,6 +389,131 @@ router.delete('/:salonId/services/:serviceId', requireAuth, asyncRoute(async (re
 
   // Soft-deactivate to preserve booking history.
   await query(`UPDATE services SET active = 0 WHERE id = ?`, [serviceId]);
+  res.json({ ok: true });
+}));
+
+// --- service categories on a salon ---
+// Used by the owner panel to group services. Public salon detail also returns
+// the category list so the frontend can render services grouped by category.
+
+const MAX_CATEGORIES_PER_SALON = 20;
+
+async function loadSalonOrThrow(id) {
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const salon = await queryOne(`SELECT id, owner_user_id FROM salons WHERE id = ?`, [id]);
+  if (!salon) throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
+  return salon;
+}
+
+function requireOwner(req, salon) {
+  if (req.user.role !== 'admin' && salon.owner_user_id !== req.user.id) {
+    throw new HttpError(403, 'forbidden', 'Du eier ikke denne salongen.');
+  }
+}
+
+router.get('/:id/categories', asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const rows = await query(
+    `SELECT id, name, position FROM service_categories WHERE salon_id = ? ORDER BY position ASC, id ASC`,
+    [id]
+  );
+  res.json({ categories: rows });
+}));
+
+router.post('/:id/categories', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const salon = await loadSalonOrThrow(id);
+  requireOwner(req, salon);
+
+  const data = z.object({
+    name: z.string().trim().min(1).max(255),
+  }).parse(req.body || {});
+
+  const countRow = await queryOne(
+    `SELECT COUNT(*) AS n FROM service_categories WHERE salon_id = ?`,
+    [id]
+  );
+  if (Number(countRow.n) >= MAX_CATEGORIES_PER_SALON) {
+    throw new HttpError(409, 'too_many_categories', `Maks ${MAX_CATEGORIES_PER_SALON} kategorier.`);
+  }
+
+  const result = await query(
+    `INSERT INTO service_categories (salon_id, name, position) VALUES (?, ?, ?)`,
+    [id, data.name, Number(countRow.n)]
+  );
+  res.status(201).json({ id: result.insertId });
+}));
+
+router.patch('/:id/categories/:catId', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const catId = parseInt(req.params.catId, 10);
+  if (!Number.isFinite(catId)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const salon = await loadSalonOrThrow(id);
+  requireOwner(req, salon);
+
+  const cat = await queryOne(
+    `SELECT id FROM service_categories WHERE id = ? AND salon_id = ?`,
+    [catId, id]
+  );
+  if (!cat) throw new HttpError(404, 'not_found', 'Kategorien finnes ikke.');
+
+  const data = z.object({
+    name: z.string().trim().min(1).max(255),
+  }).parse(req.body || {});
+
+  await query(`UPDATE service_categories SET name = ? WHERE id = ?`, [data.name, catId]);
+  res.json({ ok: true });
+}));
+
+router.delete('/:id/categories/:catId', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const catId = parseInt(req.params.catId, 10);
+  if (!Number.isFinite(catId)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const salon = await loadSalonOrThrow(id);
+  requireOwner(req, salon);
+
+  const cat = await queryOne(
+    `SELECT id FROM service_categories WHERE id = ? AND salon_id = ?`,
+    [catId, id]
+  );
+  if (!cat) throw new HttpError(404, 'not_found', 'Kategorien finnes ikke.');
+
+  // FK ON DELETE SET NULL will detach any services from this category.
+  await query(`DELETE FROM service_categories WHERE id = ?`, [catId]);
+  res.json({ ok: true });
+}));
+
+router.put('/:id/categories/order', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const salon = await loadSalonOrThrow(id);
+  requireOwner(req, salon);
+
+  const data = z.object({
+    order: z.array(z.number().int().positive()).max(MAX_CATEGORIES_PER_SALON),
+  }).parse(req.body || {});
+
+  if (!data.order.length) return res.json({ ok: true });
+
+  // Filter to ids that belong to this salon so we never reorder another salon's rows.
+  const placeholders = data.order.map(() => '?').join(',');
+  const valid = await query(
+    `SELECT id FROM service_categories WHERE salon_id = ? AND id IN (${placeholders})`,
+    [id, ...data.order]
+  );
+  const validSet = new Set(valid.map(r => r.id));
+
+  await tx(async (conn) => {
+    let pos = 0;
+    for (const catId of data.order) {
+      if (!validSet.has(catId)) continue;
+      await conn.execute(
+        `UPDATE service_categories SET position = ? WHERE id = ?`,
+        [pos, catId]
+      );
+      pos += 1;
+    }
+  });
   res.json({ ok: true });
 }));
 
