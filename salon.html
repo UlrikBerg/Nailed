@@ -78,6 +78,16 @@
       color: var(--fg-muted);
       margin-top: 4px;
     }
+
+    /* Compact opening-hours used inside the right-side booking panel */
+    .profile-hours--compact .profile-hours__row {
+      padding: 6px 0;
+      font-size: 13px;
+    }
+    .profile-hours--compact .profile-hours__row.today {
+      margin: 0 -10px;
+      padding: 6px 10px;
+    }
   </style>
 </head>
 <body>
@@ -193,6 +203,14 @@
           </div>
 
           <div class="service-list" id="serviceList"></div>
+
+          <!-- Åpningstider — kompakt versjon i bookingpanelet -->
+          <div id="hoursPanelSection" style="display:none; margin-top: 20px;">
+            <div class="booking-panel__header" style="margin-bottom: 8px;">
+              <h3 style="font-size: 16px;">Åpningstider</h3>
+            </div>
+            <div class="profile-hours profile-hours--compact" id="hoursPanelList"></div>
+          </div>
 
           <div class="booking-panel__header" style="margin-top: 24px;">
             <h3>Velg en dag</h3>
@@ -604,6 +622,8 @@
     function renderHours(hours) {
       var section = document.getElementById('hoursSection');
       var list = document.getElementById('hoursList');
+      var panelSection = document.getElementById('hoursPanelSection');
+      var panelList = document.getElementById('hoursPanelList');
       if (!section || !list) return;
       var rows = Array.isArray(hours) ? hours : [];
       // Index by ISO weekday (1..7).
@@ -612,10 +632,11 @@
         var w = parseInt(r.weekday, 10);
         if (w >= 1 && w <= 7) byDay[w] = r;
       });
-      // If we have nothing at all, hide the section entirely.
+      // If we have nothing at all, hide both sections entirely.
       if (!rows.length) {
         section.style.display = 'none';
         list.innerHTML = '';
+        if (panelSection) { panelSection.style.display = 'none'; panelList.innerHTML = ''; }
         return;
       }
       var todayIso = (window.NailedWeekdays && window.NailedWeekdays.todayIso)
@@ -649,6 +670,11 @@
       }
       list.innerHTML = html;
       section.style.display = '';
+      // Mirror into the right-side booking panel.
+      if (panelSection && panelList) {
+        panelList.innerHTML = html;
+        panelSection.style.display = '';
+      }
     }
 
     function renderTeam(team) {
