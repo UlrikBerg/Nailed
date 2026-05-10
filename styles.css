@@ -994,9 +994,9 @@ p { margin: 0 0 var(--space-4) 0; }
   max-width: 50ch;
 }
 .confirm__card {
-  max-width: 460px;
+  max-width: 480px;
   margin: 0 auto;
-  padding: 36px 40px;
+  padding: 44px 48px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--stone-200);
   background: var(--cream-50);
@@ -1004,27 +1004,23 @@ p { margin: 0 0 var(--space-4) 0; }
   line-height: 1.5;
 }
 .confirm__row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  column-gap: 24px;
-  padding: 14px 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 0;
   border-bottom: 1px solid var(--stone-200);
 }
-.confirm__row + .confirm__row { padding-top: 22px; }
-.confirm__row:last-child { border: 0; padding-bottom: 0; }
+.confirm__row:last-child { border: 0; }
 .confirm__label {
   color: var(--fg-muted);
-  font-size: 13px;
-  letter-spacing: 0.04em;
+  font-size: 11px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 600;
 }
 .confirm__val {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 20px;
-  line-height: 1.25;
+  font-weight: 600;
+  font-size: 15px;
   color: var(--ink);
 }
 .confirm__actions {
