@@ -19,40 +19,208 @@ function withCoverUrl(row) {
 
 // GET /salons — public listing (paginated)
 // Optional filters:
-//   ?city=<exact city>   — case-sensitive equality (cities are stored canonical)
-//   ?q=<text>            — LIKE-match across salon name, bio, AND service names.
-//                          Joins services so a search for a treatment surfaces
-//                          salons that offer that treatment. DISTINCT to dedupe.
+//   ?city=<exact city>     — case-sensitive equality (cities are stored canonical)
+//   ?q=<text>              — LIKE-match across salon name, bio, AND service names.
+//                            Joins services so a search for a treatment surfaces
+//                            salons that offer that treatment. DISTINCT to dedupe.
+//   ?min_price / ?max_price — filter by salon's cheapest active service (NOK)
+//   ?max_duration          — at least one active service with duration_min <= max
+//   ?category              — exact match against service_categories.name
+//   ?min_rating            — avg review rating >= min (1..5)
+//   ?open_now=1            — salon's hours row for current Oslo weekday is open
+//   ?has_reviews=1         — only salons with >= 1 review
+//
+// Each row includes computed: min_price, min_duration, avg_rating, review_count,
+// is_open_now (bool) and top_categories (top 3 distinct category names as JSON).
 router.get('/', asyncRoute(async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit, 10) || 24, 100);
   const offset = parseInt(req.query.offset, 10) || 0;
   const city = (req.query.city || '').toString().trim();
   const q = (req.query.q || '').toString().trim();
 
+  // --- Parse numeric / boolean filters defensively. Empty/invalid → omit. ---
+  function intParam(name) {
+    const raw = req.query[name];
+    if (raw == null || raw === '') return null;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) ? n : null;
+  }
+  function floatParam(name) {
+    const raw = req.query[name];
+    if (raw == null || raw === '') return null;
+    const n = parseFloat(raw);
+    return Number.isFinite(n) ? n : null;
+  }
+  const minPrice = intParam('min_price');
+  const maxPrice = intParam('max_price');
+  const maxDuration = intParam('max_duration');
+  const minRating = floatParam('min_rating');
+  const category = (req.query.category || '').toString().trim();
+  const openNow = String(req.query.open_now || '') === '1';
+  const hasReviews = String(req.query.has_reviews || '') === '1';
+
+  // --- Compute Oslo wall-clock for open_now filter & is_open_now column. ---
+  // Uses the same Intl.DateTimeFormat trick as bookings.js to be DST-safe.
+  const oslo = (() => {
+    const fmt = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Oslo',
+      weekday: 'short',
+      hour: '2-digit', minute: '2-digit',
+      hour12: false,
+    });
+    const parts = {};
+    fmt.formatToParts(new Date()).forEach(p => { parts[p.type] = p.value; });
+    const wdMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
+    const hh = parts.hour === '24' ? '00' : parts.hour;
+    return {
+      weekday: wdMap[parts.weekday] || 0,
+      hhmm: `${hh}:${parts.minute}:00`,
+    };
+  })();
+
+  // --- Build the WHERE / param list. -----------------------------------------
+  // Aggregates (min_price, avg_rating, etc.) are filtered via HAVING; everything
+  // else lands in WHERE.
   const where = ['s.status = ?'];
   const params = ['active'];
   if (city) { where.push('s.city = ?'); params.push(city); }
 
-  // q matches name OR bio OR any active service's name on this salon.
-  let join = '';
+  // q matches name OR bio OR any active service's name on this salon. We add
+  // the join unconditionally below (it's needed for min_price/min_duration too)
+  // — here we just append the WHERE clauses.
   if (q) {
     const like = `%${q}%`;
-    join = 'LEFT JOIN services sv ON sv.salon_id = s.id AND sv.active = 1';
-    where.push('(s.name LIKE ? OR s.bio LIKE ? OR sv.name LIKE ?)');
+    where.push('(s.name LIKE ? OR s.bio LIKE ? OR sv_q.name LIKE ?)');
     params.push(like, like, like);
   }
 
+  // Category filter: salon must have at least one service in a category with
+  // the given name. We EXISTS-join to keep DISTINCT-by-salon clean.
+  if (category) {
+    where.push(`EXISTS (
+      SELECT 1 FROM services sv2
+        JOIN service_categories sc2 ON sc2.id = sv2.category_id
+       WHERE sv2.salon_id = s.id AND sv2.active = 1 AND sc2.name = ?
+    )`);
+    params.push(category);
+  }
+
+  // open_now: weekday row exists, is_closed=0, and HH:MM is within open..close.
+  // Match bookings.js semantics: missing rows mean "no per-weekday restriction"
+  // — but that also means we can't claim the salon is open now, so we EXCLUDE
+  // salons with no row for today when open_now=1.
+  if (openNow) {
+    where.push(`EXISTS (
+      SELECT 1 FROM salon_hours sh2
+       WHERE sh2.salon_id = s.id
+         AND sh2.weekday = ?
+         AND sh2.is_closed = 0
+         AND sh2.open_at IS NOT NULL AND sh2.close_at IS NOT NULL
+         AND ? BETWEEN sh2.open_at AND sh2.close_at
+    )`);
+    params.push(oslo.weekday, oslo.hhmm);
+  }
+
+  // duration filter: salon has at least one active service with duration<=max.
+  if (maxDuration != null) {
+    where.push(`EXISTS (
+      SELECT 1 FROM services sv3
+       WHERE sv3.salon_id = s.id AND sv3.active = 1
+         AND sv3.duration_min <= ?
+    )`);
+    params.push(maxDuration);
+  }
+
+  // --- Aggregates: min_price, min_duration, avg_rating, review_count. --------
+  // Each aggregate is a correlated subquery so DISTINCT/GROUP BY isn't needed
+  // for the main row. Filters on aggregates are appended to WHERE (not HAVING)
+  // — we want them indexed via the subqueries' own scans.
+  // For min_price filter: subquery MIN must satisfy the bounds.
+  if (minPrice != null) {
+    where.push(`(SELECT MIN(price_nok) FROM services WHERE salon_id = s.id AND active = 1) >= ?`);
+    params.push(minPrice);
+  }
+  if (maxPrice != null) {
+    where.push(`(SELECT MIN(price_nok) FROM services WHERE salon_id = s.id AND active = 1) <= ?`);
+    params.push(maxPrice);
+  }
+  if (minRating != null) {
+    where.push(`(SELECT AVG(rating) FROM reviews WHERE salon_id = s.id AND hidden_at IS NULL) >= ?`);
+    params.push(minRating);
+  }
+  if (hasReviews) {
+    where.push(`EXISTS (SELECT 1 FROM reviews WHERE salon_id = s.id AND hidden_at IS NULL)`);
+  }
+
+  // The `sv_q` join is only needed when q is present (to LIKE on service names);
+  // otherwise we skip it. DISTINCT on s.id is what dedupes when sv_q matches
+  // multiple services per salon.
+  const qJoin = q ? 'LEFT JOIN services sv_q ON sv_q.salon_id = s.id AND sv_q.active = 1' : '';
+
+  // We pass oslo.weekday + oslo.hhmm a SECOND time for the is_open_now SELECT
+  // column even if open_now filter is off — it's a cheap correlated lookup.
+  const selectParams = [oslo.weekday, oslo.hhmm];
+
   const rows = await query(
-    `SELECT DISTINCT s.id, s.slug, s.name, s.city, s.bio, s.instagram_url, s.cover_image_key, s.created_at
+    `SELECT DISTINCT
+            s.id, s.slug, s.name, s.city, s.bio, s.instagram_url, s.cover_image_key, s.created_at,
+            (SELECT MIN(price_nok) FROM services WHERE salon_id = s.id AND active = 1) AS min_price,
+            (SELECT MIN(duration_min) FROM services WHERE salon_id = s.id AND active = 1) AS min_duration,
+            (SELECT AVG(rating) FROM reviews WHERE salon_id = s.id AND hidden_at IS NULL) AS avg_rating,
+            (SELECT COUNT(*) FROM reviews WHERE salon_id = s.id AND hidden_at IS NULL) AS review_count,
+            (SELECT CASE WHEN sh.is_closed = 0 AND sh.open_at IS NOT NULL AND sh.close_at IS NOT NULL
+                          AND ? BETWEEN sh.open_at AND sh.close_at
+                         THEN 1 ELSE 0 END
+               FROM salon_hours sh WHERE sh.salon_id = s.id AND sh.weekday = ?) AS is_open_now
        FROM salons s
-       ${join}
+       ${qJoin}
       WHERE ${where.join(' AND ')}
       ORDER BY s.created_at DESC
       LIMIT ? OFFSET ?`,
-    [...params, limit, offset]
+    // Note: the two `?` in the is_open_now subquery are (HH:MM, weekday) in
+    // that order — they appear BEFORE the WHERE-clause params.
+    [oslo.hhmm, oslo.weekday, ...params, limit, offset]
   );
-  // Drop created_at from the wire shape (it was only used for ORDER BY stability).
-  const out = rows.map(({ created_at, ...rest }) => withCoverUrl(rest));
+
+  // --- top_categories: distinct category names for active services, top 3. ---
+  // One round-trip after the main query so the SELECT stays readable. Done in
+  // a single IN-query and then folded into the rows.
+  const ids = rows.map(r => r.id);
+  const topCatsBy = new Map();
+  if (ids.length) {
+    const placeholders = ids.map(() => '?').join(',');
+    const catRows = await query(
+      `SELECT sv.salon_id, sc.name,
+              COUNT(*) AS n
+         FROM services sv
+         JOIN service_categories sc ON sc.id = sv.category_id
+        WHERE sv.salon_id IN (${placeholders})
+          AND sv.active = 1
+        GROUP BY sv.salon_id, sc.name
+        ORDER BY sv.salon_id ASC, n DESC, sc.name ASC`,
+      ids
+    );
+    for (const r of catRows) {
+      if (!topCatsBy.has(r.salon_id)) topCatsBy.set(r.salon_id, []);
+      const list = topCatsBy.get(r.salon_id);
+      if (list.length < 3) list.push(r.name);
+    }
+  }
+
+  // Drop created_at from the wire shape, normalize numbers, attach computed
+  // fields. avg_rating gets rounded to 1 decimal; nulls stay nulls.
+  const out = rows.map(({ created_at, ...rest }) => {
+    const r = withCoverUrl(rest);
+    r.min_price = r.min_price != null ? Number(r.min_price) : null;
+    r.min_duration = r.min_duration != null ? Number(r.min_duration) : null;
+    r.avg_rating = r.avg_rating != null
+      ? Math.round(Number(r.avg_rating) * 10) / 10
+      : null;
+    r.review_count = Number(r.review_count || 0);
+    r.is_open_now = r.is_open_now === 1 || r.is_open_now === '1';
+    r.top_categories = topCatsBy.get(r.id) || [];
+    return r;
+  });
   res.json({ salons: out, limit, offset });
 }));
 
@@ -75,7 +243,7 @@ router.get('/:slug', asyncRoute(async (req, res) => {
     throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
   }
 
-  const [services, categories, images, hours, team, amenities, serviceTeamLinks, reviewSummaryRow, closures] = await Promise.all([
+  const [services, categories, images, hours, team, amenities, serviceTeamLinks, reviewSummaryRow, latestReviews, closures] = await Promise.all([
     query(
       `SELECT id, category_id, name, description, duration_min, price_nok, is_popular
          FROM services WHERE salon_id = ? AND active = 1 ORDER BY price_nok ASC`,
@@ -118,6 +286,18 @@ router.get('/:slug', asyncRoute(async (req, res) => {
          FROM reviews WHERE salon_id = ? AND hidden_at IS NULL`,
       [salon.id]
     ),
+    // Latest 3 reviews inline for the public salon page. The full list lives
+    // at GET /salons/:id/reviews.
+    query(
+      `SELECT r.id, r.rating, r.body, r.owner_reply, r.owner_reply_at, r.created_at,
+              u.name AS customer_full_name
+         FROM reviews r
+         JOIN users u ON u.id = r.customer_user_id
+        WHERE r.salon_id = ? AND r.hidden_at IS NULL
+        ORDER BY r.created_at DESC
+        LIMIT 3`,
+      [salon.id]
+    ),
     query(
       `SELECT closed_date, reason
          FROM salon_closures
@@ -153,6 +333,23 @@ router.get('/:slug', asyncRoute(async (req, res) => {
       count: Number(reviewSummaryRow?.count || 0),
       // Round to 1 decimal so the client doesn't have to format it twice.
       avg: reviewSummaryRow?.avg != null ? Math.round(Number(reviewSummaryRow.avg) * 10) / 10 : null,
+      // Latest 3 reviews with masked customer name ("Firstname L."). The full
+      // list (paginated) is available at GET /salons/:id/reviews.
+      latest: latestReviews.map(r => ({
+        id: r.id,
+        rating: r.rating,
+        body: r.body,
+        owner_reply: r.owner_reply,
+        owner_reply_at: r.owner_reply_at,
+        customer_name: (function (name) {
+          const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+          if (!parts.length) return 'Anonym';
+          if (parts.length === 1) return parts[0];
+          const last = parts[parts.length - 1];
+          return parts[0] + ' ' + last.charAt(0).toUpperCase() + '.';
+        })(r.customer_full_name),
+        created_at: r.created_at,
+      })),
     },
     closures: closures.map(c => ({
       // Serialize as YYYY-MM-DD (DATE columns come back as a Date object).

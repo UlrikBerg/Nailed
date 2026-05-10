@@ -6,6 +6,165 @@
   <title>nailed — utforsk</title>
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Slide-down filter panel — opens above the fylke/city pills. */
+    .filter-panel-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 0 0;
+    }
+    .filter-btn {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 13px;
+      padding: 9px 16px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-300);
+      background: var(--cream-50);
+      color: var(--ink);
+      cursor: pointer;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      transition: all var(--dur-fast) var(--ease-out-soft);
+    }
+    .filter-btn:hover { border-color: var(--stone-400); }
+    .filter-btn.is-open { background: var(--ink); color: var(--cream-50); border-color: var(--ink); }
+    .filter-btn__count {
+      background: var(--rouge-500);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: var(--radius-pill);
+      min-width: 18px;
+      text-align: center;
+    }
+    .filter-panel {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 220ms var(--ease-out-soft);
+    }
+    .filter-panel.is-open { max-height: 720px; }
+    .filter-panel__inner {
+      margin-top: 12px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+    .filter-field { display: flex; flex-direction: column; gap: 6px; }
+    .filter-field__label {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--fg-muted);
+    }
+    .filter-field input[type="number"],
+    .filter-field select {
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      color: var(--ink);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .filter-field__pair { display: flex; gap: 8px; align-items: center; }
+    .filter-field__pair input { flex: 1; min-width: 0; }
+    .filter-field__pair span { color: var(--fg-muted); font-size: 13px; }
+    .rating-stars { display: inline-flex; gap: 4px; }
+    .rating-stars button {
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--stone-300);
+      transition: color var(--dur-fast) var(--ease-out-soft);
+    }
+    .rating-stars button.is-on { color: var(--rouge-500); }
+    .rating-stars button:hover { color: var(--rouge-400); }
+    .rating-stars i { width: 22px; height: 22px; fill: currentColor; stroke: currentColor; }
+    .filter-toggle { display: inline-flex; gap: 10px; align-items: center; cursor: pointer; user-select: none; }
+    .filter-toggle__sw {
+      width: 38px; height: 22px;
+      border-radius: 999px;
+      background: var(--stone-200);
+      position: relative;
+      transition: background var(--dur-fast) var(--ease-out-soft);
+      flex-shrink: 0;
+    }
+    .filter-toggle__sw::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 18px; height: 18px; border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+      transition: left var(--dur-fast) var(--ease-out-soft);
+    }
+    .filter-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+    .filter-toggle input:checked + .filter-toggle__sw { background: var(--rouge-500); }
+    .filter-toggle input:checked + .filter-toggle__sw::after { left: 18px; }
+    .filter-toggle__label { font-size: 14px; color: var(--ink); }
+    .filter-panel__actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      padding-top: 4px;
+      border-top: 1px dashed var(--stone-200);
+      margin-top: 4px;
+    }
+
+    /* Salon card extras — pill (open-now), rating, price, category chip. */
+    .card-pill {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px 5px 8px;
+      background: rgba(251, 246, 238, 0.94);
+      backdrop-filter: blur(8px);
+      border-radius: var(--radius-pill);
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: 0.02em;
+    }
+    .card-pill__dot {
+      width: 7px; height: 7px; border-radius: 999px; background: var(--stone-400);
+    }
+    .card-pill--open .card-pill__dot { background: #2EA66F; box-shadow: 0 0 0 3px rgba(46, 166, 111, 0.16); }
+    .card-pill--closed .card-pill__dot { background: var(--rouge-500); }
+    .card-pill--closed-today .card-pill__dot { background: var(--stone-500); }
+    .service-card__rating {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 13px; color: var(--ink); font-weight: 600;
+    }
+    .service-card__rating i { width: 14px; height: 14px; color: var(--rouge-500); fill: var(--rouge-500); }
+    .service-card__rating-count { color: var(--fg-muted); font-weight: 500; font-size: 12px; }
+    .service-card__catchip {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--rouge-700);
+      background: var(--rouge-50);
+      border: 1px solid var(--rouge-100);
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      margin-top: 2px;
+    }
+  </style>
 </head>
 <body>
 
@@ -37,8 +196,77 @@
   <!-- Filters -->
   <section class="page" style="padding-top: 8px;">
 
+    <!-- Filter-knapp + slide-down panel -->
+    <div class="filter-panel-bar">
+      <button class="filter-btn" id="filterBtn" type="button" aria-expanded="false" aria-controls="filterPanel">
+        <i data-lucide="sliders-horizontal"></i> Filter
+        <span class="filter-btn__count" id="filterBtnCount" style="display:none;">0</span>
+      </button>
+    </div>
+    <div class="filter-panel" id="filterPanel" aria-hidden="true">
+      <div class="filter-panel__inner">
+        <div class="filter-field">
+          <span class="filter-field__label">Pris (NOK)</span>
+          <div class="filter-field__pair">
+            <input type="number" id="fMinPrice" min="0" step="50" placeholder="Min" inputmode="numeric" />
+            <span>–</span>
+            <input type="number" id="fMaxPrice" min="0" step="50" placeholder="Maks" inputmode="numeric" />
+          </div>
+        </div>
+
+        <div class="filter-field">
+          <span class="filter-field__label">Maks varighet</span>
+          <select id="fMaxDuration">
+            <option value="">Alle</option>
+            <option value="30">30 min</option>
+            <option value="60">60 min</option>
+            <option value="90">90 min</option>
+            <option value="120">120 min</option>
+            <option value="180">180 min</option>
+          </select>
+        </div>
+
+        <div class="filter-field">
+          <span class="filter-field__label">Kategori</span>
+          <select id="fCategory">
+            <option value="">Alle kategorier</option>
+          </select>
+        </div>
+
+        <div class="filter-field">
+          <span class="filter-field__label">Minst rating</span>
+          <div class="rating-stars" id="fRatingStars" role="radiogroup" aria-label="Minst rating">
+            <button type="button" data-r="1" aria-label="1 stjerne"><i data-lucide="star"></i></button>
+            <button type="button" data-r="2" aria-label="2 stjerner"><i data-lucide="star"></i></button>
+            <button type="button" data-r="3" aria-label="3 stjerner"><i data-lucide="star"></i></button>
+            <button type="button" data-r="4" aria-label="4 stjerner"><i data-lucide="star"></i></button>
+            <button type="button" data-r="5" aria-label="5 stjerner"><i data-lucide="star"></i></button>
+          </div>
+        </div>
+
+        <div class="filter-field">
+          <span class="filter-field__label">Andre</span>
+          <label class="filter-toggle">
+            <input type="checkbox" id="fOpenNow" />
+            <span class="filter-toggle__sw"></span>
+            <span class="filter-toggle__label">Åpent nå</span>
+          </label>
+          <label class="filter-toggle">
+            <input type="checkbox" id="fHasReviews" />
+            <span class="filter-toggle__sw"></span>
+            <span class="filter-toggle__label">Har anmeldelser</span>
+          </label>
+        </div>
+
+        <div class="filter-panel__actions">
+          <button class="btn btn-ghost btn-sm" id="filterReset" type="button">Nullstill</button>
+          <button class="btn btn-primary btn-sm" id="filterApply" type="button">Anvend filter</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Fylke row -->
-    <div class="filter-row" id="fylkeRow">
+    <div class="filter-row" id="fylkeRow" style="margin-top: 16px;">
       <span class="filter-row__label">Fylke</span>
       <button class="pill active" data-fylke="all">Hele Norge</button>
       <button class="pill" data-fylke="oslo">Oslo</button>
@@ -231,7 +459,7 @@
     var ALL_SALONS = []; // raw API rows
     var FAV_SET = new Set(); // server favorite salon IDs (numbers) when logged in
 
-    // Read ?q=…&city=… from the URL — these come from the homepage search bar
+    // Read filter state from the URL — these come from the homepage search bar
     // (or a quick-chip link). The URL is the source of truth for filter state.
     var initialParams = new URLSearchParams(window.location.search);
     var currentQ = (initialParams.get('q') || '').trim();
@@ -242,14 +470,57 @@
       if (fk) currentFylke = fk;
     }
 
-    // Update the browser URL to reflect the active q/city filters without
-    // reloading. Keeps copy-paste-able URLs aligned with what the user sees.
+    // Advanced filters (server-side). Keep them out of activeQuick so the
+    // existing client-side pill filtering doesn't trip on them.
+    function parseIntOrNull(v) {
+      if (v == null || v === '') return null;
+      var n = parseInt(v, 10);
+      return Number.isFinite(n) ? n : null;
+    }
+    var fState = {
+      min_price: parseIntOrNull(initialParams.get('min_price')),
+      max_price: parseIntOrNull(initialParams.get('max_price')),
+      max_duration: parseIntOrNull(initialParams.get('max_duration')),
+      category: (initialParams.get('category') || '').trim(),
+      min_rating: parseIntOrNull(initialParams.get('min_rating')),
+      open_now: initialParams.get('open_now') === '1',
+      has_reviews: initialParams.get('has_reviews') === '1',
+    };
+
+    // Build a URLSearchParams reflecting ALL active filters, then mirror to the
+    // address bar (no reload). Empty filters are omitted so URLs stay clean.
     function syncUrl() {
       var parts = [];
       if (currentQ) parts.push('q=' + encodeURIComponent(currentQ));
       if (currentCity) parts.push('city=' + encodeURIComponent(currentCity));
+      if (fState.min_price != null) parts.push('min_price=' + fState.min_price);
+      if (fState.max_price != null) parts.push('max_price=' + fState.max_price);
+      if (fState.max_duration != null) parts.push('max_duration=' + fState.max_duration);
+      if (fState.category) parts.push('category=' + encodeURIComponent(fState.category));
+      if (fState.min_rating != null) parts.push('min_rating=' + fState.min_rating);
+      if (fState.open_now) parts.push('open_now=1');
+      if (fState.has_reviews) parts.push('has_reviews=1');
       var newUrl = window.location.pathname + (parts.length ? '?' + parts.join('&') : '');
       try { history.replaceState(null, '', newUrl); } catch (_) {}
+    }
+
+    // Count of "advanced" filters in fState (used by the Filter button badge).
+    function countAdvanced() {
+      var n = 0;
+      if (fState.min_price != null) n++;
+      if (fState.max_price != null) n++;
+      if (fState.max_duration != null) n++;
+      if (fState.category) n++;
+      if (fState.min_rating != null) n++;
+      if (fState.open_now) n++;
+      if (fState.has_reviews) n++;
+      return n;
+    }
+    function refreshFilterBtnBadge() {
+      var badge = document.getElementById('filterBtnCount');
+      var n = countAdvanced();
+      if (n > 0) { badge.textContent = String(n); badge.style.display = ''; }
+      else { badge.style.display = 'none'; }
     }
 
     // Fylke selection
@@ -339,13 +610,59 @@
         locationLine = '<div class="service-card__meta"><i data-lucide="map-pin"></i>' + escapeHtml(salon.city) + '</div>';
       }
 
+      // Open-now pill. The API returns is_open_now (bool). When null/0 we
+      // show "Stengt nå". We don't yet distinguish "Stengt i dag" from
+      // "Stengt nå" without the per-weekday is_closed flag — to keep this
+      // commit focused, surface both as "Stengt nå".
+      var openPill = '';
+      if (salon.is_open_now === true) {
+        openPill = '<span class="card-pill card-pill--open"><span class="card-pill__dot"></span>Åpent nå</span>';
+      } else {
+        openPill = '<span class="card-pill card-pill--closed"><span class="card-pill__dot"></span>Stengt nå</span>';
+      }
+
+      // Rating + review count. Hide when no reviews so we don't show "★ —".
+      var ratingLine = '';
+      if (salon.avg_rating != null && salon.review_count > 0) {
+        ratingLine = '<div class="service-card__rating">'
+          + '<i data-lucide="star"></i>'
+          + escapeHtml(salon.avg_rating.toFixed ? salon.avg_rating.toFixed(1) : String(salon.avg_rating))
+          + '<span class="service-card__rating-count">(' + salon.review_count + ')</span>'
+          + '</div>';
+      }
+
+      // "Fra X kr" — only when we know a min price.
+      var priceLine = '';
+      if (salon.min_price != null) {
+        priceLine = '<span class="service-card__price">'
+          + '<span class="service-card__from">Fra</span>'
+          + salon.min_price
+          + '<span class="service-card__kr"> kr</span>'
+          + '</span>';
+      }
+
+      // Top category chip — first of the top 3 the API returned. Skip when none.
+      var catChip = '';
+      if (Array.isArray(salon.top_categories) && salon.top_categories.length) {
+        catChip = '<span class="service-card__catchip">' + escapeHtml(salon.top_categories[0]) + '</span>';
+      }
+
+      // Dataset price/rating/category attrs power the legacy quick-filter pill
+      // matching at the bottom of filterResults(). The new server-side filters
+      // pre-narrow the result set, so these mostly act as a no-op for the
+      // advanced filters.
       return ''
         + '<article class="service-card card" '
           + 'data-fylke="' + escapeHtml(fylkeAttr) + '" '
           + 'data-city="' + escapeHtml(cityAttr) + '" '
-          + 'data-tx="" data-price="" data-rating="" data-reviews="" data-slot="" '
+          + 'data-tx="" '
+          + 'data-price="' + (salon.min_price != null ? salon.min_price : '') + '" '
+          + 'data-rating="' + (salon.avg_rating != null ? salon.avg_rating : '') + '" '
+          + 'data-reviews="' + (salon.review_count || 0) + '" '
+          + 'data-slot="" '
           + 'onclick="location.href=\'salon.html?slug=' + slug + '\'">'
           + '<div class="service-card__photo" style="' + photoStyle + '">'
+            + openPill
             + '<button class="' + heartClass + '" data-fav="' + escapeHtml(salon.slug || '') + '" data-salon-id="' + salon.id + '" aria-pressed="' + (isFav ? 'true' : 'false') + '">'
               + '<i data-lucide="heart" style="' + heartFillStyle + '"></i>'
             + '</button>'
@@ -355,8 +672,11 @@
               + '<div>'
                 + '<div class="service-card__name">' + escapeHtml(salon.name || 'Salong') + '</div>'
                 + locationLine
+                + ratingLine
               + '</div>'
+              + priceLine
             + '</div>'
+            + (catChip ? '<div>' + catChip + '</div>' : '')
           + '</div>'
         + '</article>';
     }
@@ -512,11 +832,18 @@
     async function loadSalons() {
       setState('Laster salonger…');
       // Build query string. Server filters by ?q= (LIKE on name/bio/service.name)
-      // and ?city= (exact). We forward both when present so the result set is
-      // narrow on first paint instead of loading everything and filtering down.
+      // and ?city= (exact), plus the new advanced filters in fState. Empty
+      // values are omitted so the URL stays clean.
       var qs = ['limit=24'];
       if (currentQ) qs.push('q=' + encodeURIComponent(currentQ));
       if (currentCity) qs.push('city=' + encodeURIComponent(currentCity));
+      if (fState.min_price != null) qs.push('min_price=' + fState.min_price);
+      if (fState.max_price != null) qs.push('max_price=' + fState.max_price);
+      if (fState.max_duration != null) qs.push('max_duration=' + fState.max_duration);
+      if (fState.category) qs.push('category=' + encodeURIComponent(fState.category));
+      if (fState.min_rating != null) qs.push('min_rating=' + fState.min_rating);
+      if (fState.open_now) qs.push('open_now=1');
+      if (fState.has_reviews) qs.push('has_reviews=1');
       try {
         var res = await fetch('/api/v1/salons?' + qs.join('&'), { headers: { 'Accept': 'application/json' } });
         if (!res.ok) throw new Error('Status ' + res.status);
@@ -538,30 +865,161 @@
         } catch (_) { /* ignore — render hearts as not-favorited */ }
       }
 
+      // After each fetch, populate the category dropdown with the distinct
+      // categories we just saw. (Categories live on a per-salon basis — there
+      // is no global list endpoint, so we union what's visible.)
+      refreshCategoryOptions();
       renderResults();
     }
 
-    // Render the "Søker etter: «...» ✕" chip into the toolbar's active-filters
-    // slot. The X clears `q` from state + URL and reloads the salon list.
-    function renderSearchChip() {
+    // Pull a unique, sorted set of category names from ALL_SALONS' top_categories
+    // and rebuild the dropdown. Preserves the currently selected value.
+    function refreshCategoryOptions() {
+      var sel = document.getElementById('fCategory');
+      if (!sel) return;
+      var set = new Set();
+      ALL_SALONS.forEach(function (s) {
+        (s.top_categories || []).forEach(function (n) { if (n) set.add(n); });
+      });
+      var names = Array.from(set).sort(function (a, b) { return a.localeCompare(b, 'nb'); });
+      var existing = fState.category;
+      var html = '<option value="">Alle kategorier</option>';
+      names.forEach(function (n) {
+        html += '<option value="' + escapeHtml(n) + '"' + (n === existing ? ' selected' : '') + '>' + escapeHtml(n) + '</option>';
+      });
+      // Make sure the active selection stays visible even if it's not in the
+      // current result set (e.g. user typed a city with no matching salons).
+      if (existing && !set.has(existing)) {
+        html += '<option value="' + escapeHtml(existing) + '" selected>' + escapeHtml(existing) + '</option>';
+      }
+      sel.innerHTML = html;
+    }
+
+    // Render the toolbar chips for active filters. Includes search (q),
+    // open_now, has_reviews, min/max price, max_duration, category, min_rating.
+    // Each chip removes its own filter on click and reloads.
+    function renderActiveChips() {
       var slot = document.getElementById('activeFilters');
       if (!slot) return;
       slot.innerHTML = '';
-      if (!currentQ) return;
-      var chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'chip active';
-      chip.setAttribute('aria-label', 'Fjern søk');
-      chip.innerHTML = 'Søker etter: «' + escapeHtml(currentQ) + '» <span style="margin-left:4px; font-weight:600;">✕</span>';
-      chip.addEventListener('click', function () {
-        currentQ = '';
-        syncUrl();
-        renderSearchChip();
-        // Re-fetch from API so the LIKE filter is dropped server-side too.
-        loadSalons();
-      });
-      slot.appendChild(chip);
+
+      function addChip(label, onRemove) {
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip active';
+        chip.innerHTML = escapeHtml(label) + ' <span style="margin-left:4px; font-weight:600;">✕</span>';
+        chip.addEventListener('click', function () {
+          onRemove();
+          syncUrl();
+          syncFilterInputs();
+          refreshFilterBtnBadge();
+          renderActiveChips();
+          loadSalons();
+        });
+        slot.appendChild(chip);
+      }
+
+      if (currentQ) {
+        addChip('Søker etter: «' + currentQ + '»', function () { currentQ = ''; });
+      }
+      if (fState.open_now) {
+        addChip('Åpent nå', function () { fState.open_now = false; });
+      }
+      if (fState.has_reviews) {
+        addChip('Har anmeldelser', function () { fState.has_reviews = false; });
+      }
+      if (fState.min_price != null) {
+        addChip('Fra ' + fState.min_price + ' kr', function () { fState.min_price = null; });
+      }
+      if (fState.max_price != null) {
+        addChip('Maks ' + fState.max_price + ' kr', function () { fState.max_price = null; });
+      }
+      if (fState.max_duration != null) {
+        addChip('Maks ' + fState.max_duration + ' min', function () { fState.max_duration = null; });
+      }
+      if (fState.category) {
+        addChip(fState.category, function () { fState.category = ''; });
+      }
+      if (fState.min_rating != null) {
+        addChip('★ ' + fState.min_rating + '+', function () { fState.min_rating = null; });
+      }
     }
+
+    // Push fState into the filter panel form controls (after a URL-driven init
+    // or after removing a chip).
+    function syncFilterInputs() {
+      document.getElementById('fMinPrice').value = fState.min_price != null ? fState.min_price : '';
+      document.getElementById('fMaxPrice').value = fState.max_price != null ? fState.max_price : '';
+      document.getElementById('fMaxDuration').value = fState.max_duration != null ? String(fState.max_duration) : '';
+      document.getElementById('fCategory').value = fState.category || '';
+      document.getElementById('fOpenNow').checked = !!fState.open_now;
+      document.getElementById('fHasReviews').checked = !!fState.has_reviews;
+      var stars = document.querySelectorAll('#fRatingStars button');
+      stars.forEach(function (b) {
+        var v = parseInt(b.dataset.r, 10);
+        b.classList.toggle('is-on', fState.min_rating != null && v <= fState.min_rating);
+      });
+    }
+
+    // --- Filter panel wiring --------------------------------------------------
+    var filterBtn = document.getElementById('filterBtn');
+    var filterPanel = document.getElementById('filterPanel');
+    filterBtn.addEventListener('click', function () {
+      var open = !filterPanel.classList.contains('is-open');
+      filterPanel.classList.toggle('is-open', open);
+      filterBtn.classList.toggle('is-open', open);
+      filterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      filterPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    });
+
+    // Star selector: clicking the same star twice clears the rating.
+    document.getElementById('fRatingStars').addEventListener('click', function (e) {
+      var btn = e.target.closest('button[data-r]');
+      if (!btn) return;
+      var v = parseInt(btn.dataset.r, 10);
+      if (fState.min_rating === v) {
+        fState.min_rating = null;
+      } else {
+        fState.min_rating = v;
+      }
+      syncFilterInputs();
+    });
+
+    document.getElementById('filterApply').addEventListener('click', function () {
+      // Pull form values into fState.
+      var minP = parseIntOrNull(document.getElementById('fMinPrice').value);
+      var maxP = parseIntOrNull(document.getElementById('fMaxPrice').value);
+      // Sanity: if min > max, swap them silently (keep user-friendly).
+      if (minP != null && maxP != null && minP > maxP) { var t = minP; minP = maxP; maxP = t; }
+      fState.min_price = minP;
+      fState.max_price = maxP;
+      fState.max_duration = parseIntOrNull(document.getElementById('fMaxDuration').value);
+      fState.category = document.getElementById('fCategory').value || '';
+      fState.open_now = document.getElementById('fOpenNow').checked;
+      fState.has_reviews = document.getElementById('fHasReviews').checked;
+      // min_rating is updated live by the star handler.
+
+      syncUrl();
+      syncFilterInputs();
+      refreshFilterBtnBadge();
+      renderActiveChips();
+      loadSalons();
+    });
+
+    document.getElementById('filterReset').addEventListener('click', function () {
+      fState.min_price = null;
+      fState.max_price = null;
+      fState.max_duration = null;
+      fState.category = '';
+      fState.min_rating = null;
+      fState.open_now = false;
+      fState.has_reviews = false;
+      syncUrl();
+      syncFilterInputs();
+      refreshFilterBtnBadge();
+      renderActiveChips();
+      loadSalons();
+    });
 
     // Reflect the (possibly param-derived) currentFylke on the row before render.
     (function applyInitialFylkePill() {
@@ -572,7 +1030,17 @@
       pill.classList.add('active');
     })();
     renderCities();
-    renderSearchChip();
+    syncFilterInputs();
+    refreshFilterBtnBadge();
+    renderActiveChips();
+    // If any advanced filter is preset via URL, open the panel so the user
+    // sees what's active. (Open-now from a deep-link is the common case.)
+    if (countAdvanced() > 0) {
+      filterPanel.classList.add('is-open');
+      filterBtn.classList.add('is-open');
+      filterBtn.setAttribute('aria-expanded', 'true');
+      filterPanel.setAttribute('aria-hidden', 'false');
+    }
     loadSalons();
   </script>
 </body>
