@@ -155,11 +155,19 @@ router.post('/salon-applications/:id/approve', asyncRoute(async (req, res) => {
     );
 
     const baseSlug = slugify(app.salon_name) || `salong-${id}`;
+    // Try base, then -2, -3, ... up to -50. Deterministic suffixes so we
+    // can't accidentally end up with an empty random suffix (`base-`) and
+    // we don't crash a salon-application approval on slug exhaustion.
     let slug = baseSlug;
-    for (let i = 0; i < 20; i++) {
+    for (let i = 2; i <= 50; i++) {
       const [taken] = await conn.execute(`SELECT id FROM salons WHERE slug = ? LIMIT 1`, [slug]);
       if (!taken[0]) break;
-      slug = `${baseSlug}-${randomBase64Url(3).replace(/[^a-z0-9]/gi, '').slice(0, 4).toLowerCase()}`;
+      slug = `${baseSlug}-${i}`;
+      if (i === 50) {
+        // Extremely unlikely. Fall back to the application id for a guaranteed
+        // unique slug rather than throwing the admin into a 500.
+        slug = `${baseSlug}-app${id}`;
+      }
     }
 
     await conn.execute(

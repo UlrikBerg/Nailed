@@ -127,7 +127,7 @@ router.get('/export', asyncRoute(async (req, res) => {
 // DELETE /me — soft-delete via suspension + email scrub.
 // Full GDPR erasure runs as a separate admin job in Fase 3 (audit-log preserved).
 router.delete('/', asyncRoute(async (req, res) => {
-  // Active bookings block deletion.
+  // Active bookings as a customer block deletion.
   const upcoming = await queryOne(
     `SELECT COUNT(*) AS n FROM bookings
       WHERE customer_user_id = ?
@@ -138,6 +138,17 @@ router.delete('/', asyncRoute(async (req, res) => {
   if (upcoming.n > 0) {
     throw new HttpError(409, 'has_active_bookings',
       'Du har aktive bookinger. Avbestill dem først, eller kontakt support.');
+  }
+
+  // Active salon as an owner blocks deletion too — otherwise we'd leave a
+  // live, public-facing salon owned by "Slettet bruker" with no way to edit it.
+  const ownsActive = await queryOne(
+    `SELECT COUNT(*) AS n FROM salons WHERE owner_user_id = ? AND status = 'active'`,
+    [req.user.id]
+  );
+  if (ownsActive.n > 0) {
+    throw new HttpError(409, 'owns_active_salon',
+      'Du eier en aktiv salong. Kontakt nailed for å overføre eller avslutte salongen først.');
   }
 
   // Scrub personal fields, suspend account, revoke sessions, drop linkable

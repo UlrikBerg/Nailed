@@ -74,14 +74,24 @@ router.post('/', asyncRoute(async (req, res) => {
 router.post('/:id/withdraw', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
-  const app = await queryOne(
-    `SELECT id, applicant_user_id, status FROM salon_applications WHERE id = ?`,
-    [id]
+  // Ownership + status both checked inside the UPDATE so an admin
+  // approve/reject racing against the user's withdraw can't be undone.
+  const result = await query(
+    `UPDATE salon_applications
+        SET status = 'withdrawn', decided_at = CURRENT_TIMESTAMP
+      WHERE id = ? AND applicant_user_id = ? AND status = 'pending'`,
+    [id, req.user.id]
   );
-  if (!app) throw new HttpError(404, 'not_found', 'Søknaden finnes ikke.');
-  if (app.applicant_user_id !== req.user.id) throw new HttpError(403, 'forbidden', 'Ikke din søknad.');
-  if (app.status !== 'pending') throw new HttpError(409, 'not_pending', 'Søknaden kan ikke trekkes nå.');
-  await query(`UPDATE salon_applications SET status = 'withdrawn', decided_at = CURRENT_TIMESTAMP WHERE id = ?`, [id]);
+  if (!result.affectedRows) {
+    // Distinguish 404 from 403/409 with a follow-up read.
+    const app = await queryOne(
+      `SELECT applicant_user_id, status FROM salon_applications WHERE id = ?`,
+      [id]
+    );
+    if (!app) throw new HttpError(404, 'not_found', 'Søknaden finnes ikke.');
+    if (app.applicant_user_id !== req.user.id) throw new HttpError(403, 'forbidden', 'Ikke din søknad.');
+    throw new HttpError(409, 'not_pending', 'Søknaden kan ikke trekkes nå.');
+  }
   res.json({ ok: true });
 }));
 
