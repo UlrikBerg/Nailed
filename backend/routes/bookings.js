@@ -70,7 +70,8 @@ router.post('/', asyncRoute(async (req, res) => {
   const salon = await queryOne(
     `SELECT id, status, accepts_new_bookings,
             cancellation_lead_hours, booking_window_days,
-            min_booking_lead_hours, booking_buffer_min
+            min_booking_lead_hours, booking_buffer_min,
+            lunch_break_start, lunch_break_end
        FROM salons WHERE id = ?`,
     [data.salon_id]
   );
@@ -82,6 +83,21 @@ router.post('/', asyncRoute(async (req, res) => {
   const startAt = new Date(data.start_at);
   if (Number.isNaN(startAt.getTime())) throw new HttpError(400, 'bad_start_at', 'Ugyldig start-tidspunkt.');
   if (startAt.getTime() < Date.now()) throw new HttpError(400, 'past_start', 'Start må være i framtiden.');
+
+  // Closure check — reject if the start date is on a closed day.
+  const startDateStr = (() => {
+    const y = startAt.getFullYear();
+    const m = String(startAt.getMonth() + 1).padStart(2, '0');
+    const d = String(startAt.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  })();
+  const closure = await queryOne(
+    `SELECT id FROM salon_closures WHERE salon_id = ? AND closed_date = ?`,
+    [data.salon_id, startDateStr]
+  );
+  if (closure) {
+    throw new HttpError(409, 'salon_closed', 'Salongen er stengt denne dagen.');
+  }
 
   // Booking-rule enforcement: lead time and window. Server-side is the source
   // of truth — the public salon page also hides invalid slots, but we still
@@ -101,6 +117,21 @@ router.post('/', asyncRoute(async (req, res) => {
   }
 
   const endAt = new Date(startAt.getTime() + service.duration_min * 60_000);
+
+  // Lunch break — synthesize the day's lunch window and reject any booking
+  // that overlaps it. Times are stored as TIME (HH:MM:SS) so we anchor them
+  // to the start_at date in the same local timezone the rest of the booking
+  // math uses.
+  if (salon.lunch_break_start && salon.lunch_break_end) {
+    const ls = String(salon.lunch_break_start).slice(0, 8).split(':');
+    const le = String(salon.lunch_break_end).slice(0, 8).split(':');
+    const lunchStart = new Date(startAt); lunchStart.setHours(+ls[0], +ls[1], +(ls[2] || 0), 0);
+    const lunchEnd = new Date(startAt);   lunchEnd.setHours(+le[0], +le[1], +(le[2] || 0), 0);
+    if (startAt < lunchEnd && endAt > lunchStart) {
+      throw new HttpError(409, 'lunch_break', 'Tidspunktet kolliderer med salongens lunsjpause.');
+    }
+  }
+
   // Buffer expands the overlap window on both ends. With a 15 min buffer, two
   // 60-min bookings starting 60 min apart now collide (15 min overlap on each
   // side). Using the buffer-padded window in the SELECT keeps the FOR UPDATE
@@ -147,6 +178,7 @@ router.get('/:id', asyncRoute(async (req, res) => {
             s.id AS salon_id, s.slug AS salon_slug, s.name AS salon_name,
             s.city AS salon_city, s.address_line AS salon_address,
             s.postal_code AS salon_postal, s.owner_user_id,
+            s.booking_confirmation_text AS confirmation_message,
             sv.id AS service_id, sv.name AS service_name, sv.duration_min,
             cu.name AS customer_name
        FROM bookings b

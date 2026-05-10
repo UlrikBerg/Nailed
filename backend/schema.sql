@@ -384,6 +384,40 @@ ALTER TABLE services
   ADD COLUMN IF NOT EXISTS category_id BIGINT UNSIGNED DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS is_popular  TINYINT(1) NOT NULL DEFAULT 0;
 
+-- Salon-owner-facing notification toggles. These are persisted now; actual
+-- mail/SMS delivery will be wired up in a later phase. The UI must surface
+-- this clearly to the owner ("kommer").
+ALTER TABLE salons
+  ADD COLUMN IF NOT EXISTS notify_email_new_booking   TINYINT(1) NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS notify_email_cancellation  TINYINT(1) NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS notify_email_daily_summary TINYINT(1) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS notify_sms_new_booking     TINYINT(1) NOT NULL DEFAULT 0;
+
+-- Free-text confirmation message rendered to the customer on /confirmation.html
+-- (e.g. parking directions, where the entrance is, what to bring).
+ALTER TABLE salons
+  ADD COLUMN IF NOT EXISTS booking_confirmation_text VARCHAR(1000) DEFAULT NULL;
+
+-- Daily lunch break. Both fields are either set or both NULL; the panel and
+-- the zod schema enforce this. Slots inside the window are blocked client-side
+-- via /availability and rejected server-side in POST /bookings.
+ALTER TABLE salons
+  ADD COLUMN IF NOT EXISTS lunch_break_start TIME DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS lunch_break_end   TIME DEFAULT NULL;
+
+-- Per-date closures (vacation, holidays, …). One row per closed date.
+CREATE TABLE IF NOT EXISTS salon_closures (
+  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  salon_id    BIGINT UNSIGNED NOT NULL,
+  closed_date DATE NOT NULL,
+  reason      VARCHAR(255) DEFAULT NULL,
+  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uniq_salon_date (salon_id, closed_date),
+  KEY idx_salon (salon_id, closed_date),
+  CONSTRAINT fk_closure_salon FOREIGN KEY (salon_id) REFERENCES salons(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Add the FK on services.category_id only once. INFORMATION_SCHEMA check keeps
 -- this idempotent (MySQL has no ADD CONSTRAINT IF NOT EXISTS).
 SET @fk_exists := (

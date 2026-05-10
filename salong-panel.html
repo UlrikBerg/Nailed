@@ -811,6 +811,111 @@
           </form>
         </div>
 
+        <!-- Varslinger -->
+        <div class="panel" style="margin-top:16px;">
+          <h2 style="margin:0 0 4px 0; font-size:18px;">Varslinger</h2>
+          <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
+            Velg hvilke varsler dere ønsker. Vil bli sendt når vi kobler på e-post (kommer).
+          </p>
+          <form id="notificationsForm" style="display:grid; gap:12px; max-width:560px;">
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+              <input type="checkbox" name="notify_email_new_booking" style="margin-top:3px;" />
+              <span>
+                <span style="display:block; font-weight:600;">E-post når noen booker time</span>
+                <span style="display:block; color: var(--fg-muted); font-size:13px;">Få varsel på e-post hver gang en ny booking kommer inn.</span>
+              </span>
+            </label>
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+              <input type="checkbox" name="notify_email_cancellation" style="margin-top:3px;" />
+              <span>
+                <span style="display:block; font-weight:600;">E-post når noen avbestiller</span>
+                <span style="display:block; color: var(--fg-muted); font-size:13px;">Bli varslet om kanselleringer slik at dere raskt kan tilby tiden til andre.</span>
+              </span>
+            </label>
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+              <input type="checkbox" name="notify_email_daily_summary" style="margin-top:3px;" />
+              <span>
+                <span style="display:block; font-weight:600;">Daglig oppsummering hver morgen</span>
+                <span style="display:block; color: var(--fg-muted); font-size:13px;">Få dagens timer på e-post hver morgen kl. 07:00.</span>
+              </span>
+            </label>
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:not-allowed; opacity:0.6;">
+              <input type="checkbox" name="notify_sms_new_booking" disabled style="margin-top:3px;" />
+              <span>
+                <span style="display:block; font-weight:600;">
+                  SMS når noen booker (krever Vipps)
+                  <span class="chip" style="background:var(--stone-100); color:var(--fg-muted); padding:2px 8px; font-size:11px; margin-left:6px;">Kommer</span>
+                </span>
+                <span style="display:block; color: var(--fg-muted); font-size:13px;">SMS-varsler aktiveres når Vipps-integrasjonen er på plass.</span>
+              </span>
+            </label>
+            <div>
+              <button class="btn btn-primary" type="submit">Lagre varslinger</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Bekreftelses-melding -->
+        <div class="panel" style="margin-top:16px;">
+          <h2 style="margin:0 0 4px 0; font-size:18px;">Bekreftelses-melding</h2>
+          <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
+            Tekst som vises kunden i bookingbekreftelsen (f.eks. parkering, hvor inngangen er, hva man bør ta med).
+          </p>
+          <form id="confirmationTextForm" style="display:grid; gap:16px; max-width:560px;">
+            <label class="form-field" style="display:block;">
+              <span class="form-label">Melding til kunden</span>
+              <textarea class="form-input" name="booking_confirmation_text" rows="4" maxlength="1000" placeholder="F.eks. Inngangen er på baksiden, parkering finnes i Storgata 12 …"></textarea>
+              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Maks 1000 tegn. La feltet være tomt for å skjule meldingen.</span>
+            </label>
+            <div>
+              <button class="btn btn-primary" type="submit">Lagre melding</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Lunsjpause -->
+        <div class="panel" style="margin-top:16px;">
+          <h2 style="margin:0 0 4px 0; font-size:18px;">Lunsjpause</h2>
+          <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
+            Slots i denne perioden blir blokkert hver dag. La feltene være tomme hvis dere ikke har fast lunsjpause.
+          </p>
+          <form id="lunchBreakForm" style="display:grid; gap:16px; max-width:560px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+              <label class="form-field" style="display:block;">
+                <span class="form-label">Start</span>
+                <input class="form-input" type="time" name="lunch_break_start" />
+              </label>
+              <label class="form-field" style="display:block;">
+                <span class="form-label">Slutt</span>
+                <input class="form-input" type="time" name="lunch_break_end" />
+              </label>
+            </div>
+            <div>
+              <button class="btn btn-primary" type="submit">Lagre lunsjpause</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Stengte dager -->
+        <div class="panel" style="margin-top:16px;">
+          <h2 style="margin:0 0 4px 0; font-size:18px;">Stengte dager</h2>
+          <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
+            Marker dager dere er stengt (ferie, helligdager osv.). Kundene ser dagen som stengt og kan ikke booke.
+          </p>
+          <div id="closuresList" style="display:grid; gap:8px; margin-bottom:16px;"></div>
+          <form id="closureAddForm" style="display:grid; grid-template-columns: auto 1fr auto; gap:8px; align-items:end; max-width:560px;">
+            <label class="form-field" style="display:block;">
+              <span class="form-label">Dato</span>
+              <input class="form-input" type="date" name="closed_date" required />
+            </label>
+            <label class="form-field" style="display:block;">
+              <span class="form-label">Årsak (valgfritt)</span>
+              <input class="form-input" type="text" name="reason" maxlength="255" placeholder="F.eks. Ferie" />
+            </label>
+            <button class="btn btn-primary" type="submit">Legg til</button>
+          </form>
+        </div>
+
         <div class="panel" style="margin-top:16px;">
           <p style="margin:0; color: var(--fg-muted);">
             Personlige profil-innstillinger og kontosletting administreres fra
@@ -873,6 +978,7 @@
     var currentTeam = [];
     var currentAmenities = [];
     var currentCategories = [];
+    var currentClosures = [];
 
     async function loadSalon() {
       var res = await NailedAuth.api('/api/v1/salons/me/own');
@@ -903,6 +1009,7 @@
       currentTeam = data.team || [];
       currentAmenities = data.amenities || [];
       currentCategories = data.categories || [];
+      currentClosures = data.closures || [];
       document.getElementById('dashTitle').innerHTML = escapeHtml(salon.name);
       document.getElementById('dashSub').textContent = salon.city;
       document.getElementById('publicLink').href = '/salon.html?slug=' + encodeURIComponent(salon.slug);
@@ -935,6 +1042,41 @@
           salon.min_booking_lead_hours != null ? salon.min_booking_lead_hours : 0;
         rulesForm.querySelector('input[name=booking_buffer_min]').value =
           salon.booking_buffer_min != null ? salon.booking_buffer_min : 0;
+      }
+      // Varslinger
+      var notifForm = document.getElementById('notificationsForm');
+      if (notifForm) {
+        notifForm.querySelector('input[name=notify_email_new_booking]').checked =
+          !!salon.notify_email_new_booking;
+        notifForm.querySelector('input[name=notify_email_cancellation]').checked =
+          !!salon.notify_email_cancellation;
+        notifForm.querySelector('input[name=notify_email_daily_summary]').checked =
+          !!salon.notify_email_daily_summary;
+        notifForm.querySelector('input[name=notify_sms_new_booking]').checked =
+          !!salon.notify_sms_new_booking;
+      }
+      // Bekreftelses-melding
+      var confTextForm = document.getElementById('confirmationTextForm');
+      if (confTextForm) {
+        confTextForm.querySelector('textarea[name=booking_confirmation_text]').value =
+          salon.booking_confirmation_text || '';
+      }
+      // Lunsjpause — DB returns TIME as "HH:MM:SS"; <input type="time"> wants "HH:MM".
+      var lunchForm = document.getElementById('lunchBreakForm');
+      if (lunchForm) {
+        lunchForm.querySelector('input[name=lunch_break_start]').value =
+          salon.lunch_break_start ? String(salon.lunch_break_start).slice(0, 5) : '';
+        lunchForm.querySelector('input[name=lunch_break_end]').value =
+          salon.lunch_break_end ? String(salon.lunch_break_end).slice(0, 5) : '';
+      }
+      // Stengte dager
+      renderClosuresList();
+      // Closure date-picker: min = today.
+      var closureDateInput = document.querySelector('#closureAddForm input[name=closed_date]');
+      if (closureDateInput) {
+        var t = new Date();
+        var todayIso = t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+        closureDateInput.min = todayIso;
       }
       renderCover(salon, currentImages);
       renderGallery(salon, currentImages);
@@ -2087,6 +2229,136 @@
       } else {
         var data = await res.json().catch(function () { return {}; });
         NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre', { type: 'error' });
+      }
+    });
+
+    // ---- Varslinger ----
+    document.getElementById('notificationsForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var body = {
+        notify_email_new_booking: this.querySelector('input[name=notify_email_new_booking]').checked,
+        notify_email_cancellation: this.querySelector('input[name=notify_email_cancellation]').checked,
+        notify_email_daily_summary: this.querySelector('input[name=notify_email_daily_summary]').checked,
+        // SMS toggle is disabled until Vipps is live — never send it.
+      };
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id, { method: 'PATCH', body: body });
+      if (res.ok) {
+        NailedForms.toast('Varslinger lagret');
+        await loadSalon();
+      } else {
+        var data = await res.json().catch(function () { return {}; });
+        NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre', { type: 'error' });
+      }
+    });
+
+    // ---- Bekreftelses-melding ----
+    document.getElementById('confirmationTextForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var raw = this.querySelector('textarea[name=booking_confirmation_text]').value;
+      var trimmed = raw.trim();
+      // Empty → store NULL so the public page treats it as "no message".
+      var body = { booking_confirmation_text: trimmed === '' ? null : trimmed };
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id, { method: 'PATCH', body: body });
+      if (res.ok) {
+        NailedForms.toast('Melding lagret');
+        await loadSalon();
+      } else {
+        var data = await res.json().catch(function () { return {}; });
+        NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre', { type: 'error' });
+      }
+    });
+
+    // ---- Lunsjpause ----
+    document.getElementById('lunchBreakForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var startVal = this.querySelector('input[name=lunch_break_start]').value;
+      var endVal = this.querySelector('input[name=lunch_break_end]').value;
+      // Either both filled or both blank — the backend also enforces this, but
+      // we surface a friendlier error up front.
+      if ((startVal && !endVal) || (!startVal && endVal)) {
+        NailedForms.toast('Fyll inn både start og slutt, eller la begge være tomme.', { type: 'error' });
+        return;
+      }
+      if (startVal && endVal && startVal >= endVal) {
+        NailedForms.toast('Lunsjpausen må starte før den slutter.', { type: 'error' });
+        return;
+      }
+      var body = {
+        lunch_break_start: startVal || null,
+        lunch_break_end: endVal || null,
+      };
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id, { method: 'PATCH', body: body });
+      if (res.ok) {
+        NailedForms.toast('Lunsjpause lagret');
+        await loadSalon();
+      } else {
+        var data = await res.json().catch(function () { return {}; });
+        NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre', { type: 'error' });
+      }
+    });
+
+    // ---- Stengte dager ----
+    function fmtClosureDate(iso) {
+      var d = new Date(iso + 'T00:00:00');
+      return d.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    }
+
+    function renderClosuresList() {
+      var listEl = document.getElementById('closuresList');
+      if (!listEl) return;
+      if (!currentClosures.length) {
+        listEl.innerHTML = '<div style="color: var(--fg-muted); font-size:14px; padding:8px 0;">Ingen stengte dager registrert.</div>';
+        return;
+      }
+      var html = '';
+      currentClosures.forEach(function (c) {
+        var reason = c.reason ? ' · ' + escapeHtml(c.reason) : '';
+        html += '<div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border:1px solid var(--stone-200); border-radius: var(--radius-md, 12px); background: var(--cream-50, #FBF6EE);">' +
+                  '<div>' +
+                    '<div style="font-weight:600;">' + escapeHtml(fmtClosureDate(c.date)) + '</div>' +
+                    (reason ? '<div style="color: var(--fg-muted); font-size:13px;">' + escapeHtml(c.reason) + '</div>' : '') +
+                  '</div>' +
+                  '<button class="btn btn-ghost btn-sm" type="button" data-closure-del="' + c.id + '" aria-label="Fjern">✕</button>' +
+                '</div>';
+      });
+      listEl.innerHTML = html;
+      listEl.querySelectorAll('[data-closure-del]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          var cid = this.getAttribute('data-closure-del');
+          var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/closures/' + cid, { method: 'DELETE' });
+          if (res.ok) {
+            NailedForms.toast('Stengt dag fjernet');
+            await loadSalon();
+          } else {
+            var data = await res.json().catch(function () { return {}; });
+            NailedForms.toast((data.error && data.error.message) || 'Kunne ikke fjerne', { type: 'error' });
+          }
+        });
+      });
+    }
+
+    document.getElementById('closureAddForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var fd = new FormData(this);
+      var body = {
+        closed_date: (fd.get('closed_date') || '').toString(),
+        reason: (fd.get('reason') || '').toString().trim() || null,
+      };
+      if (!body.closed_date) {
+        NailedForms.toast('Velg en dato.', { type: 'error' });
+        return;
+      }
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/closures', { method: 'POST', body: body });
+      if (res.ok) {
+        NailedForms.toast('Stengt dag lagt til');
+        this.reset();
+        var t = new Date();
+        var todayIso = t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+        this.querySelector('input[name=closed_date]').min = todayIso;
+        await loadSalon();
+      } else {
+        var data = await res.json().catch(function () { return {}; });
+        NailedForms.toast((data.error && data.error.message) || 'Kunne ikke legge til', { type: 'error' });
       }
     });
 

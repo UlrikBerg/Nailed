@@ -419,6 +419,7 @@
     var selectedService = null;
     var selectedDateIso = null;       // 'YYYY-MM-DD'
     var selectedDateTime = null;      // ISO 8601 with time
+    var closedDateSet = new Set();    // YYYY-MM-DD strings for salon closures
 
     function updateCta() {
       if (!selectedService) {
@@ -557,23 +558,33 @@
           btn.type = 'button';
           btn.className = 'day-pick';
           btn.dataset.iso = iso;
-          btn.innerHTML = '<div class="day-pick__dow">' + DOW[d.getDay()] + '</div><div class="day-pick__num">' + d.getDate() + '</div>';
-          btn.addEventListener('click', function() {
-            track.querySelectorAll('.day-pick').forEach(function(b) { b.classList.remove('active'); });
-            this.classList.add('active');
-            selectedDateIso = this.dataset.iso;
-            selectedDateTime = null;
-            renderSlots(selectedDateIso);
-            updateCta();
-          });
+          var isClosed = closedDateSet.has(iso);
+          if (isClosed) {
+            btn.classList.add('taken');
+            btn.disabled = true;
+            btn.title = 'Stengt';
+            btn.innerHTML = '<div class="day-pick__dow">' + DOW[d.getDay()] + '</div>' +
+                            '<div class="day-pick__num">' + d.getDate() + '</div>' +
+                            '<div class="day-pick__dow" style="font-size:10px; margin-top:2px;">Stengt</div>';
+          } else {
+            btn.innerHTML = '<div class="day-pick__dow">' + DOW[d.getDay()] + '</div><div class="day-pick__num">' + d.getDate() + '</div>';
+            btn.addEventListener('click', function() {
+              track.querySelectorAll('.day-pick').forEach(function(b) { b.classList.remove('active'); });
+              this.classList.add('active');
+              selectedDateIso = this.dataset.iso;
+              selectedDateTime = null;
+              renderSlots(selectedDateIso);
+              updateCta();
+            });
+          }
           page.appendChild(btn);
         }
         track.appendChild(page);
       }
       dayPageIdx = 0;
       applyDayPage();
-      // Auto-pick today.
-      var first = track.querySelector('.day-pick');
+      // Auto-pick the first day that is NOT a closure.
+      var first = track.querySelector('.day-pick:not([disabled])');
       if (first) first.click();
     }
 
@@ -930,6 +941,9 @@
       var amenities = Array.isArray(data.amenities) ? data.amenities : [];
       currentSalon = s;
       renderedServices = services;
+      // Closures arrive as [{date:'YYYY-MM-DD', reason}, …]. We index into a
+      // Set so the day-picker can do O(1) lookups when rendering.
+      closedDateSet = new Set((data.closures || []).map(function (c) { return c.date; }));
       // Page is loaded; the booking CTA is now safe to interact with.
       cta.disabled = false;
 

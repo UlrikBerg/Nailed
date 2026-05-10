@@ -63,7 +63,11 @@ router.get('/:slug', asyncRoute(async (req, res) => {
             instagram_url, tiktok_url, facebook_url, website_url,
             cover_image_key, public_phone_visible, accepts_new_bookings,
             cancellation_lead_hours, booking_window_days,
-            min_booking_lead_hours, booking_buffer_min, status
+            min_booking_lead_hours, booking_buffer_min,
+            notify_email_new_booking, notify_email_cancellation,
+            notify_email_daily_summary, notify_sms_new_booking,
+            booking_confirmation_text, lunch_break_start, lunch_break_end,
+            status
        FROM salons WHERE slug = ? LIMIT 1`,
     [req.params.slug]
   );
@@ -71,7 +75,7 @@ router.get('/:slug', asyncRoute(async (req, res) => {
     throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
   }
 
-  const [services, categories, images, hours, team, amenities, serviceTeamLinks, reviewSummaryRow] = await Promise.all([
+  const [services, categories, images, hours, team, amenities, serviceTeamLinks, reviewSummaryRow, closures] = await Promise.all([
     query(
       `SELECT id, category_id, name, description, duration_min, price_nok, is_popular
          FROM services WHERE salon_id = ? AND active = 1 ORDER BY price_nok ASC`,
@@ -114,6 +118,15 @@ router.get('/:slug', asyncRoute(async (req, res) => {
          FROM reviews WHERE salon_id = ? AND hidden_at IS NULL`,
       [salon.id]
     ),
+    query(
+      `SELECT closed_date, reason
+         FROM salon_closures
+        WHERE salon_id = ?
+          AND closed_date >= CURDATE()
+          AND closed_date < DATE_ADD(CURDATE(), INTERVAL 365 DAY)
+        ORDER BY closed_date ASC`,
+      [salon.id]
+    ),
   ]);
 
   // Fold team-member ids into each service for client-side rendering.
@@ -141,6 +154,13 @@ router.get('/:slug', asyncRoute(async (req, res) => {
       // Round to 1 decimal so the client doesn't have to format it twice.
       avg: reviewSummaryRow?.avg != null ? Math.round(Number(reviewSummaryRow.avg) * 10) / 10 : null,
     },
+    closures: closures.map(c => ({
+      // Serialize as YYYY-MM-DD (DATE columns come back as a Date object).
+      date: c.closed_date instanceof Date
+        ? c.closed_date.toISOString().slice(0, 10)
+        : String(c.closed_date).slice(0, 10),
+      reason: c.reason || null,
+    })),
   });
 }));
 
@@ -151,14 +171,18 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
             instagram_url, tiktok_url, facebook_url, website_url,
             cover_image_key, public_phone_visible, accepts_new_bookings,
             cancellation_lead_hours, booking_window_days,
-            min_booking_lead_hours, booking_buffer_min, status
+            min_booking_lead_hours, booking_buffer_min,
+            notify_email_new_booking, notify_email_cancellation,
+            notify_email_daily_summary, notify_sms_new_booking,
+            booking_confirmation_text, lunch_break_start, lunch_break_end,
+            status
        FROM salons WHERE owner_user_id = ? AND status != 'deleted'
        ORDER BY created_at ASC LIMIT 1`,
     [req.user.id]
   );
   if (!salon) throw new HttpError(404, 'no_salon', 'Du har ingen salong.');
 
-  const [images, hours, team, amenities, categories] = await Promise.all([
+  const [images, hours, team, amenities, categories, closures] = await Promise.all([
     query(
       `SELECT id, image_key AS \`key\`, position, width, height
          FROM salon_images WHERE salon_id = ? ORDER BY position ASC, id ASC`,
@@ -183,6 +207,15 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
          FROM service_categories WHERE salon_id = ? ORDER BY position ASC, id ASC`,
       [salon.id]
     ),
+    query(
+      `SELECT id, closed_date, reason
+         FROM salon_closures
+        WHERE salon_id = ?
+          AND closed_date >= CURDATE()
+          AND closed_date < DATE_ADD(CURDATE(), INTERVAL 365 DAY)
+        ORDER BY closed_date ASC`,
+      [salon.id]
+    ),
   ]);
 
   res.json({
@@ -192,6 +225,13 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
     team: team.map(m => ({ ...m, image_url: m.image_key ? storage.publicUrl(m.image_key) : null })),
     amenities: amenities.map(a => a.amenity),
     categories,
+    closures: closures.map(c => ({
+      id: c.id,
+      date: c.closed_date instanceof Date
+        ? c.closed_date.toISOString().slice(0, 10)
+        : String(c.closed_date).slice(0, 10),
+      reason: c.reason || null,
+    })),
   });
 }));
 
@@ -200,6 +240,8 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
 
+  // "HH:MM" or "HH:MM:SS" — used by lunch_break_*.
+  const timeStr = z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, 'Forventet HH:MM');
   const schema = z.object({
     name: z.string().trim().min(1).max(255).optional(),
     bio: z.string().trim().max(4000).nullable().optional(),
@@ -216,8 +258,43 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
     booking_window_days: z.number().int().min(1).max(180).optional(),
     min_booking_lead_hours: z.number().int().min(0).max(168).optional(),
     booking_buffer_min: z.number().int().min(0).max(60).optional(),
+    notify_email_new_booking: z.boolean().optional(),
+    notify_email_cancellation: z.boolean().optional(),
+    notify_email_daily_summary: z.boolean().optional(),
+    notify_sms_new_booking: z.boolean().optional(),
+    booking_confirmation_text: z.string().trim().max(1000).nullable().optional(),
+    lunch_break_start: timeStr.nullable().optional(),
+    lunch_break_end: timeStr.nullable().optional(),
   });
   const patch = schema.parse(req.body);
+
+  // Lunch break: enforce "both set or both null". We allow patching just one of
+  // the fields only when the OTHER field's current DB value is consistent with
+  // the result; otherwise reject up-front so the panel can't half-save a window.
+  const hasStart = Object.prototype.hasOwnProperty.call(patch, 'lunch_break_start');
+  const hasEnd   = Object.prototype.hasOwnProperty.call(patch, 'lunch_break_end');
+  if (hasStart || hasEnd) {
+    const current = await queryOne(
+      `SELECT lunch_break_start, lunch_break_end FROM salons WHERE id = ?`, [id]
+    );
+    const nextStart = hasStart ? patch.lunch_break_start : current?.lunch_break_start ?? null;
+    const nextEnd   = hasEnd   ? patch.lunch_break_end   : current?.lunch_break_end   ?? null;
+    const startEmpty = nextStart == null || nextStart === '';
+    const endEmpty   = nextEnd   == null || nextEnd   === '';
+    if (startEmpty !== endEmpty) {
+      throw new HttpError(400, 'lunch_break_incomplete',
+        'Både start og slutt på lunsjpausen må fylles ut, eller begge være tomme.');
+    }
+    if (!startEmpty && !endEmpty) {
+      // Compare as "HH:MM" — DB TIME comes back as "HH:MM:SS"; normalize.
+      const s = String(nextStart).slice(0, 5);
+      const e = String(nextEnd).slice(0, 5);
+      if (s >= e) {
+        throw new HttpError(400, 'lunch_break_invalid',
+          'Lunsjpausen må starte før den slutter.');
+      }
+    }
+  }
 
   const salon = await queryOne(`SELECT owner_user_id, status FROM salons WHERE id = ?`, [id]);
   if (!salon) throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
@@ -230,7 +307,10 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
   const setClause = fields.map(f => `${f} = ?`).join(', ');
   const values = fields.map(f => {
     const v = patch[f];
-    return typeof v === 'boolean' ? (v ? 1 : 0) : v;
+    if (typeof v === 'boolean') return v ? 1 : 0;
+    // Empty string on a nullable column → NULL (esp. for lunch_break_*).
+    if (v === '') return null;
+    return v;
   });
   values.push(id);
   await query(`UPDATE salons SET ${setClause} WHERE id = ?`, values);
@@ -545,21 +625,158 @@ router.put('/:id/categories/order', requireAuth, asyncRoute(async (req, res) => 
 }));
 
 // GET /salons/:id/availability — public; returns busy windows for the next 30
-// days so clients can hide/disable taken slots. Live bookings only (pending or
-// confirmed); past, cancelled, completed and no-show are ignored.
+// days so clients can hide/disable taken slots. We emit three kinds of busy
+// windows: real bookings (pending/confirmed), the daily lunch break, and any
+// closures that fall inside the window. The client-side renderer treats all
+// three identically — anything that overlaps a slot greys it out.
 router.get('/:id/availability', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+
+  const [bookingRows, salon, closures] = await Promise.all([
+    query(
+      `SELECT start_at, end_at FROM bookings
+        WHERE salon_id = ?
+          AND status IN ('pending','confirmed')
+          AND end_at >= NOW()
+          AND start_at < DATE_ADD(NOW(), INTERVAL 30 DAY)
+        ORDER BY start_at ASC`,
+      [id]
+    ),
+    queryOne(
+      `SELECT lunch_break_start, lunch_break_end FROM salons WHERE id = ?`,
+      [id]
+    ),
+    query(
+      `SELECT closed_date FROM salon_closures
+        WHERE salon_id = ?
+          AND closed_date >= CURDATE()
+          AND closed_date < DATE_ADD(CURDATE(), INTERVAL 30 DAY)`,
+      [id]
+    ),
+  ]);
+
+  const busy = bookingRows.map(r => ({ start_at: r.start_at, end_at: r.end_at }));
+
+  // Format helpers — emit local "YYYY-MM-DDTHH:MM:SS" strings. The frontend
+  // parses these via `new Date()`, which interprets a string without a "Z" or
+  // offset as local time. That matches how real booking start_at values are
+  // produced by MySQL ("YYYY-MM-DD HH:MM:SS" → also local in JS).
+  function toLocalIso(d, hhmm) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}T${hhmm}`;
+  }
+
+  // Lunch break synthetic windows — one per day in the 30-day visible window.
+  if (salon && salon.lunch_break_start && salon.lunch_break_end) {
+    const start = String(salon.lunch_break_start).slice(0, 8); // HH:MM:SS
+    const end = String(salon.lunch_break_end).slice(0, 8);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(today); d.setDate(d.getDate() + i);
+      busy.push({
+        start_at: toLocalIso(d, start),
+        end_at: toLocalIso(d, end),
+      });
+    }
+  }
+
+  // Closures: emit a 00:00:00 → 23:59:59 window covering the whole day.
+  for (const c of closures) {
+    const d = c.closed_date instanceof Date
+      ? c.closed_date
+      : new Date(String(c.closed_date));
+    busy.push({
+      start_at: toLocalIso(d, '00:00:00'),
+      end_at: toLocalIso(d, '23:59:59'),
+    });
+  }
+
+  res.json({ busy });
+}));
+
+// ---- Closures (vacation / holiday days) ----------------------------------
+// Owner-managed list of dates the salon is closed. Public GET so the salon
+// page can grey out those days in the day-picker. POST/DELETE are owner-only.
+
+// GET /salons/:id/closures — public; next 365 days.
+router.get('/:id/closures', asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
   const rows = await query(
-    `SELECT start_at, end_at FROM bookings
+    `SELECT id, closed_date, reason
+       FROM salon_closures
       WHERE salon_id = ?
-        AND status IN ('pending','confirmed')
-        AND end_at >= NOW()
-        AND start_at < DATE_ADD(NOW(), INTERVAL 30 DAY)
-      ORDER BY start_at ASC`,
+        AND closed_date >= CURDATE()
+        AND closed_date < DATE_ADD(CURDATE(), INTERVAL 365 DAY)
+      ORDER BY closed_date ASC`,
     [id]
   );
-  res.json({ busy: rows });
+  res.json({
+    closures: rows.map(r => ({
+      id: r.id,
+      date: r.closed_date instanceof Date
+        ? r.closed_date.toISOString().slice(0, 10)
+        : String(r.closed_date).slice(0, 10),
+      reason: r.reason || null,
+    })),
+  });
+}));
+
+// POST /salons/:id/closures — owner adds a closure date.
+router.post('/:id/closures', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const salon = await loadSalonOrThrow(id);
+  requireOwner(req, salon);
+
+  const data = z.object({
+    closed_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Forventet YYYY-MM-DD'),
+    reason: z.string().trim().max(255).nullable().optional(),
+  }).parse(req.body || {});
+
+  // Reject past dates. Compare as local YYYY-MM-DD strings so the boundary is
+  // crisp (no timezone surprises from `new Date(YYYY-MM-DD)` interpreting as
+  // UTC midnight).
+  const todayStr = (() => {
+    const t = new Date();
+    return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+  })();
+  if (data.closed_date < todayStr) {
+    throw new HttpError(400, 'past_date', 'Datoen må være i dag eller senere.');
+  }
+
+  try {
+    const result = await query(
+      `INSERT INTO salon_closures (salon_id, closed_date, reason) VALUES (?, ?, ?)`,
+      [id, data.closed_date, data.reason || null]
+    );
+    res.status(201).json({ id: result.insertId });
+  } catch (err) {
+    // Duplicate (salon_id, closed_date) → already closed.
+    if (err && err.code === 'ER_DUP_ENTRY') {
+      throw new HttpError(409, 'already_closed', 'Denne datoen er allerede markert som stengt.');
+    }
+    throw err;
+  }
+}));
+
+// DELETE /salons/:id/closures/:closureId — owner removes a closure.
+router.delete('/:id/closures/:closureId', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const closureId = parseInt(req.params.closureId, 10);
+  if (!Number.isFinite(closureId)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const salon = await loadSalonOrThrow(id);
+  requireOwner(req, salon);
+
+  const row = await queryOne(
+    `SELECT id FROM salon_closures WHERE id = ? AND salon_id = ?`,
+    [closureId, id]
+  );
+  if (!row) throw new HttpError(404, 'not_found', 'Stengt dag finnes ikke.');
+  await query(`DELETE FROM salon_closures WHERE id = ?`, [closureId]);
+  res.json({ ok: true });
 }));
 
 module.exports = router;

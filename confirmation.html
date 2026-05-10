@@ -53,6 +53,13 @@
               <div class="confirm__user-meta" id="confUserMeta">—</div>
             </div>
           </div>
+
+          <!-- Salon-specific message (parking, entrance, what to bring …).
+               Hidden by default; populated and shown only when present. -->
+          <div id="confSalonMessage" style="display:none; margin-top:16px; padding:14px 16px; border-radius: 12px; background: var(--cream-100, #F4ECDF); border: 1px solid var(--stone-200);">
+            <div class="confirm__card-eyebrow" style="margin-bottom:6px;">Beskjed fra salongen</div>
+            <div id="confSalonMessageText" style="font-family: var(--font-body); font-size: 14px; white-space: pre-wrap;"></div>
+          </div>
         </div>
 
         <div class="confirm__location">
@@ -226,6 +233,13 @@
         document.getElementById('confUserName').textContent = user.name || '';
         var meta = [user.phone, user.email].filter(Boolean).join(' · ');
         document.getElementById('confUserMeta').textContent = meta;
+      }
+
+      // Salon's custom confirmation message — only render when non-empty.
+      var msg = (booking.confirmation_message || '').toString().trim();
+      if (msg) {
+        document.getElementById('confSalonMessageText').textContent = msg;
+        document.getElementById('confSalonMessage').style.display = '';
       }
 
       // Location card
