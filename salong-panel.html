@@ -1411,10 +1411,16 @@
           p.style.display = sections.indexOf(sec) >= 0 ? '' : 'none';
         });
         // Within the shared (bio/contact/availability) panel, hide field
-        // groups that don't belong to the active section.
+        // groups that don't belong to the active section. ALSO disable the
+        // inputs inside hidden groups — otherwise Chrome's form validation
+        // tries to focus a `required` input that's display:none and silently
+        // blocks submit ("An invalid form control … is not focusable").
         document.querySelectorAll('#salonForm [data-section]').forEach(function (g) {
-          if (sec === 'all') { g.style.display = ''; return; }
-          g.style.display = g.getAttribute('data-section') === sec ? '' : 'none';
+          var matches = (sec === 'all' || g.getAttribute('data-section') === sec);
+          g.style.display = matches ? '' : 'none';
+          g.querySelectorAll('input, textarea, select').forEach(function (el) {
+            el.disabled = !matches;
+          });
         });
         document.querySelectorAll('[data-section-header]').forEach(function (h) {
           h.style.display = (sec !== 'all' && h.getAttribute('data-section-header') === sec) ? '' : 'none';
@@ -1575,7 +1581,7 @@
         }
         var tr = document.createElement('tr');
         tr.innerHTML =
-          '<td><strong>' + fmt(b.start_at) + '</strong></td>' +
+          '<td>' + fmt(b.start_at) + '</td>' +
           '<td><strong>' + escapeHtml(b.customer_name) + '</strong>' +
             (b.customer_note ? '<br><span class="td-muted">' + escapeHtml(b.customer_note) + '</span>' : '') + '</td>' +
           '<td>' + escapeHtml(b.service_name) +
