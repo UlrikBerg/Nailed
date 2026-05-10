@@ -12,7 +12,7 @@ const express = require('express');
 const multer = require('multer');
 const sharp = require('sharp');
 const { z } = require('zod');
-const { query, queryOne } = require('../db');
+const { query, queryOne, tx } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { asyncRoute, HttpError, randomBase64Url } = require('../lib/util');
 const storage = require('../storage');
@@ -34,13 +34,17 @@ const upload = multer({
   },
 });
 
-async function loadOwnedSalon(req) {
+async function loadOwnedSalon(req, { allowSuspended = false } = {}) {
   const salonId = parseInt(req.params.id, 10);
   if (!Number.isFinite(salonId)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
   const salon = await queryOne(`SELECT id, owner_user_id, status FROM salons WHERE id = ?`, [salonId]);
   if (!salon) throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
   if (req.user.role !== 'admin' && salon.owner_user_id !== req.user.id) {
     throw new HttpError(403, 'forbidden', 'Du eier ikke denne salongen.');
+  }
+  // Suspended salons are read-only for owners — admin overrides.
+  if (!allowSuspended && req.user.role !== 'admin' && salon.status !== 'active') {
+    throw new HttpError(409, 'salon_not_active', 'Salongen er ikke aktiv. Kontakt nailed.');
   }
   return salon;
 }
@@ -151,10 +155,16 @@ router.patch('/:id/images/reorder', requireAuth, asyncRoute(async (req, res) => 
   const schema = z.object({ order: z.array(z.number().int().positive()).max(MAX_IMAGES_PER_SALON) });
   const { order } = schema.parse(req.body || {});
 
-  // Update positions in a single transaction.
-  for (let i = 0; i < order.length; i++) {
-    await query(`UPDATE salon_images SET position = ? WHERE id = ? AND salon_id = ?`, [i, order[i], salon.id]);
-  }
+  // Single transaction so a mid-loop failure rolls back instead of leaving
+  // images with mixed old/new positions.
+  await tx(async (conn) => {
+    for (let i = 0; i < order.length; i++) {
+      await conn.execute(
+        `UPDATE salon_images SET position = ? WHERE id = ? AND salon_id = ?`,
+        [i, order[i], salon.id]
+      );
+    }
+  });
   res.json({ ok: true });
 }));
 
