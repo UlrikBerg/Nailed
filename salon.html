@@ -95,9 +95,16 @@
       padding: 7px 0;
       font-size: 14px;
     }
+    /* Today highlight: shrink the bleed and inset slightly so the pill
+       doesn't crash into the divider line above. */
     .profile-hours--compact .profile-hours__row.today {
-      margin: 0 -12px;
-      padding: 7px 12px;
+      margin: 2px -8px;
+      padding: 5px 8px;
+      border-top: 0;
+    }
+    .profile-hours--compact .profile-hours__row.today + .profile-hours__row,
+    .profile-hours--compact .profile-hours__row:has(+ .today) {
+      border-bottom: 0;
     }
   </style>
 </head>
