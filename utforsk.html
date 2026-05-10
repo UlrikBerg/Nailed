@@ -231,6 +231,27 @@
     var ALL_SALONS = []; // raw API rows
     var FAV_SET = new Set(); // server favorite salon IDs (numbers) when logged in
 
+    // Read ?q=…&city=… from the URL — these come from the homepage search bar
+    // (or a quick-chip link). The URL is the source of truth for filter state.
+    var initialParams = new URLSearchParams(window.location.search);
+    var currentQ = (initialParams.get('q') || '').trim();
+    var initialCityParam = (initialParams.get('city') || '').trim();
+    if (initialCityParam) {
+      currentCity = initialCityParam;
+      var fk = fylkeForCity(initialCityParam);
+      if (fk) currentFylke = fk;
+    }
+
+    // Update the browser URL to reflect the active q/city filters without
+    // reloading. Keeps copy-paste-able URLs aligned with what the user sees.
+    function syncUrl() {
+      var parts = [];
+      if (currentQ) parts.push('q=' + encodeURIComponent(currentQ));
+      if (currentCity) parts.push('city=' + encodeURIComponent(currentCity));
+      var newUrl = window.location.pathname + (parts.length ? '?' + parts.join('&') : '');
+      try { history.replaceState(null, '', newUrl); } catch (_) {}
+    }
+
     // Fylke selection
     document.getElementById('fylkeRow').addEventListener('click', function(e) {
       var pill = e.target.closest('[data-fylke]');
@@ -240,6 +261,7 @@
       document.querySelectorAll('#fylkeRow .pill').forEach(function(p) { p.classList.remove('active'); });
       pill.classList.add('active');
       renderCities();
+      syncUrl();
       filterResults();
     });
 
@@ -273,9 +295,11 @@
         return;
       }
       cityRow.style.display = '';
-      var html = '<button class="pill active" data-city="">Alle byer</button>';
+      var allActive = !currentCity ? ' active' : '';
+      var html = '<button class="pill' + allActive + '" data-city="">Alle byer</button>';
       CITIES[currentFylke].forEach(function(c) {
-        html += '<button class="pill" data-city="' + escapeHtml(c) + '">' + escapeHtml(c) + '</button>';
+        var isActive = (currentCity && c.toLowerCase() === currentCity.toLowerCase()) ? ' active' : '';
+        html += '<button class="pill' + isActive + '" data-city="' + escapeHtml(c) + '">' + escapeHtml(c) + '</button>';
       });
       inner.innerHTML = html;
       lucide.createIcons();
@@ -288,6 +312,7 @@
       currentCity = pill.dataset.city || null;
       this.querySelectorAll('.pill').forEach(function(p) { p.classList.remove('active'); });
       pill.classList.add('active');
+      syncUrl();
       filterResults();
     });
 
@@ -465,11 +490,19 @@
       if (head) {
         head.innerHTML = '<strong>' + count + '</strong> salonger i ' + escapeHtml(fylkeLabelForHead().toLowerCase());
       }
-      // Empty state when no cards match (or when there are zero salons total).
-      if (cards.length === 0) {
-        setState('Ingen salonger funnet');
-      } else if (count === 0) {
-        setState('Ingen salonger matcher filtrene dine');
+      // Empty state — prefer messages that quote the actual active filters.
+      var noCards = cards.length === 0;
+      var noMatches = count === 0;
+      if (noCards || noMatches) {
+        if (currentQ) {
+          setState('Ingen treff for «' + currentQ + '»');
+        } else if (currentCity) {
+          setState('Ingen salonger i ' + currentCity);
+        } else if (noCards) {
+          setState('Ingen salonger funnet');
+        } else {
+          setState('Ingen salonger matcher filtrene dine');
+        }
       } else {
         setState('');
       }
@@ -478,8 +511,14 @@
 
     async function loadSalons() {
       setState('Laster salonger…');
+      // Build query string. Server filters by ?q= (LIKE on name/bio/service.name)
+      // and ?city= (exact). We forward both when present so the result set is
+      // narrow on first paint instead of loading everything and filtering down.
+      var qs = ['limit=24'];
+      if (currentQ) qs.push('q=' + encodeURIComponent(currentQ));
+      if (currentCity) qs.push('city=' + encodeURIComponent(currentCity));
       try {
-        var res = await fetch('/api/v1/salons?limit=24', { headers: { 'Accept': 'application/json' } });
+        var res = await fetch('/api/v1/salons?' + qs.join('&'), { headers: { 'Accept': 'application/json' } });
         if (!res.ok) throw new Error('Status ' + res.status);
         var data = await res.json();
         ALL_SALONS = Array.isArray(data.salons) ? data.salons : [];
@@ -502,6 +541,38 @@
       renderResults();
     }
 
+    // Render the "Søker etter: «...» ✕" chip into the toolbar's active-filters
+    // slot. The X clears `q` from state + URL and reloads the salon list.
+    function renderSearchChip() {
+      var slot = document.getElementById('activeFilters');
+      if (!slot) return;
+      slot.innerHTML = '';
+      if (!currentQ) return;
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip active';
+      chip.setAttribute('aria-label', 'Fjern søk');
+      chip.innerHTML = 'Søker etter: «' + escapeHtml(currentQ) + '» <span style="margin-left:4px; font-weight:600;">✕</span>';
+      chip.addEventListener('click', function () {
+        currentQ = '';
+        syncUrl();
+        renderSearchChip();
+        // Re-fetch from API so the LIKE filter is dropped server-side too.
+        loadSalons();
+      });
+      slot.appendChild(chip);
+    }
+
+    // Reflect the (possibly param-derived) currentFylke on the row before render.
+    (function applyInitialFylkePill() {
+      if (currentFylke === 'all') return;
+      var pill = document.querySelector('#fylkeRow [data-fylke="' + currentFylke + '"]');
+      if (!pill) return;
+      document.querySelectorAll('#fylkeRow .pill').forEach(function (p) { p.classList.remove('active'); });
+      pill.classList.add('active');
+    })();
+    renderCities();
+    renderSearchChip();
     loadSalons();
   </script>
 </body>

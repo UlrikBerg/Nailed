@@ -18,23 +18,42 @@ function withCoverUrl(row) {
 }
 
 // GET /salons — public listing (paginated)
+// Optional filters:
+//   ?city=<exact city>   — case-sensitive equality (cities are stored canonical)
+//   ?q=<text>            — LIKE-match across salon name, bio, AND service names.
+//                          Joins services so a search for a treatment surfaces
+//                          salons that offer that treatment. DISTINCT to dedupe.
 router.get('/', asyncRoute(async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit, 10) || 24, 100);
   const offset = parseInt(req.query.offset, 10) || 0;
   const city = (req.query.city || '').toString().trim();
+  const q = (req.query.q || '').toString().trim();
 
-  const where = ['status = ?'];
+  const where = ['s.status = ?'];
   const params = ['active'];
-  if (city) { where.push('city = ?'); params.push(city); }
+  if (city) { where.push('s.city = ?'); params.push(city); }
+
+  // q matches name OR bio OR any active service's name on this salon.
+  let join = '';
+  if (q) {
+    const like = `%${q}%`;
+    join = 'LEFT JOIN services sv ON sv.salon_id = s.id AND sv.active = 1';
+    where.push('(s.name LIKE ? OR s.bio LIKE ? OR sv.name LIKE ?)');
+    params.push(like, like, like);
+  }
 
   const rows = await query(
-    `SELECT id, slug, name, city, bio, instagram_url, cover_image_key
-       FROM salons WHERE ${where.join(' AND ')}
-      ORDER BY created_at DESC
+    `SELECT DISTINCT s.id, s.slug, s.name, s.city, s.bio, s.instagram_url, s.cover_image_key, s.created_at
+       FROM salons s
+       ${join}
+      WHERE ${where.join(' AND ')}
+      ORDER BY s.created_at DESC
       LIMIT ? OFFSET ?`,
     [...params, limit, offset]
   );
-  res.json({ salons: rows.map(withCoverUrl), limit, offset });
+  // Drop created_at from the wire shape (it was only used for ORDER BY stability).
+  const out = rows.map(({ created_at, ...rest }) => withCoverUrl(rest));
+  res.json({ salons: out, limit, offset });
 }));
 
 // GET /salons/:slug — public salon detail

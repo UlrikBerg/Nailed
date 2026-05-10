@@ -39,33 +39,33 @@
         Finn salong, velg behandling og tid — og book din time.
       </p>
       <div class="hero__search-wrap">
-        <div class="search-bar">
+        <form class="search-bar" id="heroSearchForm" action="/utforsk.html" method="get">
           <div class="search-bar__field">
             <i data-lucide="sparkles" class="search-bar__field-icon"></i>
             <div class="search-bar__field-text">
-              <div class="search-bar__label">Hva</div>
-              <input placeholder="Velg behandling" />
+              <label class="search-bar__label" for="heroSearchQ">Hva</label>
+              <input id="heroSearchQ" name="q" placeholder="Velg behandling" autocomplete="off" />
             </div>
           </div>
           <div class="search-bar__divider"></div>
           <div class="search-bar__field">
             <i data-lucide="map-pin" class="search-bar__field-icon"></i>
             <div class="search-bar__field-text">
-              <div class="search-bar__label">Hvor</div>
-              <input placeholder="Søk etter adresse" />
+              <label class="search-bar__label" for="heroSearchCity">Hvor</label>
+              <input id="heroSearchCity" name="city" placeholder="Søk etter adresse" autocomplete="off" />
             </div>
           </div>
-          <button class="btn btn-primary search-bar__cta">
+          <button type="submit" class="btn btn-primary search-bar__cta" aria-label="Søk">
             <i data-lucide="search"></i>
           </button>
-        </div>
+        </form>
       </div>
       <div class="hero__quick">
         <span class="eyebrow">Populært:</span>
-        <button class="chip">Gel manikyr</button>
-        <button class="chip">Klassiske vipper</button>
-        <button class="chip">Brynsfarge</button>
-        <button class="chip">Brudemakeup</button>
+        <a class="chip" href="/utforsk.html?q=Gel+manikyr">Gel manikyr</a>
+        <a class="chip" href="/utforsk.html?q=Klassiske+vipper">Klassiske vipper</a>
+        <a class="chip" href="/utforsk.html?q=Brynsfarge">Brynsfarge</a>
+        <a class="chip" href="/utforsk.html?q=Brudemakeup">Brudemakeup</a>
       </div>
     </div>
     <img src="assets/sticker-nailed-it.svg" class="hero__sticker" alt="" />
@@ -257,6 +257,24 @@
   <script>
     lucide.createIcons();
     initFavorites();
+
+    // Hero search → /utforsk.html?q=...&city=...
+    // Using a form submit handler so we can drop empty params from the URL
+    // (a plain GET form would emit `?q=&city=` which is ugly and noisy).
+    (function () {
+      var form = document.getElementById('heroSearchForm');
+      if (!form) return;
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var q = (document.getElementById('heroSearchQ').value || '').trim();
+        var city = (document.getElementById('heroSearchCity').value || '').trim();
+        var parts = [];
+        if (q) parts.push('q=' + encodeURIComponent(q));
+        if (city) parts.push('city=' + encodeURIComponent(city));
+        var qs = parts.length ? '?' + parts.join('&') : '';
+        window.location.href = '/utforsk.html' + qs;
+      });
+    })();
 
     // Sticky nav scroll effect
     var nav = document.getElementById('topNav');
