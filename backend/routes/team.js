@@ -94,9 +94,14 @@ router.put('/:id/amenities', requireAuth, asyncRoute(async (req, res) => {
 router.get('/:id/team', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  // Owners / admins see all team members; the public only sees active ones.
+  const salon = await queryOne(`SELECT owner_user_id FROM salons WHERE id = ?`, [id]);
+  if (!salon) throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
+  const isOwner = req.user && (req.user.role === 'admin' || salon.owner_user_id === req.user.id);
+  const activeFilter = isOwner ? '' : 'AND active = 1';
   const rows = await query(
     `SELECT id, name, role, bio, active, position, created_at
-       FROM team_members WHERE salon_id = ?
+       FROM team_members WHERE salon_id = ? ${activeFilter}
        ORDER BY position ASC, id ASC`,
     [id]
   );

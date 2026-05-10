@@ -192,10 +192,15 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
 router.get('/:id/services', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  // Owners / admins see all services (incl. hidden); the public sees only active ones.
+  const salon = await queryOne(`SELECT owner_user_id FROM salons WHERE id = ?`, [id]);
+  if (!salon) throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
+  const isOwner = req.user && (req.user.role === 'admin' || salon.owner_user_id === req.user.id);
+  const activeFilter = isOwner ? '' : 'AND active = 1';
   const [rows, links] = await Promise.all([
     query(
       `SELECT id, name, description, duration_min, price_nok, active
-         FROM services WHERE salon_id = ? ORDER BY price_nok ASC`,
+         FROM services WHERE salon_id = ? ${activeFilter} ORDER BY price_nok ASC`,
       [id]
     ),
     query(
