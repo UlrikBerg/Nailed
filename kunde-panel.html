@@ -1031,6 +1031,7 @@
               escapeHtml(b.salon_name || '') +
             '</a></div>' +
             '<div class="kp-row__meta">' + escapeHtml(b.service_name || '') +
+              (b.team_member_name ? ' · m/ ' + escapeHtml(b.team_member_name) : '') +
               (b.salon_city ? ' · ' + escapeHtml(b.salon_city) : '') + '</div>' +
           '</div>' +
           '<div class="kp-row__price">' + escapeHtml(String(b.price_nok || '')) + ' kr</div>' +

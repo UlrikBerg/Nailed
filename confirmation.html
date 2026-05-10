@@ -40,6 +40,10 @@
           </div>
           <div class="confirm__row"><span class="confirm__label">Hva</span><span class="confirm__val" id="confWhat">—</span></div>
           <div class="confirm__row"><span class="confirm__label">Hos</span><span class="confirm__val" id="confWhere">—</span></div>
+          <!-- "Behandler" row — populated only when the booking has a stylist
+               assigned. Hidden by default so older salon-wide bookings still
+               render cleanly. -->
+          <div class="confirm__row" id="confStylistRow" style="display:none;"><span class="confirm__label">Behandler</span><span class="confirm__val" id="confStylist">—</span></div>
           <div class="confirm__row"><span class="confirm__label">Når</span><span class="confirm__val" id="confWhen">—</span></div>
           <div class="confirm__row"><span class="confirm__label">Varighet</span><span class="confirm__val" id="confDuration">—</span></div>
           <div class="confirm__row"><span class="confirm__label">Pris</span><span class="confirm__val" id="confPrice">—</span></div>
@@ -228,6 +232,12 @@
       var where = document.getElementById('confWhere');
       where.textContent = '';
       where.appendChild(salonLink);
+
+      // "Behandler" — only when the booking has a stylist assigned.
+      if (booking.team_member_name) {
+        document.getElementById('confStylist').textContent = booking.team_member_name;
+        document.getElementById('confStylistRow').style.display = '';
+      }
 
       document.getElementById('confWhen').textContent = fmtNorWhen(booking.start_at);
       document.getElementById('confDuration').textContent = (booking.duration_min || 0) + ' min';

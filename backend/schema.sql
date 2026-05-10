@@ -437,6 +437,39 @@ SET @fk_sql := IF(@fk_exists = 0,
   'SELECT 1');
 PREPARE stmt FROM @fk_sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
+-- Per-stylist booking: link each booking to the team member who'll perform it.
+-- NULL = legacy "salon-wide" row (kept compatible with old data). When set,
+-- conflict-checks scope to that stylist so two stylists can take separate
+-- bookings at the same hour. ON DELETE SET NULL preserves the booking row if
+-- the team member is later removed (the booking just becomes "salon-wide").
+ALTER TABLE bookings
+  ADD COLUMN IF NOT EXISTS team_member_id BIGINT UNSIGNED DEFAULT NULL;
+
+-- Index on bookings.team_member_id for the per-stylist overlap lookup.
+SET @bk_ix_exists := (
+  SELECT COUNT(*) FROM information_schema.STATISTICS
+   WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME = 'bookings'
+     AND COLUMN_NAME = 'team_member_id'
+     AND SEQ_IN_INDEX = 1
+);
+SET @bk_ix_sql := IF(@bk_ix_exists = 0,
+  'ALTER TABLE bookings ADD INDEX idx_team_member (team_member_id, start_at)',
+  'SELECT 1');
+PREPARE stmt FROM @bk_ix_sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- FK on bookings.team_member_id (idempotent via INFORMATION_SCHEMA gate).
+SET @bk_fk_exists := (
+  SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+   WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME = 'bookings'
+     AND CONSTRAINT_NAME = 'fk_bookings_team_member'
+);
+SET @bk_fk_sql := IF(@bk_fk_exists = 0,
+  'ALTER TABLE bookings ADD CONSTRAINT fk_bookings_team_member FOREIGN KEY (team_member_id) REFERENCES team_members(id) ON DELETE SET NULL',
+  'SELECT 1');
+PREPARE stmt FROM @bk_fk_sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
 -- Index on services.category_id (idempotent). The FK auto-creates one if
 -- missing, so we only add an explicit idx_category when no index covers
 -- the column yet.
@@ -451,3 +484,25 @@ SET @ix_sql := IF(@ix_exists = 0,
   'ALTER TABLE services ADD INDEX idx_category (category_id)',
   'SELECT 1');
 PREPARE stmt FROM @ix_sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- -----------------------------------------------------------------------------
+-- customer_notes
+-- Salon-owner-private notes about a specific customer (allergies, preferences,
+-- arrival habits, …). One row per (salon_id, customer_user_id) — the note
+-- follows the customer across all of their bookings at that salon. The note is
+-- only ever readable by the owner of the salon (or an admin); customers never
+-- see it.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS customer_notes (
+  id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  salon_id         BIGINT UNSIGNED NOT NULL,
+  customer_user_id BIGINT UNSIGNED NOT NULL,
+  body             TEXT NOT NULL,
+  updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uniq_salon_customer (salon_id, customer_user_id),
+  KEY idx_salon (salon_id),
+  CONSTRAINT fk_note_salon    FOREIGN KEY (salon_id)         REFERENCES salons(id) ON DELETE CASCADE,
+  CONSTRAINT fk_note_customer FOREIGN KEY (customer_user_id) REFERENCES users(id)  ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

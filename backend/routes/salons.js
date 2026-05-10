@@ -826,20 +826,40 @@ router.put('/:id/categories/order', requireAuth, asyncRoute(async (req, res) => 
 // windows: real bookings (pending/confirmed), the daily lunch break, and any
 // closures that fall inside the window. The client-side renderer treats all
 // three identically — anything that overlaps a slot greys it out.
+//
+// Optional `?team_member_id=` scopes the booking windows to a single stylist's
+// calendar: their bookings + salon-wide bookings (team_member_id IS NULL).
+// Lunch break + closures stay salon-wide (they affect everyone).
 router.get('/:id/availability', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
 
-  const [bookingRows, salon, closures] = await Promise.all([
-    query(
-      `SELECT start_at, end_at FROM bookings
+  const rawTeam = req.query.team_member_id;
+  const teamMemberId = (rawTeam != null && rawTeam !== '')
+    ? (Number.isFinite(parseInt(rawTeam, 10)) ? parseInt(rawTeam, 10) : null)
+    : null;
+
+  // Build the bookings query with optional per-stylist scoping. When
+  // teamMemberId is set we still surface salon-wide bookings (the rows that
+  // have team_member_id IS NULL — they consume the whole salon's calendar).
+  const bookingSql = teamMemberId != null
+    ? `SELECT start_at, end_at FROM bookings
         WHERE salon_id = ?
           AND status IN ('pending','confirmed')
           AND end_at >= NOW()
           AND start_at < DATE_ADD(NOW(), INTERVAL 30 DAY)
-        ORDER BY start_at ASC`,
-      [id]
-    ),
+          AND (team_member_id = ? OR team_member_id IS NULL)
+        ORDER BY start_at ASC`
+    : `SELECT start_at, end_at FROM bookings
+        WHERE salon_id = ?
+          AND status IN ('pending','confirmed')
+          AND end_at >= NOW()
+          AND start_at < DATE_ADD(NOW(), INTERVAL 30 DAY)
+        ORDER BY start_at ASC`;
+  const bookingParams = teamMemberId != null ? [id, teamMemberId] : [id];
+
+  const [bookingRows, salon, closures] = await Promise.all([
+    query(bookingSql, bookingParams),
     queryOne(
       `SELECT lunch_break_start, lunch_break_end FROM salons WHERE id = ?`,
       [id]

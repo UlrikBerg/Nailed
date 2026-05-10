@@ -79,6 +79,37 @@
       margin-top: 4px;
     }
 
+    /* "Velg behandler" — radio-chip row shown above the day picker when the
+       selected service has an explicit team_member_ids list. Hidden by
+       default; the booking-flow JS reveals it after a service is picked. */
+    .stylist-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .stylist-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .12s ease, border-color .12s ease, color .12s ease;
+    }
+    .stylist-chip:hover { border-color: var(--stone-300); }
+    .stylist-chip.active {
+      background: var(--rouge-50);
+      border-color: var(--rouge-500);
+      color: var(--rouge-500);
+      font-weight: 600;
+    }
+
     /* Ad-hoc "Valgt behandling" card — rendered at the bottom of the popular
        list when the user picks a non-popular service. Visually offset with a
        divider line and a small label so it reads as separate. */
@@ -293,6 +324,16 @@
 
           <div class="service-list" id="serviceList"></div>
 
+          <!-- Stylist picker — only shown when the selected service is linked
+               to specific team members (otherwise "anyone offers it" and the
+               picker is hidden). The "Hvem som helst" chip is the default. -->
+          <div id="stylistPickerSection" style="display:none; margin-top: 18px;">
+            <div class="booking-panel__header" style="margin-bottom: 6px;">
+              <h3>Velg behandler</h3>
+            </div>
+            <div class="stylist-picker" id="stylistPicker"></div>
+          </div>
+
           <div class="booking-panel__header" style="margin-top: 24px;">
             <h3>Velg en dag</h3>
           </div>
@@ -463,7 +504,10 @@
     var serviceList = document.getElementById('serviceList');
     var currentSalon = null;
     var renderedServices = [];
+    var renderedTeam = [];            // Active team members for this salon
+    var teamById = {};                // {id: member}
     var selectedService = null;
+    var selectedStylistId = null;     // null = "Hvem som helst"
     var selectedDateIso = null;       // 'YYYY-MM-DD'
     var selectedDateTime = null;      // ISO 8601 with time
     var closedDateSet = new Set();    // YYYY-MM-DD strings for salon closures
@@ -516,19 +560,82 @@
       // If it's already in the popular list, just toggle .active. Otherwise
       // prepend a card so the user always sees what they're about to book.
       ensureServiceInPanel(svc);
+      // Render the "Velg behandler" picker. Default the picker selection back
+      // to "Hvem som helst" (null) every time the service changes — picking a
+      // new service shouldn't carry over a stylist who may not offer it.
+      selectedStylistId = null;
+      renderStylistPicker(svc);
       // Service duration changes which slots fit — re-render the slot grid
-      // for the active day (if any). Keep the active slot if still valid.
-      if (selectedDateIso) {
-        var prevSelected = selectedDateTime;
-        renderSlots(selectedDateIso);
-        if (prevSelected) {
-          var slotBtn = document.querySelector('.slot[data-iso="' + prevSelected + '"]');
-          if (slotBtn && !slotBtn.disabled) { slotBtn.classList.add('active'); selectedDateTime = prevSelected; }
-          else { selectedDateTime = null; }
-        }
-      }
+      // for the active day (if any). Re-fetch availability scoped to the
+      // (now reset) stylist selection, then refresh slots.
+      refreshAvailabilityAndSlots();
       updateCta();
     }
+
+    // Rebuilds the stylist picker for the currently-selected service. The
+    // picker is only shown for services that have explicit team_member_ids;
+    // when the list is empty ("anyone offers it") we hide the row entirely
+    // so the booking flow stays one-click for the common case.
+    function renderStylistPicker(svc) {
+      var section = document.getElementById('stylistPickerSection');
+      var row = document.getElementById('stylistPicker');
+      if (!section || !row) return;
+      var ids = (svc && Array.isArray(svc.team_member_ids)) ? svc.team_member_ids : [];
+      if (!ids.length) {
+        // No explicit stylists → hide the picker; selectedStylistId stays null.
+        section.style.display = 'none';
+        row.innerHTML = '';
+        return;
+      }
+      var members = ids
+        .map(function (id) { return teamById[id]; })
+        .filter(Boolean);
+      if (!members.length) {
+        // The service references members that aren't in the active team list
+        // (e.g. deactivated). Don't surface a half-broken picker.
+        section.style.display = 'none';
+        row.innerHTML = '';
+        return;
+      }
+      var html = '<button type="button" class="stylist-chip active" data-stylist="">Hvem som helst</button>';
+      members.forEach(function (m) {
+        html += '<button type="button" class="stylist-chip" data-stylist="' + m.id + '">' +
+          escapeHtml(m.name || '') + '</button>';
+      });
+      row.innerHTML = html;
+      section.style.display = '';
+    }
+
+    // Refresh the busy windows for the current stylist scope, then re-render
+    // the active day's slot grid. Used by selectService + stylist-chip clicks.
+    function refreshAvailabilityAndSlots() {
+      if (!currentSalon) return Promise.resolve();
+      return loadAvailability(currentSalon.id, selectedStylistId).then(function () {
+        if (selectedDateIso) {
+          var prevSelected = selectedDateTime;
+          renderSlots(selectedDateIso);
+          if (prevSelected) {
+            var slotBtn = document.querySelector('.slot[data-iso="' + prevSelected + '"]');
+            if (slotBtn && !slotBtn.disabled) { slotBtn.classList.add('active'); selectedDateTime = prevSelected; }
+            else { selectedDateTime = null; }
+          }
+        }
+        updateCta();
+      });
+    }
+
+    // Click handler for stylist chips. The empty data-stylist value means
+    // "Hvem som helst" (null), which switches back to salon-wide availability.
+    document.getElementById('stylistPicker').addEventListener('click', function (e) {
+      var chip = e.target.closest('.stylist-chip');
+      if (!chip) return;
+      var row = document.getElementById('stylistPicker');
+      row.querySelectorAll('.stylist-chip').forEach(function (c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+      var raw = chip.getAttribute('data-stylist');
+      selectedStylistId = raw ? parseInt(raw, 10) : null;
+      refreshAvailabilityAndSlots();
+    });
 
     function clearAdhocCard() {
       var prev = serviceList.querySelector('.service-list__adhoc');
@@ -583,10 +690,15 @@
 
     function deselectService() {
       selectedService = null;
+      selectedStylistId = null;
       document.querySelectorAll('.all-services__item.active').forEach(function (i) {
         i.classList.remove('active');
       });
       ensureServiceInPanel(null);
+      // Hide the stylist picker; refresh availability back to salon-wide.
+      var stylistSection = document.getElementById('stylistPickerSection');
+      if (stylistSection) stylistSection.style.display = 'none';
+      refreshAvailabilityAndSlots();
       updateCta();
     }
 
@@ -708,9 +820,15 @@
     // in milliseconds since epoch.
     var salonBusy = [];
 
-    function loadAvailability(salonId) {
+    function loadAvailability(salonId, teamMemberId) {
       if (!salonId) return Promise.resolve();
-      return fetch('/api/v1/salons/' + salonId + '/availability')
+      // When a stylist is picked, scope busy windows to their calendar via
+      // the ?team_member_id= param; otherwise fall back to salon-wide.
+      var url = '/api/v1/salons/' + salonId + '/availability';
+      if (teamMemberId != null) {
+        url += '?team_member_id=' + encodeURIComponent(teamMemberId);
+      }
+      return fetch(url)
         .then(function (r) { return r.ok ? r.json() : { busy: [] }; })
         .then(function (j) {
           salonBusy = (j.busy || []).map(function (b) {
@@ -860,6 +978,7 @@
         sessionStorage.setItem('nailed.pendingBooking', JSON.stringify({
           slug: slug,
           serviceId: selectedService.id,
+          stylistId: selectedStylistId,
           dateTime: selectedDateTime,
         }));
         location.href = '/login.html?next=' + encodeURIComponent('/salon.html?slug=' + encodeURIComponent(slug));
@@ -874,6 +993,8 @@
           salon_id: currentSalon.id,
           service_id: selectedService.id,
           start_at: selectedDateTime,
+          // null = "Hvem som helst" (salon-wide).
+          team_member_id: selectedStylistId,
         },
       });
       if (!res.ok) {
@@ -898,6 +1019,13 @@
 
         var matching = renderedServices.find(function(s) { return s.id === pending.serviceId; });
         if (matching) selectService(matching);
+
+        // Re-select the stylist if the saved intent had one. Click the chip
+        // so the active state, selectedStylistId, and availability all sync.
+        if (pending.stylistId != null) {
+          var chip = document.querySelector('.stylist-chip[data-stylist="' + pending.stylistId + '"]');
+          if (chip) chip.click();
+        }
 
         var dateIso = (pending.dateTime || '').slice(0, 10);
         var dayBtn = document.querySelector('.day-pick[data-iso="' + dateIso + '"]');
@@ -1237,8 +1365,11 @@
       // Page is loaded; the booking CTA is now safe to interact with.
       cta.disabled = false;
 
-      // Build a team-by-id lookup for the "Tilbys av" snippet.
-      var teamById = {};
+      // Build a team-by-id lookup for the "Tilbys av" snippet and the stylist
+      // picker. Stored on module-scope vars so the stylist-picker renderer
+      // (called from selectService) can resolve member names later.
+      renderedTeam = team;
+      teamById = {};
       team.forEach(function (m) { teamById[m.id] = m; });
 
       // Title and <title>
@@ -1415,14 +1546,25 @@
           });
         });
 
-        // Default-select the first service (in display order) for the CTA / picker.
-        selectService(firstPanelSvc || firstSvc || services[0]);
+        // Default-select the first service (in display order). We skip the
+        // availability re-fetch inside selectService for this initial call
+        // (selectedDateIso is still null, so renderSlots would do nothing
+        // anyway) and instead load availability once below, then build the
+        // day picker (which auto-clicks today and triggers renderSlots).
+        selectedService = firstPanelSvc || firstSvc || services[0];
+        // Sync the UI bits selectService would have done.
+        document.querySelectorAll('.all-services__item').forEach(function(i) {
+          i.classList.toggle('active', i.dataset.svcName === (selectedService.name || ''));
+        });
+        ensureServiceInPanel(selectedService);
+        selectedStylistId = null;
+        renderStylistPicker(selectedService);
+        updateCta();
 
-        // Load existing bookings, then build the day picker (which auto-clicks
-        // today and triggers renderSlots, which uses the busy data).
-        loadAvailability(s.id).then(function () {
+        // Load existing bookings (salon-wide for the first paint), then build
+        // the day picker which auto-clicks today and triggers renderSlots.
+        loadAvailability(s.id, null).then(function () {
           renderDayPicker();
-          // If user came back from login, restore selection.
           restorePendingBooking();
         });
 

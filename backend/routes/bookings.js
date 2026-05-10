@@ -30,7 +30,14 @@ async function audit(actorId, action, entityType, entityId, meta) {
 // The salon/service args must already have been loaded by the caller; this
 // function does not re-fetch them. The optional `excludeBookingId` lets the
 // reschedule endpoint avoid colliding with the booking row being moved.
-async function validateSlot({ salon, service, startAt, excludeBookingId, conn }) {
+//
+// Per-stylist scoping (teamMemberId):
+//   - When set, conflict check only looks at bookings with the same
+//     team_member_id OR legacy salon-wide rows where team_member_id IS NULL
+//     (the latter still consume the whole salon's calendar).
+//   - When null, this is a salon-wide booking and conflicts with ANY live
+//     booking at the salon (current behavior).
+async function validateSlot({ salon, service, startAt, excludeBookingId, teamMemberId, conn }) {
   if (Number.isNaN(startAt.getTime())) {
     throw new HttpError(400, 'bad_start_at', 'Ugyldig start-tidspunkt.');
   }
@@ -131,17 +138,25 @@ async function validateSlot({ salon, service, startAt, excludeBookingId, conn })
   const overlapStart = new Date(startAt.getTime() - bufferMin * 60_000);
   const overlapEnd = new Date(endAt.getTime() + bufferMin * 60_000);
 
+  // Per-stylist scoping: if teamMemberId is set, only conflict with bookings
+  // for that stylist OR legacy salon-wide rows (team_member_id IS NULL).
+  // If teamMemberId is null, this booking is salon-wide → conflict with any
+  // live booking at the salon (preserves pre-stylist behavior).
+  const teamClause = teamMemberId != null
+    ? 'AND (team_member_id = ? OR team_member_id IS NULL)'
+    : '';
   const sql = `SELECT id FROM bookings
     WHERE salon_id = ?
       AND status IN ('pending','confirmed')
       AND start_at < ?
       AND end_at   > ?
+      ${teamClause}
       ${excludeBookingId ? 'AND id <> ?' : ''}
     LIMIT 1
     FOR UPDATE`;
-  const params = excludeBookingId
-    ? [salon.id, overlapEnd, overlapStart, excludeBookingId]
-    : [salon.id, overlapEnd, overlapStart];
+  const params = [salon.id, overlapEnd, overlapStart];
+  if (teamMemberId != null) params.push(teamMemberId);
+  if (excludeBookingId) params.push(excludeBookingId);
   const [overlap] = await conn.execute(sql, params);
   if (overlap.length > 0) {
     throw new HttpError(409, 'slot_taken', 'Tidspunktet er allerede tatt. Velg et annet.');
@@ -162,12 +177,15 @@ router.get('/mine', asyncRoute(async (req, res) => {
 
   const rows = await query(
     `SELECT b.id, b.start_at, b.end_at, b.status, b.price_nok,
+            b.team_member_id,
             s.id AS salon_id, s.slug AS salon_slug, s.name AS salon_name, s.city AS salon_city,
             sv.name AS service_name,
+            tm.name AS team_member_name,
             (r.id IS NOT NULL) AS has_review
        FROM bookings b
        JOIN salons s ON s.id = b.salon_id
        JOIN services sv ON sv.id = b.service_id
+       LEFT JOIN team_members tm ON tm.id = b.team_member_id
        LEFT JOIN reviews r ON r.booking_id = b.id AND r.hidden_at IS NULL
       WHERE ${where}
       ORDER BY b.start_at ${filter === 'past' ? 'DESC' : 'ASC'}
@@ -184,13 +202,16 @@ router.get('/mine', asyncRoute(async (req, res) => {
 router.get('/incoming', asyncRoute(async (req, res) => {
   const rows = await query(
     `SELECT b.id, b.start_at, b.end_at, b.status, b.price_nok, b.customer_note,
+            b.team_member_id,
             s.id AS salon_id, s.name AS salon_name,
             sv.name AS service_name, sv.duration_min,
+            tm.name AS team_member_name,
             u.name AS customer_name
        FROM bookings b
        JOIN salons s ON s.id = b.salon_id
        JOIN services sv ON sv.id = b.service_id
        JOIN users u ON u.id = b.customer_user_id
+       LEFT JOIN team_members tm ON tm.id = b.team_member_id
       WHERE s.owner_user_id = ?
       ORDER BY b.start_at DESC
       LIMIT 200`,
@@ -206,6 +227,8 @@ router.post('/', asyncRoute(async (req, res) => {
     service_id: z.number().int().positive(),
     start_at: z.string().datetime(),
     customer_note: z.string().trim().max(1000).optional().nullable(),
+    // Optional stylist preference. null = "Hvem som helst" (salon-wide booking).
+    team_member_id: z.number().int().positive().nullable().optional(),
   });
   const data = schema.parse(req.body);
 
@@ -229,6 +252,33 @@ router.post('/', asyncRoute(async (req, res) => {
     throw new HttpError(409, 'bookings_paused', 'Salongen tar ikke imot nye bookinger akkurat nå.');
   }
 
+  // Validate stylist when one was picked. The rule mirrors the public salon
+  // page: a service with explicit links is only offered by those team members;
+  // a service with no links is offered by "anyone", which we widen to "any
+  // active team member of this salon".
+  const teamMemberId = data.team_member_id ?? null;
+  if (teamMemberId != null) {
+    const linkRows = await query(
+      `SELECT team_member_id FROM service_team_members WHERE service_id = ?`,
+      [data.service_id]
+    );
+    if (linkRows.length > 0) {
+      const allowed = new Set(linkRows.map(r => Number(r.team_member_id)));
+      if (!allowed.has(Number(teamMemberId))) {
+        throw new HttpError(400, 'invalid_team_member', 'Behandleren tilbyr ikke denne tjenesten.');
+      }
+    } else {
+      // "Anyone" service — verify the picked stylist is active at the salon.
+      const member = await queryOne(
+        `SELECT id FROM team_members WHERE id = ? AND salon_id = ? AND active = 1`,
+        [teamMemberId, data.salon_id]
+      );
+      if (!member) {
+        throw new HttpError(400, 'invalid_team_member', 'Behandleren finnes ikke i denne salongen.');
+      }
+    }
+  }
+
   const startAt = new Date(data.start_at);
 
   // Run all rule checks + overlap inside a transaction so the SELECT FOR UPDATE
@@ -238,13 +288,14 @@ router.post('/', asyncRoute(async (req, res) => {
       salon: { ...salon, id: data.salon_id },
       service,
       startAt,
+      teamMemberId,
       conn,
     });
     const [insertResult] = await conn.execute(
       `INSERT INTO bookings
-         (customer_user_id, salon_id, service_id, start_at, end_at, price_nok, status, customer_note)
-       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)`,
-      [req.user.id, data.salon_id, data.service_id, startAt, endAt, service.price_nok, data.customer_note || null]
+         (customer_user_id, salon_id, service_id, start_at, end_at, price_nok, status, customer_note, team_member_id)
+       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+      [req.user.id, data.salon_id, data.service_id, startAt, endAt, service.price_nok, data.customer_note || null, teamMemberId]
     );
     return insertResult.insertId;
   });
@@ -258,17 +309,19 @@ router.get('/:id', asyncRoute(async (req, res) => {
   const booking = await queryOne(
     `SELECT b.id, b.start_at, b.end_at, b.status, b.price_nok, b.customer_note,
             b.cancelled_at, b.cancelled_by_role, b.completed_at, b.created_at,
-            b.customer_user_id,
+            b.customer_user_id, b.team_member_id,
             s.id AS salon_id, s.slug AS salon_slug, s.name AS salon_name,
             s.city AS salon_city, s.address_line AS salon_address,
             s.postal_code AS salon_postal, s.owner_user_id,
             s.booking_confirmation_text AS confirmation_message,
             sv.id AS service_id, sv.name AS service_name, sv.duration_min,
+            tm.name AS team_member_name,
             cu.name AS customer_name
        FROM bookings b
        JOIN salons s ON s.id = b.salon_id
        JOIN services sv ON sv.id = b.service_id
        JOIN users cu ON cu.id = b.customer_user_id
+       LEFT JOIN team_members tm ON tm.id = b.team_member_id
       WHERE b.id = ?`,
     [id]
   );
@@ -480,6 +533,7 @@ router.patch('/:id/reschedule', asyncRoute(async (req, res) => {
 
   const booking = await queryOne(
     `SELECT b.id, b.customer_user_id, b.salon_id, b.service_id, b.status,
+            b.team_member_id,
             b.start_at AS old_start_at, b.end_at AS old_end_at,
             s.owner_user_id
        FROM bookings b JOIN salons s ON s.id = b.salon_id
@@ -525,6 +579,8 @@ router.patch('/:id/reschedule', asyncRoute(async (req, res) => {
       service,
       startAt,
       excludeBookingId: id,
+      // Preserve the existing stylist (or salon-wide) scoping on reschedule.
+      teamMemberId: booking.team_member_id != null ? Number(booking.team_member_id) : null,
       conn,
     });
     // Conditional UPDATE — only if the booking is still in a reschedulable

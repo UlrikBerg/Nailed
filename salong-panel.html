@@ -419,6 +419,135 @@
     .sp-resched-slot[disabled], .sp-resched-slot.taken { opacity: .45; cursor: not-allowed; }
     .sp-resched-form__empty { font-size: 13px; color: var(--fg-muted); text-align: center; padding: 12px; }
     .sp-resched-form__actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+    /* ------------------ Analyse-fane ------------------ */
+    /* Period chip-row (7d / 30d / 90d / 6m / 12m / Alt). Visual style matches
+       the rouge accent used elsewhere on the panel. */
+    .analytics-period {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;
+    }
+    .analytics-period__chip {
+      font-family: var(--font-body);
+      font-size: 13px;
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-100);
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .analytics-period__chip:hover { border-color: var(--stone-400); }
+    .analytics-period__chip.active {
+      background: var(--ink); color: #fff; border-color: var(--ink);
+    }
+
+    /* A two-column grid of analyse cards. Single column on narrower screens. */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .analytics-grid { grid-template-columns: 1fr; }
+    }
+    .analytics-card {
+      background: var(--cream-50); border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg); padding: 20px;
+    }
+    .analytics-card__head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .analytics-card__title {
+      font-family: var(--font-display); font-weight: 600; font-size: 16px; margin: 0;
+    }
+    .analytics-card__sub { font-size: 12px; color: var(--fg-muted); }
+
+    /* CSS bar-chart used for weekday / hour breakdowns. */
+    .bar-chart { display: flex; flex-direction: column; gap: 6px; }
+    .bar-chart__row {
+      display: grid; grid-template-columns: 56px 1fr 40px;
+      align-items: center; gap: 8px; font-size: 13px;
+    }
+    .bar-chart__label { color: var(--fg-muted); }
+    .bar-chart__track {
+      height: 10px; border-radius: var(--radius-pill);
+      background: var(--cream-100); overflow: hidden;
+    }
+    .bar-chart__fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--rouge-300), var(--rouge-500));
+      border-radius: var(--radius-pill);
+      transition: width 240ms ease;
+    }
+    .bar-chart__value {
+      text-align: right; font-variant-numeric: tabular-nums; color: var(--ink);
+    }
+
+    /* Inline trend SVG containers. */
+    .trend-svg { width: 100%; height: 140px; display: block; }
+    .trend-empty { color: var(--fg-muted); font-size: 13px; padding: 20px; text-align: center; }
+
+    /* Recent reviews snippet inside Analyse */
+    .analytics-review {
+      padding: 12px 0; border-bottom: 1px solid var(--stone-200);
+    }
+    .analytics-review:last-child { border-bottom: 0; }
+    .analytics-review__head { font-size: 12px; color: var(--fg-muted); display: flex; gap: 6px; align-items: center; }
+    .analytics-review__head strong { color: var(--ink); }
+    .analytics-review__body { font-size: 14px; margin: 4px 0 0; color: var(--ink); line-height: 1.45; }
+
+    .analytics-empty {
+      padding: 32px 16px; text-align: center; color: var(--fg-muted); font-size: 14px;
+    }
+
+    /* ------------------ Kunder-fane ------------------ */
+    .customers-search {
+      width: 100%; max-width: 360px;
+      padding: 10px 14px; border-radius: var(--radius-md);
+      border: 1px solid var(--stone-200); background: var(--cream-50);
+      font-size: 14px; margin-bottom: 12px;
+    }
+    .customers-search:focus { outline: 2px solid var(--rouge-300); }
+
+    .note-cell-btn {
+      background: transparent; border: 0; cursor: pointer; padding: 4px;
+      border-radius: var(--radius-sm); color: var(--stone-400);
+      display: inline-flex; align-items: center; gap: 4px; font-size: 12px;
+    }
+    .note-cell-btn:hover { background: var(--cream-100); color: var(--rouge-500); }
+    .note-cell-btn.has-note { color: var(--rouge-500); }
+    .note-cell-btn.has-note i { fill: var(--rouge-50); }
+
+    .note-editor {
+      padding: 16px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .note-editor textarea {
+      font-family: var(--font-body); font-size: 14px;
+      padding: 10px 12px;
+      border: 1px solid var(--stone-300); border-radius: var(--radius-sm);
+      resize: vertical; min-height: 96px; line-height: 1.5;
+      background: #fff;
+    }
+    .note-editor__meta { font-size: 12px; color: var(--fg-muted); }
+    .note-editor__actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+    .note-editor__count { font-size: 12px; color: var(--fg-muted); margin-right: auto; }
+
+    /* Booking-row notepad icon (in Bookinger tab). */
+    .booking-note-btn {
+      background: transparent; border: 0; cursor: pointer;
+      width: 22px; height: 22px; padding: 2px;
+      border-radius: var(--radius-sm); color: var(--stone-400);
+      vertical-align: middle; margin-left: 6px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .booking-note-btn:hover { background: var(--cream-100); color: var(--rouge-500); }
+    .booking-note-btn.has-note { color: var(--rouge-500); }
+    .booking-note-btn i { width: 14px; height: 14px; }
   </style>
 </head>
 <body>
@@ -435,7 +564,9 @@
 
       <button class="nav-item active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
       <button class="nav-item" data-tab="bookinger"><i data-lucide="calendar-check"></i> Bookinger <span class="nav-item__badge" id="bookingsPendingBadge" hidden>0</span></button>
+      <button class="nav-item" data-tab="kunder"><i data-lucide="users"></i> Kunder</button>
       <button class="nav-item" data-tab="tjenester"><i data-lucide="sparkles"></i> Tjenester</button>
+      <button class="nav-item" data-tab="analyse"><i data-lucide="bar-chart-3"></i> Analyse</button>
       <button class="nav-item" data-tab="anmeldelser"><i data-lucide="star"></i> Anmeldelser <span class="nav-item__badge" id="reviewsUnansweredBadge" hidden>0</span></button>
 
       <div class="sidebar__section">Salong</div>
@@ -517,6 +648,36 @@
           </table>
           <div id="incomingEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
             Ingen bookinger ennå.
+          </div>
+        </div>
+      </div>
+
+      <!-- KUNDER -->
+      <div class="tab-content" id="tab-kunder">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title">Kunder</h1>
+            <div class="topbar__sub">Alle som har booket hos dere. Skriv private notater som bare du ser.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <input class="customers-search" id="customersSearch" type="search" placeholder="Søk i navn, e-post eller telefon …" autocomplete="off" />
+          <table class="data-table" id="customersTable">
+            <thead>
+              <tr>
+                <th>Navn</th>
+                <th>Kontakt</th>
+                <th>Bookinger</th>
+                <th>Sist besøk</th>
+                <th>Verdi</th>
+                <th>Notat</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div id="customersEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
+            Ingen kunder ennå.
           </div>
         </div>
       </div>
@@ -603,6 +764,167 @@
           </table>
           <div id="servicesEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
             Du har ingen tjenester. Legg til en for å starte.
+          </div>
+        </div>
+      </div>
+
+      <!-- ANALYSE -->
+      <div class="tab-content" id="tab-analyse">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title">Analyse</h1>
+            <div class="topbar__sub">Statistikk for salongen din. Velg periode for å se hvordan tallene endrer seg.</div>
+          </div>
+        </div>
+
+        <div class="analytics-period" id="analyticsPeriod">
+          <button type="button" class="analytics-period__chip" data-period="7d">7 dager</button>
+          <button type="button" class="analytics-period__chip active" data-period="30d">30 dager</button>
+          <button type="button" class="analytics-period__chip" data-period="90d">90 dager</button>
+          <button type="button" class="analytics-period__chip" data-period="6m">6 måneder</button>
+          <button type="button" class="analytics-period__chip" data-period="12m">12 måneder</button>
+          <button type="button" class="analytics-period__chip" data-period="all">Alt</button>
+        </div>
+
+        <div class="kpi-row" id="analyticsKpiRow">
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--pink"><i data-lucide="calendar-check"></i></div>
+            <div class="kpi__label">Bookinger</div>
+            <div class="kpi__value" id="aKpiBookings">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--ink"><i data-lucide="banknote"></i></div>
+            <div class="kpi__label">Omsetning</div>
+            <div class="kpi__value" id="aKpiRevenue">0 <span class="kpi__unit">kr</span></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--green"><i data-lucide="users"></i></div>
+            <div class="kpi__label">Unike kunder</div>
+            <div class="kpi__value" id="aKpiUniqueCustomers">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--amber"><i data-lucide="repeat"></i></div>
+            <div class="kpi__label">Returnerende</div>
+            <div class="kpi__value" id="aKpiReturning">0</div>
+          </div>
+        </div>
+
+        <div class="kpi-row" id="analyticsKpiRow2" style="margin-top:12px;">
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--green"><i data-lucide="check-circle"></i></div>
+            <div class="kpi__label">Fullført</div>
+            <div class="kpi__value" id="aKpiCompleted">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--amber"><i data-lucide="x-circle"></i></div>
+            <div class="kpi__label">Avbestilt</div>
+            <div class="kpi__value" id="aKpiCancelled">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--pink"><i data-lucide="user-x"></i></div>
+            <div class="kpi__label">No-show</div>
+            <div class="kpi__value" id="aKpiNoShow">0 <span class="kpi__unit">(0 %)</span></div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__icon kpi__icon--ink"><i data-lucide="receipt"></i></div>
+            <div class="kpi__label">Snittpris</div>
+            <div class="kpi__value" id="aKpiAvgValue">0 <span class="kpi__unit">kr</span></div>
+          </div>
+        </div>
+
+        <div class="analytics-grid" style="margin-top:16px;">
+          <!-- Topp behandlinger -->
+          <div class="analytics-card" style="grid-column: 1 / -1;">
+            <div class="analytics-card__head">
+              <h3 class="analytics-card__title">Topp behandlinger</h3>
+              <span class="analytics-card__sub">Sortert på antall i valgt periode</span>
+            </div>
+            <table class="data-table" id="topServicesTable">
+              <thead>
+                <tr>
+                  <th>Behandling</th>
+                  <th style="width: 90px;">Antall</th>
+                  <th style="width: 110px;">Snittpris</th>
+                  <th style="width: 130px;">Omsetning</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div id="topServicesEmpty" class="analytics-empty" style="display:none;">
+              Ingen data for valgt periode.
+            </div>
+          </div>
+
+          <!-- Topp stylister (kun synlig hvis flere stylister booket) -->
+          <div class="analytics-card" id="topStylistsCard" style="grid-column: 1 / -1; display:none;">
+            <div class="analytics-card__head">
+              <h3 class="analytics-card__title">Topp stylister</h3>
+              <span class="analytics-card__sub">Andel av totalt bookede timer</span>
+            </div>
+            <table class="data-table" id="topStylistsTable">
+              <thead>
+                <tr>
+                  <th>Navn</th>
+                  <th style="width: 90px;">Antall</th>
+                  <th style="width: 110px;">Andel</th>
+                  <th style="width: 130px;">Omsetning</th>
+                  <th style="width: 110px;">No-show</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Bookinger per ukedag -->
+          <div class="analytics-card">
+            <div class="analytics-card__head">
+              <h3 class="analytics-card__title">Bookinger per ukedag</h3>
+            </div>
+            <div class="bar-chart" id="weekdayChart"></div>
+          </div>
+
+          <!-- Bookinger per time -->
+          <div class="analytics-card">
+            <div class="analytics-card__head">
+              <h3 class="analytics-card__title">Bookinger per time</h3>
+              <span class="analytics-card__sub">Lokal tid (Oslo)</span>
+            </div>
+            <div class="bar-chart" id="hourChart"></div>
+          </div>
+
+          <!-- Omsetning siste 12 uker -->
+          <div class="analytics-card" style="grid-column: 1 / -1;">
+            <div class="analytics-card__head">
+              <h3 class="analytics-card__title">Omsetning siste 12 uker</h3>
+              <span class="analytics-card__sub">Fullførte bookinger, ukentlig</span>
+            </div>
+            <svg class="trend-svg" id="revenueTrend" preserveAspectRatio="none" viewBox="0 0 600 140"></svg>
+            <div id="revenueTrendEmpty" class="trend-empty" style="display:none;">
+              Ingen omsetning de siste 12 ukene.
+            </div>
+          </div>
+
+          <!-- Returnerende kundeandel -->
+          <div class="analytics-card">
+            <div class="analytics-card__head">
+              <h3 class="analytics-card__title">Returnerende kundeandel</h3>
+              <span class="analytics-card__sub">Siste 6 måneder</span>
+            </div>
+            <svg class="trend-svg" id="returningTrend" preserveAspectRatio="none" viewBox="0 0 600 140"></svg>
+            <div id="returningTrendEmpty" class="trend-empty" style="display:none;">
+              Ingen data ennå.
+            </div>
+          </div>
+
+          <!-- Siste anmeldelser -->
+          <div class="analytics-card">
+            <div class="analytics-card__head">
+              <h3 class="analytics-card__title">Siste anmeldelser</h3>
+            </div>
+            <div id="analyticsRecentReviews"></div>
+            <div id="analyticsRecentReviewsEmpty" class="trend-empty" style="display:none;">
+              Ingen anmeldelser ennå.
+            </div>
           </div>
         </div>
       </div>
@@ -1094,6 +1416,12 @@
         // badge in the sidebar is refreshed independently in loadReviewsBadge().
         if (tab === 'anmeldelser' && typeof loadOwnerReviews === 'function') {
           loadOwnerReviews();
+        }
+        if (tab === 'analyse' && typeof loadAnalytics === 'function') {
+          loadAnalytics();
+        }
+        if (tab === 'kunder' && typeof loadCustomers === 'function') {
+          loadCustomers();
         }
       });
     });
@@ -1926,6 +2254,7 @@
           '<td><strong>' + escapeHtml(b.customer_name) + '</strong>' +
             (b.customer_note ? '<br><span class="td-muted">' + escapeHtml(b.customer_note) + '</span>' : '') + '</td>' +
           '<td>' + escapeHtml(b.service_name) +
+            (b.team_member_name ? '<br><span class="td-muted">Behandler: ' + escapeHtml(b.team_member_name) + '</span>' : '') +
             (b.duration_min ? '<br><span class="td-muted">' + b.duration_min + ' min</span>' : '') +
             '</td>' +
           '<td><strong>' + b.price_nok + ' kr</strong></td>' +
