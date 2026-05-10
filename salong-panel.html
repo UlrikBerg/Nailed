@@ -758,9 +758,23 @@
     async function loadSalon() {
       var res = await NailedAuth.api('/api/v1/salons/me/own');
       if (res.status === 404) {
-        document.querySelector('main').innerHTML =
-          '<div class="topbar"><div><h1 class="topbar__title">Ingen salong</h1>' +
-          '<div class="topbar__sub">Du er ikke registrert som salongeier ennå.</div></div></div>';
+        // Render an empty state INSIDE the dashboard tab so the sidebar (with
+        // logout) and tab navigation still work. Don't blow away <main>.
+        var dashTab = document.getElementById('tab-dashboard');
+        if (dashTab) {
+          dashTab.innerHTML =
+            '<div class="topbar"><div><h1 class="topbar__title">Ingen salong</h1>' +
+            '<div class="topbar__sub">Du er ikke registrert som salongeier ennå. ' +
+            '<a href="/bli-salong.html">Søk om å bli salong</a>.</div></div></div>';
+        }
+        // Hide the other tabs and their nav buttons — there's nothing to show
+        // until the user has a salon, but we keep the sidebar (logout etc.).
+        document.querySelectorAll('.tab-content').forEach(function (el) {
+          if (el.id !== 'tab-dashboard') el.style.display = 'none';
+        });
+        document.querySelectorAll('.nav-item[data-tab]').forEach(function (el) {
+          if (el.getAttribute('data-tab') !== 'dashboard') el.style.display = 'none';
+        });
         return null;
       }
       var data = await res.json();

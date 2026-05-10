@@ -501,7 +501,10 @@
     });
 
     (async function init() {
-      var user = await NailedAuth.requireAuth('user');
+      // Any logged-in account can use this page — it's the personal profile,
+      // sessions, favorites, GDPR export, account-delete. Salon owners use it
+      // too because their salon panel doesn't replicate these.
+      var user = await NailedAuth.requireAuth();
       if (!user) return;
       document.getElementById('userName').textContent = user.name;
       document.getElementById('userEmail').textContent = user.email;
