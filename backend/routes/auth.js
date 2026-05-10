@@ -26,7 +26,7 @@ router.get('/:provider/start', asyncRoute(async (req, res) => {
 
   const { verifier, challenge } = pkcePair();
   const state = randomBase64Url(24);
-  const redirectAfter = typeof req.query.redirect === 'string' ? req.query.redirect.slice(0, 512) : null;
+  const redirectAfter = sanitizeRedirect(req.query.redirect);
 
   await query(
     `INSERT INTO oauth_states (state, provider, code_verifier, redirect_after, expires_at)
@@ -194,6 +194,17 @@ function roleHome(role) {
   if (role === 'admin') return '/admin/';
   if (role === 'salon_owner') return '/salong-panel.html';
   return '/kunde-panel.html';
+}
+
+// Same-origin only: must start with a single "/", not "//" (protocol-relative)
+// and not "/\\" (some browsers normalize backslashes). Anything else is dropped
+// so a phisher can't bounce a freshly-authenticated user off-site.
+function sanitizeRedirect(raw) {
+  if (typeof raw !== 'string') return null;
+  const v = raw.slice(0, 512);
+  if (!v.startsWith('/')) return null;
+  if (v.startsWith('//') || v.startsWith('/\\')) return null;
+  return v;
 }
 
 module.exports = router;

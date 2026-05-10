@@ -25,7 +25,14 @@
         var access = params.get('access_token');
         var refresh = params.get('refresh_token');
         var role = params.get('role');
-        var redirect = params.get('redirect') || '/';
+        var rawRedirect = params.get('redirect') || '/';
+        // Defense-in-depth: only allow same-origin paths. Backend already filters,
+        // but if a client constructs this URL by hand we still drop off-site jumps.
+        var redirect = (typeof rawRedirect === 'string'
+          && rawRedirect.length < 512
+          && rawRedirect.charAt(0) === '/'
+          && rawRedirect.charAt(1) !== '/'
+          && rawRedirect.charAt(1) !== '\\') ? rawRedirect : '/';
 
         if (!access || !refresh) {
           msg.textContent = 'Mangler innloggings-token. Prøv igjen.';
