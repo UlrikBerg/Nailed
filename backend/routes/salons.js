@@ -517,4 +517,22 @@ router.put('/:id/categories/order', requireAuth, asyncRoute(async (req, res) => 
   res.json({ ok: true });
 }));
 
+// GET /salons/:id/availability — public; returns busy windows for the next 30
+// days so clients can hide/disable taken slots. Live bookings only (pending or
+// confirmed); past, cancelled, completed and no-show are ignored.
+router.get('/:id/availability', asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const rows = await query(
+    `SELECT start_at, end_at FROM bookings
+      WHERE salon_id = ?
+        AND status IN ('pending','confirmed')
+        AND end_at >= NOW()
+        AND start_at < DATE_ADD(NOW(), INTERVAL 30 DAY)
+      ORDER BY start_at ASC`,
+    [id]
+  );
+  res.json({ busy: rows });
+}));
+
 module.exports = router;

@@ -445,6 +445,17 @@
       // If it's already in the popular list, just toggle .active. Otherwise
       // prepend a card so the user always sees what they're about to book.
       ensureServiceInPanel(svc);
+      // Service duration changes which slots fit — re-render the slot grid
+      // for the active day (if any). Keep the active slot if still valid.
+      if (selectedDateIso) {
+        var prevSelected = selectedDateTime;
+        renderSlots(selectedDateIso);
+        if (prevSelected) {
+          var slotBtn = document.querySelector('.slot[data-iso="' + prevSelected + '"]');
+          if (slotBtn && !slotBtn.disabled) { slotBtn.classList.add('active'); selectedDateTime = prevSelected; }
+          else { selectedDateTime = null; }
+        }
+      }
       updateCta();
     }
 
@@ -577,10 +588,38 @@
       if (dayPageIdx < pages - 1) { dayPageIdx += 1; applyDayPage(); }
     });
 
+    // Existing live bookings for this salon — fetched once per page load,
+    // refreshed after a successful booking submit. Each entry: {start, end}
+    // in milliseconds since epoch.
+    var salonBusy = [];
+
+    function loadAvailability(salonId) {
+      if (!salonId) return Promise.resolve();
+      return fetch('/api/v1/salons/' + salonId + '/availability')
+        .then(function (r) { return r.ok ? r.json() : { busy: [] }; })
+        .then(function (j) {
+          salonBusy = (j.busy || []).map(function (b) {
+            return { start: new Date(b.start_at).getTime(), end: new Date(b.end_at).getTime() };
+          });
+        })
+        .catch(function () { salonBusy = []; });
+    }
+
+    function slotIsBusy(slotStartMs, durationMin) {
+      var dur = (durationMin || 60) * 60 * 1000;
+      var slotEndMs = slotStartMs + dur;
+      for (var i = 0; i < salonBusy.length; i++) {
+        var b = salonBusy[i];
+        if (slotStartMs < b.end && slotEndMs > b.start) return true;
+      }
+      return false;
+    }
+
     function renderSlots(dateIso) {
       var grid = document.getElementById('slotGrid');
       grid.innerHTML = '';
       var nowMs = Date.now();
+      var dur = (selectedService && selectedService.duration_min) ? selectedService.duration_min : 60;
       for (var h = 8; h <= 19; h++) {
         var hh = h < 10 ? '0' + h : '' + h;
         var label = hh + ':00';
@@ -589,7 +628,9 @@
         btn.type = 'button';
         btn.className = 'slot';
         btn.textContent = label;
-        if (dt.getTime() < nowMs) {
+        var inPast = dt.getTime() < nowMs;
+        var taken = !inPast && slotIsBusy(dt.getTime(), dur);
+        if (inPast || taken) {
           btn.classList.add('taken');
           btn.disabled = true;
         } else {
@@ -1059,11 +1100,13 @@
         // Default-select the first service (in display order) for the CTA / picker.
         selectService(firstPanelSvc || firstSvc || services[0]);
 
-        // Build the day picker and slots.
-        renderDayPicker();
-
-        // If user came back from login, restore selection.
-        restorePendingBooking();
+        // Load existing bookings, then build the day picker (which auto-clicks
+        // today and triggers renderSlots, which uses the busy data).
+        loadAvailability(s.id).then(function () {
+          renderDayPicker();
+          // If user came back from login, restore selection.
+          restorePendingBooking();
+        });
 
         // If salon stopped accepting bookings, lock the CTA visibly.
         if (s.accepts_new_bookings === false || s.accepts_new_bookings === 0) {
