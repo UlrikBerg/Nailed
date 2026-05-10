@@ -717,11 +717,17 @@
       }
       var html = '';
       members.forEach(function (m) {
-        var g = gradientForId(m.id);
-        var avatarStyle = 'background:' + g.bg + '; color:' + g.color + ';';
         var role = m.role ? '<div class="profile-team__role">' + escapeHtml(m.role) + '</div>' : '';
+        var avatarHtml;
+        if (m.image_url) {
+          // Photo: cover-fit so portraits don't get squashed.
+          avatarHtml = '<div class="profile-team__avatar" style="background: #000 center/cover no-repeat url(\'' + escapeHtml(m.image_url) + '\');"></div>';
+        } else {
+          var g = gradientForId(m.id);
+          avatarHtml = '<div class="profile-team__avatar" style="background:' + g.bg + '; color:' + g.color + ';">' + escapeHtml(initialsOf(m.name)) + '</div>';
+        }
         html += '<div class="profile-team__member">' +
-                  '<div class="profile-team__avatar" style="' + avatarStyle + '">' + escapeHtml(initialsOf(m.name)) + '</div>' +
+                  avatarHtml +
                   '<div>' +
                     '<div class="profile-team__name">' + escapeHtml(m.name || '') + '</div>' +
                     role +

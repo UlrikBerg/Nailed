@@ -67,7 +67,7 @@ router.get('/:slug', asyncRoute(async (req, res) => {
       [salon.id]
     ),
     query(
-      `SELECT id, name, role, bio, position
+      `SELECT id, name, role, bio, position, image_key
          FROM team_members WHERE salon_id = ? AND active = 1
          ORDER BY position ASC, id ASC`,
       [salon.id]
@@ -106,7 +106,7 @@ router.get('/:slug', asyncRoute(async (req, res) => {
     services: servicesWithTeam,
     images: images.map(i => ({ ...i, url: storage.publicUrl(i.key) })),
     hours,
-    team,
+    team: team.map(m => ({ ...m, image_url: m.image_key ? storage.publicUrl(m.image_key) : null })),
     amenities: amenities.map(a => a.amenity),
     reviews: {
       count: Number(reviewSummaryRow?.count || 0),
@@ -140,7 +140,7 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
       [salon.id]
     ),
     query(
-      `SELECT id, name, role, bio, active, position
+      `SELECT id, name, role, bio, active, position, image_key
          FROM team_members WHERE salon_id = ? ORDER BY position ASC, id ASC`,
       [salon.id]
     ),
@@ -154,7 +154,7 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
     salon: withCoverUrl(salon),
     images: images.map(i => ({ ...i, url: storage.publicUrl(i.key) })),
     hours,
-    team,
+    team: team.map(m => ({ ...m, image_url: m.image_key ? storage.publicUrl(m.image_key) : null })),
     amenities: amenities.map(a => a.amenity),
   });
 }));

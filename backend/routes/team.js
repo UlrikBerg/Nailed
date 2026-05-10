@@ -2,12 +2,29 @@
 // Mounted at /api/v1/salons; routes use :id (salon id).
 
 const express = require('express');
+const multer = require('multer');
+const sharp = require('sharp');
 const { z } = require('zod');
 const { query, queryOne, tx } = require('../db');
 const { requireAuth } = require('../middleware/auth');
-const { asyncRoute, HttpError } = require('../lib/util');
+const { asyncRoute, HttpError, randomBase64Url } = require('../lib/util');
+const storage = require('../storage');
 
 const router = express.Router({ mergeParams: true });
+
+// Same caps + pipeline as /salons/:id/images, but stored under team/<id>/.
+const TEAM_IMG_MAX_BYTES = 8 * 1024 * 1024;
+const TEAM_IMG_ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']);
+const teamImgUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: TEAM_IMG_MAX_BYTES, files: 1 },
+  fileFilter(req, file, cb) {
+    if (!TEAM_IMG_ALLOWED_MIME.has(file.mimetype)) {
+      return cb(new HttpError(415, 'unsupported_media', 'Bare JPEG, PNG, WEBP eller HEIC.'));
+    }
+    cb(null, true);
+  },
+});
 
 // Whitelist of amenity codes the frontend understands.
 const AMENITIES = new Set([
@@ -100,12 +117,17 @@ router.get('/:id/team', asyncRoute(async (req, res) => {
   const isOwner = req.user && (req.user.role === 'admin' || salon.owner_user_id === req.user.id);
   const activeFilter = isOwner ? '' : 'AND active = 1';
   const rows = await query(
-    `SELECT id, name, role, bio, active, position, created_at
+    `SELECT id, name, role, bio, active, position, image_key, created_at
        FROM team_members WHERE salon_id = ? ${activeFilter}
        ORDER BY position ASC, id ASC`,
     [id]
   );
-  res.json({ team: rows });
+  res.json({
+    team: rows.map(r => ({
+      ...r,
+      image_url: r.image_key ? storage.publicUrl(r.image_key) : null,
+    })),
+  });
 }));
 
 router.post('/:id/team', requireAuth, asyncRoute(async (req, res) => {
@@ -161,10 +183,72 @@ router.delete('/:id/team/:memberId', requireAuth, asyncRoute(async (req, res) =>
   const salon = await loadOwnedSalon(req);
   const memberId = parseInt(req.params.memberId, 10);
   if (!Number.isFinite(memberId)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  // Best-effort: clear the avatar blob too.
+  const old = await queryOne(`SELECT image_key FROM team_members WHERE id = ? AND salon_id = ?`, [memberId, salon.id]);
   await query(
     `DELETE FROM team_members WHERE id = ? AND salon_id = ?`,
     [memberId, salon.id]
   );
+  if (old && old.image_key) {
+    try { await storage.remove({ key: old.image_key }); } catch (err) { console.error('[storage.remove team]', err); }
+  }
+  res.json({ ok: true });
+}));
+
+// POST /salons/:id/team/:memberId/image — upload avatar (multipart, "file")
+router.post('/:id/team/:memberId/image', requireAuth, teamImgUpload.single('file'), asyncRoute(async (req, res) => {
+  if (!req.file) throw new HttpError(400, 'no_file', 'Ingen fil mottatt.');
+  const salon = await loadOwnedSalon(req);
+  const memberId = parseInt(req.params.memberId, 10);
+  if (!Number.isFinite(memberId)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+
+  const member = await queryOne(
+    `SELECT id, image_key FROM team_members WHERE id = ? AND salon_id = ?`,
+    [memberId, salon.id]
+  );
+  if (!member) throw new HttpError(404, 'not_found', 'Medlem finnes ikke.');
+
+  // Smaller pipeline than salon images — avatars don't need 2400px.
+  let processed;
+  try {
+    processed = await sharp(req.file.buffer)
+      .rotate()
+      .resize({ width: 800, height: 800, fit: 'cover', position: 'attention' })
+      .webp({ quality: 82 })
+      .toBuffer();
+  } catch (err) {
+    throw new HttpError(400, 'bad_image', 'Kunne ikke lese bildet.');
+  }
+
+  const key = `team/${memberId}/${randomBase64Url(10)}.webp`;
+  await storage.put({ key, body: processed, contentType: 'image/webp' });
+
+  await query(`UPDATE team_members SET image_key = ? WHERE id = ?`, [key, memberId]);
+
+  // Drop the previous blob so we don't accumulate orphans.
+  if (member.image_key && member.image_key !== key) {
+    try { await storage.remove({ key: member.image_key }); } catch (err) { console.error('[storage.remove team prev]', err); }
+  }
+
+  res.status(201).json({ key, image_url: storage.publicUrl(key) });
+}));
+
+// DELETE /salons/:id/team/:memberId/image — remove avatar
+router.delete('/:id/team/:memberId/image', requireAuth, asyncRoute(async (req, res) => {
+  const salon = await loadOwnedSalon(req);
+  const memberId = parseInt(req.params.memberId, 10);
+  if (!Number.isFinite(memberId)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+
+  const member = await queryOne(
+    `SELECT image_key FROM team_members WHERE id = ? AND salon_id = ?`,
+    [memberId, salon.id]
+  );
+  if (!member) throw new HttpError(404, 'not_found', 'Medlem finnes ikke.');
+
+  await query(`UPDATE team_members SET image_key = NULL WHERE id = ?`, [memberId]);
+  if (member.image_key) {
+    try { await storage.remove({ key: member.image_key }); } catch (err) { console.error('[storage.remove team]', err); }
+  }
   res.json({ ok: true });
 }));
 

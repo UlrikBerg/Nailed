@@ -961,9 +961,21 @@
       empty.style.display = 'none';
       list.innerHTML = currentTeam.map(function (m) {
         var active = !!m.active;
+        var avatarStyle;
+        var avatarInner = '';
+        if (m.image_url) {
+          avatarStyle = 'background: #000 center/cover no-repeat url(\'' + escapeHtml(m.image_url) + '\');';
+        } else {
+          avatarStyle = 'background:' + teamGradient(m.id) + ';';
+          avatarInner = escapeHtml(teamInitials(m.name));
+        }
+        var photoActions = m.image_url
+          ? '<button class="btn btn-ghost btn-sm" data-team-photo-replace="' + m.id + '"><i data-lucide="image"></i> Bytt bilde</button>' +
+            '<button class="btn btn-ghost btn-sm" data-team-photo-remove="' + m.id + '"><i data-lucide="x"></i> Fjern bilde</button>'
+          : '<button class="btn btn-ghost btn-sm" data-team-photo-replace="' + m.id + '"><i data-lucide="image"></i> Last opp bilde</button>';
         return '<div class="team-edit-card" data-member="' + m.id + '">' +
           '<div class="team-edit-card__head">' +
-            '<div class="profile-team__avatar" style="background:' + teamGradient(m.id) + ';">' + escapeHtml(teamInitials(m.name)) + '</div>' +
+            '<div class="profile-team__avatar" style="' + avatarStyle + '">' + avatarInner + '</div>' +
             '<div class="team-edit-card__main">' +
               '<div class="profile-team__name">' + escapeHtml(m.name || '') + '</div>' +
               (m.role ? '<div class="profile-team__role">' + escapeHtml(m.role) + '</div>' : '') +
@@ -974,6 +986,7 @@
           '</div>' +
           '<div class="team-edit-card__actions" style="margin-top:10px;">' +
             '<button class="btn btn-ghost btn-sm" data-team-edit="' + m.id + '"><i data-lucide="pencil"></i> Rediger</button>' +
+            photoActions +
             '<button class="btn btn-ghost btn-sm" data-team-toggle="' + m.id + '">' +
               (active ? '<i data-lucide="eye-off"></i> Skjul' : '<i data-lucide="eye"></i> Vis') +
             '</button>' +
@@ -991,7 +1004,53 @@
       list.querySelectorAll('[data-team-delete]').forEach(function (b) {
         b.addEventListener('click', function () { deleteTeamMember(parseInt(this.getAttribute('data-team-delete'), 10)); });
       });
+      list.querySelectorAll('[data-team-photo-replace]').forEach(function (b) {
+        b.addEventListener('click', function () { pickTeamPhoto(parseInt(this.getAttribute('data-team-photo-replace'), 10)); });
+      });
+      list.querySelectorAll('[data-team-photo-remove]').forEach(function (b) {
+        b.addEventListener('click', function () { removeTeamPhoto(parseInt(this.getAttribute('data-team-photo-remove'), 10)); });
+      });
       window.lucide && window.lucide.createIcons();
+    }
+
+    // Trigger a hidden file input for the given team-member id, then upload.
+    function pickTeamPhoto(memberId) {
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/jpeg,image/png,image/webp,image/heic,image/heif';
+      input.addEventListener('change', async function () {
+        var file = input.files && input.files[0];
+        if (!file) return;
+        var fd = new FormData();
+        fd.append('file', file);
+        try {
+          var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/team/' + memberId + '/image', {
+            method: 'POST',
+            body: fd,
+          });
+          if (!res.ok) {
+            var data = await res.json().catch(function () { return {}; });
+            NailedForms.toast((data.error && data.error.message) || 'Kunne ikke laste opp bildet', { type: 'error' });
+            return;
+          }
+          NailedForms.toast('Bilde lagret');
+          await loadSalon();
+        } catch (err) {
+          NailedForms.toast('Kunne ikke laste opp bildet', { type: 'error' });
+        }
+      });
+      input.click();
+    }
+
+    async function removeTeamPhoto(memberId) {
+      if (!confirm('Fjern bilde fra dette team-medlemmet?')) return;
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/team/' + memberId + '/image', { method: 'DELETE' });
+      if (!res.ok) {
+        NailedForms.toast('Kunne ikke fjerne bildet', { type: 'error' });
+        return;
+      }
+      NailedForms.toast('Bilde fjernet');
+      await loadSalon();
     }
 
     function openTeamInlineEdit(id) {
