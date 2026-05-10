@@ -160,6 +160,7 @@
         <!-- Left column: salon info -->
         <div>
           <h1 class="salon-detail__title">Salong</h1>
+          <p class="salon-detail__rating" id="salonRating" style="display:none; margin: 0 0 16px 0; font-family: var(--font-body); font-size: 15px; color: var(--ink);"></p>
           <p class="salon-detail__sub"></p>
           <p class="salon-detail__addr"></p>
           <p class="salon-detail__about"></p>
@@ -736,6 +737,24 @@
       }
     }
 
+    // Render a 5-star row where stars up to floor(avg) are filled, and a
+    // half-star is shown when the fractional part >= 0.25 and < 0.75.
+    function renderStarRow(avg) {
+      var full = Math.floor(avg);
+      var frac = avg - full;
+      var hasHalf = frac >= 0.25 && frac < 0.75;
+      if (frac >= 0.75) full += 1;
+      var html = '';
+      for (var i = 0; i < 5; i++) {
+        var icon, fill;
+        if (i < full) { icon = 'star'; fill = 'var(--rouge-500)'; }
+        else if (i === full && hasHalf) { icon = 'star-half'; fill = 'var(--rouge-500)'; }
+        else { icon = 'star'; fill = 'transparent'; }
+        html += '<i data-lucide="' + icon + '" style="width:16px; height:16px; color: var(--rouge-500); fill: ' + fill + '; vertical-align:-3px;"></i>';
+      }
+      return html;
+    }
+
     // Build "Tilbys av: X, Y" snippet from team-member ids + a name lookup.
     function teamOfferLine(ids, byId) {
       if (!Array.isArray(ids) || !ids.length || !byId) return '';
@@ -805,6 +824,20 @@
         aboutEl.textContent = s.bio;
       } else {
         aboutEl.style.display = 'none';
+      }
+
+      // Rating: stars + count, only when there's at least one review.
+      var ratingEl = document.getElementById('salonRating');
+      var reviews = data.reviews || { count: 0, avg: null };
+      if (reviews.count > 0 && reviews.avg != null) {
+        ratingEl.innerHTML = renderStarRow(reviews.avg) +
+          ' <strong>' + reviews.avg.toFixed(1) + '</strong>' +
+          ' <span style="color: var(--fg-muted);">' +
+            '· ' + reviews.count + ' ' + (reviews.count === 1 ? 'anmeldelse' : 'anmeldelser') +
+          '</span>';
+        ratingEl.style.display = '';
+      } else {
+        ratingEl.style.display = 'none';
       }
 
       // Gallery tiles: fill up to 5 with images

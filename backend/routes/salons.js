@@ -50,7 +50,7 @@ router.get('/:slug', asyncRoute(async (req, res) => {
     throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
   }
 
-  const [services, images, hours, team, amenities, serviceTeamLinks] = await Promise.all([
+  const [services, images, hours, team, amenities, serviceTeamLinks, reviewSummaryRow] = await Promise.all([
     query(
       `SELECT id, name, description, duration_min, price_nok
          FROM services WHERE salon_id = ? AND active = 1 ORDER BY price_nok ASC`,
@@ -83,6 +83,11 @@ router.get('/:slug', asyncRoute(async (req, res) => {
         WHERE s.salon_id = ?`,
       [salon.id]
     ),
+    queryOne(
+      `SELECT COUNT(*) AS count, AVG(rating) AS avg
+         FROM reviews WHERE salon_id = ? AND hidden_at IS NULL`,
+      [salon.id]
+    ),
   ]);
 
   // Fold team-member ids into each service for client-side rendering.
@@ -103,6 +108,11 @@ router.get('/:slug', asyncRoute(async (req, res) => {
     hours,
     team,
     amenities: amenities.map(a => a.amenity),
+    reviews: {
+      count: Number(reviewSummaryRow?.count || 0),
+      // Round to 1 decimal so the client doesn't have to format it twice.
+      avg: reviewSummaryRow?.avg != null ? Math.round(Number(reviewSummaryRow.avg) * 10) / 10 : null,
+    },
   });
 }));
 
