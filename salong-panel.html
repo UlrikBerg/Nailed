@@ -552,7 +552,7 @@
             </button>
           </div>
 
-          <div class="panel">
+          <div class="panel" data-edit-section="photos">
             <div class="panel__head">
               <h3>Bilder</h3>
               <div style="font-size: 13px; color: var(--fg-muted);">Maks 24 bilder, opptil 8 MB hver. JPEG, PNG, WEBP eller HEIC.</div>
@@ -566,52 +566,55 @@
             <div id="gallery" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 20px;"></div>
           </div>
 
-          <div class="panel">
+          <div class="panel" data-edit-section="bio contact availability">
+            <div class="panel__head" data-section-header="bio"><h3>Om salongen</h3></div>
+            <div class="panel__head" data-section-header="contact"><h3>Kontaktinformasjon</h3></div>
+            <div class="panel__head" data-section-header="availability"><h3>Tilgjengelighet</h3></div>
             <form id="salonForm" class="settings-grid">
-              <div class="form-group" style="grid-column: 1 / -1;">
+              <div class="form-group" data-section="bio" style="grid-column: 1 / -1;">
                 <label>Navn</label>
                 <input class="form-input" name="name" type="text" required />
               </div>
-              <div class="form-group" style="grid-column: 1 / -1;">
+              <div class="form-group" data-section="bio" style="grid-column: 1 / -1;">
                 <label>Bio</label>
                 <textarea class="form-input" name="bio" rows="4" maxlength="4000" placeholder="Fortell kundene hvem dere er.."></textarea>
               </div>
-              <div class="form-group">
+              <div class="form-group" data-section="contact">
                 <label>Adresse</label>
                 <input class="form-input" name="address_line" type="text" />
               </div>
-              <div class="form-group">
+              <div class="form-group" data-section="contact">
                 <label>Postnummer</label>
                 <input class="form-input" name="postal_code" type="text" maxlength="16" />
               </div>
-              <div class="form-group">
-                <label>By</label>
+              <div class="form-group" data-section="contact">
+                <label>By/område</label>
                 <input class="form-input" name="city" type="text" required />
               </div>
-              <div class="form-group">
+              <div class="form-group" data-section="contact">
                 <label>Instagram-URL</label>
                 <input class="form-input" name="instagram_url" type="url" placeholder="https://instagram.com/.." />
               </div>
-              <div class="form-group">
+              <div class="form-group" data-section="contact">
                 <label>TikTok-URL</label>
                 <input class="form-input" name="tiktok_url" type="url" />
               </div>
-              <div class="form-group">
+              <div class="form-group" data-section="contact">
                 <label>Facebook-URL</label>
                 <input class="form-input" name="facebook_url" type="url" />
               </div>
-              <div class="form-group">
+              <div class="form-group" data-section="contact">
                 <label>Nettside</label>
                 <input class="form-input" name="website_url" type="url" />
               </div>
 
-              <div class="form-group" style="grid-column: 1 / -1;">
+              <div class="form-group" data-section="availability" style="grid-column: 1 / -1;">
                 <label style="display:flex; gap:10px; align-items:center;">
                   <input type="checkbox" name="public_phone_visible" />
                   Vis telefonnummer offentlig på salongprofilen
                 </label>
               </div>
-              <div class="form-group" style="grid-column: 1 / -1;">
+              <div class="form-group" data-section="availability" style="grid-column: 1 / -1;">
                 <label style="display:flex; gap:10px; align-items:center;">
                   <input type="checkbox" name="accepts_new_bookings" />
                   Tar imot nye bookinger akkurat nå
@@ -1187,12 +1190,13 @@
     function renderProfileView(s, images) {
       // Hero gallery: up to 5 images, tile classes match /partner/.
       var hero = document.getElementById('profileHero');
+      var editBtn = '<button class="btn btn-ghost btn-sm profile-hero__edit" type="button" data-edit="photos" style="background: rgba(255,255,255,0.92);"><i data-lucide="image"></i> Rediger bilder</button>';
       if (!images.length) {
         hero.innerHTML =
           '<div class="profile-hero__empty">' +
           '<i data-lucide="image" style="width:28px;height:28px;"></i>' +
           '<div>Ingen bilder ennå. Klikk Rediger profil for å laste opp.</div>' +
-          '</div>';
+          '</div>' + editBtn;
       } else {
         var tiles = '';
         for (var i = 0; i < 5; i++) {
@@ -1203,8 +1207,11 @@
             : 'background:var(--cream-100);';
           tiles += '<button class="profile-hero__tile' + modCls + '" type="button" style="' + bg + '"></button>';
         }
-        hero.innerHTML = tiles;
+        hero.innerHTML = tiles + editBtn;
       }
+      // Re-attach the click handler since the button is freshly rendered.
+      var freshEdit = hero.querySelector('[data-edit="photos"]');
+      if (freshEdit) freshEdit.addEventListener('click', function () { setProfileMode('edit', 'photos'); });
 
       // Header
       document.getElementById('phName').textContent = s.name || '';
@@ -1294,39 +1301,51 @@
       allBtn.style.display = items.length > 4 ? '' : 'none';
     }
 
-    function setProfileMode(mode) {
+    // Switch between cards-overview ("view") and a single-section editor ("edit").
+    // Passing section='all' from the top-level "Rediger profil" button shows
+    // every editor panel; named sections show only their own panel.
+    function setProfileMode(mode, section) {
       var view = document.getElementById('profileView');
       var edit = document.getElementById('profileEdit');
       if (!view || !edit) return;
       view.style.display = mode === 'edit' ? 'none' : '';
       edit.style.display = mode === 'edit' ? '' : 'none';
       if (mode === 'edit') {
+        var sec = section || 'all';
+        // Per-panel: any panel whose data-edit-section list includes this
+        // section is shown; the rest hide. Panels with no attribute always show
+        // when section='all', otherwise hide.
+        edit.querySelectorAll('.panel').forEach(function (p) {
+          var attr = p.getAttribute('data-edit-section');
+          if (sec === 'all') { p.style.display = ''; return; }
+          if (!attr) { p.style.display = 'none'; return; }
+          var sections = attr.split(/\s+/);
+          p.style.display = sections.indexOf(sec) >= 0 ? '' : 'none';
+        });
+        // Within the shared (bio/contact/availability) panel, hide field
+        // groups that don't belong to the active section.
+        document.querySelectorAll('#salonForm [data-section]').forEach(function (g) {
+          if (sec === 'all') { g.style.display = ''; return; }
+          g.style.display = g.getAttribute('data-section') === sec ? '' : 'none';
+        });
+        document.querySelectorAll('[data-section-header]').forEach(function (h) {
+          h.style.display = (sec !== 'all' && h.getAttribute('data-section-header') === sec) ? '' : 'none';
+        });
+        // Re-bind icons in case anything inside was just shown for the first time.
+        if (window.lucide) window.lucide.createIcons();
         edit.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
         view.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
 
-    var EDIT_TARGET_PANEL = {
-      bio: 'salonForm', contact: 'salonForm', availability: 'salonForm',
-      hours: 'hoursEditPanel', team: 'teamEditPanel', amenities: 'amenitiesEditPanel',
-    };
-
-    document.getElementById('editProfileBtn').addEventListener('click', function () { setProfileMode('edit'); });
+    document.getElementById('editProfileBtn').addEventListener('click', function () { setProfileMode('edit', 'all'); });
     document.getElementById('cancelEditProfileBtn').addEventListener('click', function () { setProfileMode('view'); });
     document.getElementById('cancelEditProfileBtn2').addEventListener('click', function () { setProfileMode('view'); });
     document.querySelectorAll('[data-edit]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var key = this.getAttribute('data-edit');
-        setProfileMode('edit');
-        var panelId = EDIT_TARGET_PANEL[key];
-        if (panelId) {
-          var target = document.getElementById(panelId);
-          if (target) {
-            // Wait for layout shift from showing edit mode, then scroll.
-            setTimeout(function () { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
-          }
-        }
+        setProfileMode('edit', key);
       });
     });
     document.querySelectorAll('[data-tab-link]').forEach(function (btn) {
