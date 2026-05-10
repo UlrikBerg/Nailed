@@ -1987,13 +1987,24 @@
 
     document.getElementById('salonForm').addEventListener('submit', async function (e) {
       e.preventDefault();
+      // Only include fields whose inputs are enabled (= visible). When the
+      // user is editing a single section, hidden field-groups are disabled
+      // and FormData omits them — the PATCH endpoint accepts a partial body.
       var fd = new FormData(this);
       var body = {};
       ['name','bio','address_line','postal_code','city','instagram_url','tiktok_url','facebook_url','website_url'].forEach(function (k) {
-        body[k] = (fd.get(k) || '').toString().trim() || null;
+        var raw = fd.get(k);
+        if (raw === null) return; // input was disabled / missing
+        // For optional URL/bio/etc. fields, send null when blank to clear them.
+        var trimmed = String(raw).trim();
+        var nullable = (k !== 'name' && k !== 'city');
+        if (trimmed === '' && nullable) body[k] = null;
+        else if (trimmed !== '') body[k] = trimmed;
       });
-      body.public_phone_visible = this.querySelector('input[name=public_phone_visible]').checked;
-      body.accepts_new_bookings = this.querySelector('input[name=accepts_new_bookings]').checked;
+      var phoneEl = this.querySelector('input[name=public_phone_visible]');
+      if (phoneEl && !phoneEl.disabled) body.public_phone_visible = phoneEl.checked;
+      var acceptEl = this.querySelector('input[name=accepts_new_bookings]');
+      if (acceptEl && !acceptEl.disabled) body.accepts_new_bookings = acceptEl.checked;
       var res = await NailedAuth.api('/api/v1/salons/' + salon.id, { method: 'PATCH', body: body });
       if (res.ok) {
         NailedForms.toast('Salongprofil lagret');
