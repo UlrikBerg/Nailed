@@ -1402,6 +1402,14 @@
   <script>
     var salon = null;
 
+    // Shared client state — declared up front so functions called early (like
+    // loadIncoming() during init()) can write to them without TDZ surprises.
+    var currentCustomers = [];
+    var notesCache = Object.create(null); // keyed by customer user_id
+    var customersLoaded = false;
+    var analyticsPeriod = '30d';
+    var analyticsLoaded = false;
+
     var navItems = document.querySelectorAll('.nav-item[data-tab]');
     var tabContents = document.querySelectorAll('.tab-content');
     navItems.forEach(function (item) {
@@ -2246,12 +2254,28 @@
           actions += '<button class="btn btn-ghost btn-sm" data-resched="' + b.id + '">Flytt</button> ';
           actions += '<button class="btn btn-ghost btn-sm" data-action="cancelled" data-id="' + b.id + '">Avbestill</button>';
         }
+        // Seed the per-user notes cache so the icon picks up has_note state
+        // without an extra fetch. The cache is initialized at the top of this
+        // script before init() runs.
+        if (b.customer_user_id != null) {
+          if (!notesCache[b.customer_user_id]) notesCache[b.customer_user_id] = {};
+          notesCache[b.customer_user_id].hasNote = !!b.has_customer_note;
+        }
+        var noteCls = b.has_customer_note ? 'booking-note-btn has-note' : 'booking-note-btn';
+        var noteTitle = b.has_customer_note ? 'Privat notat — klikk for å redigere' : 'Skriv privat notat om denne kunden';
+        var noteIcon = b.has_customer_note ? 'sticky-note' : 'edit-3';
+        var noteBtn = b.customer_user_id != null
+          ? ('<button type="button" class="' + noteCls + '" ' +
+             'data-customer-user-id="' + b.customer_user_id + '" ' +
+             'data-booking-note title="' + noteTitle + '" aria-label="' + noteTitle + '">' +
+             '<i data-lucide="' + noteIcon + '"></i></button>')
+          : '';
         var tr = document.createElement('tr');
         tr.dataset.bookingId = b.id;
         tr.dataset.startAt = b.start_at;
         tr.innerHTML =
           '<td>' + fmt(b.start_at) + '</td>' +
-          '<td><strong>' + escapeHtml(b.customer_name) + '</strong>' +
+          '<td><strong>' + escapeHtml(b.customer_name) + '</strong>' + noteBtn +
             (b.customer_note ? '<br><span class="td-muted">' + escapeHtml(b.customer_note) + '</span>' : '') + '</td>' +
           '<td>' + escapeHtml(b.service_name) +
             (b.team_member_name ? '<br><span class="td-muted">Behandler: ' + escapeHtml(b.team_member_name) + '</span>' : '') +
@@ -2272,6 +2296,12 @@
       });
       tbody.querySelectorAll('button[data-resched]').forEach(function (btn) {
         btn.addEventListener('click', function () { openOwnerRescheduleForm(btn); });
+      });
+      tbody.querySelectorAll('button[data-booking-note]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var uid = parseInt(this.getAttribute('data-customer-user-id'), 10);
+          if (Number.isFinite(uid)) openBookingNoteModal(uid);
+        });
       });
       window.lucide && window.lucide.createIcons();
     }
@@ -3241,6 +3271,447 @@
       await NailedAuth.logout();
       window.location.replace('/');
     });
+
+    /* ---------- ANALYSE-FANE ---------- */
+
+    function fmtKr(n) {
+      return Number(n || 0).toLocaleString('no-NO');
+    }
+    function pct(x) {
+      var n = Number(x || 0);
+      return Math.round(n * 100) + ' %';
+    }
+
+    function renderBarChart(container, labels, values) {
+      if (!container) return;
+      var max = 0;
+      values.forEach(function (v) { if (v > max) max = v; });
+      var rows = '';
+      labels.forEach(function (lbl, i) {
+        var v = Number(values[i] || 0);
+        var w = max > 0 ? Math.round((v / max) * 100) : 0;
+        rows +=
+          '<div class="bar-chart__row">' +
+            '<span class="bar-chart__label">' + escapeHtml(lbl) + '</span>' +
+            '<div class="bar-chart__track">' +
+              '<div class="bar-chart__fill" style="width:' + w + '%"></div>' +
+            '</div>' +
+            '<span class="bar-chart__value">' + v + '</span>' +
+          '</div>';
+      });
+      container.innerHTML = rows;
+    }
+
+    // Draw a sparkline-style polyline + filled area inside the existing SVG.
+    function renderTrendSvg(svgEl, points, opts) {
+      if (!svgEl) return;
+      opts = opts || {};
+      var w = 600, h = 140, pad = { l: 40, r: 12, t: 16, b: 24 };
+      var n = points.length;
+      var max = 0;
+      points.forEach(function (v) { if (v > max) max = v; });
+      if (max === 0) max = 1;
+      var innerW = w - pad.l - pad.r;
+      var innerH = h - pad.t - pad.b;
+      var step = n > 1 ? innerW / (n - 1) : 0;
+      var coords = points.map(function (v, i) {
+        var x = pad.l + i * step;
+        var y = pad.t + innerH - (Number(v) / max) * innerH;
+        return [x, y];
+      });
+      var linePath = coords.map(function (p, i) { return (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]; }).join(' ');
+      var fillPath = linePath +
+        ' L' + (pad.l + (n - 1) * step) + ',' + (pad.t + innerH) +
+        ' L' + pad.l + ',' + (pad.t + innerH) + ' Z';
+      var yMaxLabel = opts.yFormat ? opts.yFormat(max) : String(max);
+      var ticks =
+        '<line x1="' + pad.l + '" y1="' + pad.t + '" x2="' + pad.l + '" y2="' + (pad.t + innerH) + '" stroke="var(--stone-200)" stroke-width="1"/>' +
+        '<line x1="' + pad.l + '" y1="' + (pad.t + innerH) + '" x2="' + (w - pad.r) + '" y2="' + (pad.t + innerH) + '" stroke="var(--stone-200)" stroke-width="1"/>' +
+        '<text x="' + (pad.l - 4) + '" y="' + (pad.t + 10) + '" font-size="10" text-anchor="end" fill="var(--fg-muted)">' + escapeHtml(yMaxLabel) + '</text>' +
+        '<text x="' + (pad.l - 4) + '" y="' + (pad.t + innerH) + '" font-size="10" text-anchor="end" fill="var(--fg-muted)">0</text>';
+      var labels = opts.xLabels || [];
+      var xLabelsSvg = '';
+      function labelAt(i) {
+        if (i < 0 || i >= labels.length) return '';
+        var x = pad.l + i * step;
+        return '<text x="' + x + '" y="' + (h - 6) + '" font-size="10" text-anchor="middle" fill="var(--fg-muted)">' + escapeHtml(labels[i]) + '</text>';
+      }
+      if (labels.length >= 1) xLabelsSvg += labelAt(0);
+      if (labels.length >= 3) xLabelsSvg += labelAt(Math.floor((labels.length - 1) / 2));
+      if (labels.length >= 2) xLabelsSvg += labelAt(labels.length - 1);
+      var dots = coords.map(function (p) {
+        return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="2.5" fill="var(--rouge-500)"/>';
+      }).join('');
+      svgEl.innerHTML =
+        ticks +
+        '<path d="' + fillPath + '" fill="rgba(238, 63, 126, 0.12)" stroke="none"/>' +
+        '<path d="' + linePath + '" fill="none" stroke="var(--rouge-500)" stroke-width="2"/>' +
+        dots +
+        xLabelsSvg;
+    }
+
+    function setAnalyticsPeriodChip(period) {
+      analyticsPeriod = period;
+      document.querySelectorAll('#analyticsPeriod .analytics-period__chip').forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-period') === period);
+      });
+    }
+
+    async function loadAnalytics() {
+      if (!salon) return;
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/analytics?period=' + encodeURIComponent(analyticsPeriod));
+      if (!res.ok) {
+        NailedForms.toast('Kunne ikke laste statistikk', { type: 'error' });
+        return;
+      }
+      var data = await res.json();
+      analyticsLoaded = true;
+      document.getElementById('aKpiBookings').textContent = data.kpi.bookings_count;
+      document.getElementById('aKpiRevenue').innerHTML = fmtKr(data.kpi.revenue_nok) + ' <span class="kpi__unit">kr</span>';
+      document.getElementById('aKpiUniqueCustomers').textContent = data.kpi.unique_customers;
+      document.getElementById('aKpiReturning').textContent = data.kpi.returning_customers;
+      document.getElementById('aKpiCompleted').textContent = data.kpi.completed_count;
+      document.getElementById('aKpiCancelled').textContent = data.kpi.cancelled_count;
+      document.getElementById('aKpiNoShow').innerHTML = data.kpi.no_show_count +
+        ' <span class="kpi__unit">(' + pct(data.kpi.no_show_rate) + ')</span>';
+      document.getElementById('aKpiAvgValue').innerHTML = fmtKr(data.kpi.avg_value) + ' <span class="kpi__unit">kr</span>';
+
+      var tbody = document.querySelector('#topServicesTable tbody');
+      var emptyEl = document.getElementById('topServicesEmpty');
+      if (!data.top_services.length) {
+        tbody.innerHTML = '';
+        emptyEl.style.display = '';
+      } else {
+        emptyEl.style.display = 'none';
+        tbody.innerHTML = data.top_services.map(function (s) {
+          return '<tr>' +
+            '<td><strong>' + escapeHtml(s.name || '') + '</strong></td>' +
+            '<td>' + s.count + '</td>' +
+            '<td>' + fmtKr(s.avg_price) + ' kr</td>' +
+            '<td>' + fmtKr(s.revenue_nok) + ' kr</td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      var stylistsCard = document.getElementById('topStylistsCard');
+      var stBody = document.querySelector('#topStylistsTable tbody');
+      if (!data.top_stylists || !data.top_stylists.length) {
+        stylistsCard.style.display = 'none';
+      } else {
+        stylistsCard.style.display = '';
+        stBody.innerHTML = data.top_stylists.map(function (s) {
+          return '<tr>' +
+            '<td><strong>' + escapeHtml(s.name || '') + '</strong></td>' +
+            '<td>' + s.count + '</td>' +
+            '<td>' + pct(s.share) + '</td>' +
+            '<td>' + fmtKr(s.revenue_nok) + ' kr</td>' +
+            '<td>' + pct(s.no_show_rate) + '</td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      var weekdayLabels = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
+      var weekdayValues = [1,2,3,4,5,6,7].map(function (w) { return Number(data.bookings_by_weekday[w] || 0); });
+      renderBarChart(document.getElementById('weekdayChart'), weekdayLabels, weekdayValues);
+
+      var hourLabels = [];
+      var hourValues = [];
+      var minHour = 6, maxHour = 22;
+      for (var h = 0; h < 24; h++) {
+        var v = Number(data.bookings_by_hour[h] || 0);
+        if (v > 0) {
+          if (h < minHour) minHour = h;
+          if (h > maxHour) maxHour = h;
+        }
+      }
+      for (var h2 = minHour; h2 <= maxHour; h2++) {
+        hourLabels.push((h2 < 10 ? '0' : '') + h2 + ':00');
+        hourValues.push(Number(data.bookings_by_hour[h2] || 0));
+      }
+      renderBarChart(document.getElementById('hourChart'), hourLabels, hourValues);
+
+      var revPoints = data.revenue_trend.map(function (p) { return Number(p.revenue || 0); });
+      var revLabels = data.revenue_trend.map(function (p) {
+        var d = new Date(p.week_start + 'T00:00:00');
+        return d.toLocaleDateString('no-NO', { day: '2-digit', month: 'short' });
+      });
+      var revTotal = revPoints.reduce(function (a, b) { return a + b; }, 0);
+      var revEmpty = document.getElementById('revenueTrendEmpty');
+      var revSvg = document.getElementById('revenueTrend');
+      if (revTotal === 0) {
+        revSvg.innerHTML = '';
+        revEmpty.style.display = '';
+      } else {
+        revEmpty.style.display = 'none';
+        renderTrendSvg(revSvg, revPoints, {
+          xLabels: revLabels,
+          yFormat: function (n) { return fmtKr(Math.round(n)) + ' kr'; },
+        });
+      }
+
+      var retPoints = data.returning_rate_trend.map(function (p) { return Number(p.returning_rate || 0) * 100; });
+      var retLabels = data.returning_rate_trend.map(function (p) {
+        var d = new Date(p.month_start + 'T00:00:00');
+        return d.toLocaleDateString('no-NO', { month: 'short' });
+      });
+      var retHasData = data.returning_rate_trend.some(function (p) { return Number(p.total) > 0; });
+      var retSvg = document.getElementById('returningTrend');
+      var retEmpty = document.getElementById('returningTrendEmpty');
+      if (!retHasData) {
+        retSvg.innerHTML = '';
+        retEmpty.style.display = '';
+      } else {
+        retEmpty.style.display = 'none';
+        renderTrendSvg(retSvg, retPoints, {
+          xLabels: retLabels,
+          yFormat: function (n) { return Math.round(n) + ' %'; },
+        });
+      }
+
+      var revEl = document.getElementById('analyticsRecentReviews');
+      var revListEmpty = document.getElementById('analyticsRecentReviewsEmpty');
+      if (!data.recent_reviews.length) {
+        revEl.innerHTML = '';
+        revListEmpty.style.display = '';
+      } else {
+        revListEmpty.style.display = 'none';
+        revEl.innerHTML = data.recent_reviews.map(function (r) {
+          var date = '';
+          try { date = new Date(r.created_at).toLocaleDateString('no-NO', { year: 'numeric', month: 'short', day: '2-digit' }); } catch (_) {}
+          return '<div class="analytics-review">' +
+            '<div class="analytics-review__head">' +
+              renderOwnerStars(r.rating) +
+              '<strong>' + escapeHtml(r.customer_name || 'Anonym') + '</strong>' +
+              '<span>· ' + escapeHtml(date) + '</span>' +
+            '</div>' +
+            (r.body ? '<p class="analytics-review__body">' + escapeHtml(r.body) + '</p>' : '') +
+            '</div>';
+        }).join('');
+      }
+      window.lucide && window.lucide.createIcons();
+    }
+
+    document.querySelectorAll('#analyticsPeriod .analytics-period__chip').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var p = this.getAttribute('data-period');
+        if (p === analyticsPeriod) return;
+        setAnalyticsPeriodChip(p);
+        loadAnalytics();
+      });
+    });
+
+    /* ---------- KUNDER-FANE + PRIVATE NOTATER ---------- */
+    // State (currentCustomers / notesCache / customersLoaded) is declared at
+    // the top of this script so loadIncoming() can safely write to notesCache
+    // before the user opens the Kunder tab.
+
+    function fmtDateShort(iso) {
+      if (!iso) return '—';
+      try {
+        var d = iso instanceof Date ? iso : new Date(iso);
+        return d.toLocaleDateString('no-NO', { day: '2-digit', month: 'short', year: 'numeric' });
+      } catch (_) { return ''; }
+    }
+
+    function customerMatchesSearch(c, q) {
+      if (!q) return true;
+      q = q.toLowerCase();
+      return (
+        (c.name && c.name.toLowerCase().indexOf(q) >= 0) ||
+        (c.email && c.email.toLowerCase().indexOf(q) >= 0) ||
+        (c.phone && String(c.phone).toLowerCase().indexOf(q) >= 0)
+      );
+    }
+
+    function renderCustomers() {
+      var tbody = document.querySelector('#customersTable tbody');
+      var emptyEl = document.getElementById('customersEmpty');
+      var tableEl = document.getElementById('customersTable');
+      if (!tbody) return;
+      var q = (document.getElementById('customersSearch').value || '').trim();
+      var visible = currentCustomers.filter(function (c) { return customerMatchesSearch(c, q); });
+      if (!visible.length) {
+        tbody.innerHTML = '';
+        emptyEl.style.display = '';
+        tableEl.style.display = currentCustomers.length === 0 ? 'none' : '';
+        emptyEl.textContent = (currentCustomers.length > 0 && q)
+          ? 'Ingen kunder matcher søket.'
+          : 'Ingen kunder ennå.';
+        return;
+      }
+      emptyEl.style.display = 'none';
+      tableEl.style.display = '';
+      tbody.innerHTML = visible.map(function (c) {
+        var contact = [c.email, c.phone].filter(Boolean).map(escapeHtml).join('<br>');
+        var noteCls = c.has_note ? 'note-cell-btn has-note' : 'note-cell-btn';
+        var noteLabel = c.has_note ? 'Notat' : 'Legg til notat';
+        var noteIcon = c.has_note ? 'sticky-note' : 'plus';
+        return '<tr data-user-id="' + c.user_id + '">' +
+          '<td><strong>' + escapeHtml(c.name || 'Ukjent') + '</strong></td>' +
+          '<td>' + (contact || '<span class="td-muted">—</span>') + '</td>' +
+          '<td>' + c.booking_count + '</td>' +
+          '<td>' + escapeHtml(fmtDateShort(c.last_booking_at)) + '</td>' +
+          '<td>' + fmtKr(c.lifetime_value) + ' kr</td>' +
+          '<td><button class="' + noteCls + '" data-customer-note="' + c.user_id + '">' +
+            '<i data-lucide="' + noteIcon + '"></i> ' + noteLabel +
+            '</button></td>' +
+          '</tr>';
+      }).join('');
+      tbody.querySelectorAll('[data-customer-note]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var uid = parseInt(this.getAttribute('data-customer-note'), 10);
+          toggleCustomerNoteEditor(uid);
+        });
+      });
+      window.lucide && window.lucide.createIcons();
+    }
+
+    async function loadCustomers() {
+      if (!salon) return;
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/customers');
+      if (!res.ok) {
+        NailedForms.toast('Kunne ikke laste kunder', { type: 'error' });
+        return;
+      }
+      var data = await res.json();
+      currentCustomers = Array.isArray(data.customers) ? data.customers : [];
+      // Seed the per-user has_note cache so the Bookinger icon picks it up
+      // without a separate fetch.
+      currentCustomers.forEach(function (c) {
+        if (!notesCache[c.user_id]) notesCache[c.user_id] = {};
+        notesCache[c.user_id].hasNote = !!c.has_note;
+      });
+      customersLoaded = true;
+      renderCustomers();
+      refreshBookingNoteIcons();
+    }
+
+    document.getElementById('customersSearch').addEventListener('input', function () {
+      renderCustomers();
+    });
+
+    async function toggleCustomerNoteEditor(userId) {
+      var tbody = document.querySelector('#customersTable tbody');
+      var row = tbody && tbody.querySelector('tr[data-user-id="' + userId + '"]');
+      if (!row) return;
+      var next = row.nextElementSibling;
+      if (next && next.classList.contains('note-editor-row')) {
+        next.parentNode.removeChild(next);
+        return;
+      }
+      var cust = currentCustomers.find(function (c) { return c.user_id === userId; });
+      var custName = cust ? cust.name : 'kunde';
+      var editorRow = document.createElement('tr');
+      editorRow.className = 'note-editor-row';
+      var td = document.createElement('td');
+      td.colSpan = 6;
+      td.innerHTML =
+        '<div class="note-editor">' +
+          '<div><strong>Privat notat om ' + escapeHtml(custName) + '</strong>' +
+            ' <span class="note-editor__meta">Kun du som salongeier ser dette.</span></div>' +
+          '<textarea maxlength="2000" placeholder="F.eks. Allergisk mot acetone, kommer ofte 10 min for sent, foretrekker korte negler…"></textarea>' +
+          '<div class="note-editor__actions">' +
+            '<span class="note-editor__count">0 / 2000</span>' +
+            '<button class="btn btn-ghost btn-sm" data-note-delete style="display:none;"><i data-lucide="trash-2"></i> Slett</button>' +
+            '<button class="btn btn-ghost btn-sm" data-note-cancel>Avbryt</button>' +
+            '<button class="btn btn-primary btn-sm" data-note-save><i data-lucide="save"></i> Lagre</button>' +
+          '</div>' +
+        '</div>';
+      editorRow.appendChild(td);
+      row.parentNode.insertBefore(editorRow, row.nextSibling);
+      window.lucide && window.lucide.createIcons();
+
+      var ta = editorRow.querySelector('textarea');
+      var countEl = editorRow.querySelector('.note-editor__count');
+      var deleteBtn = editorRow.querySelector('[data-note-delete]');
+      var saveBtn = editorRow.querySelector('[data-note-save]');
+      var cancelBtn = editorRow.querySelector('[data-note-cancel]');
+
+      function updateCount() {
+        countEl.textContent = (ta.value || '').length + ' / 2000';
+      }
+
+      try {
+        var r = await NailedAuth.api('/api/v1/salons/' + salon.id + '/customers/' + userId + '/note');
+        if (r.ok) {
+          var d = await r.json();
+          ta.value = d.body || '';
+          deleteBtn.style.display = '';
+          notesCache[userId] = { hasNote: true, body: d.body };
+        } else if (r.status !== 404) {
+          NailedForms.toast('Kunne ikke laste notatet', { type: 'error' });
+        } else {
+          notesCache[userId] = { hasNote: false };
+        }
+      } catch (_) { /* treat as empty */ }
+      updateCount();
+      ta.focus();
+      ta.addEventListener('input', updateCount);
+
+      cancelBtn.addEventListener('click', function () {
+        if (editorRow.parentNode) editorRow.parentNode.removeChild(editorRow);
+      });
+
+      saveBtn.addEventListener('click', async function () {
+        saveBtn.disabled = true;
+        var body = (ta.value || '').trim();
+        var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/customers/' + userId + '/note', {
+          method: 'PUT', body: { body: body },
+        });
+        saveBtn.disabled = false;
+        if (!res.ok) {
+          var data = await res.json().catch(function () { return {}; });
+          NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre notatet', { type: 'error' });
+          return;
+        }
+        if (body === '') {
+          notesCache[userId] = { hasNote: false };
+          NailedForms.toast('Notat slettet');
+        } else {
+          notesCache[userId] = { hasNote: true, body: body };
+          NailedForms.toast('Notat lagret');
+        }
+        var c = currentCustomers.find(function (x) { return x.user_id === userId; });
+        if (c) c.has_note = body !== '';
+        renderCustomers();
+        refreshBookingNoteIcons();
+      });
+
+      deleteBtn.addEventListener('click', async function () {
+        if (!confirm('Slette notatet?')) return;
+        ta.value = '';
+        saveBtn.click();
+      });
+    }
+
+    // Refresh the small notepad icon shown next to customer names in the
+    // Bookinger tab.
+    function refreshBookingNoteIcons() {
+      document.querySelectorAll('.booking-note-btn[data-customer-user-id]').forEach(function (btn) {
+        var uid = parseInt(btn.getAttribute('data-customer-user-id'), 10);
+        var has = notesCache[uid] && notesCache[uid].hasNote;
+        btn.classList.toggle('has-note', !!has);
+        btn.title = has ? 'Privat notat — klikk for å redigere' : 'Skriv privat notat om denne kunden';
+      });
+    }
+
+    // From the Bookinger tab's notepad icon, jump to Kunder and open the
+    // editor for that customer.
+    async function openBookingNoteModal(userId) {
+      var kunderBtn = document.querySelector('.nav-item[data-tab="kunder"]');
+      if (kunderBtn) kunderBtn.click();
+      if (!customersLoaded) {
+        await loadCustomers();
+      }
+      var row = document.querySelector('#customersTable tbody tr[data-user-id="' + userId + '"]');
+      if (row) {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        var next = row.nextElementSibling;
+        if (!next || !next.classList.contains('note-editor-row')) {
+          toggleCustomerNoteEditor(userId);
+        }
+      }
+    }
 
     (async function init() {
       var user = await NailedAuth.requireAuth('salon_owner');

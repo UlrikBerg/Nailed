@@ -14,6 +14,7 @@ const bookingRoutes = require('./routes/bookings');
 const favoriteRoutes = require('./routes/favorites');
 const salonApplicationRoutes = require('./routes/salon-applications');
 const reviewRoutes = require('./routes/reviews');
+const salonAnalyticsRoutes = require('./routes/salon-analytics');
 const adminRoutes = require('./routes/admin');
 
 function buildApp() {
@@ -87,6 +88,7 @@ function buildApp() {
   app.use('/api/v1/salons', salonRoutes);
   app.use('/api/v1/salons', imageRoutes);
   app.use('/api/v1/salons', teamRoutes);
+  app.use('/api/v1/salons', salonAnalyticsRoutes);
   app.use('/api/v1/bookings', bookingRoutes);
   app.use('/api/v1/favorites', favoriteRoutes);
   app.use('/api/v1/salon-applications', salonApplicationRoutes);

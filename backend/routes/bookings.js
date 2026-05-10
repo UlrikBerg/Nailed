@@ -198,15 +198,25 @@ router.get('/mine', asyncRoute(async (req, res) => {
   });
 }));
 
-// GET /bookings/incoming — bookings at salons I own
+// GET /bookings/incoming — bookings at salons I own.
+//
+// Includes `customer_user_id` and `has_customer_note` so the owner panel can
+// render the private-note notepad icon next to each customer without an
+// extra fetch. The note body itself is intentionally NOT included here —
+// the owner clicks the icon and the panel loads the body lazily from
+// /salons/:id/customers/:userId/note.
 router.get('/incoming', asyncRoute(async (req, res) => {
   const rows = await query(
     `SELECT b.id, b.start_at, b.end_at, b.status, b.price_nok, b.customer_note,
-            b.team_member_id,
+            b.team_member_id, b.customer_user_id,
             s.id AS salon_id, s.name AS salon_name,
             sv.name AS service_name, sv.duration_min,
             tm.name AS team_member_name,
-            u.name AS customer_name
+            u.name AS customer_name,
+            (SELECT 1 FROM customer_notes cn
+              WHERE cn.salon_id = b.salon_id
+                AND cn.customer_user_id = b.customer_user_id
+              LIMIT 1) AS has_customer_note
        FROM bookings b
        JOIN salons s ON s.id = b.salon_id
        JOIN services sv ON sv.id = b.service_id
@@ -217,7 +227,9 @@ router.get('/incoming', asyncRoute(async (req, res) => {
       LIMIT 200`,
     [req.user.id]
   );
-  res.json({ bookings: rows });
+  res.json({
+    bookings: rows.map(r => ({ ...r, has_customer_note: !!r.has_customer_note })),
+  });
 }));
 
 // POST /bookings — customer creates a booking
