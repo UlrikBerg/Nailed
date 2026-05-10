@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken');
 const { verifyAccessToken } = require('../lib/jwt');
 const { queryOne } = require('../db');
 const { HttpError } = require('../lib/util');
@@ -13,8 +14,21 @@ async function loadUser(req, res, next) {
   const token = readBearer(req);
   if (!token) return next();
   if (!config.jwt.secret) return next(); // server misconfigured — handled in requireAuth
+
+  // Token verification: invalid/expired tokens drop the user to anonymous.
+  // DB errors must propagate so requireAuth doesn't silently downgrade an
+  // outage to 401 — they belong in 5xx with a real stack trace.
+  let claims;
   try {
-    const claims = verifyAccessToken(token);
+    claims = verifyAccessToken(token);
+  } catch (err) {
+    if (err instanceof jwt.JsonWebTokenError || err instanceof jwt.TokenExpiredError
+        || err instanceof jwt.NotBeforeError) {
+      return next();
+    }
+    return next(err);
+  }
+  try {
     const user = await queryOne(
       `SELECT id, email, name, role, suspended_at FROM users WHERE id = ?`,
       [claims.sub]
@@ -23,9 +37,8 @@ async function loadUser(req, res, next) {
     if (user.suspended_at) return next(new HttpError(403, 'account_suspended', 'Kontoen er suspendert.'));
     req.user = user;
     next();
-  } catch (_err) {
-    // Invalid/expired token — treat as anonymous, the route can require auth itself.
-    next();
+  } catch (err) {
+    next(err);
   }
 }
 

@@ -25,7 +25,12 @@ function buildApp() {
     origin(origin, cb) {
       // Same-origin requests have no Origin header — allow.
       if (!origin) return cb(null, true);
-      if (config.corsOrigins.length === 0) return cb(null, true); // permissive default
+      if (config.corsOrigins.length === 0) {
+        // Empty list in production = misconfiguration; deny so a stolen token
+        // can't be replayed from arbitrary origins. Dev stays permissive.
+        if (config.env === 'production') return cb(new Error('CORS: origin not allowed (CORS_ORIGINS unset in production)'));
+        return cb(null, true);
+      }
       if (config.corsOrigins.includes(origin)) return cb(null, true);
       // Allow native app schemes like nailed-app:// (treated as origin)
       if (config.corsOrigins.some(o => o.endsWith('://') && origin.startsWith(o))) return cb(null, true);
