@@ -95,16 +95,12 @@
       padding: 7px 0;
       font-size: 14px;
     }
-    /* Today highlight: shrink the bleed and inset slightly so the pill
-       doesn't crash into the divider line above. */
+    /* Today highlight: tighter pill that sits inside the row, leaving the
+       divider line above visible. Side-bleed for the pink wash, slight
+       vertical margin so the pill edges don't touch the dividers. */
     .profile-hours--compact .profile-hours__row.today {
-      margin: 2px -8px;
-      padding: 5px 8px;
-      border-top: 0;
-    }
-    .profile-hours--compact .profile-hours__row.today + .profile-hours__row,
-    .profile-hours--compact .profile-hours__row:has(+ .today) {
-      border-bottom: 0;
+      margin: 4px -8px;
+      padding: 3px 8px;
     }
   </style>
 </head>
