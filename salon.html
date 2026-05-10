@@ -111,31 +111,17 @@
           <div class="service-list" id="serviceList"></div>
 
           <div class="booking-panel__header" style="margin-top: 24px;">
+            <h3>Velg en dag</h3>
+          </div>
+
+          <div class="day-row" id="dayRow"></div>
+
+          <div class="booking-panel__header" style="margin-top: 16px;">
             <h3>Velg en tid</h3>
-            <button class="btn-icon"><i data-lucide="chevron-right"></i></button>
           </div>
+          <div class="slots" id="slotGrid"></div>
 
-          <div class="day-row">
-            <button class="day-pick"><div class="day-pick__dow">Tirs</div><div class="day-pick__num">12</div></button>
-            <button class="day-pick active"><div class="day-pick__dow">Ons</div><div class="day-pick__num">13</div></button>
-            <button class="day-pick"><div class="day-pick__dow">Tor</div><div class="day-pick__num">14</div></button>
-            <button class="day-pick"><div class="day-pick__dow">Fre</div><div class="day-pick__num">15</div></button>
-            <button class="day-pick"><div class="day-pick__dow">Lør</div><div class="day-pick__num">16</div></button>
-          </div>
-
-          <div class="slots">
-            <button class="slot">09:00</button>
-            <button class="slot taken" disabled>10:00</button>
-            <button class="slot">11:00</button>
-            <button class="slot taken" disabled>12:00</button>
-            <button class="slot">13:00</button>
-            <button class="slot active">14:00</button>
-            <button class="slot">15:00</button>
-            <button class="slot">16:00</button>
-            <button class="slot">17:00</button>
-          </div>
-
-          <button class="btn btn-primary btn-lg booking-panel__cta" id="bookCta" onclick="location.href='vipps.html'">
+          <button class="btn btn-primary btn-lg booking-panel__cta" id="bookCta" type="button">
             Velg behandling
           </button>
           <div class="booking-panel__fineprint">
@@ -162,8 +148,9 @@
         <a href="utforsk.html">Utforsk</a>
         <a href="for-salonger.html">For salonger</a>
         <a href="last-ned-app.html">Last ned app</a>
-        <a href="#">Personvern</a>
-        <a href="#">Bruksvilkår</a>
+        <a href="/personvern.html">Personvern</a>
+        <a href="/vilkar.html">Bruksvilkår</a>
+        <a href="/cookies.html">Cookies</a>
         <a href="#">FAQ</a>
         <a href="#">Kontakt oss</a>
         <a href="#">Om oss</a>
@@ -180,6 +167,9 @@
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="favorites.js"></script>
+  <script src="/assets/auth.js"></script>
+  <script src="/assets/forms.js"></script>
+  <script defer src="/assets/cookie-banner.js"></script>
   <script>
     // ---- Helpers ----
     function escapeHtml(s) {
@@ -255,43 +245,168 @@
       if (e.key === 'ArrowLeft') { lbIdx = (lbIdx - 1 + photos.length) % photos.length; renderLightbox(); }
     });
 
-    // ---- Booking widget: selection sync ----
+    // ---- Booking widget: selection state ----
     var cta = document.getElementById('bookCta');
     var serviceList = document.getElementById('serviceList');
+    var currentSalon = null;
+    var renderedServices = [];
+    var selectedService = null;
+    var selectedDateIso = null;       // 'YYYY-MM-DD'
+    var selectedDateTime = null;      // ISO 8601 with time
 
-    function selectService(name, price, meta) {
-      // Update all-services radios
+    function updateCta() {
+      if (!selectedService) {
+        cta.textContent = 'Velg behandling';
+        return;
+      }
+      if (!selectedDateTime) {
+        cta.textContent = 'Velg tidspunkt';
+        return;
+      }
+      var dt = new Date(selectedDateTime);
+      var dateLabel = dt.toLocaleDateString('no-NO', { weekday: 'short', day: '2-digit', month: 'short' });
+      var timeLabel = dt.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+      cta.textContent = 'Bekreft · ' + dateLabel + ' kl. ' + timeLabel + ' · ' + (selectedService.price_nok || 0) + ' kr';
+    }
+
+    function selectService(svc) {
+      selectedService = svc;
+      var name = (svc && svc.name) || '';
       document.querySelectorAll('.all-services__item').forEach(function(i) {
         i.classList.toggle('active', i.dataset.svcName === name);
       });
-      // Update popular-panel items
       var panelItems = serviceList.querySelectorAll('.service-list__item');
       panelItems.forEach(function(i) { i.classList.toggle('active', i.dataset.name === name); });
-      // Update CTA
-      cta.textContent = 'Book ' + name + ' · ' + price + ' kr';
+      updateCta();
     }
 
     serviceList.addEventListener('click', function(e) {
       var item = e.target.closest('.service-list__item');
       if (!item) return;
-      selectService(item.dataset.name, item.dataset.price);
+      var svc = renderedServices.find(function(s) { return String(s.id) === item.dataset.id; });
+      if (svc) selectService(svc);
     });
 
-    // ---- Day picker ----
-    document.querySelectorAll('.day-pick').forEach(function(day) {
-      day.addEventListener('click', function() {
-        document.querySelectorAll('.day-pick').forEach(function(d) { d.classList.remove('active'); });
-        day.classList.add('active');
+    // ---- Day picker (next 14 days from today) ----
+    function renderDayPicker() {
+      var dayRow = document.getElementById('dayRow');
+      dayRow.innerHTML = '';
+      var DOW = ['Søn','Man','Tirs','Ons','Tors','Fre','Lør'];
+      for (var i = 0; i < 14; i++) {
+        var d = new Date();
+        d.setHours(0,0,0,0);
+        d.setDate(d.getDate() + i);
+        var iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'day-pick';
+        btn.dataset.iso = iso;
+        btn.innerHTML = '<div class="day-pick__dow">' + DOW[d.getDay()] + '</div><div class="day-pick__num">' + d.getDate() + '</div>';
+        btn.addEventListener('click', function() {
+          dayRow.querySelectorAll('.day-pick').forEach(function(b) { b.classList.remove('active'); });
+          this.classList.add('active');
+          selectedDateIso = this.dataset.iso;
+          selectedDateTime = null;
+          renderSlots(selectedDateIso);
+          updateCta();
+        });
+        dayRow.appendChild(btn);
+      }
+      // Auto-pick today
+      var first = dayRow.querySelector('.day-pick');
+      if (first) first.click();
+    }
+
+    function renderSlots(dateIso) {
+      var grid = document.getElementById('slotGrid');
+      grid.innerHTML = '';
+      var nowMs = Date.now();
+      for (var h = 9; h <= 17; h++) {
+        var hh = h < 10 ? '0' + h : '' + h;
+        var label = hh + ':00';
+        var dt = new Date(dateIso + 'T' + hh + ':00:00');
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'slot';
+        btn.textContent = label;
+        if (dt.getTime() < nowMs) {
+          btn.classList.add('taken');
+          btn.disabled = true;
+        } else {
+          btn.dataset.iso = dt.toISOString();
+          btn.addEventListener('click', function() {
+            grid.querySelectorAll('.slot').forEach(function(s) { s.classList.remove('active'); });
+            this.classList.add('active');
+            selectedDateTime = this.dataset.iso;
+            updateCta();
+          });
+        }
+        grid.appendChild(btn);
+      }
+    }
+
+    // ---- Booking submit ----
+    cta.addEventListener('click', async function() {
+      if (!selectedService || !currentSalon) {
+        if (window.NailedForms) NailedForms.toast('Velg en behandling først', { type: 'error' });
+        return;
+      }
+      if (!selectedDateTime) {
+        if (window.NailedForms) NailedForms.toast('Velg en dag og et tidspunkt', { type: 'error' });
+        return;
+      }
+      // Anonymous: persist intent and bounce to login.
+      if (!window.NailedAuth || !NailedAuth.isLoggedIn()) {
+        sessionStorage.setItem('nailed.pendingBooking', JSON.stringify({
+          slug: slug,
+          serviceId: selectedService.id,
+          dateTime: selectedDateTime,
+        }));
+        location.href = '/login.html?next=' + encodeURIComponent('/salon.html?slug=' + encodeURIComponent(slug));
+        return;
+      }
+      cta.disabled = true;
+      var prev = cta.textContent;
+      cta.textContent = 'Sender booking …';
+      var res = await NailedAuth.api('/api/v1/bookings', {
+        method: 'POST',
+        body: {
+          salon_id: currentSalon.id,
+          service_id: selectedService.id,
+          start_at: selectedDateTime,
+        },
       });
+      if (!res.ok) {
+        var data = await res.json().catch(function() { return {}; });
+        cta.disabled = false;
+        cta.textContent = prev;
+        if (window.NailedForms) NailedForms.toast((data.error && data.error.message) || 'Kunne ikke booke', { type: 'error' });
+        return;
+      }
+      var json = await res.json();
+      location.href = '/confirmation.html?id=' + encodeURIComponent(json.id);
     });
 
-    // ---- Slot picker ----
-    document.querySelectorAll('.slot:not(.taken)').forEach(function(slot) {
-      slot.addEventListener('click', function() {
-        document.querySelectorAll('.slot').forEach(function(s) { s.classList.remove('active'); });
-        slot.classList.add('active');
-      });
-    });
+    function restorePendingBooking() {
+      var raw;
+      try { raw = sessionStorage.getItem('nailed.pendingBooking'); } catch (e) { return; }
+      if (!raw) return;
+      try {
+        var pending = JSON.parse(raw);
+        if (!pending || pending.slug !== slug) return;
+        sessionStorage.removeItem('nailed.pendingBooking');
+
+        var matching = renderedServices.find(function(s) { return s.id === pending.serviceId; });
+        if (matching) selectService(matching);
+
+        var dateIso = (pending.dateTime || '').slice(0, 10);
+        var dayBtn = document.querySelector('.day-pick[data-iso="' + dateIso + '"]');
+        if (dayBtn) dayBtn.click();
+
+        var slotBtn = document.querySelector('.slot[data-iso="' + pending.dateTime + '"]');
+        if (slotBtn) slotBtn.click();
+      } catch (e) { /* ignore corrupt state */ }
+    }
 
     // ---- 2 + 3 + 4 + 5. Fetch and render ----
     function showFatalEmptyState(title, message) {
@@ -309,6 +424,8 @@
       var s = data.salon || {};
       var services = Array.isArray(data.services) ? data.services : [];
       var images = Array.isArray(data.images) ? data.images : [];
+      currentSalon = s;
+      renderedServices = services;
 
       // Title and <title>
       document.title = s.name + ' — nailed';
@@ -375,7 +492,7 @@
           var dur = (svc.duration_min != null) ? escapeHtml(String(svc.duration_min)) + ' min' : '';
           var price = (svc.price_nok != null) ? svc.price_nok : '';
           var activeCls = i === 0 ? ' active' : '';
-          html += '<li class="all-services__item' + activeCls + '" data-svc-name="' + name + '" data-svc-price="' + escapeHtml(String(price)) + '">' +
+          html += '<li class="all-services__item' + activeCls + '" data-id="' + svc.id + '" data-svc-name="' + name + '" data-svc-price="' + escapeHtml(String(price)) + '">' +
                     '<div class="all-services__radio"></div>' +
                     '<div class="all-services__body">' +
                       '<div class="all-services__name">' + name + '</div>' +
@@ -387,14 +504,14 @@
         });
         listEl.innerHTML = html;
 
-        // Mirror into the booking sidebar's "service-list" so it's not empty
+        // Mirror into the booking sidebar's "service-list".
         var panelHtml = '';
         services.forEach(function(svc, i) {
           var name = escapeHtml(svc.name || '');
           var dur = (svc.duration_min != null) ? escapeHtml(String(svc.duration_min)) + ' min' : '';
           var price = (svc.price_nok != null) ? svc.price_nok : '';
           var activeCls = i === 0 ? ' active' : '';
-          panelHtml += '<div class="service-list__item' + activeCls + '" data-name="' + name + '" data-price="' + escapeHtml(String(price)) + '">' +
+          panelHtml += '<div class="service-list__item' + activeCls + '" data-id="' + svc.id + '" data-name="' + name + '" data-price="' + escapeHtml(String(price)) + '">' +
                         '<div><div class="service-list__name">' + name + '</div><div class="service-list__meta">' + dur + '</div></div>' +
                         '<div class="service-list__price">' + escapeHtml(String(price)) + ' kr</div>' +
                        '</div>';
@@ -406,13 +523,25 @@
         // Bind click on .all-services__item rows
         document.querySelectorAll('.all-services__item').forEach(function(item) {
           item.addEventListener('click', function() {
-            selectService(item.dataset.svcName, item.dataset.svcPrice, '');
+            var svc = renderedServices.find(function(s) { return String(s.id) === item.dataset.id; });
+            if (svc) selectService(svc);
           });
         });
 
-        // Default-select the first service in the CTA
-        var first = services[0];
-        cta.textContent = 'Book ' + (first.name || '') + ' · ' + (first.price_nok != null ? first.price_nok : '') + ' kr';
+        // Default-select first service for the CTA / picker.
+        selectService(services[0]);
+
+        // Build the day picker and slots.
+        renderDayPicker();
+
+        // If user came back from login, restore selection.
+        restorePendingBooking();
+
+        // If salon stopped accepting bookings, lock the CTA visibly.
+        if (s.accepts_new_bookings === false || s.accepts_new_bookings === 0) {
+          cta.disabled = true;
+          cta.textContent = 'Tar ikke imot bookinger akkurat nå';
+        }
       }
 
       lucide.createIcons();

@@ -84,6 +84,38 @@ router.post('/', asyncRoute(async (req, res) => {
   res.status(201).json({ id: result.insertId });
 }));
 
+// GET /bookings/:id — single booking, accessible to the customer or salon owner
+router.get('/:id', asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const booking = await queryOne(
+    `SELECT b.id, b.start_at, b.end_at, b.status, b.price_nok, b.customer_note,
+            b.cancelled_at, b.cancelled_by_role, b.completed_at, b.created_at,
+            b.customer_user_id,
+            s.id AS salon_id, s.slug AS salon_slug, s.name AS salon_name,
+            s.city AS salon_city, s.address_line AS salon_address,
+            s.postal_code AS salon_postal, s.owner_user_id,
+            sv.id AS service_id, sv.name AS service_name, sv.duration_min,
+            cu.name AS customer_name
+       FROM bookings b
+       JOIN salons s ON s.id = b.salon_id
+       JOIN services sv ON sv.id = b.service_id
+       JOIN users cu ON cu.id = b.customer_user_id
+      WHERE b.id = ?`,
+    [id]
+  );
+  if (!booking) throw new HttpError(404, 'not_found', 'Booking finnes ikke.');
+  const isCustomer = booking.customer_user_id === req.user.id;
+  const isOwner = booking.owner_user_id === req.user.id;
+  const isAdmin = req.user.role === 'admin';
+  if (!isCustomer && !isOwner && !isAdmin) {
+    throw new HttpError(403, 'forbidden', 'Du har ikke tilgang til denne bookingen.');
+  }
+  delete booking.customer_user_id;
+  delete booking.owner_user_id;
+  res.json({ booking });
+}));
+
 // PATCH /bookings/:id — change status (confirm/complete/cancel/no_show)
 router.patch('/:id', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);

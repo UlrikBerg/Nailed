@@ -58,6 +58,72 @@ router.patch('/', asyncRoute(async (req, res) => {
   res.json({ ok: true });
 }));
 
+// GET /me/export — full data export (GDPR Art. 20 — right to data portability)
+// Returns every personal record we hold for the user as a single JSON object.
+router.get('/export', asyncRoute(async (req, res) => {
+  const userId = req.user.id;
+  const [user, identities, sessions, bookings, favorites, applications, reviews] = await Promise.all([
+    queryOne(
+      `SELECT id, email, name, phone, birth_year, address_line, postal_code, city, role,
+              notify_email_bookings, notify_email_reminders, notify_sms_reminders, notify_marketing,
+              suspended_at, created_at, updated_at
+         FROM users WHERE id = ?`,
+      [userId]
+    ),
+    query(
+      `SELECT provider, subject, email_at_link, created_at FROM auth_identities WHERE user_id = ?`,
+      [userId]
+    ),
+    query(
+      `SELECT id, user_agent, ip, created_at, last_used_at, expires_at, revoked_at
+         FROM sessions WHERE user_id = ?`,
+      [userId]
+    ),
+    query(
+      `SELECT b.id, b.start_at, b.end_at, b.price_nok, b.status, b.customer_note,
+              b.cancelled_at, b.completed_at, b.created_at,
+              s.name AS salon_name, s.city AS salon_city,
+              sv.name AS service_name
+         FROM bookings b
+         JOIN salons s ON s.id = b.salon_id
+         JOIN services sv ON sv.id = b.service_id
+        WHERE b.customer_user_id = ? ORDER BY b.start_at DESC`,
+      [userId]
+    ),
+    query(
+      `SELECT s.id, s.slug, s.name, f.created_at
+         FROM favorites f JOIN salons s ON s.id = f.salon_id
+        WHERE f.user_id = ?`,
+      [userId]
+    ),
+    query(
+      `SELECT id, salon_name, city, status, application_text, created_at, decided_at
+         FROM salon_applications WHERE applicant_user_id = ?
+        ORDER BY created_at DESC`,
+      [userId]
+    ),
+    query(
+      `SELECT id, booking_id, salon_id, rating, body, created_at
+         FROM reviews WHERE customer_user_id = ?`,
+      [userId]
+    ),
+  ]);
+
+  const filename = `nailed-export-user-${userId}-${new Date().toISOString().slice(0, 10)}.json`;
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(JSON.stringify({
+    exported_at: new Date().toISOString(),
+    user,
+    auth_identities: identities,
+    sessions,
+    bookings,
+    favorites,
+    salon_applications: applications,
+    reviews,
+  }, null, 2));
+}));
+
 // DELETE /me — soft-delete via suspension + email scrub.
 // Full GDPR erasure runs as a separate admin job in Fase 3 (audit-log preserved).
 router.delete('/', asyncRoute(async (req, res) => {
@@ -74,6 +140,9 @@ router.delete('/', asyncRoute(async (req, res) => {
       'Du har aktive bookinger. Avbestill dem først, eller kontakt support.');
   }
 
+  // Scrub personal fields, suspend account, revoke sessions, drop linkable
+  // records. Booking history is preserved (anonymized via the user record)
+  // for accounting (bokføringsloven §13: 5 years).
   await query(
     `UPDATE users
         SET suspended_at = CURRENT_TIMESTAMP,
@@ -82,11 +151,24 @@ router.delete('/', asyncRoute(async (req, res) => {
             address_line = NULL,
             postal_code = NULL,
             city = NULL,
-            name = 'Slettet bruker'
+            birth_year = NULL,
+            name = 'Slettet bruker',
+            notify_email_bookings = 0,
+            notify_email_reminders = 0,
+            notify_sms_reminders = 0,
+            notify_marketing = 0
       WHERE id = ?`,
     [req.user.id]
   );
   await query(`UPDATE sessions SET revoked_at = CURRENT_TIMESTAMP WHERE user_id = ? AND revoked_at IS NULL`, [req.user.id]);
+  await query(`DELETE FROM favorites WHERE user_id = ?`, [req.user.id]);
+  await query(`DELETE FROM auth_identities WHERE user_id = ?`, [req.user.id]);
+  await query(
+    `UPDATE salon_applications
+        SET status = 'withdrawn', decided_at = CURRENT_TIMESTAMP
+      WHERE applicant_user_id = ? AND status = 'pending'`,
+    [req.user.id]
+  );
   res.json({ ok: true });
 }));
 

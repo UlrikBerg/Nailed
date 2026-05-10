@@ -221,11 +221,20 @@
           </table>
         </div>
 
+        <div class="panel">
+          <div class="panel__head"><h3>Last ned mine data</h3></div>
+          <p style="margin:0 0 12px; color: var(--fg-muted);">
+            Last ned alt vi har lagret om deg som JSON-fil — profil, sesjoner, bookinger,
+            favoritter, anmeldelser og søknader. Følger GDPR art. 20 (dataportabilitet).
+          </p>
+          <button class="btn btn-ghost" id="exportBtn"><i data-lucide="download"></i> Last ned JSON</button>
+        </div>
+
         <div class="panel" style="border-color: var(--danger-50);">
           <div class="panel__head"><h3>Slett konto</h3></div>
           <p style="margin:0 0 12px; color: var(--fg-muted);">
-            Sletter all profilinformasjon og logger deg ut. Tidligere booking-historikk for salongene
-            beholdes anonymisert i samsvar med bokføringsloven.
+            Sletter all profilinformasjon og logger deg ut. Booking-historikk beholdes anonymisert
+            i 5 år i samsvar med bokføringsloven.
           </p>
           <button class="btn btn-danger" id="deleteAccountBtn"><i data-lucide="trash-2"></i> Slett konto</button>
         </div>
@@ -454,6 +463,24 @@
       var res = await NailedAuth.api('/api/v1/me', { method: 'PATCH', body: body });
       if (res.ok) NailedForms.toast('Varsel-innstillinger lagret');
       else NailedForms.toast('Kunne ikke lagre', { type: 'error' });
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', async function () {
+      var token = NailedAuth.getAccess();
+      var res = await fetch('/api/v1/me/export', { headers: { Authorization: 'Bearer ' + token } });
+      if (!res.ok) { NailedForms.toast('Kunne ikke eksportere', { type: 'error' }); return; }
+      var blob = await res.blob();
+      var url = URL.createObjectURL(blob);
+      var disposition = res.headers.get('Content-Disposition') || '';
+      var match = /filename="([^"]+)"/.exec(disposition);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = match ? match[1] : 'nailed-export.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      NailedForms.toast('Eksport lastet ned');
     });
 
     document.getElementById('logoutBtn').addEventListener('click', async function () {

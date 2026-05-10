@@ -34,6 +34,10 @@
       font-family: var(--font-display); font-weight: 700; font-size: 24px; margin: 0 0 8px;
     }
     .fav-empty__desc { font-size: 15px; color: var(--fg-muted); margin: 0 0 24px; max-width: 40ch; margin-left: auto; margin-right: auto; }
+    .fav-anon-note { font-size: 13px; color: var(--fg-muted); margin: 16px 0 0; }
+    .fav-anon-section { margin-top: 48px; }
+    .fav-anon-section__title { font-family: var(--font-display); font-weight: 600; font-size: 18px; margin: 0 0 6px; }
+    .fav-anon-section__sub { font-size: 13px; color: var(--fg-muted); margin: 0 0 16px; }
   </style>
 </head>
 <body>
@@ -64,9 +68,15 @@
 
       <div id="favEmpty" class="fav-empty" style="display:none;">
         <div class="fav-empty__icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></div>
-        <h3 class="fav-empty__title">Ingen favoritter ennå</h3>
-        <p class="fav-empty__desc">Trykk på hjertet på en salong for å lagre den her. Favorittene dine synkroniseres på tvers av sider.</p>
-        <a href="utforsk.html" class="btn btn-primary">Utforsk salonger</a>
+        <h3 class="fav-empty__title" id="favEmptyTitle">Ingen favoritter ennå</h3>
+        <p class="fav-empty__desc" id="favEmptyDesc">Trykk på hjertet på en salong for å lagre den her. Favorittene dine synkroniseres på tvers av sider.</p>
+        <a href="utforsk.html" class="btn btn-primary" id="favEmptyCta">Utforsk salonger</a>
+      </div>
+
+      <div id="favAnonExtra" class="fav-anon-section" style="display:none;">
+        <div class="fav-anon-section__title">Ulagret på denne enheten</div>
+        <div class="fav-anon-section__sub">Logget inn vil synkronisere disse på tvers av enheter.</div>
+        <div id="favAnonGrid" class="grid-3"></div>
       </div>
     </div>
   </section>
@@ -85,8 +95,9 @@
         <a href="utforsk.html">Utforsk</a>
         <a href="for-salonger.html">For salonger</a>
         <a href="last-ned-app.html">Last ned app</a>
-        <a href="#">Personvern</a>
-        <a href="#">Bruksvilkår</a>
+        <a href="/personvern.html">Personvern</a>
+        <a href="/vilkar.html">Bruksvilkår</a>
+        <a href="/cookies.html">Cookies</a>
         <a href="#">FAQ</a>
         <a href="#">Kontakt oss</a>
         <a href="#">Om oss</a>
@@ -102,73 +113,200 @@
   </footer>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="/assets/auth.js"></script>
   <script src="favorites.js"></script>
+  <script defer src="/assets/cookie-banner.js"></script>
   <script>
-    // All salons data
-    var ALL_SALONS = {
-      'studio-lakk':    { name:'Studio Lakk',      area:'Grünerløkka · Oslo',     price:690,  rating:4.9, reviews:312, tags:['Gel','Bio'],               gradient:'linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 100%)' },
-      'lash-linn':      { name:'Lash & Linn',      area:'Frogner · Oslo',         price:890,  rating:4.8, reviews:184, tags:['Vipper','Bryn'],            gradient:'linear-gradient(135deg, #F4ECDF 0%, #E8DCC4 100%)' },
-      'bare-negler':    { name:'Bare Negler',      area:'Majorstuen · Oslo',      price:590,  rating:4.7, reviews:521, tags:['Klassisk'],                 gradient:'linear-gradient(135deg, #FFF1F5 0%, #FB6B9A 100%)' },
-      'studio-glow':    { name:'Studio Glow',      area:'St. Hanshaugen · Oslo',  price:1190, rating:5.0, reviews:92,  tags:['Brud','Makeup'],            gradient:'linear-gradient(135deg, #DDE3D2 0%, #8DA079 100%)' },
-      'neon-nails':     { name:'Neon Nails',       area:'Tøyen · Oslo',           price:750,  rating:4.6, reviews:268, tags:['Art','Gel'],                gradient:'linear-gradient(135deg, #FFC4D6 0%, #82103D 100%)' },
-      'rosa-atelier':   { name:'Rosa Atelier',     area:'Bislett · Oslo',         price:920,  rating:4.9, reviews:401, tags:['Press-on'],                 gradient:'linear-gradient(135deg, #ECDFCB 0%, #C9B79A 100%)' },
-      'brun-bryn':      { name:'Brun & Bryn',      area:'Bærum · Akershus',       price:590,  rating:4.8, reviews:156, tags:['Bryn','Microblading'],      gradient:'linear-gradient(135deg, #F4ECDF 0%, #B89870 100%)' },
-      'strok-studio':   { name:'Strøk Studio',     area:'Sentrum · Oslo',         price:790,  rating:4.7, reviews:245, tags:['Makeup','Brud'],            gradient:'linear-gradient(135deg, #FFE0E9 0%, #B8536F 100%)' },
-      'bergen-beauty':  { name:'Bergen Beauty',    area:'Bergen · Vestland',      price:850,  rating:4.9, reviews:198, tags:['Vipper'],                   gradient:'linear-gradient(135deg, #DDE3D2 0%, #7B8E68 100%)' },
-      'trondheim-nails':{ name:'Trondheim Nails',  area:'Trondheim · Trøndelag', price:650,  rating:4.7, reviews:312, tags:['Gel'],                      gradient:'linear-gradient(135deg, #FFE0E9 0%, #FB6B9A 100%)' },
-      'stavanger-glam': { name:'Stavanger Glam',   area:'Stavanger · Rogaland',  price:1090, rating:5.0, reviews:67,  tags:['Brud'],                     gradient:'linear-gradient(135deg, #ECDFCB 0%, #82103D 100%)' },
-      'asker-lash':     { name:'Asker Lash Bar',   area:'Asker · Akershus',      price:790,  rating:4.6, reviews:143, tags:['Vipper'],                   gradient:'linear-gradient(135deg, #F4ECDF 0%, #C9B79A 100%)' },
-    };
+    lucide.createIcons();
 
-    function renderFavorites() {
-      var favs = getFavorites();
+    // Nav scroll
+    var nav = document.getElementById('topNav');
+    window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 30); });
+
+    var FALLBACK_GRADIENTS = [
+      'linear-gradient(135deg, #FFE0E9, #FFC4D6)',
+      'linear-gradient(135deg, #F4ECDF, #E8DCC4)',
+      'linear-gradient(135deg, #FFF1F5, #FB6B9A)',
+      'linear-gradient(135deg, #DDE3D2, #8DA079)',
+      'linear-gradient(135deg, #FFC4D6, #82103D)',
+      'linear-gradient(135deg, #ECDFCB, #C9B79A)',
+      'linear-gradient(135deg, #F4ECDF, #B89870)',
+      'linear-gradient(135deg, #FFE0E9, #B8536F)',
+      'linear-gradient(135deg, #DDE3D2, #7B8E68)',
+      'linear-gradient(135deg, #ECDFCB, #82103D)'
+    ];
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+      });
+    }
+
+    function gradientFor(id) {
+      var n = (typeof id === 'number' ? id : 0);
+      return FALLBACK_GRADIENTS[Math.abs(n) % FALLBACK_GRADIENTS.length];
+    }
+
+    function buildFavCard(fav) {
+      // Favorites endpoint returns cover_image_key but no cover_url — so fall
+      // back to a gradient. (Swapping in a real cover would need the server
+      // to expose cover_url here too.)
+      var photoStyle = 'background: ' + gradientFor(fav.id) + ';';
+      var slug = encodeURIComponent(fav.slug || '');
+      var locationLine = fav.city
+        ? '<div class="service-card__meta"><i data-lucide="map-pin"></i>' + escapeHtml(fav.city) + '</div>'
+        : '';
+
+      return ''
+        + '<article class="service-card card" onclick="location.href=\'salon.html?slug=' + slug + '\'">'
+          + '<div class="service-card__photo" style="' + photoStyle + '">'
+            + '<button class="service-card__heart is-favorite" data-salon-id="' + fav.id + '" aria-pressed="true">'
+              + '<i data-lucide="heart" style="color:var(--rouge-500);fill:var(--rouge-500);"></i>'
+            + '</button>'
+          + '</div>'
+          + '<div class="service-card__body">'
+            + '<div class="service-card__row">'
+              + '<div>'
+                + '<div class="service-card__name">' + escapeHtml(fav.name || 'Salong') + '</div>'
+                + locationLine
+              + '</div>'
+            + '</div>'
+          + '</div>'
+        + '</article>';
+    }
+
+    function buildAnonCard(slug) {
+      // Anonymous favorites are stored as slugs only — we don't have the salon
+      // name/city without a lookup, so show the slug pretty-printed.
+      var pretty = String(slug).replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+      return ''
+        + '<article class="service-card card" onclick="location.href=\'salon.html?slug=' + encodeURIComponent(slug) + '\'">'
+          + '<div class="service-card__photo" style="background: ' + FALLBACK_GRADIENTS[0] + ';">'
+            + '<button class="service-card__heart is-favorite" data-fav="' + escapeHtml(slug) + '" aria-pressed="true">'
+              + '<i data-lucide="heart" style="color:var(--rouge-500);fill:var(--rouge-500);"></i>'
+            + '</button>'
+          + '</div>'
+          + '<div class="service-card__body">'
+            + '<div class="service-card__row">'
+              + '<div>'
+                + '<div class="service-card__name">' + escapeHtml(pretty) + '</div>'
+              + '</div>'
+            + '</div>'
+          + '</div>'
+        + '</article>';
+    }
+
+    function showLoggedOutEmpty() {
+      var empty = document.getElementById('favEmpty');
+      var grid = document.getElementById('favGrid');
+      var countEl = document.getElementById('favCount');
+      grid.style.display = 'none';
+      empty.style.display = '';
+      countEl.textContent = 'Logg inn for å se og lagre favoritter på tvers av enheter.';
+      document.getElementById('favEmptyTitle').textContent = 'Logg inn for å se favorittene dine';
+      document.getElementById('favEmptyDesc').textContent = 'Når du er logget inn lagres favorittene dine i kontoen din og synkroniseres på tvers av enheter.';
+      var cta = document.getElementById('favEmptyCta');
+      cta.textContent = 'Logg inn';
+      cta.setAttribute('href', 'login.html?next=' + encodeURIComponent('/favoritter.html'));
+
+      // Also show any anonymous local favorites stored on this device.
+      var local = (typeof getFavorites === 'function') ? getFavorites() : [];
+      if (local.length) {
+        var html = local.map(buildAnonCard).join('');
+        var anonGrid = document.getElementById('favAnonGrid');
+        anonGrid.innerHTML = html;
+        document.getElementById('favAnonExtra').style.display = '';
+        bindAnonHearts();
+      }
+      window.lucide && window.lucide.createIcons();
+    }
+
+    function bindAnonHearts() {
+      document.querySelectorAll('#favAnonGrid .service-card__heart').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          e.preventDefault();
+          var slug = btn.getAttribute('data-fav');
+          if (slug && typeof toggleFavorite === 'function') {
+            toggleFavorite(slug);
+            // Remove the card on unfavorite (simple, predictable).
+            var card = btn.closest('.service-card');
+            if (card && card.parentNode) card.parentNode.removeChild(card);
+          }
+        });
+      });
+    }
+
+    async function loadServerFavorites() {
       var grid = document.getElementById('favGrid');
       var empty = document.getElementById('favEmpty');
       var countEl = document.getElementById('favCount');
 
+      countEl.textContent = 'Laster…';
+      grid.innerHTML = '';
+
+      var data;
+      try {
+        var res = await NailedAuth.api('/api/v1/favorites');
+        if (!res || !res.ok) throw new Error('Status ' + (res && res.status));
+        data = await res.json();
+      } catch (err) {
+        grid.style.display = 'none';
+        empty.style.display = '';
+        countEl.textContent = 'Kunne ikke laste favoritter.';
+        document.getElementById('favEmptyTitle').textContent = 'Noe gikk galt';
+        document.getElementById('favEmptyDesc').textContent = 'Vi klarte ikke å hente favorittene dine. Last siden på nytt om litt.';
+        return;
+      }
+
+      var favs = (data && data.favorites) || [];
       if (favs.length === 0) {
         grid.style.display = 'none';
         empty.style.display = '';
-        countEl.textContent = 'Du har ingen lagrede favoritter.';
+        countEl.textContent = 'Du har ingen favoritter ennå.';
+        document.getElementById('favEmptyTitle').textContent = 'Ingen favoritter ennå';
+        document.getElementById('favEmptyDesc').innerHTML = 'Trykk på hjertet på en salong for å lagre den her. <a href="utforsk.html">Utforsk salonger →</a>';
+        var cta = document.getElementById('favEmptyCta');
+        cta.textContent = 'Utforsk salonger';
+        cta.setAttribute('href', 'utforsk.html');
+        window.lucide && window.lucide.createIcons();
         return;
       }
 
       grid.style.display = '';
       empty.style.display = 'none';
       countEl.textContent = favs.length + (favs.length === 1 ? ' lagret salong' : ' lagrede salonger');
+      grid.innerHTML = favs.map(buildFavCard).join('');
 
-      var html = '';
-      favs.forEach(function(id) {
-        var s = ALL_SALONS[id];
-        if (!s) return;
-        var tagsHtml = s.tags.map(function(t) { return '<span class="service-card__tag">' + t + '</span>'; }).join('');
-        html += '<article class="service-card card" onclick="location.href=\'salon.html\'">' +
-          '<div class="service-card__photo" style="background:' + s.gradient + ';">' +
-          '<button class="service-card__heart" data-fav="' + id + '"><i data-lucide="heart"></i></button>' +
-          '</div>' +
-          '<div class="service-card__body">' +
-          '<div class="service-card__row"><div>' +
-          '<div class="service-card__name">' + s.name + '</div>' +
-          '<div class="service-card__meta"><i data-lucide="map-pin"></i>' + s.area + '</div>' +
-          '</div><div class="service-card__price"><span class="service-card__from">fra</span>' + s.price + '<span class="service-card__kr"> kr</span></div></div>' +
-          '<div class="service-card__row"><div class="service-card__meta">' +
-          '<i data-lucide="star" style="color:var(--rouge-500);fill:var(--rouge-500);"></i>' +
-          s.rating + ' · ' + s.reviews + ' anmeldelser</div>' +
-          '<div class="service-card__tags">' + tagsHtml + '</div></div>' +
-          '</div></article>';
+      // Bind heart buttons → DELETE favorite.
+      grid.querySelectorAll('.service-card__heart').forEach(function (btn) {
+        btn.addEventListener('click', async function (e) {
+          e.stopPropagation();
+          e.preventDefault();
+          var id = parseInt(btn.dataset.salonId, 10);
+          if (!Number.isFinite(id)) return;
+          btn.disabled = true;
+          try {
+            var res = await NailedAuth.api('/api/v1/favorites/' + id, { method: 'DELETE' });
+            if (res && res.ok) {
+              await loadServerFavorites();
+            } else {
+              btn.disabled = false;
+            }
+          } catch (_) {
+            btn.disabled = false;
+          }
+        });
       });
-      grid.innerHTML = html;
 
-      lucide.createIcons();
-      initFavorites();
+      window.lucide && window.lucide.createIcons();
     }
 
-    lucide.createIcons();
-    renderFavorites();
-
-    // Nav scroll
-    var nav = document.getElementById('topNav');
-    window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 30); });
+    if (window.NailedAuth && NailedAuth.isLoggedIn()) {
+      loadServerFavorites();
+    } else {
+      showLoggedOutEmpty();
+    }
   </script>
 </body>
 </html>

@@ -3,13 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Nailed it — booking bekreftet</title>
+  <title>Booking bekreftet — nailed</title>
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-  <!-- Top navigation -->
   <header class="top-nav" id="topNav">
     <div class="page top-nav__inner">
       <a class="top-nav__brand" href="index.html">
@@ -22,52 +21,48 @@
       </nav>
       <div class="top-nav__actions">
         <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
-        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+        <a href="kunde-panel.html" class="btn btn-ghost btn-sm">Min konto</a>
       </div>
     </div>
   </header>
 
-  <!-- Confirmation -->
   <section class="confirm">
-    <div class="page">
+    <div class="page" id="confirmPage">
       <img src="assets/sticker-nailed-it.svg" class="confirm__sticker" alt="" />
-      <h1 class="confirm__title"><em>Nailed it,</em> Maria.</h1>
-      <p class="confirm__sub">Time bekreftet. Vi har sendt en SMS til +47 123 45 678, og en påminnelse dukker opp dagen før.</p>
+      <h1 class="confirm__title"><em id="confirmGreeting">Nailed it!</em></h1>
+      <p class="confirm__sub" id="confirmSub">Vi har sendt deg en bekreftelse. Salongen får varsel og bekrefter snart.</p>
 
       <div class="confirm__layout">
-        <!-- Left: booking details -->
         <div class="confirm__card">
           <div class="confirm__card-head">
             <span class="confirm__card-eyebrow">Din time</span>
-            <span class="confirm__paid"><i data-lucide="shield-check"></i> Verifisert med Vipps</span>
+            <span id="confirmStatus" class="confirm__paid"><i data-lucide="clock"></i> Venter på bekreftelse</span>
           </div>
-          <div class="confirm__row"><span class="confirm__label">Hva</span><span class="confirm__val">Gel manikyr</span></div>
-          <div class="confirm__row"><span class="confirm__label">Hos</span><span class="confirm__val">Studio Lakk</span></div>
-          <div class="confirm__row"><span class="confirm__label">Når</span><span class="confirm__val">Ons 13. mai · 14:00</span></div>
-          <div class="confirm__row"><span class="confirm__label">Varighet</span><span class="confirm__val">75 min · Linn eller Maja</span></div>
-          <div class="confirm__row"><span class="confirm__label">Pris</span><span class="confirm__val">690 kr</span></div>
+          <div class="confirm__row"><span class="confirm__label">Hva</span><span class="confirm__val" id="confWhat">—</span></div>
+          <div class="confirm__row"><span class="confirm__label">Hos</span><span class="confirm__val" id="confWhere">—</span></div>
+          <div class="confirm__row"><span class="confirm__label">Når</span><span class="confirm__val" id="confWhen">—</span></div>
+          <div class="confirm__row"><span class="confirm__label">Varighet</span><span class="confirm__val" id="confDuration">—</span></div>
+          <div class="confirm__row"><span class="confirm__label">Pris</span><span class="confirm__val" id="confPrice">—</span></div>
 
           <div class="confirm__divider"></div>
           <div class="confirm__card-eyebrow">Booket av</div>
           <div class="confirm__user">
-            <div class="confirm__avatar">M</div>
+            <div class="confirm__avatar" id="confUserInitial">?</div>
             <div>
-              <div class="confirm__user-name">Maria Solberg</div>
-              <div class="confirm__user-meta">+47 123 45 678 · maria.solberg@gmail.com</div>
+              <div class="confirm__user-name" id="confUserName">—</div>
+              <div class="confirm__user-meta" id="confUserMeta">—</div>
             </div>
-            <span class="confirm__badge"><i data-lucide="check"></i> Verifisert</span>
           </div>
         </div>
 
-        <!-- Right: location + map -->
         <div class="confirm__location">
           <div class="confirm__location-head">
             <div>
               <div class="confirm__card-eyebrow">Slik finner du oss</div>
-              <div class="confirm__location-name">Studio Lakk</div>
-              <div class="confirm__location-addr">Markveien 22, 0554 Oslo</div>
+              <div class="confirm__location-name" id="confLocName">—</div>
+              <div class="confirm__location-addr" id="confLocAddr">—</div>
             </div>
-            <a class="btn btn-ghost btn-sm" href="https://maps.google.com/?q=Markveien+22+Oslo" target="_blank" rel="noopener">
+            <a class="btn btn-ghost btn-sm" id="confMapsLink" href="#" target="_blank" rel="noopener">
               <i data-lucide="navigation"></i> Veibeskrivelse
             </a>
           </div>
@@ -90,43 +85,24 @@
                 <rect x="190" y="125" width="58" height="68" fill="#E8DCC4" rx="2"/>
                 <rect x="92" y="155" width="58" height="38" fill="#E8DCC4" rx="2"/>
               </svg>
-              <!-- Pin -->
               <button class="studio-map__pin" id="mapPin" style="left:50%;top:50%;">
                 <span class="studio-map__pin-halo"></span>
                 <span class="studio-map__pin-mark">
                   <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2C7.6 2 4 5.6 4 10c0 5.5 7 12 8 12s8-6.5 8-12c0-4.4-3.6-8-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
                 </span>
               </button>
-              <!-- Callout (hidden by default) -->
-              <div class="studio-map__callout" id="mapCallout" style="display:none;">
-                <div class="studio-map__callout-name">Studio Lakk</div>
-                <div class="studio-map__callout-addr">Markveien 22, 0554 Oslo</div>
-                <a class="studio-map__callout-link" href="https://maps.google.com/?q=Markveien+22+Oslo" target="_blank" rel="noopener">
-                  <i data-lucide="navigation"></i> Få veibeskrivelse
-                </a>
-                <div class="studio-map__callout-arrow"></div>
-              </div>
-              <div class="studio-map__zoom">
-                <button>+</button>
-                <button>−</button>
-              </div>
             </div>
-          </div>
-          <div class="confirm__location-foot">
-            <span><i data-lucide="train-front"></i> 5 min fra Grünerløkka T-bane</span>
-            <span><i data-lucide="phone"></i> +47 22 35 12 34</span>
           </div>
         </div>
       </div>
 
       <div class="confirm__actions">
-        <a href="index.html" class="btn btn-ghost">Tilbake til forsiden</a>
-        <button class="btn btn-primary"><i data-lucide="calendar-plus"></i> Legg til i kalender</button>
+        <a href="kunde-panel.html" class="btn btn-ghost">Til mine bookinger</a>
+        <a href="utforsk.html" class="btn btn-primary">Utforsk flere salonger</a>
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="footer">
     <div class="page footer__inner">
       <div class="footer__top">
@@ -141,38 +117,122 @@
         <a href="utforsk.html">Utforsk</a>
         <a href="for-salonger.html">For salonger</a>
         <a href="last-ned-app.html">Last ned app</a>
-        <a href="#">Personvern</a>
-        <a href="#">Bruksvilkår</a>
-        <a href="#">FAQ</a>
-        <a href="#">Kontakt oss</a>
-        <a href="#">Om oss</a>
+        <a href="/personvern.html">Personvern</a>
+        <a href="/vilkar.html">Bruksvilkår</a>
+        <a href="/cookies.html">Cookies</a>
       </div>
       <div class="footer__bottom">
-        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
-        <div class="footer__badges">
-          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> App Store — juni</span>
-          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Google Play — juli</span>
-        </div>
+        <small>&copy; 2026 nailed AS &middot; Made in Norway</small>
       </div>
     </div>
   </footer>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="/assets/auth.js"></script>
+  <script defer src="/assets/cookie-banner.js"></script>
   <script>
     lucide.createIcons();
 
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
+      });
+    }
+
+    function fmtNorWhen(iso) {
+      var d = new Date(iso);
+      var dow = d.toLocaleDateString('no-NO', { weekday: 'short' });
+      var date = d.toLocaleDateString('no-NO', { day: '2-digit', month: 'short' });
+      var time = d.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+      return dow + ' ' + date + ' · kl. ' + time;
+    }
+
+    function showError(title, message) {
+      document.getElementById('confirmPage').innerHTML =
+        '<div style="text-align:center; padding: 80px 24px;">' +
+        '<h1 style="margin:0 0 12px;">' + escapeHtml(title) + '</h1>' +
+        '<p style="color: var(--fg-muted); margin: 0 0 24px;">' + escapeHtml(message) + '</p>' +
+        '<a class="btn btn-primary" href="/kunde-panel.html">Til mine bookinger</a>' +
+        '</div>';
+    }
+
+    var statusLabels = {
+      pending:   { text: 'Venter på bekreftelse', icon: 'clock' },
+      confirmed: { text: 'Bekreftet av salongen', icon: 'check-circle' },
+      completed: { text: 'Fullført',              icon: 'check-circle' },
+      cancelled: { text: 'Kansellert',            icon: 'x-circle' },
+      no_show:   { text: 'No-show',               icon: 'x-circle' },
+    };
+
+    (async function init() {
+      var bookingId = new URLSearchParams(window.location.search).get('id');
+      if (!bookingId) {
+        showError('Mangler booking-id', 'Det er ingen ?id=… i URL-en.');
+        return;
+      }
+      if (!window.NailedAuth || !NailedAuth.isLoggedIn()) {
+        location.replace('/login.html?next=' + encodeURIComponent(location.pathname + location.search));
+        return;
+      }
+
+      var [bookingRes, meRes] = await Promise.all([
+        NailedAuth.api('/api/v1/bookings/' + encodeURIComponent(bookingId)),
+        NailedAuth.api('/api/v1/me'),
+      ]);
+
+      if (bookingRes.status === 404) { showError('Fant ikke booking', 'Bookingen finnes ikke eller du har ikke tilgang.'); return; }
+      if (!bookingRes.ok) { showError('Kunne ikke hente booking', 'Prøv igjen om litt.'); return; }
+
+      var booking = (await bookingRes.json()).booking;
+      var user = meRes.ok ? (await meRes.json()).user : null;
+
+      var firstName = (user && user.name || 'der').split(' ')[0];
+      document.getElementById('confirmGreeting').textContent = 'Nailed it, ' + firstName + '.';
+
+      var status = statusLabels[booking.status] || { text: booking.status, icon: 'info' };
+      document.getElementById('confirmSub').textContent = booking.status === 'confirmed'
+        ? 'Salongen har bekreftet timen din.'
+        : booking.status === 'pending'
+          ? 'Bookingen er sendt. Salongen får varsel og bekrefter snart.'
+          : booking.status === 'cancelled'
+            ? 'Denne bookingen ble kansellert.'
+            : booking.status === 'completed'
+              ? 'Denne timen er fullført.'
+              : 'Status: ' + status.text;
+      document.getElementById('confirmStatus').innerHTML =
+        '<i data-lucide="' + status.icon + '"></i> ' + escapeHtml(status.text);
+
+      document.getElementById('confWhat').textContent = booking.service_name || '';
+      var salonLink = document.createElement('a');
+      salonLink.href = '/salon.html?slug=' + encodeURIComponent(booking.salon_slug || '');
+      salonLink.textContent = booking.salon_name || '';
+      var where = document.getElementById('confWhere');
+      where.textContent = '';
+      where.appendChild(salonLink);
+
+      document.getElementById('confWhen').textContent = fmtNorWhen(booking.start_at);
+      document.getElementById('confDuration').textContent = (booking.duration_min || 0) + ' min';
+      document.getElementById('confPrice').textContent = (booking.price_nok || 0) + ' kr';
+
+      if (user) {
+        document.getElementById('confUserInitial').textContent = (user.name || '?').charAt(0).toUpperCase();
+        document.getElementById('confUserName').textContent = user.name || '';
+        var meta = [user.phone, user.email].filter(Boolean).join(' · ');
+        document.getElementById('confUserMeta').textContent = meta;
+      }
+
+      // Location card
+      document.getElementById('confLocName').textContent = booking.salon_name || '';
+      var addrParts = [booking.salon_address, [booking.salon_postal, booking.salon_city].filter(Boolean).join(' ')].filter(Boolean);
+      document.getElementById('confLocAddr').textContent = addrParts.join(', ');
+      var q = encodeURIComponent(addrParts.join(', ') || booking.salon_name || '');
+      document.getElementById('confMapsLink').href = 'https://maps.google.com/?q=' + q;
+
+      lucide.createIcons();
+    })();
+
     var nav = document.getElementById('topNav');
     window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 30); });
-
-    // Map pin toggle
-    var pin = document.getElementById('mapPin');
-    var callout = document.getElementById('mapCallout');
-    pin.addEventListener('click', function() {
-      var open = callout.style.display !== 'none';
-      callout.style.display = open ? 'none' : '';
-      pin.classList.toggle('is-open', !open);
-      lucide.createIcons();
-    });
   </script>
 </body>
 </html>

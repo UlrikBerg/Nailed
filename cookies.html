@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>nailed — informasjonskapsler</title>
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       Top navigation
+       ============================================================ -->
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="index.html">
+        <img src="assets/logo-wordmark.svg" alt="nailed" />
+      </a>
+      <nav class="top-nav__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="for-salonger.html">For salonger</a>
+        <a href="last-ned-app.html">Last ned app</a>
+      </nav>
+      <div class="top-nav__actions">
+        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       Legal page content
+       ============================================================ -->
+  <section style="padding: 48px 0 64px;">
+    <div class="page" style="max-width: 800px;">
+
+      <!-- Draft warning banner -->
+      <div style="background: var(--warning-50); border: 1px solid var(--warning-500); padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 32px; color: var(--ink); font-size: 14px;">
+        <strong>Utkast</strong> — denne teksten må gjennomgås av jurist før lansering.
+      </div>
+
+      <span class="eyebrow">Cookies</span>
+      <h1 style="margin: 8px 0 24px; font-size: clamp(36px, 5vw, 56px);">Informasjonskapsler</h1>
+      <p style="color: var(--fg-muted); font-size: 16px;">
+        Slik bruker <strong>nailed AS</strong> cookies og lokal lagring i nettleseren din.
+      </p>
+
+      <hr style="border: 0; border-top: 1px solid var(--stone-200); margin: 32px 0;" />
+
+      <h2 style="font-size: 24px; margin-bottom: 12px;">1. Hva er informasjonskapsler?</h2>
+      <p>
+        Informasjonskapsler (cookies) og tilsvarende teknologier som <em>localStorage</em>
+        og <em>sessionStorage</em> er små datafiler som lagres i nettleseren din når du
+        besøker en nettside. De lar oss huske valgene dine og holde deg innlogget.
+      </p>
+      <p>
+        Bruken er regulert av <strong>ekomloven § 2-7b</strong> og GDPR. Vi setter kun
+        strengt nødvendige kapsler uten samtykke. Andre kapsler krever ditt aktive samtykke
+        gjennom samtykke-banneret nederst på siden.
+      </p>
+
+      <h2 style="font-size: 24px; margin: 32px 0 12px;">2. Hva vi bruker</h2>
+
+      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.1 Strengt nødvendige</h3>
+      <p>
+        Disse er nødvendige for at plattformen skal fungere, og settes uten samtykke:
+      </p>
+      <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
+        <li style="margin-bottom: 8px;">
+          <code>nailed.accessToken</code> (localStorage) — holder deg innlogget i opptil 30 dager.
+        </li>
+        <li style="margin-bottom: 8px;">
+          <code>nailed.refreshToken</code> (localStorage) — fornyer din økt automatisk uten ny innlogging.
+        </li>
+        <li style="margin-bottom: 8px;">
+          <code>nailed.role</code> (localStorage) — husker om du er kunde, salongeier eller administrator
+          så vi viser riktig grensesnitt.
+        </li>
+      </ul>
+
+      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.2 Funksjonelle</h3>
+      <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
+        <li style="margin-bottom: 8px;">
+          <code>nailed.cookieConsent</code> (localStorage) — husker hva du har valgt i samtykke-banneret,
+          slik at vi ikke spør på nytt før samtykket utløper.
+        </li>
+      </ul>
+
+      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.3 Analyse og markedsføring</h3>
+      <p>
+        Vi bruker <strong>ingen</strong> analyse- eller markedsføringskapsler i dag. Hvis vi
+        senere innfører dette (for eksempel statistikk-verktøy eller målrettet markedsføring),
+        vil de kreve aktivt samtykke gjennom banneret før de aktiveres.
+      </p>
+
+      <h2 style="font-size: 24px; margin: 32px 0 12px;">3. Hvordan trekke samtykke</h2>
+      <p>
+        Du kan når som helst endre eller trekke samtykket ditt:
+      </p>
+      <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
+        <li style="margin-bottom: 4px;">Slette nailed-cookies og localStorage i nettleseren din. Banneret vil da dukke opp på neste besøk.</li>
+        <li style="margin-bottom: 4px;">Bruke nettleserens innstillinger for å blokkere kapsler fra dette nettstedet.</li>
+        <li style="margin-bottom: 4px;">Logge ut fra <a href="kunde-panel.html" style="color: var(--rouge-500);">kontoen din</a> for å fjerne sesjon-tokens.</li>
+      </ul>
+      <p>
+        Merk: hvis du blokkerer strengt nødvendige kapsler, vil ikke innlogging og booking
+        fungere som tiltenkt.
+      </p>
+
+      <h2 style="font-size: 24px; margin: 32px 0 12px;">4. Lagringstid for samtykke</h2>
+      <p>
+        Samtykket ditt lagres i 12 måneder. Etter det vil banneret vises på nytt slik at du
+        får anledning til å bekrefte eller endre valget.
+      </p>
+
+      <h2 style="font-size: 24px; margin: 32px 0 12px;">5. Mer informasjon</h2>
+      <p>
+        Se <a href="/personvern.html" style="color: var(--rouge-500);">personvernerklæringen</a>
+        for full informasjon om hvordan vi behandler personopplysninger. Spørsmål kan rettes
+        til <a href="mailto:personvern@nailed.no" style="color: var(--rouge-500);">personvern@nailed.no</a>.
+      </p>
+
+      <p style="color: var(--fg-muted); font-size: 14px; margin-top: 32px;">
+        Sist oppdatert: <strong>2026-05-10</strong>.
+      </p>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Footer
+       ============================================================ -->
+  <footer class="footer">
+    <div class="page footer__inner">
+      <div class="footer__top">
+        <img src="assets/logo-wordmark.svg" alt="nailed" class="footer__brand" />
+        <div class="footer__socials">
+          <a class="footer__social" href="#" aria-label="Instagram"><i data-lucide="instagram"></i></a>
+          <a class="footer__social" href="#" aria-label="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.17a8.16 8.16 0 004.76 1.51v-3.45a4.85 4.85 0 01-1-.54z"/></svg></a>
+          <a class="footer__social" href="#" aria-label="Facebook"><i data-lucide="facebook"></i></a>
+        </div>
+      </div>
+      <div class="footer__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="for-salonger.html">For salonger</a>
+        <a href="last-ned-app.html">Last ned app</a>
+        <a href="/personvern.html">Personvern</a>
+        <a href="/vilkar.html">Bruksvilkår</a>
+        <a href="/cookies.html">Cookies</a>
+        <a href="#">FAQ</a>
+        <a href="#">Kontakt oss</a>
+        <a href="#">Om oss</a>
+      </div>
+      <div class="footer__bottom">
+        <small>&copy; 2026 nailed AS &middot; Made in Oslo</small>
+        <div class="footer__badges">
+          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> App Store — juni</span>
+          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Google Play — juli</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script defer src="/assets/cookie-banner.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Sticky nav scroll effect
+    var nav = document.getElementById('topNav');
+    window.addEventListener('scroll', function() {
+      if (window.scrollY > 30) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+  </script>
+</body>
+</html>

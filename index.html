@@ -88,103 +88,17 @@
   </section>
 
   <!-- ============================================================
-       Salon grid — nearby
+       Salon grid — nearby (live from API)
        ============================================================ -->
-  <section style="padding: 32px 0 56px;">
+  <section id="featuredSection" style="padding: 32px 0 56px; display: none;">
     <div class="page">
       <div class="section-head">
         <div>
-          <h2>Salonger nær <em>Oslo</em></h2>
+          <h2>Salonger på <em>nailed</em></h2>
         </div>
-        <button class="section-head__link">Se alle <i data-lucide="arrow-right"></i></button>
+        <a class="section-head__link" href="utforsk.html" style="text-decoration:none;">Se alle <i data-lucide="arrow-right"></i></a>
       </div>
-      <div class="grid-3">
-
-        <!-- Card 1 — featured -->
-        <article class="service-card card service-card--featured" onclick="location.href='salon.html'">
-          <div class="service-card__photo" style="background: linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 100%);">
-            <span class="service-card__badge">Mest booket</span>
-            <button class="service-card__heart" data-fav="studio-lakk"><i data-lucide="heart"></i></button>
-          </div>
-          <div class="service-card__body">
-            <div class="service-card__row">
-              <div>
-                <div class="service-card__name">Studio Lakk</div>
-                <div class="service-card__meta"><i data-lucide="map-pin"></i>Grünerløkka · 0.4 km</div>
-              </div>
-              <div class="service-card__price">
-                <span class="service-card__from">fra</span>690<span class="service-card__kr"> kr</span>
-              </div>
-            </div>
-            <div class="service-card__row">
-              <div class="service-card__meta">
-                <i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i>
-                4.9 · 312 anmeldelser
-              </div>
-              <div class="service-card__tags">
-                <span class="service-card__tag">Gel</span>
-                <span class="service-card__tag">Bio</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Card 2 -->
-        <article class="service-card card" onclick="location.href='salon.html'">
-          <div class="service-card__photo" style="background: linear-gradient(135deg, #F4ECDF 0%, #E8DCC4 100%);">
-            <button class="service-card__heart" data-fav="lash-linn"><i data-lucide="heart"></i></button>
-          </div>
-          <div class="service-card__body">
-            <div class="service-card__row">
-              <div>
-                <div class="service-card__name">Lash & Linn</div>
-                <div class="service-card__meta"><i data-lucide="map-pin"></i>Frogner · 1.2 km</div>
-              </div>
-              <div class="service-card__price">
-                <span class="service-card__from">fra</span>890<span class="service-card__kr"> kr</span>
-              </div>
-            </div>
-            <div class="service-card__row">
-              <div class="service-card__meta">
-                <i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i>
-                4.8 · 184 anmeldelser
-              </div>
-              <div class="service-card__tags">
-                <span class="service-card__tag">Vipper</span>
-                <span class="service-card__tag">Bryn</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Card 3 -->
-        <article class="service-card card" onclick="location.href='salon.html'">
-          <div class="service-card__photo" style="background: linear-gradient(135deg, #FFF1F5 0%, #FB6B9A 100%);">
-            <button class="service-card__heart" data-fav="bare-negler"><i data-lucide="heart"></i></button>
-          </div>
-          <div class="service-card__body">
-            <div class="service-card__row">
-              <div>
-                <div class="service-card__name">Bare Negler</div>
-                <div class="service-card__meta"><i data-lucide="map-pin"></i>Majorstuen · 1.8 km</div>
-              </div>
-              <div class="service-card__price">
-                <span class="service-card__from">fra</span>590<span class="service-card__kr"> kr</span>
-              </div>
-            </div>
-            <div class="service-card__row">
-              <div class="service-card__meta">
-                <i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i>
-                4.7 · 521 anmeldelser
-              </div>
-              <div class="service-card__tags">
-                <span class="service-card__tag">Klassisk</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-      </div>
+      <div class="grid-3" id="featuredGrid"></div>
     </div>
   </section>
 
@@ -317,8 +231,9 @@
         <a href="utforsk.html">Utforsk</a>
         <a href="for-salonger.html">For salonger</a>
         <a href="last-ned-app.html">Last ned app</a>
-        <a href="#">Personvern</a>
-        <a href="#">Bruksvilkår</a>
+        <a href="/personvern.html">Personvern</a>
+        <a href="/vilkar.html">Bruksvilkår</a>
+        <a href="/cookies.html">Cookies</a>
         <a href="#">FAQ</a>
         <a href="#">Kontakt oss</a>
         <a href="#">Om oss</a>
@@ -335,7 +250,9 @@
 
   <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="/assets/auth.js"></script>
   <script src="favorites.js"></script>
+  <script defer src="/assets/cookie-banner.js"></script>
   <script>
     lucide.createIcons();
     initFavorites();
@@ -349,6 +266,80 @@
         nav.classList.remove('scrolled');
       }
     });
+
+    // Featured salons — live from API.
+    var FEATURED_FALLBACK_GRADIENTS = [
+      'linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 100%)',
+      'linear-gradient(135deg, #F4ECDF 0%, #E8DCC4 100%)',
+      'linear-gradient(135deg, #FFF1F5 0%, #FB6B9A 100%)',
+      'linear-gradient(135deg, #DDE3D2 0%, #8DA079 100%)',
+      'linear-gradient(135deg, #FFC4D6 0%, #82103D 100%)',
+      'linear-gradient(135deg, #ECDFCB 0%, #C9B79A 100%)',
+      'linear-gradient(135deg, #F4ECDF 0%, #B89870 100%)',
+      'linear-gradient(135deg, #FFE0E9 0%, #B8536F 100%)'
+    ];
+
+    function featuredEscapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+      });
+    }
+
+    function featuredCard(salon, idx) {
+      var photoStyle;
+      if (salon.cover_url) {
+        photoStyle = "background-image: url('" + encodeURI(salon.cover_url) + "'); background-size: cover; background-position: center;";
+      } else {
+        photoStyle = 'background: ' + FEATURED_FALLBACK_GRADIENTS[idx % FEATURED_FALLBACK_GRADIENTS.length] + ';';
+      }
+      var slug = encodeURIComponent(salon.slug || '');
+      var locationLine = salon.city
+        ? '<div class="service-card__meta"><i data-lucide="map-pin"></i>' + featuredEscapeHtml(salon.city) + '</div>'
+        : '';
+      var featured = idx === 0 ? ' service-card--featured' : '';
+
+      return ''
+        + '<article class="service-card card' + featured + '" onclick="location.href=\'salon.html?slug=' + slug + '\'">'
+          + '<div class="service-card__photo" style="' + photoStyle + '">'
+            + '<button class="service-card__heart" data-fav="' + featuredEscapeHtml(salon.slug || '') + '" data-salon-id="' + salon.id + '">'
+              + '<i data-lucide="heart"></i>'
+            + '</button>'
+          + '</div>'
+          + '<div class="service-card__body">'
+            + '<div class="service-card__row">'
+              + '<div>'
+                + '<div class="service-card__name">' + featuredEscapeHtml(salon.name || 'Salong') + '</div>'
+                + locationLine
+              + '</div>'
+            + '</div>'
+          + '</div>'
+        + '</article>';
+    }
+
+    (async function loadFeatured() {
+      var section = document.getElementById('featuredSection');
+      var grid = document.getElementById('featuredGrid');
+      if (!section || !grid) return;
+      try {
+        var res = await fetch('/api/v1/salons?limit=8', { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Status ' + res.status);
+        var data = await res.json();
+        var salons = Array.isArray(data.salons) ? data.salons : [];
+        if (salons.length === 0) {
+          // Per spec: hide the entire section instead of showing an empty state.
+          section.style.display = 'none';
+          return;
+        }
+        grid.innerHTML = salons.map(featuredCard).join('');
+        section.style.display = '';
+        // Re-bind hearts/icons on the new cards.
+        window.lucide && window.lucide.createIcons();
+        if (typeof initFavorites === 'function') initFavorites();
+      } catch (err) {
+        // On error, keep section hidden — better than showing broken state.
+        section.style.display = 'none';
+      }
+    })();
   </script>
 </body>
 </html>
