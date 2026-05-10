@@ -198,7 +198,13 @@
             <h3>Velg en dag</h3>
           </div>
 
-          <div class="day-row" id="dayRow"></div>
+          <div class="day-carousel">
+            <button class="day-carousel__nav" id="dayPrev" type="button" aria-label="Forrige fem dager" disabled><i data-lucide="chevron-left"></i></button>
+            <div class="day-carousel__viewport">
+              <div class="day-carousel__track" id="dayTrack"></div>
+            </div>
+            <button class="day-carousel__nav" id="dayNext" type="button" aria-label="Neste fem dager"><i data-lucide="chevron-right"></i></button>
+          </div>
 
           <div class="booking-panel__header" style="margin-top: 16px;">
             <h3>Velg en tid</h3>
@@ -377,35 +383,67 @@
       if (svc) selectService(svc);
     });
 
-    // ---- Day picker (next 14 days from today) ----
+    // ---- Day picker — sliding carousel of 30 days, 5 per page ----
+    var DAYS_TOTAL = 30;
+    var DAYS_PER_PAGE = 5;
+    var dayPageIdx = 0;
+
     function renderDayPicker() {
-      var dayRow = document.getElementById('dayRow');
-      dayRow.innerHTML = '';
+      var track = document.getElementById('dayTrack');
+      track.innerHTML = '';
       var DOW = ['Søn','Man','Tirs','Ons','Tors','Fre','Lør'];
-      for (var i = 0; i < 14; i++) {
-        var d = new Date();
-        d.setHours(0,0,0,0);
-        d.setDate(d.getDate() + i);
-        var iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'day-pick';
-        btn.dataset.iso = iso;
-        btn.innerHTML = '<div class="day-pick__dow">' + DOW[d.getDay()] + '</div><div class="day-pick__num">' + d.getDate() + '</div>';
-        btn.addEventListener('click', function() {
-          dayRow.querySelectorAll('.day-pick').forEach(function(b) { b.classList.remove('active'); });
-          this.classList.add('active');
-          selectedDateIso = this.dataset.iso;
-          selectedDateTime = null;
-          renderSlots(selectedDateIso);
-          updateCta();
-        });
-        dayRow.appendChild(btn);
+      var pages = Math.ceil(DAYS_TOTAL / DAYS_PER_PAGE);
+      for (var p = 0; p < pages; p++) {
+        var page = document.createElement('div');
+        page.className = 'day-carousel__page';
+        for (var k = 0; k < DAYS_PER_PAGE; k++) {
+          var i = p * DAYS_PER_PAGE + k;
+          if (i >= DAYS_TOTAL) break;
+          var d = new Date();
+          d.setHours(0,0,0,0);
+          d.setDate(d.getDate() + i);
+          var iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'day-pick';
+          btn.dataset.iso = iso;
+          btn.innerHTML = '<div class="day-pick__dow">' + DOW[d.getDay()] + '</div><div class="day-pick__num">' + d.getDate() + '</div>';
+          btn.addEventListener('click', function() {
+            track.querySelectorAll('.day-pick').forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            selectedDateIso = this.dataset.iso;
+            selectedDateTime = null;
+            renderSlots(selectedDateIso);
+            updateCta();
+          });
+          page.appendChild(btn);
+        }
+        track.appendChild(page);
       }
-      // Auto-pick today
-      var first = dayRow.querySelector('.day-pick');
+      dayPageIdx = 0;
+      applyDayPage();
+      // Auto-pick today.
+      var first = track.querySelector('.day-pick');
       if (first) first.click();
     }
+
+    function applyDayPage() {
+      var track = document.getElementById('dayTrack');
+      var prev = document.getElementById('dayPrev');
+      var next = document.getElementById('dayNext');
+      var pages = Math.ceil(DAYS_TOTAL / DAYS_PER_PAGE);
+      track.style.transform = 'translateX(-' + (dayPageIdx * 100) + '%)';
+      prev.disabled = dayPageIdx <= 0;
+      next.disabled = dayPageIdx >= pages - 1;
+    }
+
+    document.getElementById('dayPrev').addEventListener('click', function () {
+      if (dayPageIdx > 0) { dayPageIdx -= 1; applyDayPage(); }
+    });
+    document.getElementById('dayNext').addEventListener('click', function () {
+      var pages = Math.ceil(DAYS_TOTAL / DAYS_PER_PAGE);
+      if (dayPageIdx < pages - 1) { dayPageIdx += 1; applyDayPage(); }
+    });
 
     function renderSlots(dateIso) {
       var grid = document.getElementById('slotGrid');
@@ -491,7 +529,14 @@
 
         var dateIso = (pending.dateTime || '').slice(0, 10);
         var dayBtn = document.querySelector('.day-pick[data-iso="' + dateIso + '"]');
-        if (dayBtn) dayBtn.click();
+        if (dayBtn) {
+          // Slide the carousel to the page that contains this day.
+          var page = dayBtn.closest('.day-carousel__page');
+          var allPages = Array.from(document.querySelectorAll('.day-carousel__page'));
+          var pageIdx = allPages.indexOf(page);
+          if (pageIdx > -1) { dayPageIdx = pageIdx; applyDayPage(); }
+          dayBtn.click();
+        }
 
         var slotBtn = document.querySelector('.slot[data-iso="' + pending.dateTime + '"]');
         if (slotBtn) slotBtn.click();

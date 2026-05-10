@@ -867,6 +867,43 @@ p { margin: 0 0 var(--space-4) 0; }
   gap: 6px;
   margin-bottom: 12px;
 }
+.day-carousel {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.day-carousel__viewport {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+}
+.day-carousel__track {
+  display: flex;
+  transition: transform 320ms var(--ease-out-soft, cubic-bezier(.22,.61,.36,1));
+  will-change: transform;
+}
+.day-carousel__page {
+  flex: 0 0 100%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.day-carousel__nav {
+  flex: 0 0 36px;
+  border: 1px solid var(--stone-200);
+  border-radius: 10px;
+  background: var(--cream-50);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  transition: border-color var(--dur-fast) var(--ease-out-soft), opacity var(--dur-fast) var(--ease-out-soft);
+}
+.day-carousel__nav:hover { border-color: var(--stone-400); }
+.day-carousel__nav:disabled { opacity: 0.35; cursor: not-allowed; }
+.day-carousel__nav i { width: 16px; height: 16px; }
 .day-pick {
   padding: 6px 4px;
   border: 1px solid var(--stone-200);
