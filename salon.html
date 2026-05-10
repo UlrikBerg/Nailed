@@ -103,31 +103,18 @@
     }
 
     /* Right column stacks the booking panel, hours card, and team card.
-       Sticky AND constrained to viewport height so when the stack is taller
-       than the viewport, you can scroll the inside independently from the
-       page — no need to scroll all the way past "Alle behandlinger" first. */
+       Sticky to the page scroll — no inner scrollbar. When the right column
+       is taller than the viewport, the bottom of it sits below the fold
+       until the user scrolls down; once the bottom of the parent grid is
+       reached, the sticky naturally locks (because the parent ends). */
     .salon-detail__right {
       display: flex;
       flex-direction: column;
       gap: 28px;
       position: sticky;
       top: 100px;
-      max-height: calc(100vh - 120px);
-      overflow-y: auto;
-      /* Slim, subtle scrollbar — show on hover, faint at rest. */
-      scrollbar-width: thin;
-      scrollbar-color: var(--stone-200) transparent;
-      /* Pull the scrollbar out of the visual width of the cards. */
-      padding-right: 4px;
-      margin-right: -4px;
+      align-self: start;
     }
-    .salon-detail__right::-webkit-scrollbar { width: 6px; }
-    .salon-detail__right::-webkit-scrollbar-track { background: transparent; }
-    .salon-detail__right::-webkit-scrollbar-thumb {
-      background: var(--stone-200);
-      border-radius: 3px;
-    }
-    .salon-detail__right:hover::-webkit-scrollbar-thumb { background: var(--stone-400); }
     .booking-panel--side { padding: 20px 24px; }
 
     /* Compact opening-hours used inside the right-side card */
