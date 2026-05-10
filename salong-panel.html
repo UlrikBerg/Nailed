@@ -785,22 +785,22 @@
             <label class="form-field" style="display:block;">
               <span class="form-label">Avbestillingsfrist (timer)</span>
               <input class="form-input" type="number" name="cancellation_lead_hours" min="0" max="168" step="1" required />
-              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Kundene må avbestille minst så mange timer før timen starter.</span>
+              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Kunden må avbestille minst så mange timer før timen starter.</span>
             </label>
             <label class="form-field" style="display:block;">
-              <span class="form-label">Bookings-vindu (dager fram)</span>
+              <span class="form-label">Hvor langt fram kan kunder booke (dager)</span>
               <input class="form-input" type="number" name="booking_window_days" min="1" max="180" step="1" required />
-              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Hvor langt fram i tid kundene kan bestille.</span>
+              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Kunden kan bestille time inntil så mange dager fram.</span>
             </label>
             <label class="form-field" style="display:block;">
-              <span class="form-label">Lead time (minimum timer fram)</span>
+              <span class="form-label">Korteste varsel før booking (timer)</span>
               <input class="form-input" type="number" name="min_booking_lead_hours" min="0" max="168" step="1" required />
-              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Tidligste tidspunkt kundene kan booke før timen starter.</span>
+              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Kunden må bestille minst så mange timer før timen starter. Sett til 0 hvis du tar imot bookinger samme dag.</span>
             </label>
             <label class="form-field" style="display:block;">
-              <span class="form-label">Buffer mellom timer (min)</span>
+              <span class="form-label">Pause mellom timer (minutter)</span>
               <input class="form-input" type="number" name="booking_buffer_min" min="0" max="60" step="5" required />
-              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Minutter som legges til etter hver booking før neste kan starte.</span>
+              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Tid til opprydning og forberedelse mellom hver kunde.</span>
             </label>
             <div>
               <button class="btn btn-primary" type="submit">Lagre booking-regler</button>
