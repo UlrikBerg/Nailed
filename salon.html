@@ -205,7 +205,7 @@
           </div>
           <div class="slots" id="slotGrid"></div>
 
-          <button class="btn btn-primary btn-lg booking-panel__cta" id="bookCta" type="button">
+          <button class="btn btn-primary btn-lg booking-panel__cta" id="bookCta" type="button" disabled>
             Velg behandling
           </button>
           <div class="booking-panel__fineprint">
@@ -320,6 +320,10 @@
     document.getElementById('lightboxPrev').addEventListener('click', function(e) { e.stopPropagation(); lbIdx = (lbIdx - 1 + photos.length) % photos.length; renderLightbox(); });
     document.getElementById('lightboxNext').addEventListener('click', function(e) { e.stopPropagation(); lbIdx = (lbIdx + 1) % photos.length; renderLightbox(); });
     document.getElementById('lightboxThumbs').addEventListener('click', function(e) {
+      // Always swallow clicks on the thumb strip — bubbling up to the
+      // backdrop would close the lightbox even when the user clicked the
+      // gap between thumbs.
+      e.stopPropagation();
       var btn = e.target.closest('[data-idx]');
       if (btn) { lbIdx = parseInt(btn.dataset.idx); renderLightbox(); }
     });
@@ -653,6 +657,8 @@
       var amenities = Array.isArray(data.amenities) ? data.amenities : [];
       currentSalon = s;
       renderedServices = services;
+      // Page is loaded; the booking CTA is now safe to interact with.
+      cta.disabled = false;
 
       // Build a team-by-id lookup for the "Tilbys av" snippet.
       var teamById = {};
