@@ -489,9 +489,6 @@
               <a id="phPublicLink" href="#" target="_blank" class="btn btn-ghost btn-sm">
                 <i data-lucide="external-link"></i> Se kundevisning
               </a>
-              <button class="btn btn-primary btn-sm" id="editProfileBtn">
-                <i data-lucide="pencil"></i> Rediger profil
-              </button>
             </div>
           </div>
 
@@ -1412,7 +1409,10 @@
       }
     }
 
-    document.getElementById('editProfileBtn').addEventListener('click', function () { setProfileMode('edit', 'all'); });
+    // Top-level "Rediger profil" button removed — each card has its own
+    // Rediger button now, and the photo gallery has "Rediger bilder".
+    var topEditBtn = document.getElementById('editProfileBtn');
+    if (topEditBtn) topEditBtn.addEventListener('click', function () { setProfileMode('edit', 'all'); });
     document.getElementById('cancelEditProfileBtn').addEventListener('click', function () { setProfileMode('view'); });
     document.getElementById('cancelEditProfileBtn2').addEventListener('click', function () { setProfileMode('view'); });
     document.querySelectorAll('[data-edit]').forEach(function (btn) {
