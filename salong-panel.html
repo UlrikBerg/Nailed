@@ -6,6 +6,128 @@
   <title>Salongpanel — nailed</title>
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="stylesheet" href="admin/admin.css" />
+  <style>
+    /* Profil — visningsmodus (matcher /partner/profil.html) */
+    .profile-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 8px;
+      aspect-ratio: 21/7;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .profile-hero__tile {
+      border: 0;
+      padding: 0;
+      cursor: default;
+      background: var(--cream-100);
+    }
+    .profile-hero__tile--main { grid-column: 1 / 3; grid-row: 1 / 3; }
+    .profile-hero__edit { position: absolute; right: 16px; bottom: 16px; z-index: 2; }
+    .profile-hero__empty {
+      grid-column: 1 / -1; grid-row: 1 / -1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 6px; color: var(--fg-muted); font-size: 14px;
+      background: var(--cream-100); border: 2px dashed var(--stone-300);
+      border-radius: var(--radius-lg);
+    }
+
+    .profile-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 24px; margin-bottom: 32px; flex-wrap: wrap;
+    }
+    .profile-header__info { flex: 1; min-width: 300px; }
+    .profile-header__name {
+      font-family: var(--font-display); font-weight: 700; font-size: 36px;
+      letter-spacing: -0.02em; margin: 0 0 6px;
+    }
+    .profile-header__meta {
+      display: flex; gap: 16px; align-items: center;
+      font-size: 14px; color: var(--fg-muted); flex-wrap: wrap;
+    }
+    .profile-header__meta span { display: inline-flex; align-items: center; gap: 5px; }
+    .profile-header__meta i { width: 14px; height: 14px; }
+    .profile-header__actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    .profile-grid {
+      display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px;
+    }
+    @media (max-width: 900px) { .profile-grid { grid-template-columns: 1fr; } }
+
+    .profile-card {
+      background: var(--cream-50); border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg); padding: 24px;
+    }
+    .profile-card__head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px;
+    }
+    .profile-card__title {
+      font-family: var(--font-display); font-weight: 600; font-size: 18px; margin: 0;
+    }
+
+    .profile-about { font-size: 15px; line-height: 1.65; color: var(--ink); margin: 0; }
+    .profile-about--empty { color: var(--fg-muted); font-style: italic; }
+
+    .profile-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .profile-chip {
+      font-family: var(--font-body); font-weight: 500; font-size: 13px;
+      padding: 8px 14px; border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200); background: var(--cream-100);
+      display: inline-flex; gap: 6px; align-items: center;
+      color: var(--ink); text-decoration: none;
+    }
+    .profile-chip:hover { border-color: var(--rouge-300); }
+    .profile-chip i { width: 14px; height: 14px; color: var(--fg-muted); }
+
+    .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .profile-stat {
+      background: var(--cream-100); border-radius: var(--radius-md);
+      padding: 16px; text-align: center;
+    }
+    .profile-stat__value {
+      font-family: var(--font-display); font-weight: 700; font-size: 28px;
+      color: var(--ink); line-height: 1;
+    }
+    .profile-stat__label { font-size: 12px; color: var(--fg-muted); margin-top: 4px; }
+    .profile-stat__placeholder {
+      color: var(--fg-muted); font-size: 12px;
+      grid-column: 1 / -1; text-align: center; padding: 12px 0;
+    }
+
+    .profile-preview {
+      margin-top: 0; padding: 14px 16px; background: var(--cream-100);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 13px; color: var(--fg-muted); gap: 12px;
+    }
+    .profile-preview a {
+      color: var(--rouge-500); font-weight: 600;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .profile-preview a i { width: 14px; height: 14px; }
+
+    .profile-services { display: flex; flex-direction: column; }
+    .profile-services__row {
+      display: flex; justify-content: space-between; padding: 10px 0;
+      border-bottom: 1px solid var(--stone-200); font-size: 14px;
+    }
+    .profile-services__row:last-child { border-bottom: 0; }
+    .profile-services__name { font-weight: 600; }
+    .profile-services__meta { font-size: 12px; color: var(--fg-muted); margin-top: 2px; }
+    .profile-services__price { font-family: var(--font-display); font-weight: 700; }
+
+    .profile-contact { display: flex; flex-direction: column; gap: 12px; }
+    .profile-contact__row {
+      display: flex; align-items: center; gap: 10px; font-size: 14px;
+    }
+    .profile-contact__row i { width: 16px; height: 16px; color: var(--fg-muted); flex-shrink: 0; }
+    .profile-contact__row--empty { color: var(--fg-muted); font-style: italic; }
+  </style>
 </head>
 <body>
 
@@ -165,87 +287,197 @@
         <div class="topbar">
           <div>
             <h1 class="topbar__title">Salongprofil</h1>
-            <div class="topbar__sub">Slik vises salongen offentlig.</div>
+            <div class="topbar__sub">Slik ser salongen din ut for kundene på nailed.</div>
           </div>
         </div>
 
-        <!-- Image management -->
-        <div class="panel">
-          <div class="panel__head">
-            <h3>Bilder</h3>
-            <div style="font-size: 13px; color: var(--fg-muted);">Maks 24 bilder, opptil 8 MB hver. JPEG, PNG, WEBP eller HEIC.</div>
+        <!-- ======================================================
+             VIEW MODE — read-only profile (matches /partner/ design)
+             ====================================================== -->
+        <div id="profileView">
+          <div class="profile-hero" id="profileHero"></div>
+
+          <div class="profile-header">
+            <div class="profile-header__info">
+              <h2 class="profile-header__name" id="phName">—</h2>
+              <div class="profile-header__meta" id="phMeta"></div>
+            </div>
+            <div class="profile-header__actions">
+              <a id="phPublicLink" href="#" target="_blank" class="btn btn-ghost btn-sm">
+                <i data-lucide="external-link"></i> Se kundevisning
+              </a>
+              <button class="btn btn-primary btn-sm" id="editProfileBtn">
+                <i data-lucide="pencil"></i> Rediger profil
+              </button>
+            </div>
           </div>
 
-          <div id="coverPreview" style="margin-bottom: 16px;"></div>
+          <div class="profile-stats" style="margin-bottom: 20px;">
+            <div class="profile-stat">
+              <div class="profile-stat__value" id="statBookings">0</div>
+              <div class="profile-stat__label">Bookinger totalt</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat__value" id="statServices">0</div>
+              <div class="profile-stat__label">Behandlinger</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat__value" id="statImages">0</div>
+              <div class="profile-stat__label">Bilder</div>
+            </div>
+          </div>
 
-          <label class="btn btn-primary" style="cursor: pointer;">
-            <i data-lucide="upload"></i> Last opp bilde
-            <input type="file" id="imageUploader" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" style="display:none;" />
-          </label>
-          <span id="uploadStatus" style="margin-left: 12px; color: var(--fg-muted); font-size: 13px;"></span>
+          <div class="profile-grid">
+            <!-- LEFT -->
+            <div style="display:flex; flex-direction:column; gap:20px;">
 
-          <div id="gallery" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 20px;"></div>
-        </div>
+              <div class="profile-card">
+                <div class="profile-card__head">
+                  <h3 class="profile-card__title">Om salongen</h3>
+                  <button class="btn btn-ghost btn-sm" data-edit="bio"><i data-lucide="pencil"></i> Rediger</button>
+                </div>
+                <p class="profile-about" id="phBio">—</p>
+                <div class="profile-chips" id="phSocialChips"></div>
+              </div>
 
-        <div class="panel">
-          <form id="salonForm" class="settings-grid">
-            <div class="form-group" style="grid-column: 1 / -1;">
-              <label>Navn</label>
-              <input class="form-input" name="name" type="text" required />
-            </div>
-            <div class="form-group" style="grid-column: 1 / -1;">
-              <label>Bio</label>
-              <textarea class="form-input" name="bio" rows="4" maxlength="4000" placeholder="Fortell kundene hvem dere er.."></textarea>
-            </div>
-            <div class="form-group">
-              <label>Adresse</label>
-              <input class="form-input" name="address_line" type="text" />
-            </div>
-            <div class="form-group">
-              <label>Postnummer</label>
-              <input class="form-input" name="postal_code" type="text" maxlength="16" />
-            </div>
-            <div class="form-group">
-              <label>By</label>
-              <input class="form-input" name="city" type="text" required />
-            </div>
-            <div class="form-group">
-              <label>Instagram-URL</label>
-              <input class="form-input" name="instagram_url" type="url" placeholder="https://instagram.com/.." />
-            </div>
-            <div class="form-group">
-              <label>TikTok-URL</label>
-              <input class="form-input" name="tiktok_url" type="url" />
-            </div>
-            <div class="form-group">
-              <label>Facebook-URL</label>
-              <input class="form-input" name="facebook_url" type="url" />
-            </div>
-            <div class="form-group">
-              <label>Nettside</label>
-              <input class="form-input" name="website_url" type="url" />
-            </div>
-
-            <div class="form-group" style="grid-column: 1 / -1;">
-              <label style="display:flex; gap:10px; align-items:center;">
-                <input type="checkbox" name="public_phone_visible" />
-                Vis telefonnummer offentlig på salongprofilen
-              </label>
-            </div>
-            <div class="form-group" style="grid-column: 1 / -1;">
-              <label style="display:flex; gap:10px; align-items:center;">
-                <input type="checkbox" name="accepts_new_bookings" />
-                Tar imot nye bookinger akkurat nå
-              </label>
-              <div style="font-size:12px; color: var(--fg-muted); margin-top: 4px;">
-                Skru av når du er fullbooket eller tar pause. Salongen er fortsatt synlig, men kan ikke bookes.
+              <div class="profile-card">
+                <div class="profile-card__head">
+                  <h3 class="profile-card__title">Kontaktinformasjon</h3>
+                  <button class="btn btn-ghost btn-sm" data-edit="contact"><i data-lucide="pencil"></i> Rediger</button>
+                </div>
+                <div class="profile-contact" id="phContact"></div>
               </div>
             </div>
 
-            <div style="grid-column: 1 / -1;">
-              <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
+            <!-- RIGHT -->
+            <div style="display:flex; flex-direction:column; gap:20px;">
+
+              <div class="profile-card">
+                <div class="profile-card__head">
+                  <h3 class="profile-card__title">Behandlinger</h3>
+                  <button class="btn btn-ghost btn-sm" data-tab-link="tjenester"><i data-lucide="pencil"></i> Rediger</button>
+                </div>
+                <div class="profile-services" id="phServices"></div>
+                <div id="phServicesAll" style="margin-top:12px; text-align:center; display:none;">
+                  <button class="btn btn-ghost btn-sm" data-tab-link="tjenester">Vis alle behandlinger</button>
+                </div>
+              </div>
+
+              <div class="profile-card">
+                <div class="profile-card__head">
+                  <h3 class="profile-card__title">Tilgjengelighet</h3>
+                  <button class="btn btn-ghost btn-sm" data-edit="availability"><i data-lucide="pencil"></i> Rediger</button>
+                </div>
+                <div class="profile-contact">
+                  <div class="profile-contact__row">
+                    <i data-lucide="check-circle"></i>
+                    <span id="phAcceptsBookings">—</span>
+                  </div>
+                  <div class="profile-contact__row">
+                    <i data-lucide="phone"></i>
+                    <span id="phPhoneVisibility">—</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="profile-card">
+                <div class="profile-card__head">
+                  <h3 class="profile-card__title">Kundevisning</h3>
+                </div>
+                <div class="profile-preview">
+                  <span>Se hvordan profilen din ser ut for kunder</span>
+                  <a id="phPreviewLink" href="#" target="_blank">Åpne <i data-lucide="external-link"></i></a>
+                </div>
+              </div>
             </div>
-          </form>
+          </div>
+        </div>
+
+        <!-- ======================================================
+             EDIT MODE — image manager + form (default hidden)
+             ====================================================== -->
+        <div id="profileEdit" style="display:none;">
+          <div style="margin-bottom:16px;">
+            <button class="btn btn-ghost btn-sm" id="cancelEditProfileBtn">
+              <i data-lucide="arrow-left"></i> Tilbake til visning
+            </button>
+          </div>
+
+          <div class="panel">
+            <div class="panel__head">
+              <h3>Bilder</h3>
+              <div style="font-size: 13px; color: var(--fg-muted);">Maks 24 bilder, opptil 8 MB hver. JPEG, PNG, WEBP eller HEIC.</div>
+            </div>
+            <div id="coverPreview" style="margin-bottom: 16px;"></div>
+            <label class="btn btn-primary" style="cursor: pointer;">
+              <i data-lucide="upload"></i> Last opp bilde
+              <input type="file" id="imageUploader" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" style="display:none;" />
+            </label>
+            <span id="uploadStatus" style="margin-left: 12px; color: var(--fg-muted); font-size: 13px;"></span>
+            <div id="gallery" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 20px;"></div>
+          </div>
+
+          <div class="panel">
+            <form id="salonForm" class="settings-grid">
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Navn</label>
+                <input class="form-input" name="name" type="text" required />
+              </div>
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Bio</label>
+                <textarea class="form-input" name="bio" rows="4" maxlength="4000" placeholder="Fortell kundene hvem dere er.."></textarea>
+              </div>
+              <div class="form-group">
+                <label>Adresse</label>
+                <input class="form-input" name="address_line" type="text" />
+              </div>
+              <div class="form-group">
+                <label>Postnummer</label>
+                <input class="form-input" name="postal_code" type="text" maxlength="16" />
+              </div>
+              <div class="form-group">
+                <label>By</label>
+                <input class="form-input" name="city" type="text" required />
+              </div>
+              <div class="form-group">
+                <label>Instagram-URL</label>
+                <input class="form-input" name="instagram_url" type="url" placeholder="https://instagram.com/.." />
+              </div>
+              <div class="form-group">
+                <label>TikTok-URL</label>
+                <input class="form-input" name="tiktok_url" type="url" />
+              </div>
+              <div class="form-group">
+                <label>Facebook-URL</label>
+                <input class="form-input" name="facebook_url" type="url" />
+              </div>
+              <div class="form-group">
+                <label>Nettside</label>
+                <input class="form-input" name="website_url" type="url" />
+              </div>
+
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label style="display:flex; gap:10px; align-items:center;">
+                  <input type="checkbox" name="public_phone_visible" />
+                  Vis telefonnummer offentlig på salongprofilen
+                </label>
+              </div>
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label style="display:flex; gap:10px; align-items:center;">
+                  <input type="checkbox" name="accepts_new_bookings" />
+                  Tar imot nye bookinger akkurat nå
+                </label>
+                <div style="font-size:12px; color: var(--fg-muted); margin-top: 4px;">
+                  Skru av når du er fullbooket eller tar pause. Salongen er fortsatt synlig, men kan ikke bookes.
+                </div>
+              </div>
+
+              <div style="grid-column: 1 / -1; display:flex; gap:8px;">
+                <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
+                <button class="btn btn-ghost" type="button" id="cancelEditProfileBtn2">Avbryt</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
 
@@ -313,6 +545,8 @@
              d.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
     }
 
+    var currentImages = [];
+
     async function loadSalon() {
       var res = await NailedAuth.api('/api/v1/salons/me/own');
       if (res.status === 404) {
@@ -323,6 +557,7 @@
       }
       var data = await res.json();
       salon = data.salon;
+      currentImages = data.images || [];
       document.getElementById('dashTitle').innerHTML = escapeHtml(salon.name);
       document.getElementById('dashSub').textContent = salon.city;
       document.getElementById('publicLink').href = '/salon.html?slug=' + encodeURIComponent(salon.slug);
@@ -337,10 +572,148 @@
       document.querySelector('input[name=website_url]').value = salon.website_url || '';
       document.querySelector('input[name=public_phone_visible]').checked = !!salon.public_phone_visible;
       document.querySelector('input[name=accepts_new_bookings]').checked = !!salon.accepts_new_bookings;
-      renderCover(salon, data.images || []);
-      renderGallery(salon, data.images || []);
+      renderCover(salon, currentImages);
+      renderGallery(salon, currentImages);
+      renderProfileView(salon, currentImages);
       return salon;
     }
+
+    function renderProfileView(s, images) {
+      // Hero gallery: up to 5 images, tile classes match /partner/.
+      var hero = document.getElementById('profileHero');
+      if (!images.length) {
+        hero.innerHTML =
+          '<div class="profile-hero__empty">' +
+          '<i data-lucide="image" style="width:28px;height:28px;"></i>' +
+          '<div>Ingen bilder ennå. Klikk Rediger profil for å laste opp.</div>' +
+          '</div>';
+      } else {
+        var tiles = '';
+        for (var i = 0; i < 5; i++) {
+          var img = images[i];
+          var modCls = i === 0 ? ' profile-hero__tile--main' : '';
+          var bg = img
+            ? 'background:url(' + encodeURI(img.url) + ') center/cover no-repeat;'
+            : 'background:var(--cream-100);';
+          tiles += '<button class="profile-hero__tile' + modCls + '" type="button" style="' + bg + '"></button>';
+        }
+        hero.innerHTML = tiles;
+      }
+
+      // Header
+      document.getElementById('phName').textContent = s.name || '';
+      var meta = document.getElementById('phMeta');
+      var bits = [];
+      var addr = [s.address_line, [s.postal_code, s.city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+      if (addr) bits.push('<span><i data-lucide="map-pin"></i>' + escapeHtml(addr) + '</span>');
+      else if (s.city) bits.push('<span><i data-lucide="map-pin"></i>' + escapeHtml(s.city) + '</span>');
+      if (s.accepts_new_bookings) bits.push('<span style="color:var(--success-500)"><i data-lucide="check-circle"></i>Tar imot bookinger</span>');
+      else bits.push('<span style="color:var(--danger-500)"><i data-lucide="x-circle"></i>Tar ikke imot bookinger</span>');
+      meta.innerHTML = bits.join('');
+      var publicHref = '/salon.html?slug=' + encodeURIComponent(s.slug);
+      document.getElementById('phPublicLink').href = publicHref;
+      document.getElementById('phPreviewLink').href = publicHref;
+
+      // Bio
+      var bio = document.getElementById('phBio');
+      if (s.bio && s.bio.trim()) {
+        bio.classList.remove('profile-about--empty');
+        bio.textContent = s.bio;
+      } else {
+        bio.classList.add('profile-about--empty');
+        bio.textContent = 'Ingen beskrivelse lagt til. Klikk Rediger for å fortelle kundene om salongen din.';
+      }
+
+      // Social-link chips
+      var chips = document.getElementById('phSocialChips');
+      var social = [
+        { url: s.instagram_url, icon: 'instagram', label: 'Instagram' },
+        { url: s.tiktok_url, icon: 'music', label: 'TikTok' },
+        { url: s.facebook_url, icon: 'facebook', label: 'Facebook' },
+        { url: s.website_url, icon: 'globe', label: 'Nettside' },
+      ].filter(function (x) { return x.url; });
+      chips.innerHTML = social.map(function (x) {
+        return '<a class="profile-chip" target="_blank" rel="noopener" href="' + escapeHtml(x.url) + '">' +
+          '<i data-lucide="' + x.icon + '"></i> ' + escapeHtml(x.label) + '</a>';
+      }).join('');
+
+      // Contact card
+      var contact = document.getElementById('phContact');
+      var rows = [];
+      if (addr) rows.push('<div class="profile-contact__row"><i data-lucide="map-pin"></i>' + escapeHtml(addr) + '</div>');
+      if (rows.length === 0) {
+        rows.push('<div class="profile-contact__row profile-contact__row--empty"><i data-lucide="info"></i>Legg til adresse og kontaktinfo i Rediger profil.</div>');
+      }
+      contact.innerHTML = rows.join('');
+
+      // Availability card text
+      document.getElementById('phAcceptsBookings').textContent = s.accepts_new_bookings
+        ? 'Salongen tar imot nye bookinger.'
+        : 'Salongen tar ikke imot nye bookinger akkurat nå.';
+      document.getElementById('phPhoneVisibility').textContent = s.public_phone_visible
+        ? 'Telefonnummer er synlig offentlig på salongprofilen.'
+        : 'Telefonnummer er skjult for kunder.';
+
+      // Stats — use what we know without extra fetches.
+      document.getElementById('statImages').textContent = images.length;
+      // Service count + total bookings: leave defaults; salon-page services tab loads later.
+      var bookingsRows = document.querySelectorAll('#incomingTable tbody tr');
+      document.getElementById('statBookings').textContent = bookingsRows.length || '0';
+
+      // Top 4 services
+      renderProfileServices();
+
+      window.lucide && window.lucide.createIcons();
+    }
+
+    function renderProfileServices() {
+      var container = document.getElementById('phServices');
+      var allBtn = document.getElementById('phServicesAll');
+      if (!container) return;
+      var items = (window.__lastServices || []).filter(function (s) { return s.active; });
+      document.getElementById('statServices').textContent = items.length;
+      if (!items.length) {
+        container.innerHTML = '<div class="profile-services__row" style="border:0;color:var(--fg-muted);font-style:italic;">Ingen behandlinger lagt til ennå.</div>';
+        allBtn.style.display = 'none';
+        return;
+      }
+      var top = items.slice(0, 4);
+      container.innerHTML = top.map(function (s) {
+        return '<div class="profile-services__row">' +
+          '<div><div class="profile-services__name">' + escapeHtml(s.name || '') + '</div>' +
+          '<div class="profile-services__meta">' + (s.duration_min || 0) + ' min</div></div>' +
+          '<span class="profile-services__price">' + (s.price_nok || 0) + ' kr</span>' +
+          '</div>';
+      }).join('');
+      allBtn.style.display = items.length > 4 ? '' : 'none';
+    }
+
+    function setProfileMode(mode) {
+      var view = document.getElementById('profileView');
+      var edit = document.getElementById('profileEdit');
+      if (!view || !edit) return;
+      view.style.display = mode === 'edit' ? 'none' : '';
+      edit.style.display = mode === 'edit' ? '' : 'none';
+      if (mode === 'edit') {
+        edit.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        view.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    document.getElementById('editProfileBtn').addEventListener('click', function () { setProfileMode('edit'); });
+    document.getElementById('cancelEditProfileBtn').addEventListener('click', function () { setProfileMode('view'); });
+    document.getElementById('cancelEditProfileBtn2').addEventListener('click', function () { setProfileMode('view'); });
+    document.querySelectorAll('[data-edit]').forEach(function (btn) {
+      btn.addEventListener('click', function () { setProfileMode('edit'); });
+    });
+    document.querySelectorAll('[data-tab-link]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var target = this.getAttribute('data-tab-link');
+        var navBtn = document.querySelector('.nav-item[data-tab="' + target + '"]');
+        if (navBtn) navBtn.click();
+      });
+    });
 
     function renderCover(s, images) {
       var el = document.getElementById('coverPreview');
@@ -483,6 +856,8 @@
       var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/services');
       var data = await res.json();
       var services = data.services || [];
+      window.__lastServices = services;
+      if (typeof renderProfileServices === 'function') renderProfileServices();
       var tbody = document.querySelector('#servicesTable tbody');
       tbody.innerHTML = '';
       document.getElementById('servicesEmpty').style.display = services.length === 0 ? 'block' : 'none';
@@ -572,6 +947,7 @@
       if (res.ok) {
         NailedForms.toast('Salongprofil lagret');
         await loadSalon();
+        setProfileMode('view');
       } else {
         var data = await res.json().catch(function () { return {}; });
         NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre', { type: 'error' });
