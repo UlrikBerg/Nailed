@@ -63,6 +63,18 @@ const config = {
   },
 
   bootstrapAdminEmails: list('BOOTSTRAP_ADMIN_EMAILS'),
+
+  storage: {
+    backend: optional('STORAGE_BACKEND', 'local'),
+    localDir: optional('LOCAL_UPLOAD_DIR', './uploads'),
+    r2: {
+      accountId: optional('R2_ACCOUNT_ID', ''),
+      accessKeyId: optional('R2_ACCESS_KEY_ID', ''),
+      secretAccessKey: optional('R2_SECRET_ACCESS_KEY', ''),
+      bucket: optional('R2_BUCKET', ''),
+      publicBaseUrl: optional('R2_PUBLIC_BASE_URL', ''),
+    },
+  },
 };
 
 module.exports = config;

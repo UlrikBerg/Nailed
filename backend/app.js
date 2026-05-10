@@ -8,6 +8,7 @@ const { notFound, errorHandler } = require('./middleware/error');
 const authRoutes = require('./routes/auth');
 const meRoutes = require('./routes/me');
 const salonRoutes = require('./routes/salons');
+const imageRoutes = require('./routes/images');
 const bookingRoutes = require('./routes/bookings');
 const favoriteRoutes = require('./routes/favorites');
 const salonApplicationRoutes = require('./routes/salon-applications');
@@ -35,6 +36,15 @@ function buildApp() {
   app.use(express.json({ limit: '256kb' }));
   app.use(express.urlencoded({ extended: true, limit: '256kb' }));
 
+  // Local-storage uploads (only relevant when STORAGE_BACKEND=local).
+  if (config.storage.backend === 'local') {
+    const uploadsAbs = path.resolve(__dirname, '..', config.storage.localDir);
+    app.use('/uploads', express.static(uploadsAbs, {
+      maxAge: '7d',
+      immutable: true,
+    }));
+  }
+
   // Static frontend (project root). API mounts at /api/v1 below.
   app.use(express.static(path.join(__dirname, '..'), {
     extensions: ['html'],
@@ -51,6 +61,7 @@ function buildApp() {
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/me', meRoutes);
   app.use('/api/v1/salons', salonRoutes);
+  app.use('/api/v1/salons', imageRoutes);
   app.use('/api/v1/bookings', bookingRoutes);
   app.use('/api/v1/favorites', favoriteRoutes);
   app.use('/api/v1/salon-applications', salonApplicationRoutes);

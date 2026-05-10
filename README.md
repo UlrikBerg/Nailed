@@ -100,6 +100,11 @@ All endpoints under `/api/v1`. JSON in/out. Auth via `Authorization: Bearer <acc
 | `POST /bookings` | user | Create booking |
 | `PATCH /bookings/:id` | mixed | Status changes (cancel/confirm/complete/no_show) |
 | `GET/POST/DELETE /favorites` | user | Manage favorites |
+| `POST /salons/:id/images` | salon_owner | Multipart upload — field `file` |
+| `GET /salons/:id/images` | — | Public list of gallery images |
+| `DELETE /salons/:id/images/:imageId` | salon_owner | Remove image |
+| `PATCH /salons/:id/cover` | salon_owner | `{image_id}` — pick cover from gallery |
+| `PATCH /salons/:id/images/reorder` | salon_owner | `{order: [imageId,...]}` |
 | `GET /salon-applications/mine` | user | Your latest application |
 | `POST /salon-applications` | user | Submit application |
 | `POST /salon-applications/:id/withdraw` | user | Withdraw pending application |
@@ -110,12 +115,27 @@ All endpoints under `/api/v1`. JSON in/out. Auth via `Authorization: Bearer <acc
 | `GET /admin/salon-applications` | admin | Applications, filterable by status |
 | `POST /admin/salon-applications/:id/(approve\|reject)` | admin | Decisions |
 
+## Storage (images)
+
+The `STORAGE_BACKEND` env var controls where salon images live:
+
+- `local` (default) — writes to `./uploads/`, served from `/uploads/*` by Express. Use for dev.
+- `r2` — Cloudflare R2 (S3-compatible). Use for production. See [docs/R2_SETUP.md](docs/R2_SETUP.md).
+
+Switching is one env var change; existing image keys work across backends because the DB stores
+keys (e.g. `salons/12/abc.webp`), and each backend's `publicUrl(key)` builds the right URL.
+
+Server-side, every uploaded image is auto-rotated by EXIF, capped at 2400px on the longest side,
+and re-encoded to WebP at q=82. Originals are not preserved (Fase 1 storage is "good enough"; if
+you ever need original-fidelity, rework `backend/routes/images.js`).
+
 ## Phases
 
-- **Fase 1 (this session):** Backend + auth + panels + salon-application flow.
-- **Fase 2:** R2 image uploads (signed PUT URLs), salon profile photos, settings persistence.
-- **Fase 3:** Public pages (utforsk, salon detail, favoritter, booking flow) read from DB. GDPR
-  texts (privacy policy, ToS, cookie banner, data export, full erasure).
+- **Fase 1:** Backend + auth + panels + salon-application flow. ✓
+- **Fase 2:** Image uploads (local/R2), salon photo gallery, salon settings (cover, accept-bookings,
+  phone visibility), customer notification preferences, public salon page reads real data. ✓
+- **Fase 3:** Public marketplace pages (utforsk, favoritter, booking flow) read from DB.
+  GDPR/legal texts. Cookie banner. Data export & full erasure.
 
 ## Notes
 

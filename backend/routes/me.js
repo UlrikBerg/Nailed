@@ -11,7 +11,9 @@ router.use(requireAuth);
 // GET /me — current user profile
 router.get('/', asyncRoute(async (req, res) => {
   const user = await queryOne(
-    `SELECT id, email, name, phone, birth_year, address_line, postal_code, city, role, created_at
+    `SELECT id, email, name, phone, birth_year, address_line, postal_code, city, role,
+            notify_email_bookings, notify_email_reminders, notify_sms_reminders, notify_marketing,
+            created_at
        FROM users WHERE id = ?`,
     [req.user.id]
   );
@@ -35,6 +37,10 @@ router.patch('/', asyncRoute(async (req, res) => {
     address_line: z.string().trim().max(255).nullable().optional(),
     postal_code: z.string().trim().max(16).nullable().optional(),
     city: z.string().trim().max(128).nullable().optional(),
+    notify_email_bookings: z.boolean().optional(),
+    notify_email_reminders: z.boolean().optional(),
+    notify_sms_reminders: z.boolean().optional(),
+    notify_marketing: z.boolean().optional(),
   });
   const patch = schema.parse(req.body);
 
@@ -42,7 +48,10 @@ router.patch('/', asyncRoute(async (req, res) => {
   if (fields.length === 0) return res.json({ ok: true });
 
   const setClause = fields.map(f => `${f} = ?`).join(', ');
-  const values = fields.map(f => patch[f]);
+  const values = fields.map(f => {
+    const v = patch[f];
+    return typeof v === 'boolean' ? (v ? 1 : 0) : v;
+  });
   values.push(req.user.id);
 
   await query(`UPDATE users SET ${setClause} WHERE id = ?`, values);

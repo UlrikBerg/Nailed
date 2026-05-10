@@ -169,6 +169,24 @@
           </div>
         </div>
 
+        <!-- Image management -->
+        <div class="panel">
+          <div class="panel__head">
+            <h3>Bilder</h3>
+            <div style="font-size: 13px; color: var(--fg-muted);">Maks 24 bilder, opptil 8 MB hver. JPEG, PNG, WEBP eller HEIC.</div>
+          </div>
+
+          <div id="coverPreview" style="margin-bottom: 16px;"></div>
+
+          <label class="btn btn-primary" style="cursor: pointer;">
+            <i data-lucide="upload"></i> Last opp bilde
+            <input type="file" id="imageUploader" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" style="display:none;" />
+          </label>
+          <span id="uploadStatus" style="margin-left: 12px; color: var(--fg-muted); font-size: 13px;"></span>
+
+          <div id="gallery" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 20px;"></div>
+        </div>
+
         <div class="panel">
           <form id="salonForm" class="settings-grid">
             <div class="form-group" style="grid-column: 1 / -1;">
@@ -207,6 +225,23 @@
               <label>Nettside</label>
               <input class="form-input" name="website_url" type="url" />
             </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label style="display:flex; gap:10px; align-items:center;">
+                <input type="checkbox" name="public_phone_visible" />
+                Vis telefonnummer offentlig på salongprofilen
+              </label>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label style="display:flex; gap:10px; align-items:center;">
+                <input type="checkbox" name="accepts_new_bookings" />
+                Tar imot nye bookinger akkurat nå
+              </label>
+              <div style="font-size:12px; color: var(--fg-muted); margin-top: 4px;">
+                Skru av når du er fullbooket eller tar pause. Salongen er fortsatt synlig, men kan ikke bookes.
+              </div>
+            </div>
+
             <div style="grid-column: 1 / -1; display:flex; gap:8px;">
               <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
               <span id="salonMsg" style="align-self:center; color: var(--fg-muted); font-size: 13px;"></span>
@@ -281,7 +316,6 @@
     async function loadSalon() {
       var res = await NailedAuth.api('/api/v1/salons/me/own');
       if (res.status === 404) {
-        // No salon — should never happen for salon_owner; redirect.
         document.querySelector('main').innerHTML =
           '<div class="topbar"><div><h1 class="topbar__title">Ingen salong</h1>' +
           '<div class="topbar__sub">Du er ikke registrert som salongeier ennå.</div></div></div>';
@@ -301,8 +335,92 @@
       document.querySelector('input[name=tiktok_url]').value = salon.tiktok_url || '';
       document.querySelector('input[name=facebook_url]').value = salon.facebook_url || '';
       document.querySelector('input[name=website_url]').value = salon.website_url || '';
+      document.querySelector('input[name=public_phone_visible]').checked = !!salon.public_phone_visible;
+      document.querySelector('input[name=accepts_new_bookings]').checked = !!salon.accepts_new_bookings;
+      renderCover(salon, data.images || []);
+      renderGallery(salon, data.images || []);
       return salon;
     }
+
+    function renderCover(s, images) {
+      var el = document.getElementById('coverPreview');
+      if (s.cover_url) {
+        el.innerHTML =
+          '<div style="position:relative; max-width: 480px;">' +
+          '<img src="' + escapeHtml(s.cover_url) + '" alt="Cover" style="width:100%; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius-lg); border: 1px solid var(--stone-200);" />' +
+          '<div style="position:absolute; top:12px; left:12px; background: rgba(0,0,0,0.6); color: white; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600;">Forsidebilde</div>' +
+          '</div>';
+      } else {
+        el.innerHTML =
+          '<div style="max-width: 480px; aspect-ratio: 16/9; border: 2px dashed var(--stone-300); border-radius: var(--radius-lg); display:flex; align-items:center; justify-content:center; color: var(--fg-muted); font-size: 14px;">' +
+          'Ingen forsidebilde — last opp et bilde under.' +
+          '</div>';
+      }
+    }
+
+    function renderGallery(s, images) {
+      var el = document.getElementById('gallery');
+      if (!images.length) { el.innerHTML = ''; return; }
+      el.innerHTML = images.map(function (img) {
+        var isCover = s.cover_image_key === img.key;
+        return (
+          '<div style="position:relative; border-radius: var(--radius-md); overflow:hidden; border: 1px solid var(--stone-200); background: var(--cream-100);">' +
+            '<img src="' + escapeHtml(img.url) + '" alt="" style="display:block; width:100%; aspect-ratio: 1/1; object-fit: cover;" />' +
+            '<div style="position:absolute; inset:0; background: linear-gradient(to top, rgba(0,0,0,0.55), transparent 40%); display:flex; flex-direction:column; justify-content:flex-end; padding: 8px; gap: 6px; opacity: 0; transition: opacity 0.15s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">' +
+              (isCover
+                ? '<span class="status status--confirmed" style="align-self:flex-start;">Forsidebilde</span>'
+                : '<button class="btn btn-ghost btn-sm" data-set-cover="' + img.id + '" style="background: rgba(255,255,255,0.95);"><i data-lucide="star"></i> Sett som forside</button>') +
+              '<button class="btn btn-danger btn-sm" data-delete="' + img.id + '"><i data-lucide="trash-2"></i> Slett</button>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+      el.querySelectorAll('[data-set-cover]').forEach(function (b) {
+        b.addEventListener('click', async function () {
+          var id = parseInt(this.getAttribute('data-set-cover'), 10);
+          var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/cover', { method: 'PATCH', body: { image_id: id } });
+          if (res.ok) await loadSalon();
+        });
+      });
+      el.querySelectorAll('[data-delete]').forEach(function (b) {
+        b.addEventListener('click', async function () {
+          if (!confirm('Slette dette bildet?')) return;
+          var id = this.getAttribute('data-delete');
+          var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/images/' + id, { method: 'DELETE' });
+          if (res.ok) await loadSalon();
+        });
+      });
+      window.lucide && window.lucide.createIcons();
+    }
+
+    async function uploadImage(file) {
+      var status = document.getElementById('uploadStatus');
+      status.textContent = 'Laster opp ...';
+      var fd = new FormData();
+      fd.append('file', file);
+      var token = NailedAuth.getAccess();
+      var res = await fetch('/api/v1/salons/' + salon.id + '/images', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token },
+        body: fd,
+      });
+      if (!res.ok) {
+        var data = await res.json().catch(function () { return {}; });
+        status.textContent = (data.error && data.error.message) || 'Opplasting feilet.';
+        setTimeout(function () { status.textContent = ''; }, 3000);
+        return;
+      }
+      status.textContent = 'Lastet opp.';
+      setTimeout(function () { status.textContent = ''; }, 1500);
+      await loadSalon();
+    }
+
+    document.getElementById('imageUploader').addEventListener('change', function () {
+      if (this.files && this.files[0]) {
+        uploadImage(this.files[0]);
+        this.value = '';
+      }
+    });
 
     async function loadIncoming() {
       var res = await NailedAuth.api('/api/v1/bookings/incoming');
@@ -447,6 +565,8 @@
       ['name','bio','address_line','postal_code','city','instagram_url','tiktok_url','facebook_url','website_url'].forEach(function (k) {
         body[k] = (fd.get(k) || '').toString().trim() || null;
       });
+      body.public_phone_visible = this.querySelector('input[name=public_phone_visible]').checked;
+      body.accepts_new_bookings = this.querySelector('input[name=accepts_new_bookings]').checked;
       var res = await NailedAuth.api('/api/v1/salons/' + salon.id, { method: 'PATCH', body: body });
       var msg = document.getElementById('salonMsg');
       msg.textContent = res.ok ? 'Lagret.' : 'Kunne ikke lagre.';

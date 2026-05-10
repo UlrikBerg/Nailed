@@ -185,8 +185,34 @@
         <div class="topbar">
           <div>
             <h1 class="topbar__title">Innstillinger</h1>
-            <div class="topbar__sub">Aktive sesjoner, sikkerhet og kontosletting.</div>
+            <div class="topbar__sub">Varsler, aktive sesjoner og kontosletting.</div>
           </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel__head"><h3>Varsler</h3></div>
+          <form id="notifyForm" style="display:flex; flex-direction:column; gap:12px;">
+            <label style="display:flex; gap:10px; align-items:center;">
+              <input type="checkbox" name="notify_email_bookings" />
+              E-post når bookingstatus endres (bekreftet, kansellert, fullført)
+            </label>
+            <label style="display:flex; gap:10px; align-items:center;">
+              <input type="checkbox" name="notify_email_reminders" />
+              E-post-påminnelse dagen før booking
+            </label>
+            <label style="display:flex; gap:10px; align-items:center;">
+              <input type="checkbox" name="notify_sms_reminders" />
+              SMS-påminnelse 2 timer før booking
+            </label>
+            <label style="display:flex; gap:10px; align-items:center;">
+              <input type="checkbox" name="notify_marketing" />
+              Tips og kampanjer fra nailed (kan skrus av når som helst)
+            </label>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
+              <span id="notifyMsg" style="color: var(--fg-muted); font-size: 13px;"></span>
+            </div>
+          </form>
         </div>
 
         <div class="panel">
@@ -362,6 +388,10 @@
       document.querySelector('input[name=address_line]').value = u.address_line || '';
       document.querySelector('input[name=postal_code]').value = u.postal_code || '';
       document.querySelector('input[name=city]').value = u.city || '';
+      document.querySelector('input[name=notify_email_bookings]').checked = !!u.notify_email_bookings;
+      document.querySelector('input[name=notify_email_reminders]').checked = !!u.notify_email_reminders;
+      document.querySelector('input[name=notify_sms_reminders]').checked = !!u.notify_sms_reminders;
+      document.querySelector('input[name=notify_marketing]').checked = !!u.notify_marketing;
     }
 
     async function loadSessions() {
@@ -412,6 +442,20 @@
       var res = await NailedAuth.api('/api/v1/me', { method: 'PATCH', body: body });
       document.getElementById('profileMsg').textContent = res.ok ? 'Lagret.' : 'Kunne ikke lagre.';
       if (res.ok) setTimeout(function () { document.getElementById('profileMsg').textContent = ''; }, 2000);
+    });
+
+    document.getElementById('notifyForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var body = {
+        notify_email_bookings:  this.querySelector('input[name=notify_email_bookings]').checked,
+        notify_email_reminders: this.querySelector('input[name=notify_email_reminders]').checked,
+        notify_sms_reminders:   this.querySelector('input[name=notify_sms_reminders]').checked,
+        notify_marketing:       this.querySelector('input[name=notify_marketing]').checked,
+      };
+      var res = await NailedAuth.api('/api/v1/me', { method: 'PATCH', body: body });
+      var msg = document.getElementById('notifyMsg');
+      msg.textContent = res.ok ? 'Lagret.' : 'Kunne ikke lagre.';
+      if (res.ok) setTimeout(function () { msg.textContent = ''; }, 2000);
     });
 
     document.getElementById('logoutBtn').addEventListener('click', async function () {

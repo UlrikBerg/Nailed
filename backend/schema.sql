@@ -12,18 +12,22 @@ SET time_zone = '+00:00';
 -- One row per human. Auth identities (Google/Vipps) are linked separately.
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
-  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  email           VARCHAR(255) NOT NULL,
-  name            VARCHAR(255) NOT NULL,
-  phone           VARCHAR(32) DEFAULT NULL,
-  birth_year      SMALLINT UNSIGNED DEFAULT NULL,
-  address_line    VARCHAR(255) DEFAULT NULL,
-  postal_code     VARCHAR(16) DEFAULT NULL,
-  city            VARCHAR(128) DEFAULT NULL,
-  role            ENUM('user','salon_owner','admin') NOT NULL DEFAULT 'user',
-  suspended_at    DATETIME DEFAULT NULL,
-  created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  id                       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  email                    VARCHAR(255) NOT NULL,
+  name                     VARCHAR(255) NOT NULL,
+  phone                    VARCHAR(32) DEFAULT NULL,
+  birth_year               SMALLINT UNSIGNED DEFAULT NULL,
+  address_line             VARCHAR(255) DEFAULT NULL,
+  postal_code              VARCHAR(16) DEFAULT NULL,
+  city                     VARCHAR(128) DEFAULT NULL,
+  role                     ENUM('user','salon_owner','admin') NOT NULL DEFAULT 'user',
+  notify_email_bookings    TINYINT(1) NOT NULL DEFAULT 1,
+  notify_email_reminders   TINYINT(1) NOT NULL DEFAULT 1,
+  notify_sms_reminders     TINYINT(1) NOT NULL DEFAULT 0,
+  notify_marketing         TINYINT(1) NOT NULL DEFAULT 0,
+  suspended_at             DATETIME DEFAULT NULL,
+  created_at               DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at               DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uniq_users_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -100,6 +104,8 @@ CREATE TABLE IF NOT EXISTS salons (
   facebook_url    VARCHAR(512) DEFAULT NULL,
   website_url     VARCHAR(512) DEFAULT NULL,
   cover_image_key VARCHAR(255) DEFAULT NULL,
+  public_phone_visible TINYINT(1) NOT NULL DEFAULT 0,
+  accepts_new_bookings TINYINT(1) NOT NULL DEFAULT 1,
   status          ENUM('active','suspended','deleted') NOT NULL DEFAULT 'active',
   created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -223,6 +229,25 @@ CREATE TABLE IF NOT EXISTS reviews (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
+-- salon_images
+-- Gallery images for a salon. cover_image_key on salons points at one of these
+-- (kept on salons too for fast public-page render without an extra join).
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS salon_images (
+  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  salon_id    BIGINT UNSIGNED NOT NULL,
+  image_key   VARCHAR(255) NOT NULL,
+  position    SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  width       SMALLINT UNSIGNED DEFAULT NULL,
+  height      SMALLINT UNSIGNED DEFAULT NULL,
+  bytes       INT UNSIGNED DEFAULT NULL,
+  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_salon (salon_id, position),
+  CONSTRAINT fk_salon_images_salon FOREIGN KEY (salon_id) REFERENCES salons(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
 -- audit_log
 -- Append-only record of admin actions and sensitive state transitions.
 -- -----------------------------------------------------------------------------
@@ -239,3 +264,19 @@ CREATE TABLE IF NOT EXISTS audit_log (
   KEY idx_actor (actor_user_id, created_at),
   CONSTRAINT fk_audit_actor FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================================================
+-- Idempotent in-place migrations
+-- ALTER TABLE ... ADD COLUMN IF NOT EXISTS requires MySQL 8.0.29+. Hostinger
+-- Cloud runs 8.0.x; Hostinger MariaDB does not (avoid MariaDB).
+-- =============================================================================
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS notify_email_bookings  TINYINT(1) NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS notify_email_reminders TINYINT(1) NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS notify_sms_reminders   TINYINT(1) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS notify_marketing       TINYINT(1) NOT NULL DEFAULT 0;
+
+ALTER TABLE salons
+  ADD COLUMN IF NOT EXISTS public_phone_visible  TINYINT(1) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS accepts_new_bookings  TINYINT(1) NOT NULL DEFAULT 1;

@@ -3,8 +3,18 @@ const { z } = require('zod');
 const { query, queryOne, tx } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { asyncRoute, HttpError } = require('../lib/util');
+const storage = require('../storage');
 
 const router = express.Router();
+
+function withCoverUrl(row) {
+  const { cover_image_key, ...rest } = row;
+  return {
+    ...rest,
+    cover_image_key,
+    cover_url: cover_image_key ? storage.publicUrl(cover_image_key) : null,
+  };
+}
 
 // GET /salons — public listing (paginated)
 router.get('/', asyncRoute(async (req, res) => {
@@ -23,14 +33,15 @@ router.get('/', asyncRoute(async (req, res) => {
       LIMIT ? OFFSET ?`,
     [...params, limit, offset]
   );
-  res.json({ salons: rows, limit, offset });
+  res.json({ salons: rows.map(withCoverUrl), limit, offset });
 }));
 
 // GET /salons/:slug — public salon detail
 router.get('/:slug', asyncRoute(async (req, res) => {
   const salon = await queryOne(
     `SELECT id, slug, name, city, address_line, postal_code, bio,
-            instagram_url, tiktok_url, facebook_url, website_url, cover_image_key, status
+            instagram_url, tiktok_url, facebook_url, website_url,
+            cover_image_key, public_phone_visible, accepts_new_bookings, status
        FROM salons WHERE slug = ? LIMIT 1`,
     [req.params.slug]
   );
@@ -38,25 +49,48 @@ router.get('/:slug', asyncRoute(async (req, res) => {
     throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
   }
 
-  const services = await query(
-    `SELECT id, name, description, duration_min, price_nok
-       FROM services WHERE salon_id = ? AND active = 1 ORDER BY price_nok ASC`,
-    [salon.id]
-  );
-  res.json({ salon, services });
+  const [services, images] = await Promise.all([
+    query(
+      `SELECT id, name, description, duration_min, price_nok
+         FROM services WHERE salon_id = ? AND active = 1 ORDER BY price_nok ASC`,
+      [salon.id]
+    ),
+    query(
+      `SELECT id, image_key AS \`key\`, position, width, height
+         FROM salon_images WHERE salon_id = ? ORDER BY position ASC, id ASC`,
+      [salon.id]
+    ),
+  ]);
+
+  res.json({
+    salon: withCoverUrl(salon),
+    services,
+    images: images.map(i => ({ ...i, url: storage.publicUrl(i.key) })),
+  });
 }));
 
 // GET /salons/me/own — salon owned by the logged-in user (first one)
 router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
   const salon = await queryOne(
     `SELECT id, slug, name, city, address_line, postal_code, bio,
-            instagram_url, tiktok_url, facebook_url, website_url, cover_image_key, status
+            instagram_url, tiktok_url, facebook_url, website_url,
+            cover_image_key, public_phone_visible, accepts_new_bookings, status
        FROM salons WHERE owner_user_id = ? AND status != 'deleted'
        ORDER BY created_at ASC LIMIT 1`,
     [req.user.id]
   );
   if (!salon) throw new HttpError(404, 'no_salon', 'Du har ingen salong.');
-  res.json({ salon });
+
+  const images = await query(
+    `SELECT id, image_key AS \`key\`, position, width, height
+       FROM salon_images WHERE salon_id = ? ORDER BY position ASC, id ASC`,
+    [salon.id]
+  );
+
+  res.json({
+    salon: withCoverUrl(salon),
+    images: images.map(i => ({ ...i, url: storage.publicUrl(i.key) })),
+  });
 }));
 
 // PATCH /salons/:id — owner edits their salon
@@ -74,6 +108,8 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
     tiktok_url: z.string().url().max(512).nullable().optional(),
     facebook_url: z.string().url().max(512).nullable().optional(),
     website_url: z.string().url().max(512).nullable().optional(),
+    public_phone_visible: z.boolean().optional(),
+    accepts_new_bookings: z.boolean().optional(),
   });
   const patch = schema.parse(req.body);
 
@@ -86,7 +122,10 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
   const fields = Object.keys(patch);
   if (fields.length === 0) return res.json({ ok: true });
   const setClause = fields.map(f => `${f} = ?`).join(', ');
-  const values = fields.map(f => patch[f]);
+  const values = fields.map(f => {
+    const v = patch[f];
+    return typeof v === 'boolean' ? (v ? 1 : 0) : v;
+  });
   values.push(id);
   await query(`UPDATE salons SET ${setClause} WHERE id = ?`, values);
   res.json({ ok: true });
