@@ -103,16 +103,13 @@
     }
 
     /* Right column stacks the booking panel, hours card, and team card.
-       Sticky to the page scroll — no inner scrollbar. When the right column
-       is taller than the viewport, the bottom of it sits below the fold
-       until the user scrolls down; once the bottom of the parent grid is
-       reached, the sticky naturally locks (because the parent ends). */
+       Static — scrolls with the page (no sticky), so it "follows" the
+       main section. When the parent grid ends, both columns align at
+       the bottom naturally. */
     .salon-detail__right {
       display: flex;
       flex-direction: column;
       gap: 28px;
-      position: sticky;
-      top: 100px;
       align-self: start;
     }
     .booking-panel--side { padding: 20px 24px; }
