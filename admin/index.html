@@ -4,126 +4,747 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>nailed — admin</title>
-  <link rel="icon" href="../assets/logo-mark.svg" />
-  <link rel="stylesheet" href="admin.css" />
+  <link rel="icon" href="/assets/logo-mark.svg" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    /* =========================================================================
+       Admin panel — sits on the public shell (top-nav + footer + cream/rouge),
+       matching /kunde-panel.html. Hero greeting, horizontal pill tab strip and
+       cream cards instead of a dark sidebar dashboard.
+
+       Class system:
+         .ap-*        Admin-panel-specific structural classes (hero, tabs, cards).
+         .kp-status*  Reused from kunde-panel for warm status pills.
+         Legacy classes (data-table, status, td-muted, review-card, bar-row,
+         period-btn, search-input, filter-select, form-input, toggle, kpi)
+         are kept inline below because admin.js (well, the inline render code)
+         outputs them as HTML strings.
+       ========================================================================= */
+
+    .ap-page { padding: 48px 0 96px; }
+
+    /* Hero greeting + admin profile chip */
+    .ap-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .ap-hero__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(32px, 5vw, 48px);
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
+    }
+    .ap-hero__title em { font-style: normal; color: var(--rouge-500); }
+    .ap-hero__sub { font-size: 15px; color: var(--fg-muted); margin: 0; }
+    .ap-hero__user {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px 8px 8px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill);
+    }
+    .ap-hero__avatar {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-pill);
+      background: var(--rouge-500); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px;
+    }
+    .ap-hero__userText { display: flex; flex-direction: column; line-height: 1.2; }
+    .ap-hero__userName { font-weight: 600; font-size: 14px; color: var(--ink); }
+    .ap-hero__userEmail { font-size: 12px; color: var(--fg-muted); }
+    .ap-hero__logout {
+      background: transparent;
+      border: 0;
+      padding: 6px;
+      cursor: pointer;
+      color: var(--fg-muted);
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ap-hero__logout:hover { color: var(--rouge-500); background: var(--stone-100); }
+    .ap-hero__logout i { width: 16px; height: 16px; }
+
+    /* Horizontal pill tab strip — 9 tabs, scrolls on narrow viewports */
+    .ap-tabs {
+      display: flex;
+      gap: 8px;
+      margin: 0 0 32px;
+      padding: 4px 0 12px;
+      border-bottom: 1px solid var(--stone-200);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .ap-tabs::-webkit-scrollbar { display: none; }
+    .ap-tab {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      color: var(--ink);
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--dur-fast) var(--ease-out-soft);
+    }
+    .ap-tab i { width: 14px; height: 14px; }
+    .ap-tab:hover { border-color: var(--stone-400); }
+    .ap-tab.active {
+      background: var(--ink);
+      color: var(--cream-50);
+      border-color: var(--ink);
+    }
+    .ap-tab__count {
+      background: var(--rouge-500);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      margin-left: 2px;
+    }
+    .ap-tab.active .ap-tab__count { background: var(--rouge-400); }
+
+    /* Tab content visibility */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Section header inside a tab */
+    .ap-section-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(24px, 3vw, 32px);
+      letter-spacing: -0.015em;
+      margin: 0 0 6px;
+    }
+    .ap-section-sub { font-size: 15px; color: var(--fg-muted); margin: 0 0 24px; }
+
+    /* Tab head row: title + actions */
+    .ap-tab-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .ap-tab-head__actions { display: flex; gap: 8px; }
+
+    /* Cream card — public-site equivalent of admin .panel */
+    .ap-card {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    .ap-card__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .ap-card__title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 20px;
+      margin: 0;
+    }
+
+    /* KPI tiles — soft warm tiles */
+    .ap-summary {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 1280px) { .ap-summary { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 720px)  { .ap-summary { grid-template-columns: repeat(2, 1fr); } }
+    .ap-summary--5 { grid-template-columns: repeat(5, 1fr); }
+    @media (max-width: 1280px) { .ap-summary--5 { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 720px)  { .ap-summary--5 { grid-template-columns: repeat(2, 1fr); } }
+    .ap-summary--4 { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 1280px) { .ap-summary--4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 540px)  { .ap-summary--4 { grid-template-columns: 1fr; } }
+
+    .ap-tile {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: var(--shadow-sm);
+      min-width: 0;
+    }
+    .ap-tile--clickable { cursor: pointer; transition: border-color var(--dur-fast); }
+    .ap-tile--clickable:hover { border-color: var(--rouge-300); }
+    .ap-tile--dark { background: var(--ink); border-color: var(--ink); color: var(--cream-50); }
+    .ap-tile--dark .ap-tile__label { color: var(--stone-300); }
+    .ap-tile--dark .ap-tile__value { color: var(--cream-50); }
+    .ap-tile__icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-pill);
+      background: var(--rouge-50);
+      color: var(--rouge-500);
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 6px;
+    }
+    .ap-tile__icon i { width: 18px; height: 18px; }
+    .ap-tile--dark .ap-tile__icon { background: rgba(255,255,255,0.08); color: var(--rouge-300); }
+    .ap-tile__label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .ap-tile__value {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 28px;
+      color: var(--ink);
+      line-height: 1.1;
+      word-break: break-word;
+    }
+    .ap-tile__sub { font-size: 13px; color: var(--fg-muted); margin-top: 4px; }
+
+    /* List rows — replaces dense tables in salonger/brukere etc. */
+    .ap-list { display: flex; flex-direction: column; gap: 10px; }
+    .ap-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 18px;
+      background: var(--cream-100);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      transition: border-color var(--dur-fast);
+    }
+    .ap-row:hover { border-color: var(--stone-300); }
+    .ap-row__main { flex: 1; min-width: 0; }
+    .ap-row__name {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--ink);
+      word-break: break-word;
+    }
+    .ap-row__name a { color: var(--ink); text-decoration: none; }
+    .ap-row__name a:hover { color: var(--rouge-500); }
+    .ap-row__meta { font-size: 13px; color: var(--fg-muted); margin-top: 2px; word-break: break-word; }
+    .ap-row__actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+    @media (max-width: 640px) {
+      .ap-row { flex-wrap: wrap; }
+      .ap-row__actions { width: 100%; justify-content: flex-start; }
+    }
+
+    /* Empty states */
+    .ap-empty {
+      text-align: center;
+      padding: 64px 24px;
+      background: var(--cream-50);
+      border: 1px dashed var(--stone-300);
+      border-radius: var(--radius-lg);
+    }
+    .ap-empty__icon {
+      width: 56px; height: 56px;
+      border-radius: var(--radius-pill);
+      background: var(--rouge-50);
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+    }
+    .ap-empty__icon i { width: 24px; height: 24px; color: var(--rouge-500); }
+    .ap-empty__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 22px;
+      margin: 0 0 8px;
+    }
+    .ap-empty__desc {
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin: 0 0 18px;
+      max-width: 40ch;
+      margin-left: auto; margin-right: auto;
+    }
+
+    /* Tables that stay tables (analytics): wrapped in ap-card and scrollable */
+    .ap-table-wrap { overflow-x: auto; margin: 0 -8px; padding: 0 8px; }
+
+    /* ---------------------------------------------------------------------
+       Legacy classes used by JS-rendered HTML — replicated from admin.css
+       so the existing render functions keep working without admin.css.
+       --------------------------------------------------------------------- */
+
+    /* Data tables */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-body);
+      font-size: 14px;
+    }
+    .data-table thead th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--fg-muted);
+      padding: 0 12px 14px;
+      border-bottom: 1px solid var(--stone-200);
+      white-space: nowrap;
+    }
+    .data-table tbody td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--stone-100);
+      color: var(--ink);
+      vertical-align: middle;
+    }
+    .data-table tbody tr:last-child td { border-bottom: 0; }
+    .data-table tbody tr { transition: background var(--dur-fast); }
+    .data-table tbody tr:hover { background: var(--stone-50); }
+    .data-table--compact { font-size: 13px; }
+    .data-table--compact thead th { padding: 0 10px 10px; }
+    .data-table--compact tbody td { padding: 10px; }
+
+    .td-name { font-weight: 600; }
+    .td-muted { color: var(--fg-muted); font-size: 13px; }
+    .td-mono { font-family: var(--font-mono); font-size: 13px; }
+    .td-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .text-muted { color: var(--fg-muted); font-size: 12px; }
+
+    /* Admin status pills (kept for compatibility with rolePill/statusPill JS) */
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+    }
+    .status i { width: 10px; height: 10px; }
+    .status--active    { background: rgba(141, 160, 121, 0.18); color: #486041; }
+    .status--suspended { background: var(--rouge-50); color: var(--rouge-700); }
+    .status--pending   { background: var(--cream-200); color: var(--stone-600); }
+    .status--paid      { background: var(--rouge-50); color: var(--rouge-700); }
+    .status--trial     { background: rgba(141, 160, 121, 0.18); color: var(--sage-700); }
+    .status--confirmed { background: rgba(141, 160, 121, 0.18); color: #486041; }
+    .status--cancelled { background: var(--stone-100); color: var(--stone-500); }
+    .status--completed { background: var(--cream-200); color: var(--stone-600); }
+    .status--new       { background: var(--rouge-50); color: var(--rouge-700); }
+    .status--inactive  { background: var(--stone-100); color: var(--stone-500); }
+    .status--noshow    { background: var(--rouge-50); color: var(--rouge-700); }
+
+    /* btn-danger / btn-success (styles.css only ships btn-primary/btn-ghost) */
+    .btn-danger {
+      background: var(--rouge-50);
+      color: var(--rouge-700);
+      border: 1px solid transparent;
+    }
+    .btn-danger:hover { background: var(--rouge-500); color: #fff; }
+    .btn-success {
+      background: rgba(141, 160, 121, 0.18);
+      color: #486041;
+      border: 1px solid transparent;
+    }
+    .btn-success:hover { background: #486041; color: #fff; }
+
+    /* KPI variants (for cells that still emit them) */
+    .kpi__unit { font-size: 16px; color: var(--fg-muted); font-weight: 500; }
+
+    /* Toolbar (search + filters) */
+    .ap-toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .search-input {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill);
+      flex: 1;
+      min-width: 200px;
+      max-width: 360px;
+      transition: border-color var(--dur-fast);
+    }
+    .search-input:focus-within { border-color: var(--rouge-500); }
+    .search-input i { width: 16px; height: 16px; color: var(--fg-muted); flex-shrink: 0; }
+    .search-input input {
+      border: 0; background: transparent; outline: none;
+      font-family: var(--font-body); font-size: 14px;
+      color: var(--ink); width: 100%;
+    }
+    .search-input input::placeholder { color: var(--stone-400); }
+    .filter-select {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 13px;
+      padding: 9px 14px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      color: var(--ink);
+      cursor: pointer;
+      outline: none;
+      appearance: auto;
+    }
+    .filter-select:focus { border-color: var(--rouge-500); }
+
+    /* Period selector */
+    .ap-period { display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; }
+    .period-btn {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 13px;
+      padding: 7px 14px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      cursor: pointer;
+      transition: all var(--dur-fast);
+      color: var(--ink);
+    }
+    .period-btn:hover { border-color: var(--stone-400); }
+    .period-btn.active { background: var(--ink); color: var(--cream-50); border-color: var(--ink); }
+
+    /* Bar rows */
+    .bar-row { display: flex; align-items: center; gap: 10px; }
+    .bar-row__label {
+      width: 100px;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--fg-muted);
+      flex-shrink: 0;
+    }
+    .bar-row__track {
+      flex: 1;
+      height: 8px;
+      background: var(--stone-100);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar-row__fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--rouge-200);
+    }
+    .bar-row__fill--highlight { background: var(--rouge-500); }
+    .bar-row__val {
+      width: 70px;
+      text-align: right;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--ink);
+      flex-shrink: 0;
+    }
+
+    /* Review (moderering) cards */
+    .review-card {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+    .review-card__head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .review-card__avatar {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-pill);
+      background: var(--rouge-100);
+      color: var(--rouge-500);
+      font-family: var(--font-display);
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .review-card__info { flex: 1; min-width: 180px; }
+    .review-card__name { font-weight: 700; font-size: 14px; color: var(--ink); }
+    .review-card__meta { font-size: 12px; color: var(--fg-muted); margin-top: 1px; }
+    .review-card__text {
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--ink);
+      margin-bottom: 14px;
+    }
+    .review-card__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* Forms (settings) */
+    .ap-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 600px) { .ap-form-grid { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .form-group .help-text {
+      font-size: 12px;
+      color: var(--fg-muted);
+      margin-top: 2px;
+    }
+    .form-input {
+      font-family: var(--font-body);
+      font-size: 15px;
+      padding: 12px 16px;
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      background: var(--cream-100);
+      color: var(--ink);
+      outline: none;
+      transition: border-color var(--dur-fast);
+    }
+    .form-input:focus { border-color: var(--rouge-500); }
+
+    /* Toggle switch */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--stone-200);
+    }
+    .toggle-row:last-child { border-bottom: 0; }
+    .toggle-row__label { font-weight: 600; font-size: 14px; color: var(--ink); }
+    .toggle-row__desc { font-size: 13px; color: var(--fg-muted); margin-top: 2px; }
+    .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle__track {
+      position: absolute; inset: 0;
+      background: var(--stone-200);
+      border-radius: var(--radius-pill);
+      transition: background var(--dur-fast);
+      cursor: pointer;
+    }
+    .toggle__track::after {
+      content: "";
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 18px; height: 18px;
+      background: #fff;
+      border-radius: var(--radius-pill);
+      transition: transform var(--dur-base) var(--ease-out-soft);
+      box-shadow: var(--shadow-sm);
+    }
+    .toggle input:checked + .toggle__track { background: var(--rouge-500); }
+    .toggle input:checked + .toggle__track::after { transform: translateX(20px); }
+
+    /* Dashboard split (two side-by-side recent lists) */
+    .ap-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 960px) { .ap-grid-2 { grid-template-columns: 1fr; } }
+    .ap-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    @media (max-width: 960px) { .ap-grid-3 { grid-template-columns: 1fr; } }
+
+    /* Confirm modal — aligned with ap-card visual language */
+    .ap-modal {
+      position: fixed; inset: 0;
+      background: rgba(27, 18, 24, 0.45);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      display: none;
+      padding: 16px;
+    }
+    .ap-modal__card {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+      padding: 28px;
+      max-width: 440px;
+      width: 100%;
+    }
+    .ap-modal__title {
+      margin: 0 0 8px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 22px;
+      color: var(--ink);
+    }
+    .ap-modal__body {
+      margin: 0 0 20px;
+      color: var(--fg-muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .ap-modal__actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    /* Toast */
+    .ap-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 20px;
+      background: var(--ink);
+      color: var(--cream-50);
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      z-index: 1100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+  </style>
 </head>
 <body>
 
-  <div class="app">
-
-    <!-- Dark sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar__brand">
-        <span class="sidebar__brand-logo">nailed</span>
-        <span class="sidebar__badge">Admin</span>
+  <!-- Public top navigation -->
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="/">
+        <img src="/assets/logo-wordmark.svg" alt="nailed" />
+      </a>
+      <nav class="top-nav__links">
+        <a href="/utforsk.html">Utforsk</a>
+        <a href="/for-salonger.html">For salonger</a>
+        <a href="/last-ned-app.html">Last ned app</a>
+      </nav>
+      <div class="top-nav__actions">
+        <a href="/favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="/login.html" class="btn btn-ghost btn-sm">Logg inn</a>
       </div>
+    </div>
+  </header>
 
-      <div class="sidebar__divider"></div>
+  <section class="ap-page">
+    <div class="page">
 
-      <button class="nav-item active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-      <button class="nav-item" data-tab="salonger"><i data-lucide="store"></i> Salonger <span class="nav-item__count" id="navSalongerCount">0</span></button>
-      <button class="nav-item" data-tab="brukere"><i data-lucide="users"></i> Brukere</button>
-      <button class="nav-item" data-tab="bookinger"><i data-lucide="calendar-check"></i> Bookinger</button>
-
-      <div class="sidebar__section">Analyse</div>
-      <button class="nav-item" data-tab="rapporter"><i data-lucide="bar-chart-3"></i> Rapporter</button>
-      <button class="nav-item" data-tab="booking-analyse"><i data-lucide="activity"></i> Booking-analyse</button>
-      <button class="nav-item" data-tab="bruker-analyse"><i data-lucide="user-check"></i> Brukeranalyse</button>
-
-      <div class="sidebar__section">System</div>
-      <button class="nav-item" data-tab="moderering"><i data-lucide="shield-alert"></i> Moderering <span class="nav-item__count" id="navModereringCount">0</span></button>
-      <button class="nav-item" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
-
-      <div class="sidebar__footer">
-        <div class="sidebar__avatar" id="adminAvatar">--</div>
-        <div style="flex:1; min-width:0;">
-          <div class="sidebar__user" id="adminName">--</div>
-          <div class="sidebar__role" id="adminRole">--</div>
+      <!-- Greeting hero -->
+      <div class="ap-hero">
+        <div>
+          <h1 class="ap-hero__title">Hei, <em id="adminGreetingName">Ulrik</em>!</h1>
+          <p class="ap-hero__sub">Plattformoversikt for nailed.no</p>
         </div>
-        <button class="btn btn-ghost btn-sm" id="logoutBtn" title="Logg ut" style="margin-left:8px;"><i data-lucide="log-out"></i></button>
+        <div class="ap-hero__user">
+          <span class="ap-hero__avatar" id="adminAvatar">U</span>
+          <span class="ap-hero__userText">
+            <span class="ap-hero__userName" id="adminName">Laster …</span>
+            <span class="ap-hero__userEmail" id="adminRole"></span>
+          </span>
+          <button class="ap-hero__logout" id="logoutBtn" type="button" title="Logg ut">
+            <i data-lucide="log-out"></i>
+          </button>
+        </div>
       </div>
-    </aside>
 
-    <!-- Main content -->
-    <main class="main">
+      <!-- Horizontal pill tab strip -->
+      <div class="ap-tabs" id="apTabs" role="tablist">
+        <button class="ap-tab active" role="tab" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+        <button class="ap-tab" role="tab" data-tab="salonger"><i data-lucide="store"></i> Salonger <span class="ap-tab__count" id="navSalongerCount">0</span></button>
+        <button class="ap-tab" role="tab" data-tab="brukere"><i data-lucide="users"></i> Brukere</button>
+        <button class="ap-tab" role="tab" data-tab="bookinger"><i data-lucide="calendar-check"></i> Bookinger</button>
+        <button class="ap-tab" role="tab" data-tab="rapporter"><i data-lucide="bar-chart-3"></i> Rapporter</button>
+        <button class="ap-tab" role="tab" data-tab="booking-analyse"><i data-lucide="activity"></i> Booking-analyse</button>
+        <button class="ap-tab" role="tab" data-tab="bruker-analyse"><i data-lucide="user-check"></i> Brukeranalyse</button>
+        <button class="ap-tab" role="tab" data-tab="moderering"><i data-lucide="shield-alert"></i> Moderering <span class="ap-tab__count" id="navModereringCount">0</span></button>
+        <button class="ap-tab" role="tab" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
+      </div>
 
       <!-- ============================================================
            DASHBOARD
            ============================================================ -->
       <div class="tab-content active" id="tab-dashboard">
-        <div class="topbar">
-          <div>
-            <h1 class="topbar__title">Admin <em>Dashboard</em></h1>
-            <div class="topbar__sub">Plattformoversikt for nailed.no</div>
+        <div class="ap-summary">
+          <div class="ap-tile ap-tile--clickable" data-jump="salonger">
+            <span class="ap-tile__icon"><i data-lucide="store"></i></span>
+            <span class="ap-tile__label">Aktive salonger</span>
+            <span class="ap-tile__value" id="kpiSalons">--</span>
+          </div>
+          <div class="ap-tile ap-tile--clickable" data-jump="brukere">
+            <span class="ap-tile__icon"><i data-lucide="users"></i></span>
+            <span class="ap-tile__label">Totalt brukere</span>
+            <span class="ap-tile__value" id="kpiUsers">--</span>
+          </div>
+          <div class="ap-tile ap-tile--clickable" data-jump="bookinger">
+            <span class="ap-tile__icon"><i data-lucide="calendar-check"></i></span>
+            <span class="ap-tile__label">Bookinger i dag</span>
+            <span class="ap-tile__value" id="kpiTodaysBookings">--</span>
+          </div>
+          <div class="ap-tile ap-tile--clickable" data-jump="bookinger">
+            <span class="ap-tile__icon"><i data-lucide="calendar-range"></i></span>
+            <span class="ap-tile__label">Åpne bookinger</span>
+            <span class="ap-tile__value" id="kpiOpenBookings">--</span>
+          </div>
+          <div class="ap-tile ap-tile--clickable" data-jump="moderering">
+            <span class="ap-tile__icon"><i data-lucide="shield-alert"></i></span>
+            <span class="ap-tile__label">Søknader til behandling</span>
+            <span class="ap-tile__value" id="kpiPendingApps">--</span>
+          </div>
+          <div class="ap-tile ap-tile--dark ap-tile--clickable" data-jump="rapporter">
+            <span class="ap-tile__icon"><i data-lucide="banknote"></i></span>
+            <span class="ap-tile__label">Omsetning (30d)</span>
+            <span class="ap-tile__value" id="kpiRevenue30d">--</span>
+            <span class="ap-tile__sub" id="kpiRevenueSub">bekreftet + fullført</span>
           </div>
         </div>
 
-        <div class="kpi-row">
-          <div class="kpi" data-jump="salonger" style="cursor:pointer;">
-            <div class="kpi__icon kpi__icon--pink"><i data-lucide="store"></i></div>
-            <div class="kpi__label">Aktive salonger</div>
-            <div class="kpi__value" id="kpiSalons">--</div>
+        <div class="ap-grid-2">
+          <div class="ap-card">
+            <div class="ap-card__head">
+              <h3 class="ap-card__title">Nye salonger</h3>
+            </div>
+            <div class="ap-list" id="dashRecentSalonsList">
+              <div class="td-muted">Laster ...</div>
+            </div>
           </div>
-          <div class="kpi" data-jump="brukere" style="cursor:pointer;">
-            <div class="kpi__icon kpi__icon--green"><i data-lucide="users"></i></div>
-            <div class="kpi__label">Totalt brukere</div>
-            <div class="kpi__value" id="kpiUsers">--</div>
-          </div>
-          <div class="kpi" data-jump="bookinger" style="cursor:pointer;">
-            <div class="kpi__icon kpi__icon--amber"><i data-lucide="calendar-check"></i></div>
-            <div class="kpi__label">Bookinger i dag</div>
-            <div class="kpi__value" id="kpiTodaysBookings">--</div>
-          </div>
-          <div class="kpi" data-jump="bookinger" style="cursor:pointer;">
-            <div class="kpi__icon kpi__icon--ink"><i data-lucide="calendar-range"></i></div>
-            <div class="kpi__label">Apne bookinger</div>
-            <div class="kpi__value" id="kpiOpenBookings">--</div>
-          </div>
-          <div class="kpi" data-jump="moderering" style="cursor:pointer;">
-            <div class="kpi__icon kpi__icon--pink"><i data-lucide="shield-alert"></i></div>
-            <div class="kpi__label">Soknader til behandling</div>
-            <div class="kpi__value" id="kpiPendingApps">--</div>
-          </div>
-          <div class="kpi kpi--dark" data-jump="rapporter" style="cursor:pointer;">
-            <div class="kpi__icon kpi__icon--pink"><i data-lucide="banknote"></i></div>
-            <div class="kpi__label">Omsetning (30d)</div>
-            <div class="kpi__value" id="kpiRevenue30d" style="color: var(--cream-50)">--</div>
-            <div class="kpi__delta" style="background: rgba(255,255,255,0.08); color: var(--rouge-300)" id="kpiRevenueSub">bekreftet + fullfort</div>
-          </div>
-        </div>
-
-        <div class="grid-2-col">
-          <div class="panel mt-0">
-            <div class="panel__head"><h3>Nye salonger</h3></div>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Salong</th>
-                  <th>Eier</th>
-                  <th>Sted</th>
-                  <th>Registrert</th>
-                </tr>
-              </thead>
-              <tbody id="dashRecentSalonsBody">
-                <tr><td colspan="4" class="td-muted">Laster...</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="panel mt-0">
-            <div class="panel__head"><h3>Nye brukere</h3></div>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Navn</th>
-                  <th>E-post</th>
-                  <th>Rolle</th>
-                  <th>Registrert</th>
-                </tr>
-              </thead>
-              <tbody id="dashRecentUsersBody">
-                <tr><td colspan="4" class="td-muted">Laster...</td></tr>
-              </tbody>
-            </table>
+          <div class="ap-card">
+            <div class="ap-card__head">
+              <h3 class="ap-card__title">Nye brukere</h3>
+            </div>
+            <div class="ap-list" id="dashRecentUsersList">
+              <div class="td-muted">Laster ...</div>
+            </div>
           </div>
         </div>
       </div>
@@ -132,17 +753,17 @@
            SALONGER
            ============================================================ -->
       <div class="tab-content" id="tab-salonger">
-        <div class="topbar">
+        <div class="ap-tab-head">
           <div>
-            <h1 class="topbar__title">Salonger</h1>
-            <div class="topbar__sub" id="salongerSub">Laster...</div>
+            <h2 class="ap-section-title">Salonger</h2>
+            <p class="ap-section-sub" id="salongerSub">Laster ...</p>
           </div>
         </div>
 
-        <div class="toolbar">
+        <div class="ap-toolbar">
           <div class="search-input">
             <i data-lucide="search"></i>
-            <input type="text" placeholder="Sok etter salong..." id="salongerSearch" />
+            <input type="text" placeholder="Søk etter salong ..." id="salongerSearch" />
           </div>
           <select class="filter-select" id="salongerStatusFilter">
             <option value="">Alle statuser</option>
@@ -151,22 +772,8 @@
           </select>
         </div>
 
-        <div class="panel">
-          <table class="data-table" id="salongerTable">
-            <thead>
-              <tr>
-                <th>Salong</th>
-                <th>Eier</th>
-                <th>Sted</th>
-                <th>Status</th>
-                <th>Registrert</th>
-                <th>Handlinger</th>
-              </tr>
-            </thead>
-            <tbody id="salongerTableBody">
-              <tr><td colspan="6" class="td-muted">Laster...</td></tr>
-            </tbody>
-          </table>
+        <div class="ap-list" id="salongerList">
+          <div class="td-muted">Laster ...</div>
         </div>
       </div>
 
@@ -174,38 +781,22 @@
            BRUKERE
            ============================================================ -->
       <div class="tab-content" id="tab-brukere">
-        <div class="topbar">
+        <div class="ap-tab-head">
           <div>
-            <h1 class="topbar__title">Brukere</h1>
-            <div class="topbar__sub" id="brukereSub">Laster...</div>
+            <h2 class="ap-section-title">Brukere</h2>
+            <p class="ap-section-sub" id="brukereSub">Laster ...</p>
           </div>
         </div>
 
-        <div class="toolbar">
+        <div class="ap-toolbar">
           <div class="search-input">
             <i data-lucide="search"></i>
-            <input type="text" placeholder="Sok etter bruker..." id="brukereSearch" />
+            <input type="text" placeholder="Søk etter bruker ..." id="brukereSearch" />
           </div>
         </div>
 
-        <div class="panel">
-          <table class="data-table" id="brukereTable">
-            <thead>
-              <tr>
-                <th>Navn</th>
-                <th>Telefon</th>
-                <th>E-post</th>
-                <th>Rolle</th>
-                <th>Registrert</th>
-                <th>Bookinger</th>
-                <th>Status</th>
-                <th>Handlinger</th>
-              </tr>
-            </thead>
-            <tbody id="brukereTableBody">
-              <tr><td colspan="8" class="td-muted">Laster...</td></tr>
-            </tbody>
-          </table>
+        <div class="ap-list" id="brukereList">
+          <div class="td-muted">Laster ...</div>
         </div>
       </div>
 
@@ -213,22 +804,22 @@
            BOOKINGER
            ============================================================ -->
       <div class="tab-content" id="tab-bookinger">
-        <div class="topbar">
+        <div class="ap-tab-head">
           <div>
-            <h1 class="topbar__title">Bookinger</h1>
-            <div class="topbar__sub">Alle bookinger pa plattformen</div>
+            <h2 class="ap-section-title">Bookinger</h2>
+            <p class="ap-section-sub">Alle bookinger på plattformen.</p>
           </div>
-          <div class="topbar__actions">
-            <button class="btn btn-ghost" id="bookingerRefreshBtn"><i data-lucide="refresh-cw"></i> Oppdater</button>
+          <div class="ap-tab-head__actions">
+            <button class="btn btn-ghost btn-sm" id="bookingerRefreshBtn"><i data-lucide="refresh-cw"></i> Oppdater</button>
           </div>
         </div>
 
-        <div class="toolbar">
+        <div class="ap-toolbar">
           <select class="filter-select" id="bookingerStatusFilter">
             <option value="">Alle statuser</option>
             <option value="pending">Venter</option>
             <option value="confirmed">Bekreftet</option>
-            <option value="completed">Fullfort</option>
+            <option value="completed">Fullført</option>
             <option value="cancelled">Kansellert</option>
             <option value="no_show">No-show</option>
           </select>
@@ -237,23 +828,25 @@
           <button class="btn btn-ghost btn-sm" id="bookingerClearDates" type="button">Nullstill datoer</button>
         </div>
 
-        <div class="panel">
-          <table class="data-table" id="bookingerTable">
-            <thead>
-              <tr>
-                <th>Dato/tid</th>
-                <th>Kunde</th>
-                <th>Adresse</th>
-                <th>Salong</th>
-                <th>Behandling</th>
-                <th>Pris</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="bookingerTableBody">
-              <tr><td colspan="7" class="td-muted">Laster...</td></tr>
-            </tbody>
-          </table>
+        <div class="ap-card">
+          <div class="ap-table-wrap">
+            <table class="data-table" id="bookingerTable">
+              <thead>
+                <tr>
+                  <th>Dato/tid</th>
+                  <th>Kunde</th>
+                  <th>Adresse</th>
+                  <th>Salong</th>
+                  <th>Behandling</th>
+                  <th>Pris</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="bookingerTableBody">
+                <tr><td colspan="7" class="td-muted">Laster ...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -261,15 +854,14 @@
            RAPPORTER
            ============================================================ -->
       <div class="tab-content" id="tab-rapporter">
-        <div class="topbar">
+        <div class="ap-tab-head">
           <div>
-            <h1 class="topbar__title">Rapporter</h1>
-            <div class="topbar__sub">Plattformanalyse og nokkeltall</div>
+            <h2 class="ap-section-title">Rapporter</h2>
+            <p class="ap-section-sub">Plattformanalyse og nøkkeltall.</p>
           </div>
         </div>
 
-        <!-- Period selector -->
-        <div style="display:flex; gap:6px; margin-bottom:24px;" id="rapPeriod">
+        <div class="ap-period" id="rapPeriod">
           <button class="period-btn" data-period="7d">7 dager</button>
           <button class="period-btn active" data-period="30d">30 dager</button>
           <button class="period-btn" data-period="90d">90 dager</button>
@@ -278,49 +870,307 @@
           <button class="period-btn" data-period="all">Alt</button>
         </div>
 
-        <div class="kpi-row">
-          <div class="kpi">
-            <div class="kpi__label">Total omsetning (booking-verdi)</div>
-            <div class="kpi__value" id="rapKpiRevenue">--</div>
-            <div class="kpi__delta" id="rapKpiBookings">--</div>
+        <div class="ap-summary ap-summary--4">
+          <div class="ap-tile">
+            <span class="ap-tile__label">Total omsetning</span>
+            <span class="ap-tile__value" id="rapKpiRevenue">--</span>
+            <span class="ap-tile__sub" id="rapKpiBookings">--</span>
           </div>
-          <div class="kpi">
-            <div class="kpi__label">Aktive salonger</div>
-            <div class="kpi__value" id="rapKpiActiveSalons">--</div>
-            <div class="kpi__delta" id="rapKpiActiveShare">--</div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Aktive salonger</span>
+            <span class="ap-tile__value" id="rapKpiActiveSalons">--</span>
+            <span class="ap-tile__sub" id="rapKpiActiveShare">--</span>
           </div>
-          <div class="kpi">
-            <div class="kpi__label">Snitt bookinger / salong</div>
-            <div class="kpi__value" id="rapKpiPerSalon">--</div>
-            <div class="kpi__delta">i valgt periode</div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Snitt bookinger / salong</span>
+            <span class="ap-tile__value" id="rapKpiPerSalon">--</span>
+            <span class="ap-tile__sub">i valgt periode</span>
           </div>
-          <div class="kpi">
-            <div class="kpi__label">Totalt bookinger</div>
-            <div class="kpi__value" id="rapKpiTotalBookings">--</div>
-            <div class="kpi__delta">bekreftet + fullfort</div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Totalt bookinger</span>
+            <span class="ap-tile__value" id="rapKpiTotalBookings">--</span>
+            <span class="ap-tile__sub">bekreftet + fullført</span>
           </div>
         </div>
 
-        <div class="report-grid">
-          <div class="panel mt-0">
-            <div class="panel__head"><h3>Bookinger per uke (siste 12 uker)</h3></div>
-            <div id="rapPerWeek"><div class="td-muted">Laster...</div></div>
+        <div class="ap-grid-2">
+          <div class="ap-card">
+            <div class="ap-card__head"><h3 class="ap-card__title">Bookinger per uke (siste 12 uker)</h3></div>
+            <div id="rapPerWeek"><div class="td-muted">Laster ...</div></div>
           </div>
-          <div class="panel mt-0">
-            <div class="panel__head"><h3>Omsetning per maned (siste 6 mnd)</h3></div>
-            <div id="rapPerMonth"><div class="td-muted">Laster...</div></div>
+          <div class="ap-card">
+            <div class="ap-card__head"><h3 class="ap-card__title">Omsetning per måned (siste 6 mnd)</h3></div>
+            <div id="rapPerMonth"><div class="td-muted">Laster ...</div></div>
           </div>
-          <div class="panel mt-0">
-            <div class="panel__head"><h3>Topp salonger</h3></div>
-            <table class="data-table data-table--compact">
-              <thead><tr><th>Salong</th><th>Sted</th><th>Bookinger</th><th>Omsetning</th></tr></thead>
-              <tbody id="rapTopSalons"><tr><td colspan="4" class="td-muted">Laster...</td></tr></tbody>
+          <div class="ap-card">
+            <div class="ap-card__head"><h3 class="ap-card__title">Topp salonger</h3></div>
+            <div class="ap-table-wrap">
+              <table class="data-table data-table--compact">
+                <thead><tr><th>Salong</th><th>Sted</th><th>Bookinger</th><th>Omsetning</th></tr></thead>
+                <tbody id="rapTopSalons"><tr><td colspan="4" class="td-muted">Laster ...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="ap-card">
+            <div class="ap-card__head"><h3 class="ap-card__title">Brukergeografi (by)</h3></div>
+            <div id="rapUserGeo"><div class="td-muted">Laster ...</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           BOOKING-ANALYSE
+           ============================================================ -->
+      <div class="tab-content" id="tab-booking-analyse">
+        <div class="ap-tab-head">
+          <div>
+            <h2 class="ap-section-title">Booking-analyse</h2>
+            <p class="ap-section-sub">Detaljert oversikt over alle bookinger på plattformen.</p>
+          </div>
+          <div class="ap-tab-head__actions">
+            <button class="btn btn-ghost btn-sm" id="baExportBtn"><i data-lucide="download"></i> Eksporter CSV</button>
+          </div>
+        </div>
+
+        <div class="ap-period" id="baPeriod">
+          <button class="period-btn" data-period="1d">I dag</button>
+          <button class="period-btn" data-period="7d">7 dager</button>
+          <button class="period-btn active" data-period="30d">30 dager</button>
+          <button class="period-btn" data-period="90d">90 dager</button>
+          <button class="period-btn" data-period="6m">6 mnd</button>
+          <button class="period-btn" data-period="12m">12 mnd</button>
+          <button class="period-btn" data-period="all">Alt</button>
+        </div>
+
+        <div class="ap-summary ap-summary--5">
+          <div class="ap-tile">
+            <span class="ap-tile__label">Nye bookinger</span>
+            <span class="ap-tile__value" id="baKpiNew">--</span>
+            <span class="ap-tile__sub">i valgt periode</span>
+          </div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Unike kunder</span>
+            <span class="ap-tile__value" id="baKpiUnique">--</span>
+            <span class="ap-tile__sub">i valgt periode</span>
+          </div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Førstegangskunder</span>
+            <span class="ap-tile__value" id="baKpiFirst">--</span>
+            <span class="ap-tile__sub">første booking i periode</span>
+          </div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Snitt bookingverdi</span>
+            <span class="ap-tile__value" id="baKpiAvg">--</span>
+            <span class="ap-tile__sub">i valgt periode</span>
+          </div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">No-show rate</span>
+            <span class="ap-tile__value" id="baKpiNoShow">--</span>
+            <span class="ap-tile__sub">no_show / total</span>
+          </div>
+        </div>
+
+        <div class="ap-grid-2">
+          <div class="ap-card">
+            <div class="ap-card__head"><h3 class="ap-card__title">Bookinger per by</h3></div>
+            <div class="ap-table-wrap">
+              <table class="data-table data-table--compact">
+                <thead><tr><th>By</th><th>Bookinger</th><th>Andel</th></tr></thead>
+                <tbody id="baByCounty"><tr><td colspan="3" class="td-muted">Laster ...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="ap-card">
+            <div class="ap-card__head"><h3 class="ap-card__title">Populære behandlinger</h3></div>
+            <div class="ap-table-wrap">
+              <table class="data-table data-table--compact">
+                <thead><tr><th>Behandling</th><th>Bookinger</th><th>Snittpris</th></tr></thead>
+                <tbody id="baPopular"><tr><td colspan="3" class="td-muted">Laster ...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="ap-card" style="margin-top: 20px;">
+          <div class="ap-card__head" style="gap:12px;">
+            <h3 class="ap-card__title">Siste bookinger</h3>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <div class="search-input" style="max-width:260px;">
+                <i data-lucide="search"></i>
+                <input placeholder="Søk kunde, salong, behandling ..." id="baSearch" />
+              </div>
+              <select class="filter-select" id="baFilter">
+                <option value="">Alle statuser</option>
+                <option value="pending">Venter</option>
+                <option value="confirmed">Bekreftet</option>
+                <option value="completed">Fullført</option>
+                <option value="cancelled">Kansellert</option>
+                <option value="no_show">No-show</option>
+              </select>
+            </div>
+          </div>
+          <div class="ap-table-wrap">
+            <table class="data-table" id="baTable">
+              <thead>
+                <tr>
+                  <th>Dato/tid</th>
+                  <th>Kunde</th>
+                  <th>Alder</th>
+                  <th>Adresse</th>
+                  <th>Salong</th>
+                  <th>Behandling</th>
+                  <th>Pris</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="baTableBody">
+                <tr><td colspan="8" class="td-muted">Laster ...</td></tr>
+              </tbody>
             </table>
           </div>
-          <div class="panel mt-0">
-            <div class="panel__head"><h3>Brukergeografi (proxy: by)</h3></div>
-            <div id="rapUserGeo"><div class="td-muted">Laster...</div></div>
+        </div>
+
+        <div class="ap-grid-2" style="margin-top: 20px;">
+          <div class="ap-card">
+            <div class="ap-card__head"><h3 class="ap-card__title">Aldersfordeling (fra brukerprofil)</h3></div>
+            <div id="baAge" style="display:flex; flex-direction:column; gap:8px;">
+              <div class="td-muted">Laster ...</div>
+            </div>
           </div>
+          <div class="ap-card">
+            <div class="ap-card__head"><h3 class="ap-card__title">Bookinger per ukedag</h3></div>
+            <div id="baWeekday" style="display:flex; flex-direction:column; gap:8px;">
+              <div class="td-muted">Laster ...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           BRUKERANALYSE
+           ============================================================ -->
+      <div class="tab-content" id="tab-bruker-analyse">
+        <div class="ap-tab-head">
+          <div>
+            <h2 class="ap-section-title">Brukeranalyse</h2>
+            <p class="ap-section-sub">Detaljert oversikt over registrerte brukere.</p>
+          </div>
+          <div class="ap-tab-head__actions">
+            <button class="btn btn-ghost btn-sm" id="buExportBtn"><i data-lucide="download"></i> Eksporter CSV</button>
+          </div>
+        </div>
+
+        <div class="ap-period" id="buPeriod">
+          <button class="period-btn" data-period="1d">I dag</button>
+          <button class="period-btn" data-period="7d">7 dager</button>
+          <button class="period-btn active" data-period="30d">30 dager</button>
+          <button class="period-btn" data-period="90d">90 dager</button>
+          <button class="period-btn" data-period="6m">6 mnd</button>
+          <button class="period-btn" data-period="12m">12 mnd</button>
+          <button class="period-btn" data-period="all">Alt</button>
+        </div>
+
+        <div class="ap-summary ap-summary--5">
+          <div class="ap-tile">
+            <span class="ap-tile__label">Nye brukere</span>
+            <span class="ap-tile__value" id="buKpiNew">--</span>
+            <span class="ap-tile__sub">i valgt periode</span>
+          </div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Totalt brukere</span>
+            <span class="ap-tile__value" id="buKpiTotal">--</span>
+            <span class="ap-tile__sub">samlet</span>
+          </div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Aktive (siste 30d)</span>
+            <span class="ap-tile__value" id="buKpiActive">--</span>
+            <span class="ap-tile__sub">unike kunder</span>
+          </div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Returrate</span>
+            <span class="ap-tile__value" id="buKpiReturn">--</span>
+            <span class="ap-tile__sub">2+ bookinger / 1+ booking</span>
+          </div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Snitt bookinger/bruker</span>
+            <span class="ap-tile__value" id="buKpiAvg">--</span>
+            <span class="ap-tile__sub">samlet</span>
+          </div>
+        </div>
+
+        <div class="ap-grid-3">
+          <div class="ap-card">
+            <div class="ap-card__head"><h3 class="ap-card__title">Aldersfordeling</h3></div>
+            <div id="buAge" style="display:flex; flex-direction:column; gap:8px;">
+              <div class="td-muted">Laster ...</div>
+            </div>
+          </div>
+          <div class="ap-card">
+            <div class="ap-card__head"><h3 class="ap-card__title">Geografi (topp byer)</h3></div>
+            <div id="buGeo" style="display:flex; flex-direction:column; gap:8px;">
+              <div class="td-muted">Laster ...</div>
+            </div>
+          </div>
+          <div class="ap-card">
+            <div class="ap-card__head"><h3 class="ap-card__title">Registreringskanal</h3></div>
+            <div id="buChannel" style="display:flex; flex-direction:column; gap:8px;">
+              <div class="td-muted">Laster ...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ap-card" style="margin-top: 20px;">
+          <div class="ap-card__head" style="gap:12px;">
+            <h3 class="ap-card__title">Registrerte brukere</h3>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <div class="search-input" style="max-width:260px;">
+                <i data-lucide="search"></i>
+                <input placeholder="Søk navn, telefon, e-post ..." id="buSearch" />
+              </div>
+              <select class="filter-select" id="buFilter">
+                <option value="">Alle</option>
+                <option value="active">Aktiv (booket siste 30d)</option>
+                <option value="inactive">Inaktiv (90+ dager)</option>
+                <option value="never">Aldri booket</option>
+              </select>
+            </div>
+          </div>
+          <div class="ap-table-wrap">
+            <table class="data-table" id="buTable">
+              <thead>
+                <tr>
+                  <th>Registrert</th>
+                  <th>Navn</th>
+                  <th>Alder</th>
+                  <th>Telefon</th>
+                  <th>E-post</th>
+                  <th>Adresse</th>
+                  <th>Bookinger</th>
+                  <th>Siste booking</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="buTableBody">
+                <tr><td colspan="9" class="td-muted">Laster ...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           MODERERING
+           ============================================================ -->
+      <div class="tab-content" id="tab-moderering">
+        <div class="ap-tab-head">
+          <div>
+            <h2 class="ap-section-title">Moderering</h2>
+            <p class="ap-section-sub">Salongsøknader til vurdering.</p>
+          </div>
+        </div>
+
+        <div id="modereringList">
+          <div class="td-muted">Laster ...</div>
         </div>
       </div>
 
@@ -328,19 +1178,19 @@
            INNSTILLINGER
            ============================================================ -->
       <div class="tab-content" id="tab-innstillinger">
-        <div class="topbar">
+        <div class="ap-tab-head">
           <div>
-            <h1 class="topbar__title">Innstillinger</h1>
-            <div class="topbar__sub">Plattformkonfigurasjon. Verdiene lagres i databasen. Faktisk handheving av feature-flagg kommer i Fase 4.</div>
+            <h2 class="ap-section-title">Innstillinger</h2>
+            <p class="ap-section-sub">Plattformkonfigurasjon. Verdiene lagres i databasen.</p>
           </div>
-          <div class="topbar__actions">
+          <div class="ap-tab-head__actions">
             <button class="btn btn-primary" id="saveSettingsBtn"><i data-lucide="save"></i> Lagre endringer</button>
           </div>
         </div>
 
-        <div class="panel">
-          <div class="panel__head"><h3>Generelt</h3></div>
-          <div class="settings-grid">
+        <div class="ap-card">
+          <div class="ap-card__head"><h3 class="ap-card__title">Generelt</h3></div>
+          <div class="ap-form-grid">
             <div class="form-group">
               <label>Plattformnavn</label>
               <input type="text" class="form-input" data-setting="platform_name" />
@@ -352,29 +1202,29 @@
           </div>
         </div>
 
-        <div class="panel">
-          <div class="panel__head"><h3>Abonnement</h3></div>
-          <div class="settings-grid">
+        <div class="ap-card">
+          <div class="ap-card__head"><h3 class="ap-card__title">Abonnement</h3></div>
+          <div class="ap-form-grid">
             <div class="form-group">
-              <label>Proveperiode lengde</label>
+              <label>Prøveperiode lengde</label>
               <input type="text" class="form-input" data-setting="trial_length" />
-              <span class="help-text">Hvor lenge nye salonger far gratis tilgang.</span>
+              <span class="help-text">Hvor lenge nye salonger får gratis tilgang.</span>
             </div>
             <div class="form-group">
-              <label>Abonnementspris (per maned)</label>
+              <label>Abonnementspris (per måned)</label>
               <input type="text" class="form-input" data-setting="monthly_price" />
-              <span class="help-text">Manedlig pris etter proveperioden.</span>
+              <span class="help-text">Månedlig pris etter prøveperioden.</span>
             </div>
           </div>
         </div>
 
-        <div class="panel">
-          <div class="panel__head"><h3>Feature toggles</h3></div>
+        <div class="ap-card">
+          <div class="ap-card__head"><h3 class="ap-card__title">Feature toggles</h3></div>
 
           <div class="toggle-row">
             <div>
               <div class="toggle-row__label">Vipps login</div>
-              <div class="toggle-row__desc">Tillat brukere a logge inn med Vipps.</div>
+              <div class="toggle-row__desc">Tillat brukere å logge inn med Vipps.</div>
             </div>
             <label class="toggle">
               <input type="checkbox" data-setting="feature_vipps_login" />
@@ -395,8 +1245,8 @@
 
           <div class="toggle-row">
             <div>
-              <div class="toggle-row__label">SMS-paminnelser</div>
-              <div class="toggle-row__desc">Automatisk SMS 24 timer for booking.</div>
+              <div class="toggle-row__label">SMS-påminnelser</div>
+              <div class="toggle-row__desc">Automatisk SMS 24 timer før booking.</div>
             </div>
             <label class="toggle">
               <input type="checkbox" data-setting="feature_sms_reminders" />
@@ -407,7 +1257,7 @@
           <div class="toggle-row">
             <div>
               <div class="toggle-row__label">Anmeldelser</div>
-              <div class="toggle-row__desc">Tillat kunder a legge igjen anmeldelser.</div>
+              <div class="toggle-row__desc">Tillat kunder å legge igjen anmeldelser.</div>
             </div>
             <label class="toggle">
               <input type="checkbox" data-setting="feature_reviews" />
@@ -418,7 +1268,7 @@
           <div class="toggle-row">
             <div>
               <div class="toggle-row__label">Ventelistefunksjon</div>
-              <div class="toggle-row__desc">La kunder sette seg pa venteliste nar tider er fulle.</div>
+              <div class="toggle-row__desc">La kunder sette seg på venteliste når tider er fulle.</div>
             </div>
             <label class="toggle">
               <input type="checkbox" data-setting="feature_waitlist" />
@@ -429,7 +1279,7 @@
           <div class="toggle-row">
             <div>
               <div class="toggle-row__label">Gavekort</div>
-              <div class="toggle-row__desc">Aktiver kjop og innlosning av gavekort.</div>
+              <div class="toggle-row__desc">Aktiver kjøp og innløsning av gavekort.</div>
             </div>
             <label class="toggle">
               <input type="checkbox" data-setting="feature_giftcards" />
@@ -439,276 +1289,50 @@
         </div>
       </div>
 
-      <!-- ============================================================
-           MODERERING
-           ============================================================ -->
-      <div class="tab-content" id="tab-moderering">
-        <div class="topbar">
-          <div>
-            <h1 class="topbar__title">Moderering</h1>
-            <div class="topbar__sub">Salongsoknader til vurdering</div>
-          </div>
-        </div>
+    </div>
+  </section>
 
-        <h3 style="font-size: 18px; margin-bottom: 16px;">Ventende salongsoknader</h3>
-        <div id="modereringList">
-          <div class="td-muted">Laster...</div>
+  <!-- Public footer -->
+  <footer class="footer">
+    <div class="page footer__inner">
+      <div class="footer__top">
+        <img src="/assets/logo-wordmark.svg" alt="nailed" class="footer__brand" />
+        <div class="footer__socials">
+          <a class="footer__social" href="#" aria-label="Instagram"><i data-lucide="instagram"></i></a>
+          <a class="footer__social" href="#" aria-label="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.17a8.16 8.16 0 004.76 1.51v-3.45a4.85 4.85 0 01-1-.54z"/></svg></a>
+          <a class="footer__social" href="#" aria-label="Facebook"><i data-lucide="facebook"></i></a>
         </div>
       </div>
-
-      <!-- ============================================================
-           BOOKING-ANALYSE
-           ============================================================ -->
-      <div class="tab-content" id="tab-booking-analyse">
-        <div class="topbar">
-          <div>
-            <h1 class="topbar__title">Booking-analyse</h1>
-            <div class="topbar__sub">Detaljert oversikt over alle bookinger pa plattformen.</div>
-          </div>
-          <div class="topbar__actions">
-            <button class="btn btn-ghost" id="baExportBtn"><i data-lucide="download"></i> Eksporter CSV</button>
-          </div>
-        </div>
-
-        <!-- Period selector -->
-        <div style="display:flex; gap:6px; margin-bottom:24px;" id="baPeriod">
-          <button class="period-btn" data-period="1d">I dag</button>
-          <button class="period-btn" data-period="7d">7 dager</button>
-          <button class="period-btn active" data-period="30d">30 dager</button>
-          <button class="period-btn" data-period="90d">90 dager</button>
-          <button class="period-btn" data-period="6m">6 mnd</button>
-          <button class="period-btn" data-period="12m">12 mnd</button>
-          <button class="period-btn" data-period="all">Alt</button>
-        </div>
-
-        <!-- KPIs -->
-        <div class="kpi-row">
-          <div class="kpi">
-            <div class="kpi__label">Nye bookinger</div>
-            <div class="kpi__value" id="baKpiNew">--</div>
-            <div class="kpi__delta">i valgt periode</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__label">Unike kunder</div>
-            <div class="kpi__value" id="baKpiUnique">--</div>
-            <div class="kpi__delta">i valgt periode</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__label">Forstegangskunder</div>
-            <div class="kpi__value" id="baKpiFirst">--</div>
-            <div class="kpi__delta">forste booking i periode</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__label">Snitt bookingverdi</div>
-            <div class="kpi__value" id="baKpiAvg">--</div>
-            <div class="kpi__delta">i valgt periode</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__label">No-show rate</div>
-            <div class="kpi__value" id="baKpiNoShow">--</div>
-            <div class="kpi__delta">no_show / total</div>
-          </div>
-        </div>
-
-        <!-- Booking source breakdown -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px;">
-          <div class="admin-card">
-            <h3 class="admin-card__title">Bookinger per by</h3>
-            <table class="data-table data-table--compact">
-              <thead><tr><th>By</th><th>Bookinger</th><th>Andel</th></tr></thead>
-              <tbody id="baByCounty"><tr><td colspan="3" class="td-muted">Laster...</td></tr></tbody>
-            </table>
-          </div>
-          <div class="admin-card">
-            <h3 class="admin-card__title">Populare behandlinger</h3>
-            <table class="data-table data-table--compact">
-              <thead><tr><th>Behandling</th><th>Bookinger</th><th>Snitt pris</th></tr></thead>
-              <tbody id="baPopular"><tr><td colspan="3" class="td-muted">Laster...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Detailed bookings -->
-        <div class="admin-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <h3 class="admin-card__title">Siste bookinger</h3>
-            <div style="display:flex; gap:8px;">
-              <div class="search-input" style="max-width:260px;">
-                <i data-lucide="search"></i>
-                <input placeholder="Sok kunde, salong, behandling.." id="baSearch" />
-              </div>
-              <select class="filter-select" id="baFilter">
-                <option value="">Alle statuser</option>
-                <option value="pending">Venter</option>
-                <option value="confirmed">Bekreftet</option>
-                <option value="completed">Fullfort</option>
-                <option value="cancelled">Kansellert</option>
-                <option value="no_show">No-show</option>
-              </select>
-            </div>
-          </div>
-          <table class="data-table" id="baTable">
-            <thead>
-              <tr>
-                <th>Dato/tid</th>
-                <th>Kunde</th>
-                <th>Alder</th>
-                <th>Adresse</th>
-                <th>Salong</th>
-                <th>Behandling</th>
-                <th>Pris</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="baTableBody">
-              <tr><td colspan="8" class="td-muted">Laster...</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Age & weekday breakdown -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:24px;">
-          <div class="admin-card">
-            <h3 class="admin-card__title">Aldersfordeling (fra brukerprofil)</h3>
-            <div id="baAge" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
-              <div class="td-muted">Laster...</div>
-            </div>
-          </div>
-          <div class="admin-card">
-            <h3 class="admin-card__title">Bookinger per ukedag</h3>
-            <div id="baWeekday" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
-              <div class="td-muted">Laster...</div>
-            </div>
-          </div>
+      <div class="footer__links">
+        <a href="/utforsk.html">Utforsk</a>
+        <a href="/for-salonger.html">For salonger</a>
+        <a href="/last-ned-app.html">Last ned app</a>
+        <a href="/personvern.html">Personvern</a>
+        <a href="/vilkar.html">Bruksvilkår</a>
+        <a href="/cookies.html">Cookies</a>
+        <a href="#">FAQ</a>
+        <a href="#">Kontakt oss</a>
+        <a href="#">Om oss</a>
+      </div>
+      <div class="footer__bottom">
+        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
+        <div class="footer__badges">
+          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> App Store — juni</span>
+          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Google Play — juli</span>
         </div>
       </div>
-
-      <!-- ============================================================
-           BRUKERANALYSE
-           ============================================================ -->
-      <div class="tab-content" id="tab-bruker-analyse">
-        <div class="topbar">
-          <div>
-            <h1 class="topbar__title">Brukeranalyse</h1>
-            <div class="topbar__sub">Detaljert oversikt over registrerte brukere.</div>
-          </div>
-          <div class="topbar__actions">
-            <button class="btn btn-ghost" id="buExportBtn"><i data-lucide="download"></i> Eksporter CSV</button>
-          </div>
-        </div>
-
-        <!-- Period selector -->
-        <div style="display:flex; gap:6px; margin-bottom:24px;" id="buPeriod">
-          <button class="period-btn" data-period="1d">I dag</button>
-          <button class="period-btn" data-period="7d">7 dager</button>
-          <button class="period-btn active" data-period="30d">30 dager</button>
-          <button class="period-btn" data-period="90d">90 dager</button>
-          <button class="period-btn" data-period="6m">6 mnd</button>
-          <button class="period-btn" data-period="12m">12 mnd</button>
-          <button class="period-btn" data-period="all">Alt</button>
-        </div>
-
-        <!-- KPIs -->
-        <div class="kpi-row">
-          <div class="kpi">
-            <div class="kpi__label">Nye brukere</div>
-            <div class="kpi__value" id="buKpiNew">--</div>
-            <div class="kpi__delta">i valgt periode</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__label">Totalt brukere</div>
-            <div class="kpi__value" id="buKpiTotal">--</div>
-            <div class="kpi__delta">samlet</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__label">Aktive (booket siste 30d)</div>
-            <div class="kpi__value" id="buKpiActive">--</div>
-            <div class="kpi__delta">unike kunder</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__label">Returrate</div>
-            <div class="kpi__value" id="buKpiReturn">--</div>
-            <div class="kpi__delta">2+ bookinger / 1+ booking</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__label">Snitt bookinger/bruker</div>
-            <div class="kpi__value" id="buKpiAvg">--</div>
-            <div class="kpi__delta">samlet</div>
-          </div>
-        </div>
-
-        <!-- Breakdowns -->
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-bottom:24px;">
-          <div class="admin-card">
-            <h3 class="admin-card__title">Aldersfordeling</h3>
-            <div id="buAge" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
-              <div class="td-muted">Laster...</div>
-            </div>
-          </div>
-          <div class="admin-card">
-            <h3 class="admin-card__title">Geografi (topp byer)</h3>
-            <div id="buGeo" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
-              <div class="td-muted">Laster...</div>
-            </div>
-          </div>
-          <div class="admin-card">
-            <h3 class="admin-card__title">Registreringskanal</h3>
-            <div id="buChannel" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
-              <div class="td-muted">Laster...</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- User table -->
-        <div class="admin-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <h3 class="admin-card__title">Registrerte brukere</h3>
-            <div style="display:flex; gap:8px;">
-              <div class="search-input" style="max-width:260px;">
-                <i data-lucide="search"></i>
-                <input placeholder="Sok navn, telefon, e-post.." id="buSearch" />
-              </div>
-              <select class="filter-select" id="buFilter">
-                <option value="">Alle</option>
-                <option value="active">Aktiv (booket siste 30d)</option>
-                <option value="inactive">Inaktiv (90+ dager)</option>
-                <option value="never">Aldri booket</option>
-              </select>
-            </div>
-          </div>
-          <table class="data-table" id="buTable">
-            <thead>
-              <tr>
-                <th>Registrert</th>
-                <th>Navn</th>
-                <th>Alder</th>
-                <th>Telefon</th>
-                <th>E-post</th>
-                <th>Adresse</th>
-                <th>Bookinger</th>
-                <th>Siste booking</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="buTableBody">
-              <tr><td colspan="9" class="td-muted">Laster...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </main>
-  </div>
+    </div>
+  </footer>
 
   <!-- Toast -->
-  <div id="toast" style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:12px 20px; background:var(--ink); color:var(--cream-50); border-radius:var(--radius-pill); font-size:13px; font-weight:600; box-shadow:0 8px 24px rgba(0,0,0,0.18); z-index:1100; opacity:0; pointer-events:none; transition:opacity 200ms ease;"></div>
+  <div id="toast" class="ap-toast"></div>
 
   <!-- Confirm modal -->
-  <div id="confirmModal" hidden style="position:fixed; inset:0; background:rgba(27,18,24,0.45); z-index:1000; align-items:center; justify-content:center; display:none;">
-    <div style="background:var(--cream-50); border-radius:var(--radius-lg); padding:28px; max-width:440px; width:calc(100% - 32px); box-shadow:0 24px 64px rgba(0,0,0,0.18);">
-      <h3 id="confirmTitle" style="margin:0 0 8px 0; font-family:var(--font-display); font-size:22px;">Bekreft</h3>
-      <p id="confirmBody" style="margin:0 0 20px 0; color:var(--fg-muted); font-size:14px; line-height:1.5;"></p>
-      <div style="display:flex; gap:8px; justify-content:flex-end;">
+  <div id="confirmModal" class="ap-modal" hidden>
+    <div class="ap-modal__card">
+      <h3 id="confirmTitle" class="ap-modal__title">Bekreft</h3>
+      <p id="confirmBody" class="ap-modal__body"></p>
+      <div class="ap-modal__actions">
         <button class="btn btn-ghost" id="confirmCancel">Avbryt</button>
         <button class="btn btn-danger" id="confirmOk">Bekreft</button>
       </div>
@@ -717,8 +1341,20 @@
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="/assets/auth.js"></script>
+  <script defer src="/assets/nav.js"></script>
   <script>
     lucide.createIcons();
+
+    /* ================================================================
+       Top-nav scroll behavior — matches the public site
+       ================================================================ */
+    (function () {
+      var nav = document.getElementById('topNav');
+      if (!nav) return;
+      window.addEventListener('scroll', function () {
+        nav.classList.toggle('scrolled', window.scrollY > 30);
+      });
+    })();
 
     /* ================================================================
        Helpers
@@ -800,7 +1436,7 @@
       var el = document.getElementById('toast');
       if (!el) return;
       el.textContent = msg;
-      el.style.background = kind === 'error' ? 'var(--danger-500)' : (kind === 'success' ? 'var(--success-500)' : 'var(--ink)');
+      el.style.background = kind === 'error' ? 'var(--rouge-700)' : (kind === 'success' ? '#486041' : 'var(--ink)');
       el.style.color = '#fff';
       el.style.opacity = '1';
       clearTimeout(_toastTimer);
@@ -846,7 +1482,7 @@
     }
 
     function activateTab(tabId) {
-      var nav = document.querySelector('.nav-item[data-tab="' + tabId + '"]');
+      var nav = document.querySelector('.ap-tab[data-tab="' + tabId + '"]');
       if (!nav) return;
       nav.click();
     }
@@ -857,7 +1493,7 @@
         suspended: ['status--suspended', 'Suspendert'],
         pending:   ['status--pending', 'Venter'],
         confirmed: ['status--confirmed', 'Bekreftet'],
-        completed: ['status--completed', 'Fullfort'],
+        completed: ['status--completed', 'Fullført'],
         cancelled: ['status--cancelled', 'Kansellert'],
         no_show:   ['status--noshow', 'No-show']
       };
@@ -876,39 +1512,53 @@
     }
 
     /* ================================================================
-       Tab switching
+       Tab switching — pill strip with hash + auto-scroll active into view
        ================================================================ */
 
-    var navItems = document.querySelectorAll('.nav-item[data-tab]');
+    var tabButtons = document.querySelectorAll('.ap-tab[data-tab]');
     var tabContents = document.querySelectorAll('.tab-content');
 
     var _tabLoaded = {};
     function lazyLoadTab(tabId) {
       if (_tabLoaded[tabId]) return;
       _tabLoaded[tabId] = true;
-      if (tabId === 'rapporter')        loadRapporter();
-      else if (tabId === 'booking-analyse') loadBookingAnalyse();
-      else if (tabId === 'bruker-analyse')  loadBrukerAnalyse();
-      else if (tabId === 'innstillinger')   loadInnstillinger();
+      if (tabId === 'rapporter')              loadRapporter();
+      else if (tabId === 'booking-analyse')   loadBookingAnalyse();
+      else if (tabId === 'bruker-analyse')    loadBrukerAnalyse();
+      else if (tabId === 'innstillinger')     loadInnstillinger();
     }
 
-    navItems.forEach(function(item) {
-      item.addEventListener('click', function() {
+    function setActiveTab(tabId) {
+      var btn = document.querySelector('.ap-tab[data-tab="' + tabId + '"]');
+      if (!btn) return;
+      tabButtons.forEach(function (b) { b.classList.toggle('active', b === btn); });
+      tabContents.forEach(function (t) { t.classList.toggle('active', t.id === 'tab-' + tabId); });
+      lazyLoadTab(tabId);
+      lucide.createIcons();
+      // Scroll active pill into view on narrow viewports (same trick as kunde-panel).
+      if (btn.scrollIntoView) {
+        try { btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch (_) {}
+      }
+    }
+
+    tabButtons.forEach(function (item) {
+      item.addEventListener('click', function () {
         var tabId = this.getAttribute('data-tab');
-
-        navItems.forEach(function(n) { n.classList.remove('active'); });
-        this.classList.add('active');
-
-        tabContents.forEach(function(t) { t.classList.remove('active'); });
-        var target = document.getElementById('tab-' + tabId);
-        if (target) {
-          target.classList.add('active');
-        }
-
-        lazyLoadTab(tabId);
-        lucide.createIcons();
+        try { history.replaceState(null, '', '#tab-' + tabId); } catch (_) { window.location.hash = 'tab-' + tabId; }
+        setActiveTab(tabId);
       });
     });
+
+    window.addEventListener('hashchange', function () {
+      var h = (window.location.hash || '').replace(/^#tab-/, '');
+      if (h) setActiveTab(h);
+    });
+
+    // Honour an incoming hash so deep links work (#tab-moderering etc).
+    (function () {
+      var h = (window.location.hash || '').replace(/^#tab-/, '');
+      if (h) setActiveTab(h);
+    })();
 
     // Make Dashboard KPI tiles jump to the relevant tab.
     document.querySelectorAll('[data-jump]').forEach(function (el) {
@@ -918,7 +1568,7 @@
     });
 
     /* ================================================================
-       Auth gate + sidebar wiring
+       Auth gate + hero wiring
        ================================================================ */
 
     var currentUser = null;
@@ -927,13 +1577,16 @@
       currentUser = await NailedAuth.requireAuth('admin');
       if (!currentUser) return;
 
-      // Sidebar footer.
+      // Hero greeting.
+      var greetEl = document.getElementById('adminGreetingName');
       var nameEl = document.getElementById('adminName');
       var roleEl = document.getElementById('adminRole');
       var avatarEl = document.getElementById('adminAvatar');
+      var firstName = (currentUser.name || '').split(/\s+/)[0] || 'admin';
+      if (greetEl) greetEl.textContent = firstName;
       if (nameEl) nameEl.textContent = currentUser.name || currentUser.email || 'Admin';
       if (roleEl) roleEl.textContent = currentUser.email || '';
-      if (avatarEl) avatarEl.textContent = initials(currentUser.name || currentUser.email);
+      if (avatarEl) avatarEl.textContent = (firstName.charAt(0) || 'A').toUpperCase();
 
       // Logout.
       var logoutBtn = document.getElementById('logoutBtn');
@@ -969,7 +1622,7 @@
         document.getElementById('kpiOpenBookings').textContent = formatNumber(data.open_bookings);
         document.getElementById('kpiPendingApps').textContent = formatNumber(data.pending_applications);
 
-        // Sidebar badges.
+        // Tab badges.
         var sb = document.getElementById('navSalongerCount');
         if (sb) sb.textContent = data.salons;
         var mb = document.getElementById('navModereringCount');
@@ -990,26 +1643,30 @@
           var el = document.getElementById('kpiRevenue30d');
           if (el) el.textContent = rvd.kpi && rvd.kpi.total_revenue ? formatNok(rvd.kpi.total_revenue, { compact: true }) : 'Ingen data';
           var sub = document.getElementById('kpiRevenueSub');
-          if (sub) sub.textContent = formatNumber(rvd.kpi.total_bookings) + ' bookinger (bekreftet + fullfort)';
+          if (sub) sub.textContent = formatNumber(rvd.kpi.total_bookings) + ' bookinger (bekreftet + fullført)';
         }
       } catch (err) { console.error('[admin] revenue failed', err); }
 
-      // Recent salons (top 5).
+      // Recent salons (top 5) — rendered as ap-row list.
       try {
         var rs = await NailedAuth.api('/api/v1/admin/salons?limit=5');
         if (rs.ok) {
           var rsd = await rs.json();
-          var tb = document.getElementById('dashRecentSalonsBody');
+          var list = document.getElementById('dashRecentSalonsList');
           if (!rsd.salons.length) {
-            tb.innerHTML = '<tr><td colspan="4" class="td-muted">Ingen salonger enna.</td></tr>';
+            list.innerHTML = '<div class="td-muted">Ingen salonger ennå.</div>';
           } else {
-            tb.innerHTML = rsd.salons.map(function (s) {
-              return '<tr>' +
-                '<td class="td-name">' + escapeHtml(s.name) + '</td>' +
-                '<td class="td-muted">' + escapeHtml(s.owner_name || s.owner_email || '--') + '</td>' +
-                '<td class="td-muted">' + escapeHtml(s.city || '--') + '</td>' +
-                '<td class="td-muted">' + formatDate(s.created_at) + '</td>' +
-              '</tr>';
+            list.innerHTML = rsd.salons.map(function (s) {
+              return '<div class="ap-row">' +
+                '<div class="ap-row__main">' +
+                  '<div class="ap-row__name">' + escapeHtml(s.name) + '</div>' +
+                  '<div class="ap-row__meta">' +
+                    escapeHtml(s.owner_name || s.owner_email || '--') +
+                    (s.city ? ' · ' + escapeHtml(s.city) : '') +
+                    ' · ' + formatDate(s.created_at) +
+                  '</div>' +
+                '</div>' +
+              '</div>';
             }).join('');
           }
         }
@@ -1020,18 +1677,20 @@
         var ru = await NailedAuth.api('/api/v1/admin/users?limit=5');
         if (ru.ok) {
           var rud = await ru.json();
-          var tb2 = document.getElementById('dashRecentUsersBody');
+          var list = document.getElementById('dashRecentUsersList');
           if (!rud.users.length) {
-            tb2.innerHTML = '<tr><td colspan="4" class="td-muted">Ingen brukere enna.</td></tr>';
+            list.innerHTML = '<div class="td-muted">Ingen brukere ennå.</div>';
           } else {
-            tb2.innerHTML = rud.users.map(function (u) {
-              return '<tr>' +
-                '<td class="td-name">' + escapeHtml(u.name || '--') + '</td>' +
-                '<td class="td-muted">' + escapeHtml(u.email) + '</td>' +
-                '<td>' + rolePill(u.role) + '</td>' +
-                '<td class="td-muted">' + formatDate(u.created_at) + '</td>' +
-              '</tr>';
+            list.innerHTML = rud.users.map(function (u) {
+              return '<div class="ap-row">' +
+                '<div class="ap-row__main">' +
+                  '<div class="ap-row__name">' + escapeHtml(u.name || '--') + '</div>' +
+                  '<div class="ap-row__meta">' + escapeHtml(u.email) + ' · ' + formatDate(u.created_at) + '</div>' +
+                '</div>' +
+                '<div class="ap-row__actions">' + rolePill(u.role) + '</div>' +
+              '</div>';
             }).join('');
+            lucide.createIcons();
           }
         }
       } catch (err) { console.error('[admin] recent users failed', err); }
@@ -1052,20 +1711,20 @@
         var data = await res.json();
         allSalons = data.salons || [];
         var sub = document.getElementById('salongerSub');
-        if (sub) sub.textContent = allSalons.length + ' registrerte salonger';
+        if (sub) sub.textContent = allSalons.length + ' registrerte salonger.';
         renderSalonger();
       } catch (err) {
         console.error('[admin] salons failed', err);
-        var body = document.getElementById('salongerTableBody');
-        if (body) body.innerHTML = '<tr><td colspan="6" class="td-muted">Kunne ikke laste salonger.</td></tr>';
+        var list = document.getElementById('salongerList');
+        if (list) list.innerHTML = '<div class="td-muted">Kunne ikke laste salonger.</div>';
       }
     }
 
     function renderSalonger() {
       var q = (salongerSearch.value || '').toLowerCase();
       var statusF = salongerStatusFilter.value;
-      var body = document.getElementById('salongerTableBody');
-      if (!body) return;
+      var list = document.getElementById('salongerList');
+      if (!list) return;
 
       var rows = allSalons.filter(function (s) {
         if (statusF && s.status !== statusF) return false;
@@ -1075,11 +1734,16 @@
       });
 
       if (!rows.length) {
-        body.innerHTML = '<tr><td colspan="6" class="td-muted">Ingen treff.</td></tr>';
+        list.innerHTML = '<div class="ap-empty">' +
+          '<span class="ap-empty__icon"><i data-lucide="store"></i></span>' +
+          '<h3 class="ap-empty__title">Ingen treff</h3>' +
+          '<p class="ap-empty__desc">Prøv et annet søk eller fjern statusfilteret.</p>' +
+        '</div>';
+        lucide.createIcons();
         return;
       }
 
-      body.innerHTML = rows.map(function (s) {
+      list.innerHTML = rows.map(function (s) {
         var statusBtn;
         if (s.status === 'active') {
           statusBtn = '<button class="btn btn-danger btn-sm" data-act="suspend" data-id="' + s.id + '" data-name="' + escapeHtml(s.name) + '"><i data-lucide="pause-circle"></i> Suspender</button>';
@@ -1097,14 +1761,17 @@
           ? '<button class="btn btn-ghost btn-sm" data-act="delete" data-id="' + s.id + '" data-name="' + escapeHtml(s.name) + '" title="Slett salong"><i data-lucide="trash-2"></i></button>'
           : '';
 
-        return '<tr>' +
-          '<td class="td-name">' + escapeHtml(s.name) + '</td>' +
-          '<td class="td-muted">' + escapeHtml(s.owner_name || s.owner_email || '--') + '</td>' +
-          '<td class="td-muted">' + escapeHtml(s.city || '--') + '</td>' +
-          '<td>' + statusPill(s.status) + '</td>' +
-          '<td class="td-muted">' + formatDate(s.created_at) + '</td>' +
-          '<td class="td-actions" style="display:flex; gap:6px; flex-wrap:wrap;">' + profileLink + statusBtn + deleteBtn + '</td>' +
-        '</tr>';
+        return '<div class="ap-row">' +
+          '<div class="ap-row__main">' +
+            '<div class="ap-row__name">' + escapeHtml(s.name) + '</div>' +
+            '<div class="ap-row__meta">' +
+              escapeHtml(s.owner_name || s.owner_email || '--') +
+              (s.city ? ' · ' + escapeHtml(s.city) : '') +
+              ' · Registrert ' + formatDate(s.created_at) +
+            '</div>' +
+          '</div>' +
+          '<div class="ap-row__actions">' + statusPill(s.status) + profileLink + statusBtn + deleteBtn + '</div>' +
+        '</div>';
       }).join('');
 
       lucide.createIcons();
@@ -1113,7 +1780,7 @@
     salongerSearch.addEventListener('input', renderSalonger);
     salongerStatusFilter.addEventListener('change', renderSalonger);
 
-    document.getElementById('salongerTableBody').addEventListener('click', async function (e) {
+    document.getElementById('salongerList').addEventListener('click', async function (e) {
       var btn = e.target.closest('button[data-act]');
       if (!btn) return;
       var id = btn.getAttribute('data-id');
@@ -1153,7 +1820,7 @@
         await loadDashboard();
       } catch (err) {
         console.error('[admin] salon action failed', err);
-        showToast('Handlingen feilet. Prov igjen.', 'error');
+        showToast('Handlingen feilet. Prøv igjen.', 'error');
         btn.disabled = false;
       }
     });
@@ -1173,22 +1840,27 @@
         var data = await res.json();
         renderBrukere(data.users || []);
         var sub = document.getElementById('brukereSub');
-        if (sub) sub.textContent = (data.users || []).length + ' brukere vist';
+        if (sub) sub.textContent = (data.users || []).length + ' brukere vist.';
       } catch (err) {
         console.error('[admin] users failed', err);
-        var body = document.getElementById('brukereTableBody');
-        if (body) body.innerHTML = '<tr><td colspan="8" class="td-muted">Kunne ikke laste brukere.</td></tr>';
+        var list = document.getElementById('brukereList');
+        if (list) list.innerHTML = '<div class="td-muted">Kunne ikke laste brukere.</div>';
       }
     }
 
     function renderBrukere(users) {
-      var body = document.getElementById('brukereTableBody');
-      if (!body) return;
+      var list = document.getElementById('brukereList');
+      if (!list) return;
       if (!users.length) {
-        body.innerHTML = '<tr><td colspan="8" class="td-muted">Ingen brukere.</td></tr>';
+        list.innerHTML = '<div class="ap-empty">' +
+          '<span class="ap-empty__icon"><i data-lucide="users"></i></span>' +
+          '<h3 class="ap-empty__title">Ingen brukere</h3>' +
+          '<p class="ap-empty__desc">Ingen treff på det søket.</p>' +
+        '</div>';
+        lucide.createIcons();
         return;
       }
-      body.innerHTML = users.map(function (u) {
+      list.innerHTML = users.map(function (u) {
         var suspended = !!u.suspended_at;
         var statusHtml = suspended
           ? '<span class="status status--cancelled">Suspendert</span>'
@@ -1196,16 +1868,18 @@
         var actionBtn = suspended
           ? '<button class="btn btn-success btn-sm" data-act="unsuspend" data-id="' + u.id + '"><i data-lucide="play-circle"></i> Aktiver</button>'
           : '<button class="btn btn-danger btn-sm" data-act="suspend" data-id="' + u.id + '"><i data-lucide="pause-circle"></i> Suspender</button>';
-        return '<tr>' +
-          '<td class="td-name">' + escapeHtml(u.name || '--') + '</td>' +
-          '<td class="td-mono">' + escapeHtml(u.phone || '--') + '</td>' +
-          '<td class="td-muted">' + escapeHtml(u.email) + '</td>' +
-          '<td>' + rolePill(u.role) + '</td>' +
-          '<td class="td-muted">' + formatDate(u.created_at) + '</td>' +
-          '<td>' + (u.booking_count || 0) + '</td>' +
-          '<td>' + statusHtml + '</td>' +
-          '<td class="td-actions">' + actionBtn + '</td>' +
-        '</tr>';
+        var metaBits = [];
+        if (u.phone) metaBits.push(escapeHtml(u.phone));
+        metaBits.push(escapeHtml(u.email));
+        metaBits.push('Registrert ' + formatDate(u.created_at));
+        metaBits.push((u.booking_count || 0) + ' bookinger');
+        return '<div class="ap-row">' +
+          '<div class="ap-row__main">' +
+            '<div class="ap-row__name">' + escapeHtml(u.name || '--') + '</div>' +
+            '<div class="ap-row__meta">' + metaBits.join(' · ') + '</div>' +
+          '</div>' +
+          '<div class="ap-row__actions">' + rolePill(u.role) + statusHtml + actionBtn + '</div>' +
+        '</div>';
       }).join('');
       lucide.createIcons();
     }
@@ -1214,7 +1888,7 @@
       loadBrukere(brukereSearch.value.trim());
     }, 250));
 
-    document.getElementById('brukereTableBody').addEventListener('click', async function (e) {
+    document.getElementById('brukereList').addEventListener('click', async function (e) {
       var btn = e.target.closest('button[data-act]');
       if (!btn) return;
       var id = btn.getAttribute('data-id');
@@ -1239,7 +1913,7 @@
         await loadDashboard();
       } catch (err) {
         console.error('[admin] user action failed', err);
-        showToast('Handlingen feilet. Prov igjen.', 'error');
+        showToast('Handlingen feilet. Prøv igjen.', 'error');
         btn.disabled = false;
       }
     });
@@ -1329,7 +2003,7 @@
         if (badge) badge.textContent = (data.applications || []).length;
       } catch (err) {
         console.error('[admin] applications failed', err);
-        container.innerHTML = '<div class="td-muted">Kunne ikke laste soknader.</div>';
+        container.innerHTML = '<div class="td-muted">Kunne ikke laste søknader.</div>';
       }
     }
 
@@ -1337,7 +2011,12 @@
       var container = document.getElementById('modereringList');
       if (!container) return;
       if (!apps.length) {
-        container.innerHTML = '<div class="td-muted">Ingen ventende soknader.</div>';
+        container.innerHTML = '<div class="ap-empty">' +
+          '<span class="ap-empty__icon"><i data-lucide="shield-check"></i></span>' +
+          '<h3 class="ap-empty__title">Ingen ventende søknader</h3>' +
+          '<p class="ap-empty__desc">Alt er behandlet. Nye søknader dukker opp her etter hvert.</p>' +
+        '</div>';
+        lucide.createIcons();
         return;
       }
       container.innerHTML = apps.map(function (a) {
@@ -1424,7 +2103,6 @@
         if (!res.ok) {
           var errBody = {};
           try { errBody = await res.json(); } catch (_) {}
-          // API returns { error: { code, message } }; older code read errBody.message.
           var msg = (errBody.error && errBody.error.message) || ('app ' + act + ' ' + res.status);
           throw new Error(msg);
         }
@@ -1616,7 +2294,7 @@
         var wdRows = (data.by_weekday || []).map(function (r) { return { label: r.weekday, count: r.count }; });
         renderBars(document.getElementById('baWeekday'), wdRows);
 
-        // Detailed bookings table — fetch via /admin/bookings (to honour filters).
+        // Detailed bookings table.
         await loadBookingAnalyseDetail();
 
         lucide.createIcons();
@@ -1861,7 +2539,7 @@
         showToast('Innstillinger lagret', 'success');
       } catch (err) {
         console.error('[admin] settings save failed', err);
-        showToast('Kunne ikke lagre. Prov igjen.', 'error');
+        showToast('Kunne ikke lagre. Prøv igjen.', 'error');
       } finally {
         btn.disabled = false;
       }
