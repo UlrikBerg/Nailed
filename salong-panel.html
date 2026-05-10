@@ -1549,7 +1549,9 @@
           '<td><strong>' + fmt(b.start_at) + '</strong></td>' +
           '<td><strong>' + escapeHtml(b.customer_name) + '</strong>' +
             (b.customer_note ? '<br><span class="td-muted">' + escapeHtml(b.customer_note) + '</span>' : '') + '</td>' +
-          '<td>' + escapeHtml(b.service_name) + '</td>' +
+          '<td>' + escapeHtml(b.service_name) +
+            (b.duration_min ? '<br><span class="td-muted">' + b.duration_min + ' min</span>' : '') +
+            '</td>' +
           '<td><strong>' + b.price_nok + ' kr</strong></td>' +
           '<td><span class="' + (statusClass[b.status] || 'status') + '">' + (statusLabel[b.status] || b.status) + '</span></td>' +
           '<td>' + actions + '</td>';

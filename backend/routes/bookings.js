@@ -36,7 +36,7 @@ router.get('/incoming', asyncRoute(async (req, res) => {
   const rows = await query(
     `SELECT b.id, b.start_at, b.end_at, b.status, b.price_nok, b.customer_note,
             s.id AS salon_id, s.name AS salon_name,
-            sv.name AS service_name,
+            sv.name AS service_name, sv.duration_min,
             u.name AS customer_name
        FROM bookings b
        JOIN salons s ON s.id = b.salon_id
