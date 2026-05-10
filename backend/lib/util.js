@@ -47,6 +47,16 @@ function asyncRoute(fn) {
   return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 }
 
+// Auto-prefix https:// if a string looks like a URL but is missing a scheme.
+// Returns the value untouched if already absolute, empty, or non-string.
+function normalizeUrl(value) {
+  if (typeof value !== 'string') return value;
+  const v = value.trim();
+  if (!v) return v;
+  if (/^https?:\/\//i.test(v)) return v;
+  return 'https://' + v;
+}
+
 module.exports = {
   randomBase64Url,
   sha256Hex,
@@ -56,4 +66,5 @@ module.exports = {
   slugify,
   HttpError,
   asyncRoute,
+  normalizeUrl,
 };

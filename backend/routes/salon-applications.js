@@ -3,6 +3,7 @@ const { z } = require('zod');
 const { query, queryOne } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { asyncRoute, HttpError } = require('../lib/util');
+const { lazyUrl } = require('../lib/schema');
 
 const router = express.Router();
 
@@ -27,10 +28,10 @@ router.post('/', asyncRoute(async (req, res) => {
     city: z.string().trim().min(1).max(128),
     address_line: z.string().trim().max(255).optional().nullable(),
     postal_code: z.string().trim().max(16).optional().nullable(),
-    instagram_url: z.string().url().max(512).optional().nullable(),
-    tiktok_url: z.string().url().max(512).optional().nullable(),
-    facebook_url: z.string().url().max(512).optional().nullable(),
-    website_url: z.string().url().max(512).optional().nullable(),
+    instagram_url: lazyUrl().optional(),
+    tiktok_url: lazyUrl().optional(),
+    facebook_url: lazyUrl().optional(),
+    website_url: lazyUrl().optional(),
     application_text: z.string().trim().min(100).max(2000),
   });
   const data = schema.parse(req.body);

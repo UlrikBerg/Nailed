@@ -242,9 +242,8 @@
               </div>
             </div>
 
-            <div style="grid-column: 1 / -1; display:flex; gap:8px;">
+            <div style="grid-column: 1 / -1;">
               <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
-              <span id="salonMsg" style="align-self:center; color: var(--fg-muted); font-size: 13px;"></span>
             </div>
           </form>
         </div>
@@ -276,6 +275,7 @@
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="/assets/auth.js"></script>
+  <script src="/assets/forms.js"></script>
   <script>
     var salon = null;
 
@@ -553,7 +553,8 @@
       var res = id
         ? await NailedAuth.api('/api/v1/salons/' + salon.id + '/services/' + id, { method: 'PATCH', body: body })
         : await NailedAuth.api('/api/v1/salons/' + salon.id + '/services', { method: 'POST', body: body });
-      if (!res.ok) { alert('Kunne ikke lagre tjeneste.'); return; }
+      if (!res.ok) { NailedForms.toast('Kunne ikke lagre tjeneste', { type: 'error' }); return; }
+      NailedForms.toast(id ? 'Tjeneste oppdatert' : 'Tjeneste lagt til');
       document.getElementById('serviceFormPanel').style.display = 'none';
       loadServices();
     });
@@ -568,11 +569,12 @@
       body.public_phone_visible = this.querySelector('input[name=public_phone_visible]').checked;
       body.accepts_new_bookings = this.querySelector('input[name=accepts_new_bookings]').checked;
       var res = await NailedAuth.api('/api/v1/salons/' + salon.id, { method: 'PATCH', body: body });
-      var msg = document.getElementById('salonMsg');
-      msg.textContent = res.ok ? 'Lagret.' : 'Kunne ikke lagre.';
       if (res.ok) {
+        NailedForms.toast('Salongprofil lagret');
         await loadSalon();
-        setTimeout(function () { msg.textContent = ''; }, 2000);
+      } else {
+        var data = await res.json().catch(function () { return {}; });
+        NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre', { type: 'error' });
       }
     });
 
@@ -591,6 +593,7 @@
       if (!s) return;
       await loadIncoming();
       await loadServices();
+      NailedForms.enhanceUrlInputs();
       window.lucide && window.lucide.createIcons();
     })();
   </script>

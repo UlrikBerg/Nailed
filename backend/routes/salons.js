@@ -3,6 +3,7 @@ const { z } = require('zod');
 const { query, queryOne, tx } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { asyncRoute, HttpError } = require('../lib/util');
+const { lazyUrl } = require('../lib/schema');
 const storage = require('../storage');
 
 const router = express.Router();
@@ -104,10 +105,10 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
     address_line: z.string().trim().max(255).nullable().optional(),
     postal_code: z.string().trim().max(16).nullable().optional(),
     city: z.string().trim().min(1).max(128).optional(),
-    instagram_url: z.string().url().max(512).nullable().optional(),
-    tiktok_url: z.string().url().max(512).nullable().optional(),
-    facebook_url: z.string().url().max(512).nullable().optional(),
-    website_url: z.string().url().max(512).nullable().optional(),
+    instagram_url: lazyUrl().optional(),
+    tiktok_url: lazyUrl().optional(),
+    facebook_url: lazyUrl().optional(),
+    website_url: lazyUrl().optional(),
     public_phone_visible: z.boolean().optional(),
     accepts_new_bookings: z.boolean().optional(),
   });

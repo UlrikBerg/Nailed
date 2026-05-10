@@ -134,6 +134,7 @@
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="/assets/auth.js"></script>
+  <script src="/assets/forms.js"></script>
   <script>
     var statusContainer = document.getElementById('statusContainer');
     var formContainer = document.getElementById('formContainer');
@@ -228,6 +229,7 @@
       var res = await NailedAuth.api('/api/v1/salon-applications/mine');
       var data = await res.json();
       renderStatus(data.application);
+      NailedForms.enhanceUrlInputs();
       window.lucide && window.lucide.createIcons();
     })();
   </script>

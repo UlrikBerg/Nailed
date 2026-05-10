@@ -172,9 +172,8 @@
               <label>By</label>
               <input class="form-input" name="city" type="text" />
             </div>
-            <div style="grid-column: 1 / -1; display:flex; gap:8px;">
+            <div style="grid-column: 1 / -1;">
               <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
-              <span id="profileMsg" style="align-self:center; color: var(--fg-muted); font-size: 13px;"></span>
             </div>
           </form>
         </div>
@@ -208,9 +207,8 @@
               <input type="checkbox" name="notify_marketing" />
               Tips og kampanjer fra nailed (kan skrus av når som helst)
             </label>
-            <div style="display:flex; gap:8px; align-items:center;">
+            <div>
               <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
-              <span id="notifyMsg" style="color: var(--fg-muted); font-size: 13px;"></span>
             </div>
           </form>
         </div>
@@ -242,6 +240,7 @@
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="/assets/auth.js"></script>
+  <script src="/assets/forms.js"></script>
   <script>
     var navItems = document.querySelectorAll('.nav-item[data-tab]');
     var tabContents = document.querySelectorAll('.tab-content');
@@ -438,10 +437,10 @@
       ['name','phone','address_line','postal_code','city'].forEach(function (k) {
         body[k] = (fd.get(k) || '').toString().trim() || null;
       });
-      if (!body.name) { document.getElementById('profileMsg').textContent = 'Navn er påkrevd.'; return; }
+      if (!body.name) { NailedForms.toast('Navn er påkrevd', { type: 'error' }); return; }
       var res = await NailedAuth.api('/api/v1/me', { method: 'PATCH', body: body });
-      document.getElementById('profileMsg').textContent = res.ok ? 'Lagret.' : 'Kunne ikke lagre.';
-      if (res.ok) setTimeout(function () { document.getElementById('profileMsg').textContent = ''; }, 2000);
+      if (res.ok) NailedForms.toast('Profil lagret');
+      else NailedForms.toast('Kunne ikke lagre', { type: 'error' });
     });
 
     document.getElementById('notifyForm').addEventListener('submit', async function (e) {
@@ -453,9 +452,8 @@
         notify_marketing:       this.querySelector('input[name=notify_marketing]').checked,
       };
       var res = await NailedAuth.api('/api/v1/me', { method: 'PATCH', body: body });
-      var msg = document.getElementById('notifyMsg');
-      msg.textContent = res.ok ? 'Lagret.' : 'Kunne ikke lagre.';
-      if (res.ok) setTimeout(function () { msg.textContent = ''; }, 2000);
+      if (res.ok) NailedForms.toast('Varsel-innstillinger lagret');
+      else NailedForms.toast('Kunne ikke lagre', { type: 'error' });
     });
 
     document.getElementById('logoutBtn').addEventListener('click', async function () {
