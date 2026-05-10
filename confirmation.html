@@ -176,10 +176,16 @@
         return;
       }
 
-      var [bookingRes, meRes] = await Promise.all([
-        NailedAuth.api('/api/v1/bookings/' + encodeURIComponent(bookingId)),
-        NailedAuth.api('/api/v1/me'),
-      ]);
+      var bookingRes, meRes;
+      try {
+        [bookingRes, meRes] = await Promise.all([
+          NailedAuth.api('/api/v1/bookings/' + encodeURIComponent(bookingId)),
+          NailedAuth.api('/api/v1/me'),
+        ]);
+      } catch (err) {
+        showError('Kunne ikke hente booking', 'Sjekk nettforbindelsen og last siden på nytt.');
+        return;
+      }
 
       if (bookingRes.status === 404) { showError('Fant ikke booking', 'Bookingen finnes ikke eller du har ikke tilgang.'); return; }
       if (!bookingRes.ok) { showError('Kunne ikke hente booking', 'Prøv igjen om litt.'); return; }

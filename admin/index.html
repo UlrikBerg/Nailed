@@ -1368,7 +1368,9 @@
         if (!res.ok) {
           var errBody = {};
           try { errBody = await res.json(); } catch (_) {}
-          throw new Error(errBody.message || ('app ' + act + ' ' + res.status));
+          // API returns { error: { code, message } }; older code read errBody.message.
+          var msg = (errBody.error && errBody.error.message) || ('app ' + act + ' ' + res.status);
+          throw new Error(msg);
         }
         await loadModerering();
         await loadDashboard();

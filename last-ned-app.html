@@ -443,7 +443,8 @@
       <h2 class="notify__title">Bli varslet ved lansering</h2>
       <p class="notify__sub">Legg igjen e-posten din, så gir vi deg beskjed når appen er klar.</p>
       <form class="notify__form" id="notifyForm">
-        <input class="notify__input" type="email" placeholder="din@epost.no" required />
+        <label for="notifyEmail" style="position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;">E-postadresse</label>
+        <input id="notifyEmail" name="email" class="notify__input" type="email" placeholder="din@epost.no" required />
         <button type="submit" class="btn btn-primary">Varsle meg</button>
       </form>
       <p class="notify__success" id="notifySuccess"><i data-lucide="check-circle" style="width:16px;height:16px;vertical-align:-3px;"></i> Du er på listen! Vi sender deg en e-post i juni.</p>

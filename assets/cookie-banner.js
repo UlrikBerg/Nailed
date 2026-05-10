@@ -63,6 +63,10 @@
     if (path.indexOf('/admin/') === 0 || path.indexOf('/admin') === 0) return true;
     if (path.indexOf('/kunde-panel') !== -1) return true;
     if (path.indexOf('/salong-panel') !== -1) return true;
+    // Mid-flow auth/booking screens — don't pop a consent dialog over them.
+    if (path.indexOf('/auth-complete') !== -1) return true;
+    if (path.indexOf('/confirmation') !== -1) return true;
+    if (path.indexOf('/bli-salong') !== -1) return true;
     return false;
   }
 
