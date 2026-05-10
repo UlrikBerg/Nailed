@@ -771,10 +771,13 @@
       document.title = s.name + ' — nailed';
       document.querySelector('.salon-detail__title').textContent = s.name || '';
 
-      // Sub line: city + status pill if not accepting
+      // Sub line: only show city when there's no street address that already
+      // contains it (otherwise we render "Halden" twice — once here, once
+      // inside the address line below). Status pill always renders if needed.
       var subEl = document.querySelector('.salon-detail__sub');
       var subHtml = '';
-      if (s.city) {
+      var hasFullAddress = !!(s.address_line || s.postal_code);
+      if (s.city && !hasFullAddress) {
         subHtml += '<i data-lucide="map-pin" style="width:14px; height:14px; vertical-align:-2px;"></i> ' + escapeHtml(s.city);
       }
       if (s.accepts_new_bookings === false || s.accepts_new_bookings === 0) {
@@ -782,6 +785,7 @@
         subHtml += '<span class="chip" style="background:var(--stone-100); color:var(--fg-muted); padding:2px 8px; font-size:12px;">Ikke ledig akkurat nå</span>';
       }
       subEl.innerHTML = subHtml;
+      subEl.style.display = subHtml ? '' : 'none';
 
       // Address line: address_line, postal_code city
       var addrEl = document.querySelector('.salon-detail__addr');
