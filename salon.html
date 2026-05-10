@@ -426,9 +426,27 @@
     // default grid.
     var salonHoursByDay = {};
 
+    // Returns true when the active day is closed by the salon's regular
+    // per-weekday schedule. Used to keep the CTA in the "Stengt" state across
+    // re-renders (e.g. selectService → updateCta).
+    function activeDayIsWeekdayClosed() {
+      if (!selectedDateIso) return false;
+      var hasAnyHours = false;
+      for (var k in salonHoursByDay) { if (Object.prototype.hasOwnProperty.call(salonHoursByDay, k)) { hasAnyHours = true; break; } }
+      if (!hasAnyHours) return false;
+      var w = isoWeekdayFromIsoDate(selectedDateIso);
+      var row = salonHoursByDay[w];
+      return !!(row && row.is_closed);
+    }
+
     function updateCta() {
       if (!selectedService) {
         cta.textContent = 'Velg behandling';
+        return;
+      }
+      if (activeDayIsWeekdayClosed()) {
+        cta.disabled = true;
+        cta.textContent = 'Stengt';
         return;
       }
       if (!selectedDateTime) {
@@ -549,6 +567,10 @@
       var DOW = ['Søn','Man','Tirs','Ons','Tors','Fre','Lør'];
       var totalDays = effectiveDaysTotal();
       var pages = Math.ceil(totalDays / DAYS_PER_PAGE);
+      // Pre-compute whether the salon has any per-weekday hours configured so
+      // we only dim weekday-closed days when there's data to enforce.
+      var hasAnyHours = false;
+      for (var k0 in salonHoursByDay) { if (Object.prototype.hasOwnProperty.call(salonHoursByDay, k0)) { hasAnyHours = true; break; } }
       for (var p = 0; p < pages; p++) {
         var page = document.createElement('div');
         page.className = 'day-carousel__page';
@@ -563,14 +585,37 @@
           btn.type = 'button';
           btn.className = 'day-pick';
           btn.dataset.iso = iso;
-          var isClosed = closedDateSet.has(iso);
-          if (isClosed) {
+          var isClosure = closedDateSet.has(iso);
+          // ISO weekday for this calendar day; check against per-weekday hours.
+          var isoW = d.getDay(); isoW = isoW === 0 ? 7 : isoW;
+          var hoursRow = hasAnyHours ? salonHoursByDay[isoW] : null;
+          var isWeekdayClosed = !!(hoursRow && hoursRow.is_closed);
+          if (isClosure) {
+            // Hard closure (specific date): fully disabled, as before.
             btn.classList.add('taken');
             btn.disabled = true;
             btn.title = 'Stengt';
             btn.innerHTML = '<div class="day-pick__dow">' + DOW[d.getDay()] + '</div>' +
                             '<div class="day-pick__num">' + d.getDate() + '</div>' +
                             '<div class="day-pick__dow" style="font-size:10px; margin-top:2px;">Stengt</div>';
+          } else if (isWeekdayClosed) {
+            // Weekday is closed in the salon's regular schedule. Dim it but
+            // keep it clickable so the user sees the "Stengt denne dagen"
+            // message in the slot grid (consistent with closure visuals).
+            btn.classList.add('taken');
+            btn.dataset.weekdayClosed = '1';
+            btn.title = 'Stengt';
+            btn.innerHTML = '<div class="day-pick__dow">' + DOW[d.getDay()] + '</div>' +
+                            '<div class="day-pick__num">' + d.getDate() + '</div>' +
+                            '<div class="day-pick__dow" style="font-size:10px; margin-top:2px;">Stengt</div>';
+            btn.addEventListener('click', function() {
+              track.querySelectorAll('.day-pick').forEach(function(b) { b.classList.remove('active'); });
+              this.classList.add('active');
+              selectedDateIso = this.dataset.iso;
+              selectedDateTime = null;
+              renderSlots(selectedDateIso);
+              // renderSlots already sets the CTA to "Stengt" for closed days.
+            });
           } else {
             btn.innerHTML = '<div class="day-pick__dow">' + DOW[d.getDay()] + '</div><div class="day-pick__num">' + d.getDate() + '</div>';
             btn.addEventListener('click', function() {
@@ -588,8 +633,8 @@
       }
       dayPageIdx = 0;
       applyDayPage();
-      // Auto-pick the first day that is NOT a closure.
-      var first = track.querySelector('.day-pick:not([disabled])');
+      // Auto-pick the first day that is neither a closure nor a closed weekday.
+      var first = track.querySelector('.day-pick:not([disabled]):not([data-weekday-closed])');
       if (first) first.click();
     }
 
