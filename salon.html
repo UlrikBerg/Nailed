@@ -434,9 +434,36 @@
       document.querySelectorAll('.all-services__item').forEach(function(i) {
         i.classList.toggle('active', i.dataset.svcName === name);
       });
-      var panelItems = serviceList.querySelectorAll('.service-list__item');
-      panelItems.forEach(function(i) { i.classList.toggle('active', i.dataset.name === name); });
+      // Right-panel sync: make sure the chosen service is visible there.
+      // If it's already in the popular list, just toggle .active. Otherwise
+      // prepend a card so the user always sees what they're about to book.
+      ensureServiceInPanel(svc);
       updateCta();
+    }
+
+    function ensureServiceInPanel(svc) {
+      if (!svc) return;
+      // De-activate all rows; we'll mark the selected one below.
+      serviceList.querySelectorAll('.service-list__item').forEach(function (i) {
+        i.classList.remove('active');
+      });
+      var existing = serviceList.querySelector('.service-list__item[data-id="' + svc.id + '"]');
+      if (existing) {
+        existing.classList.add('active');
+        return;
+      }
+      // Drop any previously prepended ad-hoc card before adding a new one.
+      var prev = serviceList.querySelector('.service-list__item[data-adhoc]');
+      if (prev) prev.remove();
+      // Build a card for this non-popular service and prepend it.
+      var name = escapeHtml(svc.name || '');
+      var dur = (svc.duration_min != null) ? escapeHtml(String(svc.duration_min)) + ' min' : '';
+      var price = (svc.price_nok != null) ? svc.price_nok : '';
+      var html = '<div class="service-list__item active" data-id="' + svc.id + '" data-name="' + name + '" data-price="' + escapeHtml(String(price)) + '" data-adhoc>' +
+                  '<div><div class="service-list__name">' + name + '</div><div class="service-list__meta">' + dur + '</div></div>' +
+                  '<div class="service-list__price">' + escapeHtml(String(price)) + ' kr</div>' +
+                 '</div>';
+      serviceList.insertAdjacentHTML('afterbegin', html);
     }
 
     serviceList.addEventListener('click', function(e) {
