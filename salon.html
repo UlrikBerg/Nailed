@@ -79,12 +79,12 @@
       margin-top: 4px;
     }
 
-    /* Right column stacks the booking panel and a separate hours card.
+    /* Right column stacks the booking panel, hours card, and team card.
        Make the entire stack sticky so the inner cards never overlap. */
     .salon-detail__right {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 28px;
       position: sticky;
       top: 100px;
     }
@@ -174,8 +174,9 @@
             </div>
           </div>
 
-          <!-- Team -->
-          <div class="salon-detail__section" id="teamSection" style="display:none;">
+          <!-- Team — kept in DOM for renderTeam(), but hidden because the
+               canonical team card lives on the right side now. -->
+          <div class="salon-detail__section" id="teamSection" style="display:none;" hidden>
             <h3 class="salon-detail__section-title">Team</h3>
             <div class="salon-detail__section-card">
               <div class="profile-team" id="teamList"></div>
@@ -248,6 +249,14 @@
             <h3>Åpningstider</h3>
           </div>
           <div class="profile-hours profile-hours--compact" id="hoursPanelList"></div>
+        </div>
+
+        <!-- Separate Team card under the hours card -->
+        <div id="teamPanelSection" class="booking-panel booking-panel--side" style="display:none;">
+          <div class="booking-panel__header" style="margin-bottom: 12px;">
+            <h3>Team</h3>
+          </div>
+          <div class="profile-team" id="teamPanelList"></div>
         </div>
 
         </div>
@@ -695,11 +704,14 @@
     function renderTeam(team) {
       var section = document.getElementById('teamSection');
       var list = document.getElementById('teamList');
+      var panelSection = document.getElementById('teamPanelSection');
+      var panelList = document.getElementById('teamPanelList');
       if (!section || !list) return;
       var members = Array.isArray(team) ? team : [];
       if (!members.length) {
         section.style.display = 'none';
         list.innerHTML = '';
+        if (panelSection) { panelSection.style.display = 'none'; panelList.innerHTML = ''; }
         return;
       }
       var html = '';
@@ -716,7 +728,12 @@
                 '</div>';
       });
       list.innerHTML = html;
-      section.style.display = '';
+      // Left-column section stays hidden; canonical card is on the right.
+      section.style.display = 'none';
+      if (panelSection && panelList) {
+        panelList.innerHTML = html;
+        panelSection.style.display = '';
+      }
     }
 
     // Build "Tilbys av: X, Y" snippet from team-member ids + a name lookup.
