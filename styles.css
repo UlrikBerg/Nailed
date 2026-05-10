@@ -868,9 +868,9 @@ p { margin: 0 0 var(--space-4) 0; }
   margin-bottom: 12px;
 }
 .day-pick {
-  padding: 10px 4px;
+  padding: 6px 4px;
   border: 1px solid var(--stone-200);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--cream-50);
   text-align: center;
   cursor: pointer;
@@ -882,17 +882,17 @@ p { margin: 0 0 var(--space-4) 0; }
 .day-pick.active .day-pick__num { color: var(--cream-50); }
 .day-pick__dow {
   font-family: var(--font-body);
-  font-size: 10px;
-  letter-spacing: 0.1em;
+  font-size: 9px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--fg-muted);
 }
 .day-pick__num {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 18px;
+  font-size: 15px;
   color: var(--ink);
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .slots {
