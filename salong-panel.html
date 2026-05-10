@@ -5,8 +5,340 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Salongpanel — nailed</title>
   <link rel="icon" href="assets/logo-mark.svg" />
-  <link rel="stylesheet" href="admin/admin.css" />
+  <link rel="stylesheet" href="styles.css" />
   <style>
+    /* =========================================================================
+       Salon panel — sits on the public shell (top-nav + footer + cream/rouge).
+       The page is structured as a hero greeting, a horizontal tab strip, and
+       cream cards underneath. Visually mirrors /kunde-panel.html.
+       ========================================================================= */
+
+    .kp-page { padding: 48px 0 96px; }
+
+    /* Hero greeting + tiny profile chip */
+    .kp-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .kp-hero__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(32px, 5vw, 48px);
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
+    }
+    .kp-hero__title em { font-style: normal; color: var(--rouge-500); }
+    .kp-hero__sub { font-size: 15px; color: var(--fg-muted); margin: 0 0 10px; }
+    .kp-hero__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .kp-hero__user {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px 8px 8px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill);
+    }
+    .kp-hero__avatar {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-pill);
+      background: var(--rouge-500); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px;
+    }
+    .kp-hero__userText { display: flex; flex-direction: column; line-height: 1.2; }
+    .kp-hero__userName { font-weight: 600; font-size: 14px; color: var(--ink); }
+    .kp-hero__userEmail { font-size: 12px; color: var(--fg-muted); }
+
+    /* Horizontal tab strip — pill style matching /utforsk.html filter rows. */
+    .kp-tabs {
+      display: flex;
+      gap: 8px;
+      margin: 0 0 32px;
+      padding: 4px 0 12px;
+      border-bottom: 1px solid var(--stone-200);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .kp-tabs::-webkit-scrollbar { display: none; }
+    .kp-tab {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      color: var(--ink);
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      cursor: pointer;
+      white-space: nowrap;
+      text-decoration: none;
+      transition: all var(--dur-fast) var(--ease-out-soft);
+    }
+    .kp-tab i { width: 14px; height: 14px; }
+    .kp-tab:hover { border-color: var(--stone-400); }
+    .kp-tab.active {
+      background: var(--ink);
+      color: var(--cream-50);
+      border-color: var(--ink);
+    }
+    /* Tab badge (pending bookings, unanswered reviews) */
+    .kp-tab__badge {
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      min-width: 18px; height: 18px;
+      padding: 0 6px;
+      margin-left: 2px;
+      border-radius: var(--radius-pill);
+      background: var(--rouge-500);
+      color: #fff;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0;
+    }
+    .kp-tab.active .kp-tab__badge { background: var(--cream-50); color: var(--ink); }
+    .kp-tab__badge[hidden] { display: none; }
+
+    /* Tab content visibility — overrides admin.css since we're not loading it. */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Section headers inside a tab */
+    .kp-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin: 0 0 24px;
+    }
+    .kp-section__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(24px, 3vw, 32px);
+      letter-spacing: -0.015em;
+      margin: 0 0 6px;
+    }
+    .kp-section__sub { font-size: 15px; color: var(--fg-muted); margin: 0; }
+    .kp-section__actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    /* Cream card — public-site equivalent of admin .panel */
+    .kp-card {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .kp-card__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .kp-card__head h3 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 18px;
+    }
+    .kp-card__desc { font-size: 13px; color: var(--fg-muted); margin: 0; line-height: 1.5; }
+
+    /* Dashboard summary tiles — soft warm tiles */
+    .kp-summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 1100px) { .kp-summary { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px)  { .kp-summary { grid-template-columns: 1fr; } }
+    .kp-tile {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: var(--shadow-sm);
+    }
+    .kp-tile__icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-pill);
+      background: var(--rouge-50);
+      color: var(--rouge-500);
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 6px;
+    }
+    .kp-tile__icon i { width: 18px; height: 18px; }
+    .kp-tile__icon--ink   { background: rgba(27,18,24,0.06); color: var(--ink); }
+    .kp-tile__icon--green { background: var(--success-50); color: var(--success-500); }
+    .kp-tile__icon--amber { background: var(--warning-50); color: var(--warning-500); }
+    .kp-tile__label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .kp-tile__value {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 26px;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .kp-tile__unit,
+    .kpi__unit { font-size: 14px; color: var(--fg-muted); font-weight: 500; }
+
+    /* Warm empty state */
+    .kp-empty {
+      text-align: center;
+      padding: 56px 24px;
+      background: var(--cream-50);
+      border: 1px dashed var(--stone-300);
+      border-radius: var(--radius-lg);
+    }
+    .kp-empty__icon {
+      width: 56px; height: 56px;
+      border-radius: var(--radius-pill);
+      background: var(--rouge-50);
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .kp-empty__icon i { width: 24px; height: 24px; color: var(--rouge-500); }
+    .kp-empty__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 20px;
+      margin: 0 0 6px;
+    }
+    .kp-empty__desc {
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin: 0;
+      max-width: 44ch;
+      margin-left: auto; margin-right: auto;
+    }
+    .kp-empty__desc a { color: var(--rouge-500); font-weight: 600; }
+
+    /* =========================================================================
+       Carried-over admin patterns — needed because we no longer load admin.css
+       but the salon-panel JS still emits .data-table, .status, .form-input,
+       .form-group, .settings-grid, .btn-danger, .btn-success.
+       ========================================================================= */
+    [hidden] { display: none !important; }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-body);
+      font-size: 14px;
+    }
+    .data-table thead th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--fg-muted);
+      padding: 0 12px 14px;
+      border-bottom: 1px solid var(--stone-200);
+      white-space: nowrap;
+    }
+    .data-table tbody td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--stone-100);
+      color: var(--ink);
+      vertical-align: middle;
+    }
+    .data-table tbody tr:last-child td { border-bottom: 0; }
+    .data-table tbody tr { transition: background var(--dur-fast); }
+    .data-table tbody tr:hover { background: var(--stone-50); }
+    .td-muted { color: var(--fg-muted); font-size: 13px; }
+
+    /* Status badges (admin-derived; cream/rouge palette) */
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+    }
+    .status i { width: 10px; height: 10px; }
+    .status--active    { background: var(--success-50); color: var(--success-500); }
+    .status--inactive  { background: var(--stone-100); color: var(--stone-500); }
+    .status--pending   { background: var(--cream-200); color: var(--stone-600); }
+    .status--confirmed { background: rgba(141, 160, 121, 0.18); color: var(--sage-700); }
+    .status--completed { background: var(--cream-200); color: var(--stone-600); }
+    .status--cancelled { background: var(--stone-100); color: var(--stone-500); }
+    .status--noshow    { background: var(--rouge-50); color: var(--rouge-700); }
+
+    /* Forms */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 700px) { .settings-grid { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .form-input {
+      font-family: var(--font-body);
+      font-size: 15px;
+      padding: 11px 16px;
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      background: var(--cream-100);
+      color: var(--ink);
+      outline: none;
+      transition: border-color var(--dur-fast);
+    }
+    .form-input:focus { border-color: var(--rouge-500); }
+    .form-label { font-weight: 600; font-size: 13px; color: var(--ink); }
+    .form-help { font-size: 13px; color: var(--fg-muted); display: block; margin-top: 4px; }
+
+    /* Extra button variants (success/danger) — base .btn comes from styles.css. */
+    .btn-danger { background: var(--danger-50); color: var(--danger-500); border: 1px solid transparent; }
+    .btn-danger:hover { background: var(--danger-500); color: #fff; }
+    .btn-success { background: var(--success-50); color: var(--success-500); border: 1px solid transparent; }
+    .btn-success:hover { background: var(--success-500); color: #fff; }
+
+    /* Chip — used inline for Vipps "Kommer" tag. */
+    .chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 10px; border-radius: var(--radius-pill);
+      font-size: 11px; font-weight: 600;
+    }
+
+    /* =========================================================================
+       Original salon-panel styles below (profile view/edit, reschedule widget,
+       analytics, customers/notes) — preserved verbatim so the existing JS keeps
+       rendering correctly.
+       ========================================================================= */
+
     /* Profil — visningsmodus (matcher /partner/profil.html) */
     .profile-hero {
       display: grid;
@@ -282,24 +614,6 @@
       color: var(--fg-muted);
     }
 
-    /* Sidebar pending-bookings badge */
-    .nav-item__badge {
-      display: inline-flex;
-      align-items: center; justify-content: center;
-      min-width: 20px; height: 20px;
-      padding: 0 6px;
-      margin-left: 8px;
-      border-radius: var(--radius-pill);
-      background: var(--rouge-500);
-      color: #fff;
-      font-family: var(--font-body);
-      font-weight: 700;
-      font-size: 11px;
-      letter-spacing: 0;
-      vertical-align: middle;
-    }
-    .nav-item__badge[hidden] { display: none; }
-
     /* Owner reviews list */
     .owner-reviews { display: flex; flex-direction: column; }
     .owner-review {
@@ -552,87 +866,109 @@
 </head>
 <body>
 
-  <div class="app">
-
-    <aside class="sidebar">
-      <div class="sidebar__brand">
-        <span class="sidebar__brand-logo">nailed</span>
-        <span class="sidebar__badge">Salong</span>
+  <!-- Public top navigation -->
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="index.html">
+        <img src="assets/logo-wordmark.svg" alt="nailed" />
+      </a>
+      <nav class="top-nav__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="for-salonger.html">For salonger</a>
+        <a href="last-ned-app.html">Last ned app</a>
+      </nav>
+      <div class="top-nav__actions">
+        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
       </div>
+    </div>
+  </header>
 
-      <div class="sidebar__divider"></div>
+  <section class="kp-page">
+    <div class="page">
 
-      <button class="nav-item active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-      <button class="nav-item" data-tab="bookinger"><i data-lucide="calendar-check"></i> Bookinger <span class="nav-item__badge" id="bookingsPendingBadge" hidden>0</span></button>
-      <button class="nav-item" data-tab="kunder"><i data-lucide="users"></i> Kunder</button>
-      <button class="nav-item" data-tab="tjenester"><i data-lucide="sparkles"></i> Tjenester</button>
-      <button class="nav-item" data-tab="analyse"><i data-lucide="bar-chart-3"></i> Analyse</button>
-      <button class="nav-item" data-tab="anmeldelser"><i data-lucide="star"></i> Anmeldelser <span class="nav-item__badge" id="reviewsUnansweredBadge" hidden>0</span></button>
-
-      <div class="sidebar__section">Salong</div>
-      <button class="nav-item" data-tab="profil"><i data-lucide="store"></i> Salongprofil</button>
-      <button class="nav-item" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
-
-      <div class="sidebar__divider"></div>
-      <a class="nav-item" href="/" style="text-decoration:none;"><i data-lucide="home"></i> Til forsiden</a>
-
-      <div class="sidebar__footer">
-        <div class="sidebar__avatar" id="avatar">U</div>
+      <!-- Greeting hero -->
+      <div class="kp-hero">
         <div>
-          <div class="sidebar__user" id="userName">Laster …</div>
-          <div class="sidebar__role" id="userRole">Salongeier</div>
+          <h1 class="kp-hero__title">Hei, <em id="greetingName">der!</em></h1>
+          <p class="kp-hero__sub">Velkommen tilbake til salongpanelet.</p>
+          <div class="kp-hero__actions">
+            <a class="btn btn-ghost btn-sm" id="publicLink" href="#" target="_blank">
+              <i data-lucide="external-link"></i> Se kundevisning
+            </a>
+          </div>
+        </div>
+        <div class="kp-hero__user">
+          <span class="kp-hero__avatar" id="avatar">U</span>
+          <span class="kp-hero__userText">
+            <span class="kp-hero__userName" id="userName">Laster …</span>
+            <span class="kp-hero__userEmail" id="userRole">Salongeier</span>
+          </span>
         </div>
       </div>
-    </aside>
 
-    <main class="main">
+      <!-- Tab strip -->
+      <div class="kp-tabs" id="kpTabs" role="tablist">
+        <button class="kp-tab active" role="tab" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+        <button class="kp-tab" role="tab" data-tab="bookinger">
+          <i data-lucide="calendar-check"></i> Bookinger
+          <span class="kp-tab__badge" id="bookingsPendingBadge" hidden>0</span>
+        </button>
+        <button class="kp-tab" role="tab" data-tab="tjenester"><i data-lucide="sparkles"></i> Tjenester</button>
+        <button class="kp-tab" role="tab" data-tab="anmeldelser">
+          <i data-lucide="star"></i> Anmeldelser
+          <span class="kp-tab__badge" id="reviewsUnansweredBadge" hidden>0</span>
+        </button>
+        <button class="kp-tab" role="tab" data-tab="analyse"><i data-lucide="bar-chart-3"></i> Analyse</button>
+        <button class="kp-tab" role="tab" data-tab="kunder"><i data-lucide="users"></i> Kunder</button>
+        <button class="kp-tab" role="tab" data-tab="profil"><i data-lucide="store"></i> Salongprofil</button>
+        <button class="kp-tab" role="tab" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
+        <a class="kp-tab" href="/"><i data-lucide="home"></i> Til forsiden</a>
+      </div>
 
       <!-- DASHBOARD -->
       <div class="tab-content active" id="tab-dashboard">
-        <div class="topbar">
+        <div class="kp-section">
           <div>
-            <h1 class="topbar__title" id="dashTitle">Salongpanel</h1>
-            <div class="topbar__sub" id="dashSub">Oversikt over driften.</div>
-          </div>
-          <div class="topbar__actions">
-            <a class="btn btn-ghost" id="publicLink" href="#" target="_blank"><i data-lucide="external-link"></i> Vis offentlig profil</a>
+            <h2 class="kp-section__title" id="dashTitle">Salongpanel</h2>
+            <p class="kp-section__sub" id="dashSub">Oversikt over driften.</p>
           </div>
         </div>
 
-        <div class="kpi-row">
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--pink"><i data-lucide="calendar-clock"></i></div>
-            <div class="kpi__label">Bookinger i dag</div>
-            <div class="kpi__value" id="kpiToday">0</div>
+        <div class="kp-summary">
+          <div class="kp-tile">
+            <span class="kp-tile__icon"><i data-lucide="calendar-clock"></i></span>
+            <span class="kp-tile__label">Bookinger i dag</span>
+            <span class="kp-tile__value" id="kpiToday">0</span>
           </div>
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--amber"><i data-lucide="hourglass"></i></div>
-            <div class="kpi__label">Avventer bekreftelse</div>
-            <div class="kpi__value" id="kpiPending">0</div>
+          <div class="kp-tile">
+            <span class="kp-tile__icon kp-tile__icon--amber"><i data-lucide="hourglass"></i></span>
+            <span class="kp-tile__label">Avventer bekreftelse</span>
+            <span class="kp-tile__value" id="kpiPending">0</span>
           </div>
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--green"><i data-lucide="check-circle"></i></div>
-            <div class="kpi__label">Fullført denne måneden</div>
-            <div class="kpi__value" id="kpiCompletedMonth">0</div>
+          <div class="kp-tile">
+            <span class="kp-tile__icon kp-tile__icon--green"><i data-lucide="check-circle"></i></span>
+            <span class="kp-tile__label">Fullført denne måneden</span>
+            <span class="kp-tile__value" id="kpiCompletedMonth">0</span>
           </div>
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--ink"><i data-lucide="banknote"></i></div>
-            <div class="kpi__label">Omsetning denne måneden</div>
-            <div class="kpi__value" id="kpiRevenue">0 <span class="kpi__unit">kr</span></div>
+          <div class="kp-tile">
+            <span class="kp-tile__icon kp-tile__icon--ink"><i data-lucide="banknote"></i></span>
+            <span class="kp-tile__label">Omsetning denne måneden</span>
+            <span class="kp-tile__value" id="kpiRevenue">0 <span class="kp-tile__unit">kr</span></span>
           </div>
         </div>
       </div>
 
       <!-- BOOKINGER -->
       <div class="tab-content" id="tab-bookinger">
-        <div class="topbar">
+        <div class="kp-section">
           <div>
-            <h1 class="topbar__title">Innkommende bookinger</h1>
-            <div class="topbar__sub">Bekreft eller avvis bookinger og marker fullføring.</div>
+            <h2 class="kp-section__title">Innkommende bookinger</h2>
+            <p class="kp-section__sub">Bekreft eller avvis bookinger og marker fullføring.</p>
           </div>
         </div>
 
-        <div class="panel">
+        <div class="kp-card">
           <table class="data-table" id="incomingTable">
             <thead>
               <tr>
@@ -646,22 +982,24 @@
             </thead>
             <tbody></tbody>
           </table>
-          <div id="incomingEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
-            Ingen bookinger ennå.
+          <div id="incomingEmpty" class="kp-empty" style="display:none;">
+            <span class="kp-empty__icon"><i data-lucide="calendar"></i></span>
+            <h3 class="kp-empty__title">Ingen bookinger ennå</h3>
+            <p class="kp-empty__desc">Når noen booker en behandling hos dere, dukker den opp her.</p>
           </div>
         </div>
       </div>
 
       <!-- KUNDER -->
       <div class="tab-content" id="tab-kunder">
-        <div class="topbar">
+        <div class="kp-section">
           <div>
-            <h1 class="topbar__title">Kunder</h1>
-            <div class="topbar__sub">Alle som har booket hos dere. Skriv private notater som bare du ser.</div>
+            <h2 class="kp-section__title">Kunder</h2>
+            <p class="kp-section__sub">Alle som har booket hos dere. Skriv private notater som bare du ser.</p>
           </div>
         </div>
 
-        <div class="panel">
+        <div class="kp-card">
           <input class="customers-search" id="customersSearch" type="search" placeholder="Søk i navn, e-post eller telefon …" autocomplete="off" />
           <table class="data-table" id="customersTable">
             <thead>
@@ -676,27 +1014,29 @@
             </thead>
             <tbody></tbody>
           </table>
-          <div id="customersEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
-            Ingen kunder ennå.
+          <div id="customersEmpty" class="kp-empty" style="display:none;">
+            <span class="kp-empty__icon"><i data-lucide="users"></i></span>
+            <h3 class="kp-empty__title">Ingen kunder ennå</h3>
+            <p class="kp-empty__desc">Etter første booking vises kunden her — med booking-historikk og private notater.</p>
           </div>
         </div>
       </div>
 
       <!-- TJENESTER -->
       <div class="tab-content" id="tab-tjenester">
-        <div class="topbar">
+        <div class="kp-section">
           <div>
-            <h1 class="topbar__title">Tjenester</h1>
-            <div class="topbar__sub">Behandlingene salongen tilbyr. <span class="popular-count" id="popularCount"></span></div>
+            <h2 class="kp-section__title">Tjenester</h2>
+            <p class="kp-section__sub">Behandlingene salongen tilbyr. <span class="popular-count" id="popularCount"></span></p>
           </div>
-          <div class="topbar__actions">
+          <div class="kp-section__actions">
             <button class="btn btn-primary" id="newServiceBtn"><i data-lucide="plus"></i> Ny tjeneste</button>
           </div>
         </div>
 
         <!-- Kategorier -->
-        <div class="panel">
-          <div class="panel__head" style="display:flex; align-items:center; justify-content:space-between;">
+        <div class="kp-card">
+          <div class="kp-card__head">
             <h3>Kategorier</h3>
             <button class="btn btn-ghost btn-sm" id="newCategoryBtn"><i data-lucide="plus"></i> Ny kategori</button>
           </div>
@@ -706,8 +1046,8 @@
           <div class="cat-list" id="categoriesList"></div>
         </div>
 
-        <div class="panel" id="serviceFormPanel" style="display:none;">
-          <div class="panel__head"><h3 id="serviceFormTitle">Ny tjeneste</h3></div>
+        <div class="kp-card" id="serviceFormPanel" style="display:none;">
+          <div class="kp-card__head"><h3 id="serviceFormTitle">Ny tjeneste</h3></div>
           <form id="serviceForm" class="settings-grid">
             <div class="form-group" style="grid-column: 1 / -1;">
               <label>Navn</label>
@@ -748,7 +1088,7 @@
           </form>
         </div>
 
-        <div class="panel">
+        <div class="kp-card">
           <table class="data-table" id="servicesTable">
             <thead>
               <tr>
@@ -762,18 +1102,20 @@
             </thead>
             <tbody></tbody>
           </table>
-          <div id="servicesEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
-            Du har ingen tjenester. Legg til en for å starte.
+          <div id="servicesEmpty" class="kp-empty" style="display:none;">
+            <span class="kp-empty__icon"><i data-lucide="sparkles"></i></span>
+            <h3 class="kp-empty__title">Ingen behandlinger ennå</h3>
+            <p class="kp-empty__desc">Klikk "Ny tjeneste" øverst for å legge til den første behandlingen.</p>
           </div>
         </div>
       </div>
 
       <!-- ANALYSE -->
       <div class="tab-content" id="tab-analyse">
-        <div class="topbar">
+        <div class="kp-section">
           <div>
-            <h1 class="topbar__title">Analyse</h1>
-            <div class="topbar__sub">Statistikk for salongen din. Velg periode for å se hvordan tallene endrer seg.</div>
+            <h2 class="kp-section__title">Analyse</h2>
+            <p class="kp-section__sub">Statistikk for salongen din. Velg periode for å se hvordan tallene endrer seg.</p>
           </div>
         </div>
 
@@ -786,49 +1128,49 @@
           <button type="button" class="analytics-period__chip" data-period="all">Alt</button>
         </div>
 
-        <div class="kpi-row" id="analyticsKpiRow">
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--pink"><i data-lucide="calendar-check"></i></div>
-            <div class="kpi__label">Bookinger</div>
-            <div class="kpi__value" id="aKpiBookings">0</div>
+        <div class="kp-summary" id="analyticsKpiRow">
+          <div class="kp-tile">
+            <span class="kp-tile__icon"><i data-lucide="calendar-check"></i></span>
+            <span class="kp-tile__label">Bookinger</span>
+            <span class="kp-tile__value" id="aKpiBookings">0</span>
           </div>
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--ink"><i data-lucide="banknote"></i></div>
-            <div class="kpi__label">Omsetning</div>
-            <div class="kpi__value" id="aKpiRevenue">0 <span class="kpi__unit">kr</span></div>
+          <div class="kp-tile">
+            <span class="kp-tile__icon kp-tile__icon--ink"><i data-lucide="banknote"></i></span>
+            <span class="kp-tile__label">Omsetning</span>
+            <span class="kp-tile__value" id="aKpiRevenue">0 <span class="kp-tile__unit">kr</span></span>
           </div>
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--green"><i data-lucide="users"></i></div>
-            <div class="kpi__label">Unike kunder</div>
-            <div class="kpi__value" id="aKpiUniqueCustomers">0</div>
+          <div class="kp-tile">
+            <span class="kp-tile__icon kp-tile__icon--green"><i data-lucide="users"></i></span>
+            <span class="kp-tile__label">Unike kunder</span>
+            <span class="kp-tile__value" id="aKpiUniqueCustomers">0</span>
           </div>
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--amber"><i data-lucide="repeat"></i></div>
-            <div class="kpi__label">Returnerende</div>
-            <div class="kpi__value" id="aKpiReturning">0</div>
+          <div class="kp-tile">
+            <span class="kp-tile__icon kp-tile__icon--amber"><i data-lucide="repeat"></i></span>
+            <span class="kp-tile__label">Returnerende</span>
+            <span class="kp-tile__value" id="aKpiReturning">0</span>
           </div>
         </div>
 
-        <div class="kpi-row" id="analyticsKpiRow2" style="margin-top:12px;">
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--green"><i data-lucide="check-circle"></i></div>
-            <div class="kpi__label">Fullført</div>
-            <div class="kpi__value" id="aKpiCompleted">0</div>
+        <div class="kp-summary" id="analyticsKpiRow2" style="margin-top:14px;">
+          <div class="kp-tile">
+            <span class="kp-tile__icon kp-tile__icon--green"><i data-lucide="check-circle"></i></span>
+            <span class="kp-tile__label">Fullført</span>
+            <span class="kp-tile__value" id="aKpiCompleted">0</span>
           </div>
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--amber"><i data-lucide="x-circle"></i></div>
-            <div class="kpi__label">Avbestilt</div>
-            <div class="kpi__value" id="aKpiCancelled">0</div>
+          <div class="kp-tile">
+            <span class="kp-tile__icon kp-tile__icon--amber"><i data-lucide="x-circle"></i></span>
+            <span class="kp-tile__label">Avbestilt</span>
+            <span class="kp-tile__value" id="aKpiCancelled">0</span>
           </div>
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--pink"><i data-lucide="user-x"></i></div>
-            <div class="kpi__label">No-show</div>
-            <div class="kpi__value" id="aKpiNoShow">0 <span class="kpi__unit">(0 %)</span></div>
+          <div class="kp-tile">
+            <span class="kp-tile__icon"><i data-lucide="user-x"></i></span>
+            <span class="kp-tile__label">No-show</span>
+            <span class="kp-tile__value" id="aKpiNoShow">0 <span class="kp-tile__unit">(0 %)</span></span>
           </div>
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--ink"><i data-lucide="receipt"></i></div>
-            <div class="kpi__label">Snittpris</div>
-            <div class="kpi__value" id="aKpiAvgValue">0 <span class="kpi__unit">kr</span></div>
+          <div class="kp-tile">
+            <span class="kp-tile__icon kp-tile__icon--ink"><i data-lucide="receipt"></i></span>
+            <span class="kp-tile__label">Snittpris</span>
+            <span class="kp-tile__value" id="aKpiAvgValue">0 <span class="kp-tile__unit">kr</span></span>
           </div>
         </div>
 
@@ -931,30 +1273,32 @@
 
       <!-- ANMELDELSER -->
       <div class="tab-content" id="tab-anmeldelser">
-        <div class="topbar">
+        <div class="kp-section">
           <div>
-            <h1 class="topbar__title">Anmeldelser</h1>
-            <div class="topbar__sub">Hva kundene synes om salongen. Skriv svar for å bygge tillit.</div>
+            <h2 class="kp-section__title">Anmeldelser</h2>
+            <p class="kp-section__sub">Hva kundene synes om salongen. Skriv svar for å bygge tillit.</p>
           </div>
-          <div class="topbar__actions">
+          <div class="kp-section__actions">
             <div id="reviewsSummary" style="display:flex; align-items:center; gap:10px; font-size:14px; color: var(--fg-muted);"></div>
           </div>
         </div>
 
-        <div class="panel">
+        <div class="kp-card">
           <div id="ownerReviewsList" class="owner-reviews"></div>
-          <div id="ownerReviewsEmpty" style="display:none; padding: 32px; text-align: center; color: var(--fg-muted);">
-            Ingen anmeldelser ennå. Når kunder anmelder bookingene sine, dukker de opp her.
+          <div id="ownerReviewsEmpty" class="kp-empty" style="display:none;">
+            <span class="kp-empty__icon"><i data-lucide="star"></i></span>
+            <h3 class="kp-empty__title">Ingen anmeldelser ennå</h3>
+            <p class="kp-empty__desc">Når kunder anmelder bookingene sine, dukker de opp her.</p>
           </div>
         </div>
       </div>
 
       <!-- PROFIL -->
       <div class="tab-content" id="tab-profil">
-        <div class="topbar">
+        <div class="kp-section">
           <div>
-            <h1 class="topbar__title">Salongprofil</h1>
-            <div class="topbar__sub">Slik ser salongen din ut for kundene på nailed.</div>
+            <h2 class="kp-section__title">Salongprofil</h2>
+            <p class="kp-section__sub">Slik ser salongen din ut for kundene på nailed.</p>
           </div>
         </div>
 
@@ -1097,8 +1441,8 @@
             </button>
           </div>
 
-          <div class="panel" data-edit-section="photos">
-            <div class="panel__head">
+          <div class="kp-card" data-edit-section="photos">
+            <div class="kp-card__head">
               <h3>Bilder</h3>
               <div style="font-size: 13px; color: var(--fg-muted);">Maks 24 bilder, opptil 8 MB hver. JPEG, PNG, WEBP eller HEIC.</div>
             </div>
@@ -1111,10 +1455,10 @@
             <div id="gallery" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 20px;"></div>
           </div>
 
-          <div class="panel" data-edit-section="bio contact availability">
-            <div class="panel__head" data-section-header="bio"><h3>Om salongen</h3></div>
-            <div class="panel__head" data-section-header="contact"><h3>Kontaktinformasjon</h3></div>
-            <div class="panel__head" data-section-header="availability"><h3>Tilgjengelighet</h3></div>
+          <div class="kp-card" data-edit-section="bio contact availability">
+            <div class="kp-card__head" data-section-header="bio"><h3>Om salongen</h3></div>
+            <div class="kp-card__head" data-section-header="contact"><h3>Kontaktinformasjon</h3></div>
+            <div class="kp-card__head" data-section-header="availability"><h3>Tilgjengelighet</h3></div>
             <form id="salonForm" class="settings-grid">
               <div class="form-group" data-section="bio" style="grid-column: 1 / -1;">
                 <label>Navn</label>
@@ -1177,8 +1521,8 @@
           </div>
 
           <!-- Åpningstider editor -->
-          <div class="panel" id="hoursEditPanel" data-edit-section="hours">
-            <div class="panel__head">
+          <div class="kp-card" id="hoursEditPanel" data-edit-section="hours">
+            <div class="kp-card__head">
               <h3>Åpningstider</h3>
               <div style="font-size: 13px; color: var(--fg-muted);">Sett start- og sluttid for hver dag, eller marker dagen som stengt.</div>
             </div>
@@ -1189,8 +1533,8 @@
           </div>
 
           <!-- Team editor -->
-          <div class="panel" id="teamEditPanel" data-edit-section="team">
-            <div class="panel__head">
+          <div class="kp-card" id="teamEditPanel" data-edit-section="team">
+            <div class="kp-card__head">
               <h3>Team</h3>
               <div style="font-size: 13px; color: var(--fg-muted);">Legg til, rediger og skjul team-medlemmer.</div>
             </div>
@@ -1220,8 +1564,8 @@
           </div>
 
           <!-- Amenities editor -->
-          <div class="panel" id="amenitiesEditPanel" data-edit-section="amenities">
-            <div class="panel__head">
+          <div class="kp-card" id="amenitiesEditPanel" data-edit-section="amenities">
+            <div class="kp-card__head">
               <h3>Hva tilbys</h3>
               <div style="font-size: 13px; color: var(--fg-muted);">Marker fasilitetene salongen tilbyr.</div>
             </div>
@@ -1235,15 +1579,15 @@
 
       <!-- INNSTILLINGER -->
       <div class="tab-content" id="tab-innstillinger">
-        <div class="topbar">
+        <div class="kp-section">
           <div>
-            <h1 class="topbar__title">Innstillinger</h1>
-            <div class="topbar__sub">Booking-regler, konto og sesjoner.</div>
+            <h2 class="kp-section__title">Innstillinger</h2>
+            <p class="kp-section__sub">Booking-regler, varslinger og kalender.</p>
           </div>
         </div>
 
-        <div class="panel">
-          <h2 style="margin:0 0 4px 0; font-size:18px;">Booking-regler</h2>
+        <div class="kp-card">
+          <h2 style="margin:0 0 4px 0; font-size:18px; font-family: var(--font-display);">Booking-regler</h2>
           <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
             Bestem hvordan kundene kan booke og avbestille hos deg.
           </p>
@@ -1275,8 +1619,8 @@
         </div>
 
         <!-- Varslinger -->
-        <div class="panel" style="margin-top:16px;">
-          <h2 style="margin:0 0 4px 0; font-size:18px;">Varslinger</h2>
+        <div class="kp-card">
+          <h2 style="margin:0 0 4px 0; font-size:18px; font-family: var(--font-display);">Varslinger</h2>
           <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
             Velg hvilke varsler dere ønsker. Vil bli sendt når vi kobler på e-post (kommer).
           </p>
@@ -1319,8 +1663,8 @@
         </div>
 
         <!-- Bekreftelses-melding -->
-        <div class="panel" style="margin-top:16px;">
-          <h2 style="margin:0 0 4px 0; font-size:18px;">Bekreftelses-melding</h2>
+        <div class="kp-card">
+          <h2 style="margin:0 0 4px 0; font-size:18px; font-family: var(--font-display);">Bekreftelses-melding</h2>
           <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
             Tekst som vises kunden i bookingbekreftelsen (f.eks. parkering, hvor inngangen er, hva man bør ta med).
           </p>
@@ -1337,8 +1681,8 @@
         </div>
 
         <!-- Lunsjpause -->
-        <div class="panel" style="margin-top:16px;">
-          <h2 style="margin:0 0 4px 0; font-size:18px;">Lunsjpause</h2>
+        <div class="kp-card">
+          <h2 style="margin:0 0 4px 0; font-size:18px; font-family: var(--font-display);">Lunsjpause</h2>
           <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
             Slots i denne perioden blir blokkert hver dag. La feltene være tomme hvis dere ikke har fast lunsjpause.
           </p>
@@ -1360,8 +1704,8 @@
         </div>
 
         <!-- Stengte dager -->
-        <div class="panel" style="margin-top:16px;">
-          <h2 style="margin:0 0 4px 0; font-size:18px;">Stengte dager</h2>
+        <div class="kp-card">
+          <h2 style="margin:0 0 4px 0; font-size:18px; font-family: var(--font-display);">Stengte dager</h2>
           <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
             Marker dager dere er stengt (ferie, helligdager osv.). Kundene ser dagen som stengt og kan ikke booke.
           </p>
@@ -1379,26 +1723,59 @@
           </form>
         </div>
 
-        <div class="panel" style="margin-top:16px;">
+        <div class="kp-card">
           <p style="margin:0; color: var(--fg-muted);">
             Personlige profil-innstillinger og kontosletting administreres fra
             <a href="/kunde-panel.html#tab-innstillinger">kontosiden din</a>.
           </p>
         </div>
 
-        <div style="margin-top:16px;">
+        <div style="display:flex; justify-content:center; padding: 16px 0 0;">
           <button class="btn btn-ghost" id="logoutBtn"><i data-lucide="log-out"></i> Logg ut</button>
         </div>
       </div>
 
-    </main>
-  </div>
+    </div>
+  </section>
+
+  <!-- Public footer -->
+  <footer class="footer">
+    <div class="page footer__inner">
+      <div class="footer__top">
+        <img src="assets/logo-wordmark.svg" alt="nailed" class="footer__brand" />
+        <div class="footer__socials">
+          <a class="footer__social" href="#" aria-label="Instagram"><i data-lucide="instagram"></i></a>
+          <a class="footer__social" href="#" aria-label="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.17a8.16 8.16 0 004.76 1.51v-3.45a4.85 4.85 0 01-1-.54z"/></svg></a>
+          <a class="footer__social" href="#" aria-label="Facebook"><i data-lucide="facebook"></i></a>
+        </div>
+      </div>
+      <div class="footer__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="for-salonger.html">For salonger</a>
+        <a href="last-ned-app.html">Last ned app</a>
+        <a href="/personvern.html">Personvern</a>
+        <a href="/vilkar.html">Bruksvilkår</a>
+        <a href="/cookies.html">Cookies</a>
+        <a href="#">FAQ</a>
+        <a href="#">Kontakt oss</a>
+        <a href="#">Om oss</a>
+      </div>
+      <div class="footer__bottom">
+        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
+        <div class="footer__badges">
+          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> App Store — juni</span>
+          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Google Play — juli</span>
+        </div>
+      </div>
+    </div>
+  </footer>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="/assets/auth.js"></script>
   <script src="/assets/forms.js"></script>
   <script src="/assets/amenities.js"></script>
   <script src="/assets/no-places.js"></script>
+  <script defer src="/assets/nav.js"></script>
   <script>
     var salon = null;
 
@@ -1410,27 +1787,39 @@
     var analyticsPeriod = '30d';
     var analyticsLoaded = false;
 
-    var navItems = document.querySelectorAll('.nav-item[data-tab]');
+    // Sticky-shadow on the public top-nav as the user scrolls.
+    (function () {
+      var nav = document.getElementById('topNav');
+      if (!nav) return;
+      window.addEventListener('scroll', function () {
+        nav.classList.toggle('scrolled', window.scrollY > 30);
+      });
+    })();
+
+    // The tab pills act like the old sidebar nav-items: clicking switches the
+    // tab-content panels and lazy-loads tab-specific data.
+    var navItems = document.querySelectorAll('.kp-tab[data-tab]');
     var tabContents = document.querySelectorAll('.tab-content');
+    function setActiveTab(tab) {
+      navItems.forEach(function (n) {
+        n.classList.toggle('active', n.getAttribute('data-tab') === tab);
+      });
+      tabContents.forEach(function (t) {
+        t.classList.toggle('active', t.id === 'tab-' + tab);
+      });
+      // Scroll the active pill into view in narrow viewports.
+      var activeBtn = document.querySelector('.kp-tab.active');
+      if (activeBtn && activeBtn.scrollIntoView) {
+        try { activeBtn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch (_) {}
+      }
+      // Lazy-load tab-specific data on first open.
+      if (tab === 'anmeldelser' && typeof loadOwnerReviews === 'function') loadOwnerReviews();
+      if (tab === 'analyse' && typeof loadAnalytics === 'function') loadAnalytics();
+      if (tab === 'kunder' && typeof loadCustomers === 'function') loadCustomers();
+    }
     navItems.forEach(function (item) {
       item.addEventListener('click', function () {
-        var tab = this.getAttribute('data-tab');
-        navItems.forEach(function (n) { n.classList.remove('active'); });
-        this.classList.add('active');
-        tabContents.forEach(function (t) { t.classList.remove('active'); });
-        var target = document.getElementById('tab-' + tab);
-        if (target) target.classList.add('active');
-        // Lazy-load the reviews list when the tab is opened. The unanswered
-        // badge in the sidebar is refreshed independently in loadReviewsBadge().
-        if (tab === 'anmeldelser' && typeof loadOwnerReviews === 'function') {
-          loadOwnerReviews();
-        }
-        if (tab === 'analyse' && typeof loadAnalytics === 'function') {
-          loadAnalytics();
-        }
-        if (tab === 'kunder' && typeof loadCustomers === 'function') {
-          loadCustomers();
-        }
+        setActiveTab(this.getAttribute('data-tab'));
       });
     });
 
@@ -1465,23 +1854,27 @@
     async function loadSalon() {
       var res = await NailedAuth.api('/api/v1/salons/me/own');
       if (res.status === 404) {
-        // Render an empty state INSIDE the dashboard tab so the sidebar (with
-        // logout) and tab navigation still work. Don't blow away <main>.
+        // Render an empty state INSIDE the dashboard tab so the tab strip
+        // (with logout etc.) still works. Don't blow away the page shell.
         var dashTab = document.getElementById('tab-dashboard');
         if (dashTab) {
           dashTab.innerHTML =
-            '<div class="topbar"><div><h1 class="topbar__title">Ingen salong</h1>' +
-            '<div class="topbar__sub">Du er ikke registrert som salongeier ennå. ' +
-            '<a href="/bli-salong.html">Søk om å bli salong</a>.</div></div></div>';
+            '<div class="kp-empty">' +
+              '<span class="kp-empty__icon"><i data-lucide="store"></i></span>' +
+              '<h3 class="kp-empty__title">Ingen salong</h3>' +
+              '<p class="kp-empty__desc">Du er ikke registrert som salongeier ennå. ' +
+              '<a href="/bli-salong.html">Søk om å bli salong →</a></p>' +
+            '</div>';
         }
-        // Hide the other tabs and their nav buttons — there's nothing to show
-        // until the user has a salon, but we keep the sidebar (logout etc.).
+        // Hide the other tabs and their tab pills — there's nothing to show
+        // until the user has a salon, but we keep the dashboard + logout.
         document.querySelectorAll('.tab-content').forEach(function (el) {
           if (el.id !== 'tab-dashboard') el.style.display = 'none';
         });
-        document.querySelectorAll('.nav-item[data-tab]').forEach(function (el) {
+        document.querySelectorAll('.kp-tab[data-tab]').forEach(function (el) {
           if (el.getAttribute('data-tab') !== 'dashboard') el.style.display = 'none';
         });
+        window.lucide && window.lucide.createIcons();
         return null;
       }
       var data = await res.json();
@@ -1495,11 +1888,12 @@
       document.getElementById('dashTitle').innerHTML = escapeHtml(salon.name);
       document.getElementById('dashSub').textContent = salon.city;
       document.getElementById('publicLink').href = '/salon.html?slug=' + encodeURIComponent(salon.slug);
-      document.querySelector('input[name=name]').value = salon.name || '';
-      document.querySelector('textarea[name=bio]').value = salon.bio || '';
-      document.querySelector('input[name=address_line]').value = salon.address_line || '';
-      document.querySelector('input[name=postal_code]').value = salon.postal_code || '';
-      var cityInput = document.querySelector('input[name=city]');
+      // Scope to #salonForm — the service form also has an input[name=name].
+      document.querySelector('#salonForm input[name=name]').value = salon.name || '';
+      document.querySelector('#salonForm textarea[name=bio]').value = salon.bio || '';
+      document.querySelector('#salonForm input[name=address_line]').value = salon.address_line || '';
+      document.querySelector('#salonForm input[name=postal_code]').value = salon.postal_code || '';
+      var cityInput = document.querySelector('#salonForm input[name=city]');
       if (cityInput && cityInput._nailedPlaces) {
         cityInput._nailedPlaces.setValue(salon.city || '');
       } else {
@@ -2073,10 +2467,10 @@
       edit.style.display = mode === 'edit' ? '' : 'none';
       if (mode === 'edit') {
         var sec = section || 'all';
-        // Per-panel: any panel whose data-edit-section list includes this
-        // section is shown; the rest hide. Panels with no attribute always show
+        // Per-card: any card whose data-edit-section list includes this
+        // section is shown; the rest hide. Cards with no attribute always show
         // when section='all', otherwise hide.
-        edit.querySelectorAll('.panel').forEach(function (p) {
+        edit.querySelectorAll('.kp-card').forEach(function (p) {
           var attr = p.getAttribute('data-edit-section');
           if (sec === 'all') { p.style.display = ''; return; }
           if (!attr) { p.style.display = 'none'; return; }
@@ -2121,7 +2515,7 @@
     document.querySelectorAll('[data-tab-link]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var target = this.getAttribute('data-tab-link');
-        var navBtn = document.querySelector('.nav-item[data-tab="' + target + '"]');
+        var navBtn = document.querySelector('.kp-tab[data-tab="' + target + '"]');
         if (navBtn) navBtn.click();
       });
     });
@@ -2227,7 +2621,7 @@
       document.getElementById('kpiCompletedMonth').textContent = completedMonth;
       document.getElementById('kpiRevenue').innerHTML = revenueMonth.toLocaleString('no-NO') + ' <span class="kpi__unit">kr</span>';
 
-      // Sidebar badge: show count of pending bookings on the Bookinger nav item.
+      // Tab badge: show count of pending bookings on the Bookinger pill.
       var navBadge = document.getElementById('bookingsPendingBadge');
       if (navBadge) {
         if (pendingCount > 0) {
@@ -2536,7 +2930,7 @@
       } catch (_) { return ''; }
     }
 
-    // Refreshes only the sidebar badge: count of unanswered reviews.
+    // Refreshes only the tab pill badge: count of unanswered reviews.
     async function loadReviewsBadge() {
       if (!salon) return;
       try {
@@ -2634,7 +3028,7 @@
         btn.addEventListener('click', function () { openReplyForm(btn); });
       });
 
-      // Refresh the sidebar badge whenever the list reloads.
+      // Refresh the tab pill badge whenever the list reloads.
       loadReviewsBadge();
     }
 
@@ -3698,7 +4092,7 @@
     // From the Bookinger tab's notepad icon, jump to Kunder and open the
     // editor for that customer.
     async function openBookingNoteModal(userId) {
-      var kunderBtn = document.querySelector('.nav-item[data-tab="kunder"]');
+      var kunderBtn = document.querySelector('.kp-tab[data-tab="kunder"]');
       if (kunderBtn) kunderBtn.click();
       if (!customersLoaded) {
         await loadCustomers();
@@ -3719,9 +4113,14 @@
       document.getElementById('userName').textContent = user.name;
       document.getElementById('userRole').textContent = user.role === 'admin' ? 'Admin' : 'Salongeier';
       document.getElementById('avatar').textContent = (user.name || '?').charAt(0).toUpperCase();
+      // Hero greeting — show the salon owner's first name in rouge.
+      var greetEl = document.getElementById('greetingName');
+      if (greetEl) {
+        greetEl.textContent = ((user.name || '').split(' ')[0] || 'der') + '!';
+      }
       // Wire the city autocomplete before loadSalon() so that the typeahead
       // can canonicalize the loaded value via _nailedPlaces.setValue().
-      var cityInputEl = document.querySelector('input[name=city]');
+      var cityInputEl = document.querySelector('#salonForm input[name=city]');
       if (cityInputEl && window.NailedPlaces) {
         window.NailedPlaces.attachTypeahead(cityInputEl);
       }
@@ -3729,7 +4128,7 @@
       if (!s) return;
       await loadIncoming();
       await loadServices();
-      // Sidebar badge — kept fresh on initial load. The full list is
+      // Tab pill badge — kept fresh on initial load. The full list is
       // fetched lazily when the Anmeldelser tab opens.
       loadReviewsBadge();
       NailedForms.enhanceUrlInputs();
