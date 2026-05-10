@@ -1,9 +1,7 @@
 const mysql = require('mysql2/promise');
 const config = require('./config');
 
-const pool = mysql.createPool({
-  host: config.db.host,
-  port: config.db.port,
+const poolOptions = {
   user: config.db.user,
   password: config.db.password,
   database: config.db.database,
@@ -13,7 +11,17 @@ const pool = mysql.createPool({
   charset: 'utf8mb4',
   timezone: 'Z',
   dateStrings: false,
-});
+};
+
+if (config.db.socket) {
+  // Unix socket — preferred on Hostinger where users have @localhost socket grants.
+  poolOptions.socketPath = config.db.socket;
+} else {
+  poolOptions.host = config.db.host;
+  poolOptions.port = config.db.port;
+}
+
+const pool = mysql.createPool(poolOptions);
 
 async function query(sql, params) {
   const [rows] = await pool.execute(sql, params);

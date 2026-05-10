@@ -37,6 +37,10 @@ const config = {
     user: optional('DB_USER', 'nailed'),
     password: optional('DB_PASSWORD', ''),
     database: optional('DB_NAME', 'nailed'),
+    // When set, mysql2 connects via Unix socket instead of TCP. Required on
+    // Hostinger Cloud where MySQL users have @localhost socket grants only,
+    // not @127.0.0.1 / @::1 TCP grants. Common paths: /var/lib/mysql/mysql.sock.
+    socket: optional('DB_SOCKET', ''),
   },
 
   jwt: {

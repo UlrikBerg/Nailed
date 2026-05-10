@@ -69,6 +69,7 @@ function buildApp() {
         jwt: Boolean(config.jwt.secret),
         db: Boolean(config.db.password),
       },
+      db_transport: config.db.socket ? 'socket' : 'tcp',
       issues: config.issues.map(i => ({ name: i.name, severity: i.severity })),
     });
   });

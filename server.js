@@ -10,7 +10,11 @@ function logStartupStatus() {
   const lines = [];
   lines.push(`nailed server — env=${config.env} port=${config.port}`);
   lines.push(`  storage:  ${config.storage.backend}`);
-  lines.push(`  database: ${config.db.user}@${config.db.host}:${config.db.port}/${config.db.database}`);
+  if (config.db.socket) {
+    lines.push(`  database: ${config.db.user}@${config.db.socket}/${config.db.database} (socket)`);
+  } else {
+    lines.push(`  database: ${config.db.user}@${config.db.host}:${config.db.port}/${config.db.database} (tcp)`);
+  }
   lines.push(`  jwt:      ${config.jwt.secret ? 'configured' : 'NOT SET — auth endpoints will return 503'}`);
   lines.push(`  google:   ${config.google.enabled() ? 'enabled' : 'disabled'}`);
   lines.push(`  vipps:    ${config.vipps.enabled() ? 'enabled' : 'disabled'}`);

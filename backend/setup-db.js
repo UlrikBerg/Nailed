@@ -9,15 +9,20 @@ const config = require('./config');
 async function main() {
   const sql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
 
-  const conn = await mysql.createConnection({
-    host: config.db.host,
-    port: config.db.port,
+  const connOpts = {
     user: config.db.user,
     password: config.db.password,
     database: config.db.database,
     multipleStatements: true,
     charset: 'utf8mb4',
-  });
+  };
+  if (config.db.socket) {
+    connOpts.socketPath = config.db.socket;
+  } else {
+    connOpts.host = config.db.host;
+    connOpts.port = config.db.port;
+  }
+  const conn = await mysql.createConnection(connOpts);
 
   console.log(`Applying schema to ${config.db.user}@${config.db.host}:${config.db.port}/${config.db.database} ...`);
   await conn.query(sql);
