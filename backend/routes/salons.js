@@ -42,7 +42,9 @@ router.get('/:slug', asyncRoute(async (req, res) => {
   const salon = await queryOne(
     `SELECT id, slug, name, city, address_line, postal_code, bio,
             instagram_url, tiktok_url, facebook_url, website_url,
-            cover_image_key, public_phone_visible, accepts_new_bookings, status
+            cover_image_key, public_phone_visible, accepts_new_bookings,
+            cancellation_lead_hours, booking_window_days,
+            min_booking_lead_hours, booking_buffer_min, status
        FROM salons WHERE slug = ? LIMIT 1`,
     [req.params.slug]
   );
@@ -128,7 +130,9 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
   const salon = await queryOne(
     `SELECT id, slug, name, city, address_line, postal_code, bio,
             instagram_url, tiktok_url, facebook_url, website_url,
-            cover_image_key, public_phone_visible, accepts_new_bookings, status
+            cover_image_key, public_phone_visible, accepts_new_bookings,
+            cancellation_lead_hours, booking_window_days,
+            min_booking_lead_hours, booking_buffer_min, status
        FROM salons WHERE owner_user_id = ? AND status != 'deleted'
        ORDER BY created_at ASC LIMIT 1`,
     [req.user.id]
@@ -189,6 +193,10 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
     website_url: lazyUrl().optional(),
     public_phone_visible: z.boolean().optional(),
     accepts_new_bookings: z.boolean().optional(),
+    cancellation_lead_hours: z.number().int().min(0).max(168).optional(),
+    booking_window_days: z.number().int().min(1).max(180).optional(),
+    min_booking_lead_hours: z.number().int().min(0).max(168).optional(),
+    booking_buffer_min: z.number().int().min(0).max(60).optional(),
   });
   const patch = schema.parse(req.body);
 

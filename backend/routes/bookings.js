@@ -68,7 +68,10 @@ router.post('/', asyncRoute(async (req, res) => {
   if (!service || !service.active) throw new HttpError(404, 'service_unavailable', 'Tjenesten finnes ikke eller er ikke aktiv.');
 
   const salon = await queryOne(
-    `SELECT id, status, accepts_new_bookings FROM salons WHERE id = ?`,
+    `SELECT id, status, accepts_new_bookings,
+            cancellation_lead_hours, booking_window_days,
+            min_booking_lead_hours, booking_buffer_min
+       FROM salons WHERE id = ?`,
     [data.salon_id]
   );
   if (!salon || salon.status !== 'active') throw new HttpError(404, 'salon_unavailable', 'Salongen er ikke aktiv.');
@@ -79,7 +82,31 @@ router.post('/', asyncRoute(async (req, res) => {
   const startAt = new Date(data.start_at);
   if (Number.isNaN(startAt.getTime())) throw new HttpError(400, 'bad_start_at', 'Ugyldig start-tidspunkt.');
   if (startAt.getTime() < Date.now()) throw new HttpError(400, 'past_start', 'Start må være i framtiden.');
+
+  // Booking-rule enforcement: lead time and window. Server-side is the source
+  // of truth — the public salon page also hides invalid slots, but we still
+  // re-validate here to defeat hand-crafted requests.
+  const nowMs = Date.now();
+  const startMs = startAt.getTime();
+  const minLeadHours = Number(salon.min_booking_lead_hours) || 0;
+  const windowDays = Number(salon.booking_window_days) || 30;
+  const bufferMin = Number(salon.booking_buffer_min) || 0;
+  if ((startMs - nowMs) < minLeadHours * 3_600_000) {
+    throw new HttpError(409, 'booking_too_soon',
+      `Du må bestille minst ${minLeadHours} timer før timen.`);
+  }
+  if ((startMs - nowMs) > windowDays * 86_400_000) {
+    throw new HttpError(409, 'booking_too_far',
+      `Du kan bare bestille opptil ${windowDays} dager fram i tid.`);
+  }
+
   const endAt = new Date(startAt.getTime() + service.duration_min * 60_000);
+  // Buffer expands the overlap window on both ends. With a 15 min buffer, two
+  // 60-min bookings starting 60 min apart now collide (15 min overlap on each
+  // side). Using the buffer-padded window in the SELECT keeps the FOR UPDATE
+  // lock honest.
+  const overlapStart = new Date(startAt.getTime() - bufferMin * 60_000);
+  const overlapEnd = new Date(endAt.getTime() + bufferMin * 60_000);
 
   // Reject overlap with any other live booking at the same salon.
   // Treats one-stylist salons as the realistic default; multi-stylist scheduling
@@ -93,7 +120,7 @@ router.post('/', asyncRoute(async (req, res) => {
           AND end_at   > ?
         LIMIT 1
         FOR UPDATE`,
-      [data.salon_id, endAt, startAt]
+      [data.salon_id, overlapEnd, overlapStart]
     );
     if (overlap.length > 0) {
       throw new HttpError(409, 'slot_taken', 'Tidspunktet er allerede tatt. Velg et annet.');
@@ -160,7 +187,8 @@ router.patch('/:id', asyncRoute(async (req, res) => {
   const { status } = schema.parse(req.body);
 
   const booking = await queryOne(
-    `SELECT b.id, b.customer_user_id, b.status, s.owner_user_id
+    `SELECT b.id, b.customer_user_id, b.status, b.start_at,
+            s.owner_user_id, s.cancellation_lead_hours
        FROM bookings b JOIN salons s ON s.id = b.salon_id
       WHERE b.id = ?`,
     [id]
@@ -178,6 +206,18 @@ router.patch('/:id', asyncRoute(async (req, res) => {
     if (!isCustomer && !isOwner && !isAdmin) throw new HttpError(403, 'forbidden', 'Ikke tilgang.');
   } else {
     if (!isOwner && !isAdmin) throw new HttpError(403, 'forbidden', 'Bare salongen kan endre denne statusen.');
+  }
+
+  // Customer-initiated cancellations must respect the salon's cancellation
+  // deadline. Owners and admins bypass this — they can cancel at any time
+  // (e.g. emergencies, double-bookings), and the audit trail records who did.
+  if (status === 'cancelled' && isCustomer && !isOwner && !isAdmin) {
+    const cancelHours = Number(booking.cancellation_lead_hours) || 0;
+    const startMs = new Date(booking.start_at).getTime();
+    if ((startMs - Date.now()) < cancelHours * 3_600_000) {
+      throw new HttpError(409, 'cancel_too_late',
+        `Avbestillingsfristen er passert (krever minst ${cancelHours} timer varsel).`);
+    }
   }
 
   const allowedFromCurrent = ALLOWED_TRANSITIONS[booking.status];

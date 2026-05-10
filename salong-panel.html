@@ -772,11 +772,43 @@
         <div class="topbar">
           <div>
             <h1 class="topbar__title">Innstillinger</h1>
-            <div class="topbar__sub">Personlig konto og sesjoner.</div>
+            <div class="topbar__sub">Booking-regler, konto og sesjoner.</div>
           </div>
         </div>
 
         <div class="panel">
+          <h2 style="margin:0 0 4px 0; font-size:18px;">Booking-regler</h2>
+          <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
+            Bestem hvordan kundene kan booke og avbestille hos deg.
+          </p>
+          <form id="bookingRulesForm" style="display:grid; gap:16px; max-width:560px;">
+            <label class="form-field" style="display:block;">
+              <span class="form-label">Avbestillingsfrist (timer)</span>
+              <input class="form-input" type="number" name="cancellation_lead_hours" min="0" max="168" step="1" required />
+              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Kundene må avbestille minst så mange timer før timen starter.</span>
+            </label>
+            <label class="form-field" style="display:block;">
+              <span class="form-label">Bookings-vindu (dager fram)</span>
+              <input class="form-input" type="number" name="booking_window_days" min="1" max="180" step="1" required />
+              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Hvor langt fram i tid kundene kan bestille.</span>
+            </label>
+            <label class="form-field" style="display:block;">
+              <span class="form-label">Lead time (minimum timer fram)</span>
+              <input class="form-input" type="number" name="min_booking_lead_hours" min="0" max="168" step="1" required />
+              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Tidligste tidspunkt kundene kan booke før timen starter.</span>
+            </label>
+            <label class="form-field" style="display:block;">
+              <span class="form-label">Buffer mellom timer (min)</span>
+              <input class="form-input" type="number" name="booking_buffer_min" min="0" max="60" step="5" required />
+              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Minutter som legges til etter hver booking før neste kan starte.</span>
+            </label>
+            <div>
+              <button class="btn btn-primary" type="submit">Lagre booking-regler</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel" style="margin-top:16px;">
           <p style="margin:0; color: var(--fg-muted);">
             Personlige profil-innstillinger og kontosletting administreres fra
             <a href="/kunde-panel.html#tab-innstillinger">kontosiden din</a>.
@@ -887,6 +919,20 @@
       document.querySelector('input[name=website_url]').value = salon.website_url || '';
       document.querySelector('input[name=public_phone_visible]').checked = !!salon.public_phone_visible;
       document.querySelector('input[name=accepts_new_bookings]').checked = !!salon.accepts_new_bookings;
+      // Booking rules — pre-fill the Innstillinger form. Defaults match the
+      // backend defaults so freshly-loaded salons without explicit values are
+      // still rendered with sane numbers.
+      var rulesForm = document.getElementById('bookingRulesForm');
+      if (rulesForm) {
+        rulesForm.querySelector('input[name=cancellation_lead_hours]').value =
+          salon.cancellation_lead_hours != null ? salon.cancellation_lead_hours : 24;
+        rulesForm.querySelector('input[name=booking_window_days]').value =
+          salon.booking_window_days != null ? salon.booking_window_days : 30;
+        rulesForm.querySelector('input[name=min_booking_lead_hours]').value =
+          salon.min_booking_lead_hours != null ? salon.min_booking_lead_hours : 0;
+        rulesForm.querySelector('input[name=booking_buffer_min]').value =
+          salon.booking_buffer_min != null ? salon.booking_buffer_min : 0;
+      }
       renderCover(salon, currentImages);
       renderGallery(salon, currentImages);
       renderProfileView(salon, currentImages);
@@ -2010,6 +2056,31 @@
         NailedForms.toast('Salongprofil lagret');
         await loadSalon();
         setProfileMode('view');
+      } else {
+        var data = await res.json().catch(function () { return {}; });
+        NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre', { type: 'error' });
+      }
+    });
+
+    document.getElementById('bookingRulesForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var fd = new FormData(this);
+      // Each field has its own min/max in the schema; we trust the input
+      // attribute constraints + the server zod check for final validation.
+      var body = {
+        cancellation_lead_hours: parseInt(fd.get('cancellation_lead_hours'), 10),
+        booking_window_days: parseInt(fd.get('booking_window_days'), 10),
+        min_booking_lead_hours: parseInt(fd.get('min_booking_lead_hours'), 10),
+        booking_buffer_min: parseInt(fd.get('booking_buffer_min'), 10),
+      };
+      // Drop any NaN values rather than send them — the server would 400.
+      Object.keys(body).forEach(function (k) {
+        if (!Number.isFinite(body[k])) delete body[k];
+      });
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id, { method: 'PATCH', body: body });
+      if (res.ok) {
+        NailedForms.toast('Booking-regler lagret');
+        await loadSalon();
       } else {
         var data = await res.json().catch(function () { return {}; });
         NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre', { type: 'error' });

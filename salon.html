@@ -526,22 +526,29 @@
       if (svc) toggleService(svc);
     });
 
-    // ---- Day picker — sliding carousel of 30 days, 5 per page ----
+    // ---- Day picker — sliding carousel of up to 30 days, 5 per page ----
+    // The salon's booking_window_days narrows this further when set lower.
     var DAYS_TOTAL = 30;
     var DAYS_PER_PAGE = 5;
     var dayPageIdx = 0;
+
+    function effectiveDaysTotal() {
+      var cap = (currentSalon && Number(currentSalon.booking_window_days)) || DAYS_TOTAL;
+      return Math.max(1, Math.min(DAYS_TOTAL, cap));
+    }
 
     function renderDayPicker() {
       var track = document.getElementById('dayTrack');
       track.innerHTML = '';
       var DOW = ['Søn','Man','Tirs','Ons','Tors','Fre','Lør'];
-      var pages = Math.ceil(DAYS_TOTAL / DAYS_PER_PAGE);
+      var totalDays = effectiveDaysTotal();
+      var pages = Math.ceil(totalDays / DAYS_PER_PAGE);
       for (var p = 0; p < pages; p++) {
         var page = document.createElement('div');
         page.className = 'day-carousel__page';
         for (var k = 0; k < DAYS_PER_PAGE; k++) {
           var i = p * DAYS_PER_PAGE + k;
-          if (i >= DAYS_TOTAL) break;
+          if (i >= totalDays) break;
           var d = new Date();
           d.setHours(0,0,0,0);
           d.setDate(d.getDate() + i);
@@ -574,7 +581,7 @@
       var track = document.getElementById('dayTrack');
       var prev = document.getElementById('dayPrev');
       var next = document.getElementById('dayNext');
-      var pages = Math.ceil(DAYS_TOTAL / DAYS_PER_PAGE);
+      var pages = Math.ceil(effectiveDaysTotal() / DAYS_PER_PAGE);
       track.style.transform = 'translateX(-' + (dayPageIdx * 100) + '%)';
       prev.disabled = dayPageIdx <= 0;
       next.disabled = dayPageIdx >= pages - 1;
@@ -584,7 +591,7 @@
       if (dayPageIdx > 0) { dayPageIdx -= 1; applyDayPage(); }
     });
     document.getElementById('dayNext').addEventListener('click', function () {
-      var pages = Math.ceil(DAYS_TOTAL / DAYS_PER_PAGE);
+      var pages = Math.ceil(effectiveDaysTotal() / DAYS_PER_PAGE);
       if (dayPageIdx < pages - 1) { dayPageIdx += 1; applyDayPage(); }
     });
 
@@ -607,10 +614,14 @@
 
     function slotIsBusy(slotStartMs, durationMin) {
       var dur = (durationMin || 60) * 60 * 1000;
-      var slotEndMs = slotStartMs + dur;
+      var bufferMs = ((currentSalon && Number(currentSalon.booking_buffer_min)) || 0) * 60 * 1000;
+      // Apply buffer on both ends so a slot is taken if the padded slot
+      // overlaps any busy window — matches the server-side enforcement.
+      var slotStartPadded = slotStartMs - bufferMs;
+      var slotEndPadded = slotStartMs + dur + bufferMs;
       for (var i = 0; i < salonBusy.length; i++) {
         var b = salonBusy[i];
-        if (slotStartMs < b.end && slotEndMs > b.start) return true;
+        if (slotStartPadded < b.end && slotEndPadded > b.start) return true;
       }
       return false;
     }
@@ -619,6 +630,9 @@
       var grid = document.getElementById('slotGrid');
       grid.innerHTML = '';
       var nowMs = Date.now();
+      // Lead-time cutoff: anything before (now + lead) is unbookable client-side.
+      var leadHours = (currentSalon && Number(currentSalon.min_booking_lead_hours)) || 0;
+      var earliestMs = nowMs + leadHours * 3_600_000;
       var dur = (selectedService && selectedService.duration_min) ? selectedService.duration_min : 60;
       for (var h = 8; h <= 19; h++) {
         var hh = h < 10 ? '0' + h : '' + h;
@@ -628,9 +642,9 @@
         btn.type = 'button';
         btn.className = 'slot';
         btn.textContent = label;
-        var inPast = dt.getTime() < nowMs;
-        var taken = !inPast && slotIsBusy(dt.getTime(), dur);
-        if (inPast || taken) {
+        var beforeCutoff = dt.getTime() < earliestMs;
+        var taken = !beforeCutoff && slotIsBusy(dt.getTime(), dur);
+        if (beforeCutoff || taken) {
           btn.classList.add('taken');
           btn.disabled = true;
         } else {
