@@ -420,6 +420,11 @@
     var selectedDateIso = null;       // 'YYYY-MM-DD'
     var selectedDateTime = null;      // ISO 8601 with time
     var closedDateSet = new Set();    // YYYY-MM-DD strings for salon closures
+    // Per-weekday opening hours, indexed by ISO weekday (1=Mon..7=Sun).
+    // Populated from data.hours in renderSalon(). Empty when the salon has
+    // no salon_hours rows at all — renderSlots() then falls back to a 08–19
+    // default grid.
+    var salonHoursByDay = {};
 
     function updateCta() {
       if (!selectedService) {
@@ -637,6 +642,23 @@
       return false;
     }
 
+    // JS Date.getDay(): 0=Sun..6=Sat. ISO weekday: 1=Mon..7=Sun.
+    function isoWeekdayFromIsoDate(dateIso) {
+      // Parse YYYY-MM-DD in local time (matches the day-picker which builds
+      // dates with setDate on a local midnight).
+      var p = String(dateIso).split('-');
+      var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+      var w = d.getDay();
+      return w === 0 ? 7 : w;
+    }
+
+    // 'HH:MM' or 'HH:MM:SS' → minutes since 00:00; null/invalid → null.
+    function timeStrToMinutes(t) {
+      if (!t) return null;
+      var m = String(t).match(/^(\d{2}):(\d{2})/);
+      return m ? (parseInt(m[1], 10) * 60 + parseInt(m[2], 10)) : null;
+    }
+
     function renderSlots(dateIso) {
       var grid = document.getElementById('slotGrid');
       grid.innerHTML = '';
@@ -645,10 +667,57 @@
       var leadHours = (currentSalon && Number(currentSalon.min_booking_lead_hours)) || 0;
       var earliestMs = nowMs + leadHours * 3_600_000;
       var dur = (selectedService && selectedService.duration_min) ? selectedService.duration_min : 60;
-      for (var h = 8; h <= 19; h++) {
+
+      // Resolve the day's open window from the salon's per-weekday hours.
+      // - If the salon has any salon_hours rows but not one for this weekday,
+      //   we treat it as "no per-weekday restriction" (keeps legacy salons
+      //   that only filled in some days from getting blocked).
+      // - If the salon has NO rows at all, fall back to a 08:00–19:00 grid.
+      // - If the matching row says is_closed, render the empty-state message
+      //   and disable the CTA.
+      var hasAnyHours = false;
+      for (var k in salonHoursByDay) { if (Object.prototype.hasOwnProperty.call(salonHoursByDay, k)) { hasAnyHours = true; break; } }
+      var iso = isoWeekdayFromIsoDate(dateIso);
+      var row = salonHoursByDay[iso];
+
+      if (hasAnyHours && row && row.is_closed) {
+        // Render an empty grid + a centered "Stengt denne dagen" message.
+        var msg = document.createElement('div');
+        msg.className = 'slot-grid__closed';
+        msg.textContent = 'Stengt denne dagen';
+        msg.style.gridColumn = '1 / -1';
+        msg.style.textAlign = 'center';
+        msg.style.color = 'var(--fg-muted)';
+        msg.style.fontFamily = 'var(--font-body)';
+        msg.style.padding = '16px 8px';
+        grid.appendChild(msg);
+        // Reflect closed state on the CTA: button text 'Stengt', disabled.
+        selectedDateTime = null;
+        cta.disabled = true;
+        cta.textContent = 'Stengt';
+        return;
+      }
+
+      // Default window when there are no rows at all.
+      var openMin = 8 * 60;
+      var closeMin = 19 * 60;
+      if (hasAnyHours && row && !row.is_closed) {
+        var o = timeStrToMinutes(row.open_at);
+        var c = timeStrToMinutes(row.close_at);
+        if (o != null && c != null) { openMin = o; closeMin = c; }
+      }
+
+      // Snap to whole-hour grid steps and require start >= openMin AND
+      // start + duration <= closeMin. (Existing behavior renders on whole-
+      // hour boundaries; we preserve that step size.)
+      var startGridMin = Math.ceil(openMin / 60) * 60;
+      for (var m = startGridMin; m + dur <= closeMin; m += 60) {
+        var h = Math.floor(m / 60);
+        var mm = m % 60;
         var hh = h < 10 ? '0' + h : '' + h;
-        var label = hh + ':00';
-        var dt = new Date(dateIso + 'T' + hh + ':00:00');
+        var mmStr = mm < 10 ? '0' + mm : '' + mm;
+        var label = hh + ':' + mmStr;
+        var dt = new Date(dateIso + 'T' + hh + ':' + mmStr + ':00');
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'slot';
@@ -669,6 +738,19 @@
         }
         grid.appendChild(btn);
       }
+
+      // Restore CTA from any prior "Stengt" lock. updateCta() picks the right
+      // message based on current selection state.
+      if (cta.textContent === 'Stengt') {
+        cta.disabled = false;
+      }
+      // Don't re-enable CTA if the salon globally doesn't accept bookings.
+      if (currentSalon && (currentSalon.accepts_new_bookings === false || currentSalon.accepts_new_bookings === 0)) {
+        cta.disabled = true;
+        cta.textContent = 'Tar ikke imot bookinger akkurat nå';
+        return;
+      }
+      updateCta();
     }
 
     // ---- Booking submit ----
@@ -944,6 +1026,14 @@
       // Closures arrive as [{date:'YYYY-MM-DD', reason}, …]. We index into a
       // Set so the day-picker can do O(1) lookups when rendering.
       closedDateSet = new Set((data.closures || []).map(function (c) { return c.date; }));
+      // Index opening-hours rows by ISO weekday (1..7) for O(1) lookup from
+      // renderSlots() and renderDayPicker(). If the salon has no rows at all,
+      // this stays empty and renderSlots() falls back to the legacy 08–19 grid.
+      salonHoursByDay = {};
+      hours.forEach(function (r) {
+        var w = parseInt(r.weekday, 10);
+        if (w >= 1 && w <= 7) salonHoursByDay[w] = r;
+      });
       // Page is loaded; the booking CTA is now safe to interact with.
       cta.disabled = false;
 

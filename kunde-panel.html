@@ -5,76 +5,470 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Min konto — nailed</title>
   <link rel="icon" href="assets/logo-mark.svg" />
-  <link rel="stylesheet" href="admin/admin.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* =========================================================================
+       Customer panel — sits on the public shell (top-nav + footer + cream/rouge).
+       The page is structured as a hero greeting, a horizontal tab strip, and
+       cream cards underneath. Visually a continuation of /favoritter.html and
+       /utforsk.html rather than a dashboard app.
+       ========================================================================= */
+
+    .kp-page { padding: 48px 0 96px; }
+
+    /* Hero greeting + tiny profile chip */
+    .kp-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .kp-hero__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(32px, 5vw, 48px);
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
+    }
+    .kp-hero__title em { font-style: normal; color: var(--rouge-500); }
+    .kp-hero__sub { font-size: 15px; color: var(--fg-muted); margin: 0; }
+    .kp-hero__user {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px 8px 8px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill);
+    }
+    .kp-hero__avatar {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-pill);
+      background: var(--rouge-500); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px;
+    }
+    .kp-hero__userText { display: flex; flex-direction: column; line-height: 1.2; }
+    .kp-hero__userName { font-weight: 600; font-size: 14px; color: var(--ink); }
+    .kp-hero__userEmail { font-size: 12px; color: var(--fg-muted); }
+
+    /* Horizontal tab strip — pill style matching /utforsk.html filter rows.
+       Wraps on wide screens, horizontally scrolls on narrow viewports. */
+    .kp-tabs {
+      display: flex;
+      gap: 8px;
+      margin: 0 0 32px;
+      padding: 4px 0 12px;
+      border-bottom: 1px solid var(--stone-200);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .kp-tabs::-webkit-scrollbar { display: none; }
+    .kp-tab {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      color: var(--ink);
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--dur-fast) var(--ease-out-soft);
+    }
+    .kp-tab i { width: 14px; height: 14px; }
+    .kp-tab:hover { border-color: var(--stone-400); }
+    .kp-tab.active {
+      background: var(--ink);
+      color: var(--cream-50);
+      border-color: var(--ink);
+    }
+
+    /* Tab content visibility */
+    .kp-tab-content { display: none; }
+    .kp-tab-content.active { display: block; }
+
+    /* Section headers inside a tab */
+    .kp-section-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(24px, 3vw, 32px);
+      letter-spacing: -0.015em;
+      margin: 0 0 6px;
+    }
+    .kp-section-sub { font-size: 15px; color: var(--fg-muted); margin: 0 0 24px; }
+
+    /* Cream card — public-site equivalent of admin .panel */
+    .kp-card {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    .kp-card--danger { border-color: rgba(214, 36, 105, 0.25); }
+    .kp-card__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .kp-card__title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 20px;
+      margin: 0;
+    }
+    .kp-card__desc { font-size: 14px; color: var(--fg-muted); margin: 0 0 16px; line-height: 1.55; }
+
+    /* Dashboard summary tiles — soft warm tiles, not KPI dashboard chips */
+    .kp-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+    @media (max-width: 760px) { .kp-summary { grid-template-columns: 1fr; } }
+    .kp-tile {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: var(--shadow-sm);
+    }
+    .kp-tile__icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-pill);
+      background: var(--rouge-50);
+      color: var(--rouge-500);
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 6px;
+    }
+    .kp-tile__icon i { width: 18px; height: 18px; }
+    .kp-tile__label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .kp-tile__value {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 26px;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .kp-tile__sub { font-size: 13px; color: var(--fg-muted); }
+    .kp-tile__sub--good { color: var(--rouge-700); }
+
+    /* Bookings/favorites/sessions: list-style cards instead of data-tables */
+    .kp-list { display: flex; flex-direction: column; gap: 12px; }
+    .kp-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 18px;
+      background: var(--cream-100);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      transition: border-color var(--dur-fast);
+    }
+    .kp-row:hover { border-color: var(--stone-300); }
+    .kp-row__when { min-width: 110px; }
+    .kp-row__when-date {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .kp-row__when-time { font-size: 13px; color: var(--fg-muted); margin-top: 2px; }
+    .kp-row__main { flex: 1; min-width: 0; }
+    .kp-row__name { font-weight: 600; font-size: 15px; color: var(--ink); }
+    .kp-row__name a { color: var(--ink); text-decoration: none; }
+    .kp-row__name a:hover { color: var(--rouge-500); }
+    .kp-row__meta { font-size: 13px; color: var(--fg-muted); margin-top: 2px; }
+    .kp-row__price { font-weight: 600; font-size: 15px; color: var(--ink); white-space: nowrap; }
+    .kp-row__actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+    @media (max-width: 640px) {
+      .kp-row { flex-wrap: wrap; }
+      .kp-row__when { min-width: 0; flex: 1 0 100%; display: flex; gap: 8px; align-items: baseline; }
+      .kp-row__when-date { font-size: 16px; }
+      .kp-row__price { flex: 1; }
+    }
+
+    /* Status pills — warm, public-site-friendly colors */
+    .kp-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+    }
+    .kp-status--pending { background: var(--cream-200); color: var(--stone-600); }
+    .kp-status--confirmed { background: rgba(141, 160, 121, 0.18); color: #486041; }
+    .kp-status--completed { background: var(--cream-200); color: var(--stone-600); }
+    .kp-status--cancelled { background: var(--stone-100); color: var(--stone-500); }
+    .kp-status--noshow { background: var(--rouge-50); color: var(--rouge-700); }
+    .kp-status--approved { background: rgba(141, 160, 121, 0.18); color: #486041; }
+    .kp-status--rejected { background: var(--stone-100); color: var(--stone-500); }
+
+    /* Empty states — warm, matching /favoritter.html */
+    .kp-empty {
+      text-align: center;
+      padding: 64px 24px;
+      background: var(--cream-50);
+      border: 1px dashed var(--stone-300);
+      border-radius: var(--radius-lg);
+    }
+    .kp-empty__icon {
+      width: 56px; height: 56px;
+      border-radius: var(--radius-pill);
+      background: var(--rouge-50);
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+    }
+    .kp-empty__icon i { width: 24px; height: 24px; color: var(--rouge-500); }
+    .kp-empty__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 22px;
+      margin: 0 0 8px;
+    }
+    .kp-empty__desc {
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin: 0 0 18px;
+      max-width: 40ch;
+      margin-left: auto; margin-right: auto;
+    }
+    .kp-empty__desc a { color: var(--rouge-500); font-weight: 600; }
+
+    /* Booking filter — borrows the .pill look from /utforsk.html */
+    .kp-filter {
+      display: inline-flex;
+      gap: 6px;
+      padding: 4px;
+      background: var(--cream-100);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill);
+      margin-bottom: 20px;
+    }
+    .kp-filter button {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 13px;
+      padding: 7px 14px;
+      border-radius: var(--radius-pill);
+      border: 0;
+      background: transparent;
+      color: var(--fg-muted);
+      cursor: pointer;
+      transition: all var(--dur-fast) var(--ease-out-soft);
+    }
+    .kp-filter button.active { background: var(--ink); color: var(--cream-50); }
+
+    /* Profile + settings forms */
+    .kp-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 600px) { .kp-form-grid { grid-template-columns: 1fr; } }
+    .kp-field { display: flex; flex-direction: column; gap: 6px; }
+    .kp-field label {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .kp-field input {
+      font-family: var(--font-body);
+      font-size: 15px;
+      padding: 12px 16px;
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      background: var(--cream-100);
+      color: var(--ink);
+      outline: none;
+      transition: border-color var(--dur-fast);
+    }
+    .kp-field input:focus { border-color: var(--rouge-500); }
+    .kp-field input:disabled { color: var(--fg-muted); cursor: not-allowed; }
+    .kp-form-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px; }
+
+    /* Notification toggles — stacked rows */
+    .kp-toggle-list { display: flex; flex-direction: column; }
+    .kp-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--stone-200);
+    }
+    .kp-toggle:last-of-type { border-bottom: 0; }
+    .kp-toggle__text { flex: 1; }
+    .kp-toggle__label { font-weight: 600; font-size: 14px; color: var(--ink); }
+    .kp-toggle__desc { font-size: 13px; color: var(--fg-muted); margin-top: 2px; }
+    .kp-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .kp-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .kp-switch__track {
+      position: absolute; inset: 0;
+      background: var(--stone-200);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: background var(--dur-fast);
+    }
+    .kp-switch__track::after {
+      content: "";
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 18px; height: 18px;
+      background: #fff;
+      border-radius: var(--radius-pill);
+      transition: transform var(--dur-base) var(--ease-out-soft);
+      box-shadow: var(--shadow-sm);
+    }
+    .kp-switch input:checked + .kp-switch__track { background: var(--rouge-500); }
+    .kp-switch input:checked + .kp-switch__track::after { transform: translateX(20px); }
+
+    /* Become-a-salon callout — softer than a panel, matches the /utforsk hero
+       feel: rouge-tinted background, single CTA. */
+    .kp-callout {
+      background: linear-gradient(135deg, var(--rouge-50), var(--cream-100));
+      border: 1px solid var(--rouge-100);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .kp-callout__text { flex: 1; min-width: 240px; }
+    .kp-callout__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 22px;
+      margin: 0 0 6px;
+    }
+    .kp-callout__desc { font-size: 14px; color: var(--stone-600); margin: 0; line-height: 1.55; }
+
+    /* Sessions list rows — same as kp-row but slimmer */
+    .kp-session {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 16px;
+      background: var(--cream-100);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+    }
+    .kp-session__device { flex: 1; min-width: 0; font-size: 14px; color: var(--ink); font-weight: 500; word-break: break-word; }
+    .kp-session__meta { font-size: 12px; color: var(--fg-muted); margin-top: 2px; }
+    @media (max-width: 600px) {
+      .kp-session { flex-wrap: wrap; }
+    }
+
+    /* Footer logout — single small action at the bottom of innstillinger */
+    .kp-foot-actions {
+      display: flex;
+      justify-content: center;
+      padding: 24px 0 0;
+    }
+  </style>
 </head>
 <body>
 
-  <div class="app">
-
-    <aside class="sidebar">
-      <div class="sidebar__brand">
-        <span class="sidebar__brand-logo">nailed</span>
-        <span class="sidebar__badge">Konto</span>
+  <!-- Public top navigation -->
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="index.html">
+        <img src="assets/logo-wordmark.svg" alt="nailed" />
+      </a>
+      <nav class="top-nav__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="for-salonger.html">For salonger</a>
+        <a href="last-ned-app.html">Last ned app</a>
+      </nav>
+      <div class="top-nav__actions">
+        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
       </div>
+    </div>
+  </header>
 
-      <div class="sidebar__divider"></div>
+  <section class="kp-page">
+    <div class="page">
 
-      <button class="nav-item active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-      <button class="nav-item" data-tab="bookinger"><i data-lucide="calendar-check"></i> Mine bookinger</button>
-      <button class="nav-item" data-tab="favoritter"><i data-lucide="heart"></i> Favoritter</button>
-
-      <div class="sidebar__section">Konto</div>
-      <button class="nav-item" data-tab="profil"><i data-lucide="user"></i> Profil</button>
-      <button class="nav-item" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
-
-      <div class="sidebar__footer">
-        <div class="sidebar__avatar" id="avatar">U</div>
+      <!-- Greeting hero -->
+      <div class="kp-hero">
         <div>
-          <div class="sidebar__user" id="userName">Laster …</div>
-          <div class="sidebar__role" id="userEmail"></div>
+          <h1 class="kp-hero__title">Hei, <em id="greetingName">der!</em></h1>
+          <p class="kp-hero__sub">Velkommen tilbake til kontoen din.</p>
+        </div>
+        <div class="kp-hero__user">
+          <span class="kp-hero__avatar" id="avatar">U</span>
+          <span class="kp-hero__userText">
+            <span class="kp-hero__userName" id="userName">Laster …</span>
+            <span class="kp-hero__userEmail" id="userEmail"></span>
+          </span>
         </div>
       </div>
-    </aside>
 
-    <main class="main">
+      <!-- Tab strip -->
+      <div class="kp-tabs" id="kpTabs" role="tablist">
+        <button class="kp-tab active" role="tab" data-tab="dashboard"><i data-lucide="home"></i> Oversikt</button>
+        <button class="kp-tab" role="tab" data-tab="bookinger"><i data-lucide="calendar-check"></i> Bookinger</button>
+        <button class="kp-tab" role="tab" data-tab="favoritter"><i data-lucide="heart"></i> Favoritter</button>
+        <button class="kp-tab" role="tab" data-tab="profil"><i data-lucide="user"></i> Profil</button>
+        <button class="kp-tab" role="tab" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
+      </div>
 
       <!-- DASHBOARD -->
-      <div class="tab-content active" id="tab-dashboard">
-        <div class="topbar">
-          <div>
-            <h1 class="topbar__title">Hei, <em id="greetingName">der!</em></h1>
-            <div class="topbar__sub">Velkommen tilbake til kontoen din.</div>
+      <div class="kp-tab-content active" id="tab-dashboard">
+        <div class="kp-summary">
+          <div class="kp-tile">
+            <span class="kp-tile__icon"><i data-lucide="calendar-check"></i></span>
+            <span class="kp-tile__label">Neste booking</span>
+            <span class="kp-tile__value" id="kpiNext" style="font-size: 20px;">—</span>
+            <span class="kp-tile__sub" id="kpiNextSub">Ingen kommende</span>
           </div>
-          <div class="topbar__actions">
-            <a class="btn btn-ghost" href="/utforsk.html"><i data-lucide="search"></i> Utforsk salonger</a>
+          <div class="kp-tile">
+            <span class="kp-tile__icon"><i data-lucide="check-circle"></i></span>
+            <span class="kp-tile__label">Fullførte bookinger</span>
+            <span class="kp-tile__value" id="kpiCompleted">0</span>
           </div>
-        </div>
-
-        <div class="kpi-row">
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--pink"><i data-lucide="calendar-check"></i></div>
-            <div class="kpi__label">Neste booking</div>
-            <div class="kpi__value" id="kpiNext" style="font-size: 22px;">—</div>
-            <div class="kpi__delta" id="kpiNextSub" style="background: var(--stone-100); color: var(--stone-600);">Ingen kommende</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--green"><i data-lucide="check-circle"></i></div>
-            <div class="kpi__label">Fullførte bookinger</div>
-            <div class="kpi__value" id="kpiCompleted">0</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__icon kpi__icon--amber"><i data-lucide="heart"></i></div>
-            <div class="kpi__label">Favoritter</div>
-            <div class="kpi__value" id="kpiFavorites">0</div>
+          <div class="kp-tile">
+            <span class="kp-tile__icon"><i data-lucide="heart"></i></span>
+            <span class="kp-tile__label">Favoritter</span>
+            <span class="kp-tile__value" id="kpiFavorites">0</span>
           </div>
         </div>
 
-        <div class="panel" style="margin-top:24px;">
-          <div class="panel__head"><h3>Bli salong på nailed</h3></div>
-          <p style="margin:0 0 12px; color: var(--fg-muted);">
-            Tilbyr du behandlinger? Søk om å bli registrert salong, og start å motta bookinger gjennom nailed.
-          </p>
-          <div id="becomeSalonStatus"></div>
+        <div class="kp-callout">
+          <div class="kp-callout__text">
+            <h3 class="kp-callout__title">Bli salong på nailed</h3>
+            <p class="kp-callout__desc">
+              Tilbyr du behandlinger? Søk om å bli registrert salong og start å motta
+              bookinger gjennom nailed.
+            </p>
+            <div id="becomeSalonStatus" style="margin-top:10px;"></div>
+          </div>
           <a class="btn btn-primary" id="becomeSalonBtn" href="/bli-salong.html">
             <i data-lucide="store"></i> Søk om å bli salong
           </a>
@@ -82,188 +476,281 @@
       </div>
 
       <!-- MINE BOOKINGER -->
-      <div class="tab-content" id="tab-bookinger">
-        <div class="topbar">
-          <div>
-            <h1 class="topbar__title">Mine bookinger</h1>
-            <div class="topbar__sub">Kommende og tidligere avtaler.</div>
-          </div>
+      <div class="kp-tab-content" id="tab-bookinger">
+        <h2 class="kp-section-title">Mine bookinger</h2>
+        <p class="kp-section-sub">Kommende og tidligere avtaler.</p>
+
+        <div class="kp-filter" id="bookingFilter">
+          <button class="active" data-filter="upcoming">Kommende</button>
+          <button data-filter="past">Tidligere</button>
         </div>
 
-        <div style="display:flex; gap:6px; margin-bottom:20px;" id="bookingFilter">
-          <button class="period-btn active" data-filter="upcoming">Kommende</button>
-          <button class="period-btn" data-filter="past">Tidligere</button>
-        </div>
-
-        <div class="panel">
-          <table class="data-table" id="bookingsTable">
-            <thead>
-              <tr>
-                <th>Når</th>
-                <th>Salong</th>
-                <th>Behandling</th>
-                <th>Pris</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-          <div id="bookingsEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
-            Du har ingen bookinger her.
-          </div>
+        <div class="kp-list" id="bookingsList"></div>
+        <div id="bookingsEmpty" class="kp-empty" style="display:none;">
+          <span class="kp-empty__icon"><i data-lucide="calendar"></i></span>
+          <h3 class="kp-empty__title" id="bookingsEmptyTitle">Ingen bookinger her ennå</h3>
+          <p class="kp-empty__desc" id="bookingsEmptyDesc">
+            Når du booker en behandling, dukker den opp her. <a href="/utforsk.html">Utforsk salonger →</a>
+          </p>
         </div>
       </div>
 
       <!-- FAVORITTER -->
-      <div class="tab-content" id="tab-favoritter">
-        <div class="topbar">
-          <div>
-            <h1 class="topbar__title">Favoritter</h1>
-            <div class="topbar__sub">Salonger du har lagret.</div>
-          </div>
-        </div>
+      <div class="kp-tab-content" id="tab-favoritter">
+        <h2 class="kp-section-title">Favoritter</h2>
+        <p class="kp-section-sub">Salonger du har lagret.</p>
 
-        <div class="panel">
-          <table class="data-table" id="favoritesTable">
-            <thead>
-              <tr><th>Salong</th><th>By</th><th>Lagt til</th><th></th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-          <div id="favoritesEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
-            Du har ingen favoritter ennå. <a href="/utforsk.html">Utforsk salonger →</a>
-          </div>
+        <div class="kp-list" id="favoritesList"></div>
+        <div id="favoritesEmpty" class="kp-empty" style="display:none;">
+          <span class="kp-empty__icon"><i data-lucide="heart"></i></span>
+          <h3 class="kp-empty__title">Ingen favoritter ennå</h3>
+          <p class="kp-empty__desc">
+            Trykk på hjertet på en salong for å lagre den her. <a href="/utforsk.html">Utforsk salonger →</a>
+          </p>
         </div>
       </div>
 
       <!-- PROFIL -->
-      <div class="tab-content" id="tab-profil">
-        <div class="topbar">
-          <div>
-            <h1 class="topbar__title">Profil</h1>
-            <div class="topbar__sub">Disse opplysningene brukes ved booking.</div>
-          </div>
-        </div>
+      <div class="kp-tab-content" id="tab-profil">
+        <h2 class="kp-section-title">Profil</h2>
+        <p class="kp-section-sub">Disse opplysningene brukes ved booking.</p>
 
-        <div class="panel">
-          <form id="profileForm" class="settings-grid">
-            <div class="form-group">
-              <label>Navn</label>
-              <input class="form-input" name="name" type="text" required />
+        <div class="kp-card">
+          <form id="profileForm" class="kp-form-grid">
+            <div class="kp-field">
+              <label for="profileName">Navn</label>
+              <input id="profileName" name="name" type="text" required />
             </div>
-            <div class="form-group">
-              <label>E-post (fra innloggings-leverandør)</label>
-              <input class="form-input" name="email" type="email" disabled />
+            <div class="kp-field">
+              <label for="profileEmail">E-post</label>
+              <input id="profileEmail" name="email" type="email" disabled />
             </div>
-            <div class="form-group">
-              <label>Telefon</label>
-              <input class="form-input" name="phone" type="tel" placeholder="+47 ..." />
+            <div class="kp-field">
+              <label for="profilePhone">Telefon</label>
+              <input id="profilePhone" name="phone" type="tel" placeholder="+47 ..." />
             </div>
-            <div class="form-group">
-              <label>Adresse</label>
-              <input class="form-input" name="address_line" type="text" />
+            <div class="kp-field">
+              <label for="profileAddress">Adresse</label>
+              <input id="profileAddress" name="address_line" type="text" />
             </div>
-            <div class="form-group">
-              <label>Postnummer</label>
-              <input class="form-input" name="postal_code" type="text" maxlength="16" />
+            <div class="kp-field">
+              <label for="profilePostal">Postnummer</label>
+              <input id="profilePostal" name="postal_code" type="text" maxlength="16" />
             </div>
-            <div class="form-group">
-              <label>By</label>
-              <input class="form-input" name="city" type="text" />
+            <div class="kp-field">
+              <label for="profileCity">By</label>
+              <input id="profileCity" name="city" type="text" />
             </div>
-            <div style="grid-column: 1 / -1;">
-              <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
+            <div class="kp-form-actions">
+              <button class="btn btn-primary" type="submit">
+                <i data-lucide="save"></i> Lagre profil
+              </button>
             </div>
           </form>
         </div>
       </div>
 
       <!-- INNSTILLINGER -->
-      <div class="tab-content" id="tab-innstillinger">
-        <div class="topbar">
-          <div>
-            <h1 class="topbar__title">Innstillinger</h1>
-            <div class="topbar__sub">Varsler, aktive sesjoner og kontosletting.</div>
-          </div>
-        </div>
+      <div class="kp-tab-content" id="tab-innstillinger">
+        <h2 class="kp-section-title">Innstillinger</h2>
+        <p class="kp-section-sub">Varsler, aktive sesjoner og kontosletting.</p>
 
-        <div class="panel">
-          <div class="panel__head"><h3>Varsler</h3></div>
-          <form id="notifyForm" style="display:flex; flex-direction:column; gap:12px;">
-            <label style="display:flex; gap:10px; align-items:center;">
-              <input type="checkbox" name="notify_email_bookings" />
-              E-post når bookingstatus endres (bekreftet, kansellert, fullført)
-            </label>
-            <label style="display:flex; gap:10px; align-items:center;">
-              <input type="checkbox" name="notify_email_reminders" />
-              E-post-påminnelse dagen før booking
-            </label>
-            <label style="display:flex; gap:10px; align-items:center;">
-              <input type="checkbox" name="notify_sms_reminders" />
-              SMS-påminnelse 2 timer før booking
-            </label>
-            <label style="display:flex; gap:10px; align-items:center;">
-              <input type="checkbox" name="notify_marketing" />
-              Tips og kampanjer fra nailed (kan skrus av når som helst)
-            </label>
-            <div>
-              <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
+        <!-- Varsler -->
+        <div class="kp-card">
+          <div class="kp-card__head">
+            <h3 class="kp-card__title">Varsler</h3>
+          </div>
+          <form id="notifyForm">
+            <div class="kp-toggle-list">
+              <label class="kp-toggle">
+                <span class="kp-toggle__text">
+                  <span class="kp-toggle__label">E-post om bookingstatus</span>
+                  <span class="kp-toggle__desc">Bekreftet, kansellert eller fullført.</span>
+                </span>
+                <span class="kp-switch">
+                  <input type="checkbox" name="notify_email_bookings" />
+                  <span class="kp-switch__track"></span>
+                </span>
+              </label>
+              <label class="kp-toggle">
+                <span class="kp-toggle__text">
+                  <span class="kp-toggle__label">E-post-påminnelse</span>
+                  <span class="kp-toggle__desc">Dagen før hver booking.</span>
+                </span>
+                <span class="kp-switch">
+                  <input type="checkbox" name="notify_email_reminders" />
+                  <span class="kp-switch__track"></span>
+                </span>
+              </label>
+              <label class="kp-toggle">
+                <span class="kp-toggle__text">
+                  <span class="kp-toggle__label">SMS-påminnelse</span>
+                  <span class="kp-toggle__desc">2 timer før behandlingen starter.</span>
+                </span>
+                <span class="kp-switch">
+                  <input type="checkbox" name="notify_sms_reminders" />
+                  <span class="kp-switch__track"></span>
+                </span>
+              </label>
+              <label class="kp-toggle">
+                <span class="kp-toggle__text">
+                  <span class="kp-toggle__label">Tips og kampanjer</span>
+                  <span class="kp-toggle__desc">Kan skrus av når som helst.</span>
+                </span>
+                <span class="kp-switch">
+                  <input type="checkbox" name="notify_marketing" />
+                  <span class="kp-switch__track"></span>
+                </span>
+              </label>
+            </div>
+            <div style="margin-top:20px; display:flex; justify-content:flex-end;">
+              <button class="btn btn-primary" type="submit">
+                <i data-lucide="save"></i> Lagre innstillinger
+              </button>
             </div>
           </form>
         </div>
 
-        <div class="panel">
-          <div class="panel__head"><h3>Aktive sesjoner</h3></div>
-          <table class="data-table data-table--compact" id="sessionsTable">
-            <thead><tr><th>Enhet</th><th>IP</th><th>Sist brukt</th><th></th></tr></thead>
-            <tbody></tbody>
-          </table>
+        <!-- Aktive sesjoner -->
+        <div class="kp-card">
+          <div class="kp-card__head">
+            <h3 class="kp-card__title">Aktive sesjoner</h3>
+          </div>
+          <p class="kp-card__desc">Enheter som er logget inn på kontoen din. Avslutt sesjoner du ikke kjenner igjen.</p>
+          <div class="kp-list" id="sessionsList"></div>
         </div>
 
-        <div class="panel">
-          <div class="panel__head"><h3>Last ned mine data</h3></div>
-          <p style="margin:0 0 12px; color: var(--fg-muted);">
+        <!-- Last ned data -->
+        <div class="kp-card">
+          <div class="kp-card__head">
+            <h3 class="kp-card__title">Last ned mine data</h3>
+          </div>
+          <p class="kp-card__desc">
             Last ned alt vi har lagret om deg som JSON-fil — profil, sesjoner, bookinger,
             favoritter, anmeldelser og søknader. Følger GDPR art. 20 (dataportabilitet).
           </p>
-          <button class="btn btn-ghost" id="exportBtn"><i data-lucide="download"></i> Last ned JSON</button>
+          <button class="btn btn-ghost" id="exportBtn">
+            <i data-lucide="download"></i> Last ned JSON
+          </button>
         </div>
 
-        <div class="panel" style="border-color: var(--danger-50);">
-          <div class="panel__head"><h3>Slett konto</h3></div>
-          <p style="margin:0 0 12px; color: var(--fg-muted);">
-            Sletter all profilinformasjon og logger deg ut. Booking-historikk beholdes anonymisert
-            i 5 år i samsvar med bokføringsloven.
+        <!-- Slett konto -->
+        <div class="kp-card kp-card--danger">
+          <div class="kp-card__head">
+            <h3 class="kp-card__title">Slett konto</h3>
+          </div>
+          <p class="kp-card__desc">
+            Sletter all profilinformasjon og logger deg ut. Booking-historikk beholdes
+            anonymisert i 5 år i samsvar med bokføringsloven.
           </p>
-          <button class="btn btn-danger" id="deleteAccountBtn"><i data-lucide="trash-2"></i> Slett konto</button>
+          <button class="btn btn-ghost" id="deleteAccountBtn" style="color: var(--rouge-700); border-color: var(--rouge-200);">
+            <i data-lucide="trash-2"></i> Slett konto
+          </button>
         </div>
 
-        <div style="margin-top:16px;">
-          <button class="btn btn-ghost" id="logoutBtn"><i data-lucide="log-out"></i> Logg ut</button>
+        <div class="kp-foot-actions">
+          <button class="btn btn-ghost" id="logoutBtn">
+            <i data-lucide="log-out"></i> Logg ut
+          </button>
         </div>
       </div>
 
-    </main>
-  </div>
+    </div>
+  </section>
+
+  <!-- Public footer -->
+  <footer class="footer">
+    <div class="page footer__inner">
+      <div class="footer__top">
+        <img src="assets/logo-wordmark.svg" alt="nailed" class="footer__brand" />
+        <div class="footer__socials">
+          <a class="footer__social" href="#" aria-label="Instagram"><i data-lucide="instagram"></i></a>
+          <a class="footer__social" href="#" aria-label="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.17a8.16 8.16 0 004.76 1.51v-3.45a4.85 4.85 0 01-1-.54z"/></svg></a>
+          <a class="footer__social" href="#" aria-label="Facebook"><i data-lucide="facebook"></i></a>
+        </div>
+      </div>
+      <div class="footer__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="for-salonger.html">For salonger</a>
+        <a href="last-ned-app.html">Last ned app</a>
+        <a href="/personvern.html">Personvern</a>
+        <a href="/vilkar.html">Bruksvilkår</a>
+        <a href="/cookies.html">Cookies</a>
+        <a href="#">FAQ</a>
+        <a href="#">Kontakt oss</a>
+        <a href="#">Om oss</a>
+      </div>
+      <div class="footer__bottom">
+        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
+        <div class="footer__badges">
+          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> App Store — juni</span>
+          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Google Play — juli</span>
+        </div>
+      </div>
+    </div>
+  </footer>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="/assets/auth.js"></script>
   <script src="/assets/forms.js"></script>
+  <script defer src="/assets/nav.js"></script>
   <script>
-    var navItems = document.querySelectorAll('.nav-item[data-tab]');
-    var tabContents = document.querySelectorAll('.tab-content');
-    navItems.forEach(function (item) {
-      item.addEventListener('click', function () {
-        var tab = this.getAttribute('data-tab');
-        navItems.forEach(function (n) { n.classList.remove('active'); });
-        this.classList.add('active');
-        tabContents.forEach(function (t) { t.classList.remove('active'); });
-        var target = document.getElementById('tab-' + tab);
-        if (target) target.classList.add('active');
+    // ---------------------------------------------------------------------
+    // Top-nav scroll behavior — matches the public site
+    // ---------------------------------------------------------------------
+    (function () {
+      var nav = document.getElementById('topNav');
+      window.addEventListener('scroll', function () {
+        nav.classList.toggle('scrolled', window.scrollY > 30);
       });
+    })();
+
+    // ---------------------------------------------------------------------
+    // Tab routing — preserves the hash-based linking so external pages can
+    // deep-link to #tab-innstillinger etc. (the salon panel links to
+    // /kunde-panel.html#tab-innstillinger from its empty Innstillinger view).
+    // ---------------------------------------------------------------------
+    var TABS = ['dashboard', 'bookinger', 'favoritter', 'profil', 'innstillinger'];
+
+    function setActiveTab(name) {
+      if (TABS.indexOf(name) < 0) name = 'dashboard';
+      document.querySelectorAll('.kp-tab').forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-tab') === name);
+      });
+      document.querySelectorAll('.kp-tab-content').forEach(function (c) {
+        c.classList.toggle('active', c.id === 'tab-' + name);
+      });
+      // Scroll the active tab pill into view in narrow viewports.
+      var activeBtn = document.querySelector('.kp-tab.active');
+      if (activeBtn && activeBtn.scrollIntoView) {
+        try { activeBtn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch (_) {}
+      }
+    }
+
+    function tabFromHash() {
+      var h = (window.location.hash || '').replace(/^#tab-/, '');
+      return h || 'dashboard';
+    }
+
+    document.getElementById('kpTabs').addEventListener('click', function (e) {
+      var btn = e.target.closest('.kp-tab');
+      if (!btn) return;
+      var name = btn.getAttribute('data-tab');
+      // Update hash so deep-links and back-button work — pushState would also
+      // do it, but a plain hash keeps the same behavior as the old sidebar.
+      try { history.replaceState(null, '', '#tab-' + name); } catch (_) {
+        window.location.hash = 'tab-' + name;
+      }
+      setActiveTab(name);
     });
 
+    window.addEventListener('hashchange', function () {
+      setActiveTab(tabFromHash());
+    });
+
+    // ---------------------------------------------------------------------
+    // Status labels — public-site styled (no admin .status badges)
+    // ---------------------------------------------------------------------
     var statusLabel = {
       pending: 'Avventer',
       confirmed: 'Bekreftet',
@@ -272,20 +759,34 @@
       no_show: 'No-show',
     };
     var statusClass = {
-      pending: 'status status--pending',
-      confirmed: 'status status--confirmed',
-      completed: 'status status--completed',
-      cancelled: 'status status--cancelled',
-      no_show: 'status status--noshow',
+      pending: 'kp-status kp-status--pending',
+      confirmed: 'kp-status kp-status--confirmed',
+      completed: 'kp-status kp-status--completed',
+      cancelled: 'kp-status kp-status--cancelled',
+      no_show: 'kp-status kp-status--noshow',
     };
 
-    function formatDateTime(iso) {
-      var d = new Date(iso);
-      var date = d.toLocaleDateString('no-NO', { day: '2-digit', month: 'short' });
-      var time = d.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
-      return date + ' · ' + time;
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+      });
     }
 
+    function formatDate(iso) {
+      var d = new Date(iso);
+      return d.toLocaleDateString('no-NO', { day: '2-digit', month: 'short' });
+    }
+    function formatTime(iso) {
+      var d = new Date(iso);
+      return d.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+    }
+    function formatDateTime(iso) {
+      return formatDate(iso) + ' · ' + formatTime(iso);
+    }
+
+    // ---------------------------------------------------------------------
+    // Dashboard — KPI tiles + become-salon callout state
+    // ---------------------------------------------------------------------
     async function loadDashboard() {
       var [bookingsRes, favoritesRes, completedRes, appRes] = await Promise.all([
         NailedAuth.api('/api/v1/bookings/mine?filter=upcoming'),
@@ -295,7 +796,9 @@
       ]);
       var bookings = (await bookingsRes.json()).bookings || [];
       var favs = (await favoritesRes.json()).favorites || [];
-      var completed = ((await completedRes.json()).bookings || []).filter(function (b) { return b.status === 'completed'; });
+      var completed = ((await completedRes.json()).bookings || []).filter(function (b) {
+        return b.status === 'completed';
+      });
 
       var next = bookings[0];
       var nextEl = document.getElementById('kpiNext');
@@ -303,8 +806,7 @@
       if (next) {
         nextEl.textContent = formatDateTime(next.start_at);
         nextSub.textContent = next.salon_name + ' · ' + next.service_name;
-        nextSub.style.background = 'var(--success-50)';
-        nextSub.style.color = 'var(--success-500)';
+        nextSub.classList.add('kp-tile__sub--good');
       }
       document.getElementById('kpiCompleted').textContent = completed.length;
       document.getElementById('kpiFavorites').textContent = favs.length;
@@ -314,82 +816,166 @@
       var btn = document.getElementById('becomeSalonBtn');
       if (appData) {
         if (appData.status === 'pending') {
-          statusEl.innerHTML = '<span class="status status--pending">Søknad sendt</span> ' +
-            '<span style="color: var(--fg-muted); margin-left: 8px;">Vi gir beskjed når den er behandlet.</span>';
+          statusEl.innerHTML =
+            '<span class="kp-status kp-status--pending">Søknad sendt</span> ' +
+            '<span style="color: var(--fg-muted); margin-left: 8px; font-size: 13px;">Vi gir beskjed når den er behandlet.</span>';
           btn.style.display = 'none';
         } else if (appData.status === 'approved') {
-          statusEl.innerHTML = '<span class="status status--confirmed">Godkjent</span>';
-          btn.outerHTML = '<a class="btn btn-primary" href="/salong-panel.html"><i data-lucide="store"></i> Gå til salongpanel</a>';
+          statusEl.innerHTML = '<span class="kp-status kp-status--approved">Godkjent</span>';
+          btn.outerHTML =
+            '<a class="btn btn-primary" href="/salong-panel.html"><i data-lucide="store"></i> Gå til salongpanel</a>';
         } else if (appData.status === 'rejected') {
-          statusEl.innerHTML = '<span class="status status--cancelled">Avslått</span>' +
-            (appData.reviewer_notes ? '<div style="margin-top:8px; color: var(--fg-muted); font-size:13px;">' + appData.reviewer_notes + '</div>' : '');
+          statusEl.innerHTML = '<span class="kp-status kp-status--rejected">Avslått</span>' +
+            (appData.reviewer_notes
+              ? '<div style="margin-top:8px; color: var(--fg-muted); font-size:13px;">' + escapeHtml(appData.reviewer_notes) + '</div>'
+              : '');
         }
       }
       window.lucide && window.lucide.createIcons();
     }
 
+    // ---------------------------------------------------------------------
+    // Bookings — list of cream rows; warm empty state
+    // ---------------------------------------------------------------------
     async function loadBookings(filter) {
       var res = await NailedAuth.api('/api/v1/bookings/mine?filter=' + filter);
       var data = await res.json();
-      var tbody = document.querySelector('#bookingsTable tbody');
-      tbody.innerHTML = '';
+      var list = document.getElementById('bookingsList');
+      var empty = document.getElementById('bookingsEmpty');
+      var emptyTitle = document.getElementById('bookingsEmptyTitle');
+      var emptyDesc = document.getElementById('bookingsEmptyDesc');
       var bookings = data.bookings || [];
-      document.getElementById('bookingsEmpty').style.display = bookings.length === 0 ? 'block' : 'none';
-      document.getElementById('bookingsTable').style.display = bookings.length === 0 ? 'none' : '';
+
+      list.innerHTML = '';
+      if (bookings.length === 0) {
+        list.style.display = 'none';
+        empty.style.display = '';
+        if (filter === 'past') {
+          emptyTitle.textContent = 'Ingen tidligere bookinger';
+          emptyDesc.innerHTML = 'Når du har vært hos en salong, dukker historikken opp her.';
+        } else {
+          emptyTitle.textContent = 'Ingen kommende bookinger';
+          emptyDesc.innerHTML = 'Når du booker en behandling, dukker den opp her. <a href="/utforsk.html">Utforsk salonger →</a>';
+        }
+        window.lucide && window.lucide.createIcons();
+        return;
+      }
+
+      list.style.display = '';
+      empty.style.display = 'none';
+
       bookings.forEach(function (b) {
-        var tr = document.createElement('tr');
         var canCancel = filter === 'upcoming' && (b.status === 'pending' || b.status === 'confirmed');
-        tr.innerHTML =
-          '<td><strong>' + formatDateTime(b.start_at) + '</strong></td>' +
-          '<td><a href="/salon.html?slug=' + encodeURIComponent(b.salon_slug) + '">' + escapeHtml(b.salon_name) + '</a><br>' +
-            '<span class="td-muted">' + escapeHtml(b.salon_city || '') + '</span></td>' +
-          '<td>' + escapeHtml(b.service_name) + '</td>' +
-          '<td><strong>' + b.price_nok + ' kr</strong></td>' +
-          '<td><span class="' + (statusClass[b.status] || 'status') + '">' + (statusLabel[b.status] || b.status) + '</span></td>' +
-          '<td>' + (canCancel ? '<button class="btn btn-ghost btn-sm" data-cancel="' + b.id + '">Avbestill</button>' : '') + '</td>';
-        tbody.appendChild(tr);
+        var row = document.createElement('div');
+        row.className = 'kp-row';
+        row.innerHTML =
+          '<div class="kp-row__when">' +
+            '<div class="kp-row__when-date">' + escapeHtml(formatDate(b.start_at)) + '</div>' +
+            '<div class="kp-row__when-time">kl. ' + escapeHtml(formatTime(b.start_at)) + '</div>' +
+          '</div>' +
+          '<div class="kp-row__main">' +
+            '<div class="kp-row__name"><a href="/salon.html?slug=' + encodeURIComponent(b.salon_slug || '') + '">' +
+              escapeHtml(b.salon_name || '') +
+            '</a></div>' +
+            '<div class="kp-row__meta">' + escapeHtml(b.service_name || '') +
+              (b.salon_city ? ' · ' + escapeHtml(b.salon_city) : '') + '</div>' +
+          '</div>' +
+          '<div class="kp-row__price">' + escapeHtml(String(b.price_nok || '')) + ' kr</div>' +
+          '<div class="kp-row__actions">' +
+            '<span class="' + (statusClass[b.status] || 'kp-status') + '">' +
+              escapeHtml(statusLabel[b.status] || b.status || '') +
+            '</span>' +
+            (canCancel
+              ? '<button class="btn btn-ghost btn-sm" data-cancel="' + b.id + '">Avbestill</button>'
+              : '') +
+          '</div>';
+        list.appendChild(row);
       });
-      tbody.querySelectorAll('button[data-cancel]').forEach(function (btn) {
+
+      list.querySelectorAll('button[data-cancel]').forEach(function (btn) {
         btn.addEventListener('click', async function () {
           if (!confirm('Avbestille denne bookingen?')) return;
           var id = this.getAttribute('data-cancel');
-          var res = await NailedAuth.api('/api/v1/bookings/' + id, { method: 'PATCH', body: { status: 'cancelled' } });
-          if (res.ok) loadBookings(filter); else alert('Kunne ikke avbestille.');
+          var res = await NailedAuth.api('/api/v1/bookings/' + id, {
+            method: 'PATCH',
+            body: { status: 'cancelled' },
+          });
+          if (res.ok) {
+            loadBookings(filter);
+            NailedForms.toast('Booking avbestilt');
+          } else {
+            NailedForms.toast('Kunne ikke avbestille', { type: 'error' });
+          }
         });
       });
-    }
 
-    async function loadFavorites() {
-      var res = await NailedAuth.api('/api/v1/favorites');
-      var data = await res.json();
-      var tbody = document.querySelector('#favoritesTable tbody');
-      tbody.innerHTML = '';
-      var favs = data.favorites || [];
-      document.getElementById('favoritesEmpty').style.display = favs.length === 0 ? 'block' : 'none';
-      document.getElementById('favoritesTable').style.display = favs.length === 0 ? 'none' : '';
-      favs.forEach(function (f) {
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-          '<td><a href="/salon.html?slug=' + encodeURIComponent(f.slug) + '"><strong>' + escapeHtml(f.name) + '</strong></a></td>' +
-          '<td>' + escapeHtml(f.city || '') + '</td>' +
-          '<td class="td-muted">' + new Date(f.created_at).toLocaleDateString('no-NO') + '</td>' +
-          '<td><button class="btn btn-ghost btn-sm" data-unfav="' + f.id + '"><i data-lucide="x"></i></button></td>';
-        tbody.appendChild(tr);
-      });
-      tbody.querySelectorAll('button[data-unfav]').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-          var id = this.getAttribute('data-unfav');
-          await NailedAuth.api('/api/v1/favorites/' + id, { method: 'DELETE' });
-          loadFavorites();
-        });
-      });
       window.lucide && window.lucide.createIcons();
     }
 
+    // ---------------------------------------------------------------------
+    // Favorites — list of cream rows with a heart-remove button
+    // ---------------------------------------------------------------------
+    async function loadFavorites() {
+      var res = await NailedAuth.api('/api/v1/favorites');
+      var data = await res.json();
+      var list = document.getElementById('favoritesList');
+      var empty = document.getElementById('favoritesEmpty');
+      var favs = data.favorites || [];
+
+      list.innerHTML = '';
+      if (favs.length === 0) {
+        list.style.display = 'none';
+        empty.style.display = '';
+        window.lucide && window.lucide.createIcons();
+        return;
+      }
+
+      list.style.display = '';
+      empty.style.display = 'none';
+
+      favs.forEach(function (f) {
+        var row = document.createElement('div');
+        row.className = 'kp-row';
+        row.innerHTML =
+          '<div class="kp-row__main">' +
+            '<div class="kp-row__name"><a href="/salon.html?slug=' + encodeURIComponent(f.slug || '') + '">' +
+              escapeHtml(f.name || '') +
+            '</a></div>' +
+            '<div class="kp-row__meta">' +
+              escapeHtml(f.city || '') +
+              ' · Lagt til ' + escapeHtml(new Date(f.created_at).toLocaleDateString('no-NO')) +
+            '</div>' +
+          '</div>' +
+          '<div class="kp-row__actions">' +
+            '<button class="btn btn-ghost btn-sm" data-unfav="' + f.id + '" title="Fjern fra favoritter">' +
+              '<i data-lucide="heart-off"></i> Fjern' +
+            '</button>' +
+          '</div>';
+        list.appendChild(row);
+      });
+
+      list.querySelectorAll('button[data-unfav]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          var id = this.getAttribute('data-unfav');
+          var res = await NailedAuth.api('/api/v1/favorites/' + id, { method: 'DELETE' });
+          if (res && res.ok) {
+            loadFavorites();
+          } else {
+            NailedForms.toast('Kunne ikke fjerne favoritt', { type: 'error' });
+          }
+        });
+      });
+
+      window.lucide && window.lucide.createIcons();
+    }
+
+    // ---------------------------------------------------------------------
+    // Profile — load and submit
+    // ---------------------------------------------------------------------
     async function loadProfile() {
       var res = await NailedAuth.api('/api/v1/me');
       var data = await res.json();
-      var u = data.user;
+      var u = data.user || {};
       document.querySelector('input[name=name]').value = u.name || '';
       document.querySelector('input[name=email]').value = u.email || '';
       document.querySelector('input[name=phone]').value = u.phone || '';
@@ -402,56 +988,25 @@
       document.querySelector('input[name=notify_marketing]').checked = !!u.notify_marketing;
     }
 
-    async function loadSessions() {
-      var res = await NailedAuth.api('/api/v1/me/sessions');
-      var data = await res.json();
-      var tbody = document.querySelector('#sessionsTable tbody');
-      tbody.innerHTML = '';
-      (data.sessions || []).forEach(function (s) {
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-          '<td>' + escapeHtml((s.user_agent || 'Ukjent').slice(0, 60)) + '</td>' +
-          '<td class="td-muted">' + escapeHtml(s.ip || '—') + '</td>' +
-          '<td>' + new Date(s.last_used_at).toLocaleString('no-NO') + '</td>' +
-          '<td><button class="btn btn-ghost btn-sm" data-revoke="' + s.id + '">Avslutt</button></td>';
-        tbody.appendChild(tr);
-      });
-      tbody.querySelectorAll('button[data-revoke]').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-          var id = this.getAttribute('data-revoke');
-          await NailedAuth.api('/api/v1/me/sessions/' + id, { method: 'DELETE' });
-          loadSessions();
-        });
-      });
-    }
-
-    function escapeHtml(s) {
-      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
-      });
-    }
-
-    document.getElementById('bookingFilter').addEventListener('click', function (e) {
-      var btn = e.target.closest('[data-filter]');
-      if (!btn) return;
-      this.querySelectorAll('[data-filter]').forEach(function (b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      loadBookings(btn.getAttribute('data-filter'));
-    });
-
     document.getElementById('profileForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       var fd = new FormData(this);
       var body = {};
-      ['name','phone','address_line','postal_code','city'].forEach(function (k) {
+      ['name', 'phone', 'address_line', 'postal_code', 'city'].forEach(function (k) {
         body[k] = (fd.get(k) || '').toString().trim() || null;
       });
-      if (!body.name) { NailedForms.toast('Navn er påkrevd', { type: 'error' }); return; }
+      if (!body.name) {
+        NailedForms.toast('Navn er påkrevd', { type: 'error' });
+        return;
+      }
       var res = await NailedAuth.api('/api/v1/me', { method: 'PATCH', body: body });
       if (res.ok) NailedForms.toast('Profil lagret');
       else NailedForms.toast('Kunne ikke lagre', { type: 'error' });
     });
 
+    // ---------------------------------------------------------------------
+    // Notifications — submit toggles
+    // ---------------------------------------------------------------------
     document.getElementById('notifyForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       var body = {
@@ -465,10 +1020,74 @@
       else NailedForms.toast('Kunne ikke lagre', { type: 'error' });
     });
 
+    // ---------------------------------------------------------------------
+    // Sessions — list with revoke
+    // ---------------------------------------------------------------------
+    async function loadSessions() {
+      var res = await NailedAuth.api('/api/v1/me/sessions');
+      var data = await res.json();
+      var list = document.getElementById('sessionsList');
+      list.innerHTML = '';
+      var sessions = data.sessions || [];
+      if (sessions.length === 0) {
+        list.innerHTML =
+          '<div style="padding: 16px; text-align: center; color: var(--fg-muted); font-size: 14px;">' +
+          'Ingen aktive sesjoner.</div>';
+        return;
+      }
+      sessions.forEach(function (s) {
+        var row = document.createElement('div');
+        row.className = 'kp-session';
+        row.innerHTML =
+          '<div class="kp-row__main">' +
+            '<div class="kp-session__device">' + escapeHtml((s.user_agent || 'Ukjent enhet').slice(0, 80)) + '</div>' +
+            '<div class="kp-session__meta">' +
+              escapeHtml(s.ip || '—') + ' · Sist brukt ' +
+              escapeHtml(new Date(s.last_used_at).toLocaleString('no-NO')) +
+            '</div>' +
+          '</div>' +
+          '<div class="kp-row__actions">' +
+            '<button class="btn btn-ghost btn-sm" data-revoke="' + s.id + '">Avslutt</button>' +
+          '</div>';
+        list.appendChild(row);
+      });
+      list.querySelectorAll('button[data-revoke]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          var id = this.getAttribute('data-revoke');
+          var res = await NailedAuth.api('/api/v1/me/sessions/' + id, { method: 'DELETE' });
+          if (res && res.ok) {
+            loadSessions();
+            NailedForms.toast('Sesjon avsluttet');
+          } else {
+            NailedForms.toast('Kunne ikke avslutte sesjonen', { type: 'error' });
+          }
+        });
+      });
+    }
+
+    // ---------------------------------------------------------------------
+    // Bookings filter (kommende / tidligere)
+    // ---------------------------------------------------------------------
+    document.getElementById('bookingFilter').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-filter]');
+      if (!btn) return;
+      this.querySelectorAll('[data-filter]').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      loadBookings(btn.getAttribute('data-filter'));
+    });
+
+    // ---------------------------------------------------------------------
+    // GDPR export
+    // ---------------------------------------------------------------------
     document.getElementById('exportBtn').addEventListener('click', async function () {
       var token = NailedAuth.getAccess();
-      var res = await fetch('/api/v1/me/export', { headers: { Authorization: 'Bearer ' + token } });
-      if (!res.ok) { NailedForms.toast('Kunne ikke eksportere', { type: 'error' }); return; }
+      var res = await fetch('/api/v1/me/export', {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (!res.ok) {
+        NailedForms.toast('Kunne ikke eksportere', { type: 'error' });
+        return;
+      }
       var blob = await res.blob();
       var url = URL.createObjectURL(blob);
       var disposition = res.headers.get('Content-Disposition') || '';
@@ -483,6 +1102,9 @@
       NailedForms.toast('Eksport lastet ned');
     });
 
+    // ---------------------------------------------------------------------
+    // Logout + account delete
+    // ---------------------------------------------------------------------
     document.getElementById('logoutBtn').addEventListener('click', async function () {
       await NailedAuth.logout();
       window.location.replace('/');
@@ -500,16 +1122,23 @@
       }
     });
 
+    // ---------------------------------------------------------------------
+    // Boot
+    // ---------------------------------------------------------------------
     (async function init() {
       // Any logged-in account can use this page — it's the personal profile,
       // sessions, favorites, GDPR export, account-delete. Salon owners use it
       // too because their salon panel doesn't replicate these.
       var user = await NailedAuth.requireAuth();
       if (!user) return;
-      document.getElementById('userName').textContent = user.name;
-      document.getElementById('userEmail').textContent = user.email;
+      document.getElementById('userName').textContent = user.name || 'Bruker';
+      document.getElementById('userEmail').textContent = user.email || '';
       document.getElementById('avatar').textContent = (user.name || '?').charAt(0).toUpperCase();
-      document.getElementById('greetingName').textContent = (user.name || '').split(' ')[0] + '!';
+      document.getElementById('greetingName').textContent = ((user.name || '').split(' ')[0] || 'der') + '!';
+
+      // Apply the initial tab from the URL hash (e.g. /kunde-panel.html#tab-innstillinger).
+      setActiveTab(tabFromHash());
+
       loadDashboard();
       loadBookings('upcoming');
       loadFavorites();

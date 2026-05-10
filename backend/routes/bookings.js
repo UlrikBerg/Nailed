@@ -99,6 +99,59 @@ router.post('/', asyncRoute(async (req, res) => {
     throw new HttpError(409, 'salon_closed', 'Salongen er stengt denne dagen.');
   }
 
+  // Opening-hours enforcement (per ISO weekday). The DB stores wall-clock
+  // times in Europe/Oslo, and weekday is ISO (1=Mon..7=Sun). The incoming
+  // start_at is an absolute UTC instant, so we convert it to the Oslo
+  // wall-clock fields (weekday + HH:MM) using Intl.DateTimeFormat with
+  // timeZone: 'Europe/Oslo'. That correctly handles CET/CEST transitions
+  // and avoids the around-midnight DST mismatch between UTC and Oslo days.
+  const osloParts = (() => {
+    const fmt = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Oslo',
+      weekday: 'short',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit',
+      hour12: false,
+    });
+    const parts = {};
+    fmt.formatToParts(startAt).forEach(p => { parts[p.type] = p.value; });
+    const wdMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
+    return {
+      weekday: wdMap[parts.weekday] || 0,
+      hh: parts.hour === '24' ? 0 : parseInt(parts.hour, 10),
+      mm: parseInt(parts.minute, 10),
+    };
+  })();
+  const startMinutes = osloParts.hh * 60 + osloParts.mm;
+  const endMinutes = startMinutes + service.duration_min;
+
+  const hoursRow = await queryOne(
+    `SELECT is_closed, open_at, close_at
+       FROM salon_hours WHERE salon_id = ? AND weekday = ?`,
+    [data.salon_id, osloParts.weekday]
+  );
+  // Only enforce when a row exists for this weekday. Missing rows mean the
+  // salon has no opening-hours configured — fall back to "no per-weekday
+  // restriction" so legacy salons aren't accidentally locked out.
+  if (hoursRow) {
+    if (hoursRow.is_closed) {
+      throw new HttpError(409, 'salon_closed_weekday', 'Salongen er stengt denne dagen.');
+    }
+    // open_at/close_at come back as 'HH:MM:SS' strings.
+    const toMin = (t) => {
+      if (!t) return null;
+      const m = String(t).match(/^(\d{2}):(\d{2})/);
+      return m ? (parseInt(m[1], 10) * 60 + parseInt(m[2], 10)) : null;
+    };
+    const openMin = toMin(hoursRow.open_at);
+    const closeMin = toMin(hoursRow.close_at);
+    if (openMin != null && closeMin != null) {
+      if (startMinutes < openMin || endMinutes > closeMin) {
+        throw new HttpError(409, 'outside_hours', 'Tidspunktet er utenfor salongens åpningstider.');
+      }
+    }
+  }
+
   // Booking-rule enforcement: lead time and window. Server-side is the source
   // of truth — the public salon page also hides invalid slots, but we still
   // re-validate here to defeat hand-crafted requests.
