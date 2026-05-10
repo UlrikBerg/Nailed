@@ -711,8 +711,20 @@
         if (currentResults.length) setActive((activeIdx - 1 + currentResults.length) % currentResults.length);
       } else if (e.key === 'Enter') {
         if (isOpen && currentResults.length && activeIdx >= 0) {
-          e.preventDefault();
-          pick(currentResults[activeIdx]);
+          if (opts.permissive) {
+            // Permissive mode: fill the value but let Enter submit the form.
+            // Only intercept if the highlighted suggestion isn't already the
+            // typed text (so the user can press Enter to commit AND submit).
+            var picked = currentResults[activeIdx];
+            if (normalize(input.value) !== normalize(picked.name)) {
+              input.value = picked.name;
+              lastValid = picked.name;
+            }
+            close();
+          } else {
+            e.preventDefault();
+            pick(currentResults[activeIdx]);
+          }
         }
       } else if (e.key === 'Escape') {
         if (isOpen) { e.preventDefault(); close(); }
@@ -736,7 +748,6 @@
     input.addEventListener('blur', function () {
       // Defer so click on dropdown lands first.
       setTimeout(function () {
-        // If the user typed a value that doesn't match a known place, restore.
         var typed = input.value.trim();
         if (!typed) {
           // Empty is okay; clear last-valid only if required allows.
@@ -744,7 +755,15 @@
           return;
         }
         if (!findExact(typed)) {
-          input.value = lastValid || '';
+          // Permissive mode (used on the homepage hero search): keep the
+          // typed value as-is and treat it as the new "lastValid". Strict
+          // mode (default, used on /salong-panel and /bli-salong): restore
+          // to lastValid since free text isn't a savable city.
+          if (opts.permissive) {
+            lastValid = typed;
+          } else {
+            input.value = lastValid || '';
+          }
         } else {
           // Canonicalize casing.
           var match = findExact(typed);

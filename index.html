@@ -254,9 +254,27 @@
   <script src="favorites.js"></script>
   <script defer src="/assets/cookie-banner.js"></script>
   <script defer src="/assets/nav.js"></script>
+  <script src="/assets/no-places.js"></script>
+  <script src="/assets/treatments.js"></script>
   <script>
     lucide.createIcons();
     initFavorites();
+
+    // Hero search typeaheads — wire BOTH inputs. Both run in "permissive"
+    // mode: the homepage search is a browsing entry-point, not a strict
+    // picker, so we accept free text and pass it through to /utforsk.html
+    // as-is. (The same NailedPlaces helper is used in strict mode on
+    // /salong-panel and /bli-salong, where free text must be rejected.)
+    (function () {
+      var cityInput = document.getElementById('heroSearchCity');
+      if (cityInput && window.NailedPlaces) {
+        window.NailedPlaces.attachTypeahead(cityInput, { permissive: true });
+      }
+      var qInput = document.getElementById('heroSearchQ');
+      if (qInput && window.NailedTreatments) {
+        window.NailedTreatments.attachTypeahead(qInput);
+      }
+    })();
 
     // Hero search → /utforsk.html?q=...&city=...
     // Using a form submit handler so we can drop empty params from the URL
