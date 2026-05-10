@@ -79,6 +79,29 @@
       margin-top: 4px;
     }
 
+    /* Ad-hoc "Valgt behandling" card — rendered at the bottom of the popular
+       list when the user picks a non-popular service. Visually offset with a
+       divider line and a small label so it reads as separate. */
+    .service-list__adhoc {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--stone-200);
+    }
+    .service-list__adhoc-label {
+      font-family: var(--font-body);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--fg-muted);
+      margin-bottom: 6px;
+    }
+    .service-list__item--adhoc {
+      background: var(--cream-100);
+    }
+    .service-list__item--adhoc.active {
+      background: var(--rouge-50);
+    }
+
     /* Right column stacks the booking panel, hours card, and team card.
        Sticky AND constrained to viewport height so when the stack is taller
        than the viewport, you can scroll the inside independently from the
@@ -441,36 +464,71 @@
       updateCta();
     }
 
+    function clearAdhocCard() {
+      var prev = serviceList.querySelector('.service-list__adhoc');
+      if (prev) prev.remove();
+    }
+
     function ensureServiceInPanel(svc) {
-      if (!svc) return;
+      if (!svc) {
+        // No selection: drop any ad-hoc card and clear active state.
+        clearAdhocCard();
+        serviceList.querySelectorAll('.service-list__item').forEach(function (i) {
+          i.classList.remove('active');
+        });
+        return;
+      }
       // De-activate all rows; we'll mark the selected one below.
       serviceList.querySelectorAll('.service-list__item').forEach(function (i) {
         i.classList.remove('active');
       });
-      var existing = serviceList.querySelector('.service-list__item[data-id="' + svc.id + '"]');
+      var existing = serviceList.querySelector('.service-list__item[data-id="' + svc.id + '"]:not([data-adhoc])');
       if (existing) {
+        // Selecting a popular service: drop the ad-hoc card if any.
+        clearAdhocCard();
         existing.classList.add('active');
         return;
       }
-      // Drop any previously prepended ad-hoc card before adding a new one.
-      var prev = serviceList.querySelector('.service-list__item[data-adhoc]');
-      if (prev) prev.remove();
-      // Build a card for this non-popular service and prepend it.
+      // Non-popular service: rebuild the ad-hoc card at the BOTTOM. Wrap in
+      // a labelled section so it visually stands apart from the popular list.
+      clearAdhocCard();
       var name = escapeHtml(svc.name || '');
       var dur = (svc.duration_min != null) ? escapeHtml(String(svc.duration_min)) + ' min' : '';
       var price = (svc.price_nok != null) ? svc.price_nok : '';
-      var html = '<div class="service-list__item active" data-id="' + svc.id + '" data-name="' + name + '" data-price="' + escapeHtml(String(price)) + '" data-adhoc>' +
-                  '<div><div class="service-list__name">' + name + '</div><div class="service-list__meta">' + dur + '</div></div>' +
-                  '<div class="service-list__price">' + escapeHtml(String(price)) + ' kr</div>' +
+      var html = '<div class="service-list__adhoc">' +
+                  '<div class="service-list__adhoc-label">Valgt behandling</div>' +
+                  '<div class="service-list__item service-list__item--adhoc active" data-id="' + svc.id + '" data-name="' + name + '" data-price="' + escapeHtml(String(price)) + '" data-adhoc>' +
+                    '<div><div class="service-list__name">' + name + '</div><div class="service-list__meta">' + dur + '</div></div>' +
+                    '<div class="service-list__price">' + escapeHtml(String(price)) + ' kr</div>' +
+                  '</div>' +
                  '</div>';
-      serviceList.insertAdjacentHTML('afterbegin', html);
+      serviceList.insertAdjacentHTML('beforeend', html);
+    }
+
+    // Toggle: re-clicking the same service deselects it; otherwise switch.
+    function toggleService(svc) {
+      if (!svc) return;
+      if (selectedService && selectedService.id === svc.id) {
+        deselectService();
+      } else {
+        selectService(svc);
+      }
+    }
+
+    function deselectService() {
+      selectedService = null;
+      document.querySelectorAll('.all-services__item.active').forEach(function (i) {
+        i.classList.remove('active');
+      });
+      ensureServiceInPanel(null);
+      updateCta();
     }
 
     serviceList.addEventListener('click', function(e) {
       var item = e.target.closest('.service-list__item');
       if (!item) return;
       var svc = renderedServices.find(function(s) { return String(s.id) === item.dataset.id; });
-      if (svc) selectService(svc);
+      if (svc) toggleService(svc);
     });
 
     // ---- Day picker — sliding carousel of 30 days, 5 per page ----
@@ -1010,7 +1068,7 @@
         document.querySelectorAll('.all-services__item').forEach(function(item) {
           item.addEventListener('click', function() {
             var svc = renderedServices.find(function(s) { return String(s.id) === item.dataset.id; });
-            if (svc) selectService(svc);
+            if (svc) toggleService(svc);
           });
         });
 
