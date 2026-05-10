@@ -418,6 +418,12 @@ CREATE TABLE IF NOT EXISTS salon_closures (
   CONSTRAINT fk_closure_salon FOREIGN KEY (salon_id) REFERENCES salons(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Reviews: owner reply (added after the table was created). Both columns are
+-- nullable; populated only when the salon owner replies to a review.
+ALTER TABLE reviews
+  ADD COLUMN IF NOT EXISTS owner_reply    TEXT DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS owner_reply_at DATETIME DEFAULT NULL;
+
 -- Add the FK on services.category_id only once. INFORMATION_SCHEMA check keeps
 -- this idempotent (MySQL has no ADD CONSTRAINT IF NOT EXISTS).
 SET @fk_exists := (

@@ -105,6 +105,11 @@
 
       <div class="confirm__actions">
         <a href="kunde-panel.html" class="btn btn-ghost">Til mine bookinger</a>
+        <!-- Hidden until the booking id + token are confirmed in init(); the
+             route is auth-gated so a plain href download would never authenticate. -->
+        <button id="icsBtn" class="btn btn-ghost" type="button" style="display:none;">
+          <i data-lucide="calendar-plus"></i> Legg til i kalender
+        </button>
         <a href="utforsk.html" class="btn btn-primary">Utforsk flere salonger</a>
       </div>
     </div>
@@ -248,6 +253,41 @@
       document.getElementById('confLocAddr').textContent = addrParts.join(', ');
       var q = encodeURIComponent(addrParts.join(', ') || booking.salon_name || '');
       document.getElementById('confMapsLink').href = 'https://maps.google.com/?q=' + q;
+
+      // .ics download — the route is auth-gated, so we fetch with the Bearer
+      // token and trigger a Blob-URL download client-side. The button stays
+      // hidden when there's no bookingId or no token (logged-out path is
+      // already redirected before we reach this point, but guard anyway).
+      var icsBtn = document.getElementById('icsBtn');
+      if (icsBtn && bookingId && NailedAuth.getAccess && NailedAuth.getAccess()) {
+        icsBtn.style.display = '';
+        icsBtn.addEventListener('click', async function () {
+          var token = NailedAuth.getAccess();
+          if (!token) return;
+          var prevHtml = icsBtn.innerHTML;
+          icsBtn.disabled = true;
+          icsBtn.textContent = 'Henter …';
+          try {
+            var r = await fetch('/api/v1/bookings/' + encodeURIComponent(bookingId) + '/ics', {
+              headers: { Authorization: 'Bearer ' + token },
+            });
+            if (!r.ok) throw new Error('ics fetch failed');
+            var blob = await r.blob();
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'nailed-booking-' + bookingId + '.ics';
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+          } catch (_) {
+            // No NailedForms here — fail silently and restore the button.
+          } finally {
+            icsBtn.disabled = false;
+            icsBtn.innerHTML = prevHtml;
+            lucide.createIcons();
+          }
+        });
+      }
 
       lucide.createIcons();
     })();

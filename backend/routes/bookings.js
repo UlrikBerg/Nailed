@@ -3,8 +3,152 @@ const { z } = require('zod');
 const { query, queryOne, tx } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { asyncRoute, HttpError } = require('../lib/util');
+const config = require('../config');
 
 const router = express.Router();
+
+// Audit-log helper — fire-and-forget; never block the response on failure.
+// (Same shape as the helper in routes/admin.js, duplicated locally so that file
+// doesn't have to export it.)
+async function audit(actorId, action, entityType, entityId, meta) {
+  try {
+    await query(
+      `INSERT INTO audit_log (actor_user_id, action, entity_type, entity_id, meta_json)
+       VALUES (?, ?, ?, ?, ?)`,
+      [actorId, action, entityType, entityId, meta ? JSON.stringify(meta) : null]
+    );
+  } catch (err) {
+    console.error('[audit] failed', err);
+  }
+}
+
+// validateSlot — shared booking-time validation for create + reschedule.
+//
+// Throws HttpError on any rule violation; otherwise returns { endAt } where
+// endAt is the computed end timestamp (Date) for the slot.
+//
+// The salon/service args must already have been loaded by the caller; this
+// function does not re-fetch them. The optional `excludeBookingId` lets the
+// reschedule endpoint avoid colliding with the booking row being moved.
+async function validateSlot({ salon, service, startAt, excludeBookingId, conn }) {
+  if (Number.isNaN(startAt.getTime())) {
+    throw new HttpError(400, 'bad_start_at', 'Ugyldig start-tidspunkt.');
+  }
+  if (startAt.getTime() < Date.now()) {
+    throw new HttpError(400, 'past_start', 'Start må være i framtiden.');
+  }
+
+  // Closure check — reject if the start date is on a closed day.
+  const startDateStr = (() => {
+    const y = startAt.getFullYear();
+    const m = String(startAt.getMonth() + 1).padStart(2, '0');
+    const d = String(startAt.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  })();
+  const closure = await queryOne(
+    `SELECT id FROM salon_closures WHERE salon_id = ? AND closed_date = ?`,
+    [salon.id, startDateStr]
+  );
+  if (closure) {
+    throw new HttpError(409, 'salon_closed', 'Salongen er stengt denne dagen.');
+  }
+
+  // Per-weekday opening-hours enforcement; see POST /bookings for full context.
+  const osloParts = (() => {
+    const fmt = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Oslo',
+      weekday: 'short',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit',
+      hour12: false,
+    });
+    const parts = {};
+    fmt.formatToParts(startAt).forEach(p => { parts[p.type] = p.value; });
+    const wdMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
+    return {
+      weekday: wdMap[parts.weekday] || 0,
+      hh: parts.hour === '24' ? 0 : parseInt(parts.hour, 10),
+      mm: parseInt(parts.minute, 10),
+    };
+  })();
+  const startMinutes = osloParts.hh * 60 + osloParts.mm;
+  const endMinutes = startMinutes + service.duration_min;
+
+  const hoursRow = await queryOne(
+    `SELECT is_closed, open_at, close_at
+       FROM salon_hours WHERE salon_id = ? AND weekday = ?`,
+    [salon.id, osloParts.weekday]
+  );
+  if (hoursRow) {
+    if (hoursRow.is_closed) {
+      throw new HttpError(409, 'salon_closed_weekday', 'Salongen er stengt denne dagen.');
+    }
+    const toMin = (t) => {
+      if (!t) return null;
+      const m = String(t).match(/^(\d{2}):(\d{2})/);
+      return m ? (parseInt(m[1], 10) * 60 + parseInt(m[2], 10)) : null;
+    };
+    const openMin = toMin(hoursRow.open_at);
+    const closeMin = toMin(hoursRow.close_at);
+    if (openMin != null && closeMin != null) {
+      if (startMinutes < openMin || endMinutes > closeMin) {
+        throw new HttpError(409, 'outside_hours', 'Tidspunktet er utenfor salongens åpningstider.');
+      }
+    }
+  }
+
+  // Lead time + booking window.
+  const nowMs = Date.now();
+  const startMs = startAt.getTime();
+  const minLeadHours = Number(salon.min_booking_lead_hours) || 0;
+  const windowDays = Number(salon.booking_window_days) || 30;
+  const bufferMin = Number(salon.booking_buffer_min) || 0;
+  if ((startMs - nowMs) < minLeadHours * 3_600_000) {
+    throw new HttpError(409, 'booking_too_soon',
+      `Du må bestille minst ${minLeadHours} timer før timen.`);
+  }
+  if ((startMs - nowMs) > windowDays * 86_400_000) {
+    throw new HttpError(409, 'booking_too_far',
+      `Du kan bare bestille opptil ${windowDays} dager fram i tid.`);
+  }
+
+  const endAt = new Date(startAt.getTime() + service.duration_min * 60_000);
+
+  // Lunch break overlap.
+  if (salon.lunch_break_start && salon.lunch_break_end) {
+    const ls = String(salon.lunch_break_start).slice(0, 8).split(':');
+    const le = String(salon.lunch_break_end).slice(0, 8).split(':');
+    const lunchStart = new Date(startAt); lunchStart.setHours(+ls[0], +ls[1], +(ls[2] || 0), 0);
+    const lunchEnd = new Date(startAt);   lunchEnd.setHours(+le[0], +le[1], +(le[2] || 0), 0);
+    if (startAt < lunchEnd && endAt > lunchStart) {
+      throw new HttpError(409, 'lunch_break', 'Tidspunktet kolliderer med salongens lunsjpause.');
+    }
+  }
+
+  // Overlap check — must be performed under the same transaction/lock as the
+  // INSERT/UPDATE that follows. The caller passes its `conn` so the SELECT ...
+  // FOR UPDATE locks the same rows that the write touches.
+  const overlapStart = new Date(startAt.getTime() - bufferMin * 60_000);
+  const overlapEnd = new Date(endAt.getTime() + bufferMin * 60_000);
+
+  const sql = `SELECT id FROM bookings
+    WHERE salon_id = ?
+      AND status IN ('pending','confirmed')
+      AND start_at < ?
+      AND end_at   > ?
+      ${excludeBookingId ? 'AND id <> ?' : ''}
+    LIMIT 1
+    FOR UPDATE`;
+  const params = excludeBookingId
+    ? [salon.id, overlapEnd, overlapStart, excludeBookingId]
+    : [salon.id, overlapEnd, overlapStart];
+  const [overlap] = await conn.execute(sql, params);
+  if (overlap.length > 0) {
+    throw new HttpError(409, 'slot_taken', 'Tidspunktet er allerede tatt. Velg et annet.');
+  }
+
+  return { endAt };
+}
 
 router.use(requireAuth);
 
@@ -19,16 +163,21 @@ router.get('/mine', asyncRoute(async (req, res) => {
   const rows = await query(
     `SELECT b.id, b.start_at, b.end_at, b.status, b.price_nok,
             s.id AS salon_id, s.slug AS salon_slug, s.name AS salon_name, s.city AS salon_city,
-            sv.name AS service_name
+            sv.name AS service_name,
+            (r.id IS NOT NULL) AS has_review
        FROM bookings b
        JOIN salons s ON s.id = b.salon_id
        JOIN services sv ON sv.id = b.service_id
+       LEFT JOIN reviews r ON r.booking_id = b.id AND r.hidden_at IS NULL
       WHERE ${where}
       ORDER BY b.start_at ${filter === 'past' ? 'DESC' : 'ASC'}
       LIMIT 200`,
     params
   );
-  res.json({ bookings: rows });
+  // Cast TINYINT-style boolean → real boolean so the client can do `b.has_review`.
+  res.json({
+    bookings: rows.map(r => ({ ...r, has_review: !!r.has_review })),
+  });
 }));
 
 // GET /bookings/incoming — bookings at salons I own
@@ -81,134 +230,16 @@ router.post('/', asyncRoute(async (req, res) => {
   }
 
   const startAt = new Date(data.start_at);
-  if (Number.isNaN(startAt.getTime())) throw new HttpError(400, 'bad_start_at', 'Ugyldig start-tidspunkt.');
-  if (startAt.getTime() < Date.now()) throw new HttpError(400, 'past_start', 'Start må være i framtiden.');
 
-  // Closure check — reject if the start date is on a closed day.
-  const startDateStr = (() => {
-    const y = startAt.getFullYear();
-    const m = String(startAt.getMonth() + 1).padStart(2, '0');
-    const d = String(startAt.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  })();
-  const closure = await queryOne(
-    `SELECT id FROM salon_closures WHERE salon_id = ? AND closed_date = ?`,
-    [data.salon_id, startDateStr]
-  );
-  if (closure) {
-    throw new HttpError(409, 'salon_closed', 'Salongen er stengt denne dagen.');
-  }
-
-  // Opening-hours enforcement (per ISO weekday). The DB stores wall-clock
-  // times in Europe/Oslo, and weekday is ISO (1=Mon..7=Sun). The incoming
-  // start_at is an absolute UTC instant, so we convert it to the Oslo
-  // wall-clock fields (weekday + HH:MM) using Intl.DateTimeFormat with
-  // timeZone: 'Europe/Oslo'. That correctly handles CET/CEST transitions
-  // and avoids the around-midnight DST mismatch between UTC and Oslo days.
-  const osloParts = (() => {
-    const fmt = new Intl.DateTimeFormat('en-GB', {
-      timeZone: 'Europe/Oslo',
-      weekday: 'short',
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit',
-      hour12: false,
-    });
-    const parts = {};
-    fmt.formatToParts(startAt).forEach(p => { parts[p.type] = p.value; });
-    const wdMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
-    return {
-      weekday: wdMap[parts.weekday] || 0,
-      hh: parts.hour === '24' ? 0 : parseInt(parts.hour, 10),
-      mm: parseInt(parts.minute, 10),
-    };
-  })();
-  const startMinutes = osloParts.hh * 60 + osloParts.mm;
-  const endMinutes = startMinutes + service.duration_min;
-
-  const hoursRow = await queryOne(
-    `SELECT is_closed, open_at, close_at
-       FROM salon_hours WHERE salon_id = ? AND weekday = ?`,
-    [data.salon_id, osloParts.weekday]
-  );
-  // Only enforce when a row exists for this weekday. Missing rows mean the
-  // salon has no opening-hours configured — fall back to "no per-weekday
-  // restriction" so legacy salons aren't accidentally locked out.
-  if (hoursRow) {
-    if (hoursRow.is_closed) {
-      throw new HttpError(409, 'salon_closed_weekday', 'Salongen er stengt denne dagen.');
-    }
-    // open_at/close_at come back as 'HH:MM:SS' strings.
-    const toMin = (t) => {
-      if (!t) return null;
-      const m = String(t).match(/^(\d{2}):(\d{2})/);
-      return m ? (parseInt(m[1], 10) * 60 + parseInt(m[2], 10)) : null;
-    };
-    const openMin = toMin(hoursRow.open_at);
-    const closeMin = toMin(hoursRow.close_at);
-    if (openMin != null && closeMin != null) {
-      if (startMinutes < openMin || endMinutes > closeMin) {
-        throw new HttpError(409, 'outside_hours', 'Tidspunktet er utenfor salongens åpningstider.');
-      }
-    }
-  }
-
-  // Booking-rule enforcement: lead time and window. Server-side is the source
-  // of truth — the public salon page also hides invalid slots, but we still
-  // re-validate here to defeat hand-crafted requests.
-  const nowMs = Date.now();
-  const startMs = startAt.getTime();
-  const minLeadHours = Number(salon.min_booking_lead_hours) || 0;
-  const windowDays = Number(salon.booking_window_days) || 30;
-  const bufferMin = Number(salon.booking_buffer_min) || 0;
-  if ((startMs - nowMs) < minLeadHours * 3_600_000) {
-    throw new HttpError(409, 'booking_too_soon',
-      `Du må bestille minst ${minLeadHours} timer før timen.`);
-  }
-  if ((startMs - nowMs) > windowDays * 86_400_000) {
-    throw new HttpError(409, 'booking_too_far',
-      `Du kan bare bestille opptil ${windowDays} dager fram i tid.`);
-  }
-
-  const endAt = new Date(startAt.getTime() + service.duration_min * 60_000);
-
-  // Lunch break — synthesize the day's lunch window and reject any booking
-  // that overlaps it. Times are stored as TIME (HH:MM:SS) so we anchor them
-  // to the start_at date in the same local timezone the rest of the booking
-  // math uses.
-  if (salon.lunch_break_start && salon.lunch_break_end) {
-    const ls = String(salon.lunch_break_start).slice(0, 8).split(':');
-    const le = String(salon.lunch_break_end).slice(0, 8).split(':');
-    const lunchStart = new Date(startAt); lunchStart.setHours(+ls[0], +ls[1], +(ls[2] || 0), 0);
-    const lunchEnd = new Date(startAt);   lunchEnd.setHours(+le[0], +le[1], +(le[2] || 0), 0);
-    if (startAt < lunchEnd && endAt > lunchStart) {
-      throw new HttpError(409, 'lunch_break', 'Tidspunktet kolliderer med salongens lunsjpause.');
-    }
-  }
-
-  // Buffer expands the overlap window on both ends. With a 15 min buffer, two
-  // 60-min bookings starting 60 min apart now collide (15 min overlap on each
-  // side). Using the buffer-padded window in the SELECT keeps the FOR UPDATE
-  // lock honest.
-  const overlapStart = new Date(startAt.getTime() - bufferMin * 60_000);
-  const overlapEnd = new Date(endAt.getTime() + bufferMin * 60_000);
-
-  // Reject overlap with any other live booking at the same salon.
-  // Treats one-stylist salons as the realistic default; multi-stylist scheduling
-  // would need to scope this check by team_member instead of salon.
+  // Run all rule checks + overlap inside a transaction so the SELECT FOR UPDATE
+  // inside validateSlot locks the same rows that the INSERT will touch.
   const insertedId = await tx(async (conn) => {
-    const [overlap] = await conn.execute(
-      `SELECT id FROM bookings
-        WHERE salon_id = ?
-          AND status IN ('pending','confirmed')
-          AND start_at < ?
-          AND end_at   > ?
-        LIMIT 1
-        FOR UPDATE`,
-      [data.salon_id, overlapEnd, overlapStart]
-    );
-    if (overlap.length > 0) {
-      throw new HttpError(409, 'slot_taken', 'Tidspunktet er allerede tatt. Velg et annet.');
-    }
+    const { endAt } = await validateSlot({
+      salon: { ...salon, id: data.salon_id },
+      service,
+      startAt,
+      conn,
+    });
     const [insertResult] = await conn.execute(
       `INSERT INTO bookings
          (customer_user_id, salon_id, service_id, start_at, end_at, price_nok, status, customer_note)
@@ -333,6 +364,191 @@ router.patch('/:id', asyncRoute(async (req, res) => {
     throw new HttpError(409, 'conflict', 'Booking ble endret av en annen prosess. Last på nytt.');
   }
   res.json({ ok: true });
+}));
+
+// GET /bookings/:id/ics — calendar export (RFC 5545 VEVENT).
+//
+// Same access rules as GET /bookings/:id: customer, owner, or admin. The route
+// is auth-gated, so clients have to fetch with a Bearer token and trigger a
+// Blob download client-side (see confirmation.html + kunde-panel.html).
+router.get('/:id/ics', asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const booking = await queryOne(
+    `SELECT b.id, b.start_at, b.end_at, b.status, b.customer_user_id,
+            s.id AS salon_id, s.name AS salon_name, s.address_line, s.postal_code,
+            s.city AS salon_city, s.owner_user_id,
+            s.booking_confirmation_text AS confirmation_message,
+            sv.name AS service_name,
+            owner.email AS owner_email
+       FROM bookings b
+       JOIN salons s ON s.id = b.salon_id
+       JOIN services sv ON sv.id = b.service_id
+       JOIN users owner ON owner.id = s.owner_user_id
+      WHERE b.id = ?`,
+    [id]
+  );
+  if (!booking) throw new HttpError(404, 'not_found', 'Booking finnes ikke.');
+  const isCustomer = booking.customer_user_id === req.user.id;
+  const isOwner = booking.owner_user_id === req.user.id;
+  const isAdmin = req.user.role === 'admin';
+  if (!isCustomer && !isOwner && !isAdmin) {
+    throw new HttpError(403, 'forbidden', 'Du har ikke tilgang til denne bookingen.');
+  }
+
+  // RFC 5545 UTC timestamp: YYYYMMDDTHHMMSSZ.
+  function toIcsUtc(d) {
+    const dt = d instanceof Date ? d : new Date(d);
+    const pad = n => String(n).padStart(2, '0');
+    return dt.getUTCFullYear()
+      + pad(dt.getUTCMonth() + 1)
+      + pad(dt.getUTCDate())
+      + 'T' + pad(dt.getUTCHours())
+      + pad(dt.getUTCMinutes())
+      + pad(dt.getUTCSeconds()) + 'Z';
+  }
+  // RFC 5545 TEXT escaping: backslash, semicolon, comma, and newline.
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/\\/g, '\\\\')
+      .replace(/;/g, '\\;')
+      .replace(/,/g, '\\,')
+      .replace(/\r?\n/g, '\\n');
+  }
+  // Soft 75-octet line fold per RFC 5545 §3.1. char-length approximation is
+  // fine for the mostly-ASCII Norwegian content this emits.
+  function fold(line) {
+    if (line.length <= 75) return line;
+    const parts = [];
+    let i = 0;
+    while (i < line.length) {
+      parts.push((i === 0 ? '' : ' ') + line.slice(i, i + 75));
+      i += 75;
+    }
+    return parts.join('\r\n');
+  }
+
+  const summary = `${booking.service_name} — ${booking.salon_name}`;
+  const addrLine = [
+    booking.address_line,
+    [booking.postal_code, booking.salon_city].filter(Boolean).join(' '),
+  ].filter(Boolean).join(', ');
+  const link = `${(config.publicBaseUrl || '').replace(/\/$/, '')}/confirmation.html?id=${booking.id}`;
+  const descParts = [link];
+  const msg = (booking.confirmation_message || '').toString().trim();
+  if (msg) descParts.push('', msg);
+  const description = descParts.join('\n');
+  const status = booking.status === 'cancelled' ? 'CANCELLED' : 'CONFIRMED';
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//nailed//Booking//NO',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:booking-${booking.id}@nailed.no`,
+    `DTSTAMP:${toIcsUtc(new Date())}`,
+    `DTSTART:${toIcsUtc(booking.start_at)}`,
+    `DTEND:${toIcsUtc(booking.end_at)}`,
+    `SUMMARY:${esc(summary)}`,
+    `LOCATION:${esc(addrLine || booking.salon_name)}`,
+    `DESCRIPTION:${esc(description)}`,
+    `STATUS:${status}`,
+    `ORGANIZER;CN=${esc(booking.salon_name)}:mailto:${booking.owner_email}`,
+    'TRANSP:OPAQUE',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].map(fold).join('\r\n') + '\r\n';
+
+  res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="nailed-booking-${booking.id}.ics"`);
+  res.send(lines);
+}));
+
+// PATCH /bookings/:id/reschedule — customer or owner moves a booking to a new
+// start time. Reuses validateSlot() (same lead/window/closure/hours/lunch
+// /overlap checks as POST /bookings), excluding the booking's own row from
+// the overlap check.
+router.patch('/:id/reschedule', asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const schema = z.object({
+    start_at: z.string().datetime(),
+  });
+  const { start_at: startAtIso } = schema.parse(req.body);
+
+  const booking = await queryOne(
+    `SELECT b.id, b.customer_user_id, b.salon_id, b.service_id, b.status,
+            b.start_at AS old_start_at, b.end_at AS old_end_at,
+            s.owner_user_id
+       FROM bookings b JOIN salons s ON s.id = b.salon_id
+      WHERE b.id = ?`,
+    [id]
+  );
+  if (!booking) throw new HttpError(404, 'not_found', 'Booking finnes ikke.');
+
+  const isCustomer = booking.customer_user_id === req.user.id;
+  const isOwner = booking.owner_user_id === req.user.id;
+  const isAdmin = req.user.role === 'admin';
+  if (!isCustomer && !isOwner && !isAdmin) {
+    throw new HttpError(403, 'forbidden', 'Du har ikke tilgang til denne bookingen.');
+  }
+  if (booking.status !== 'pending' && booking.status !== 'confirmed') {
+    throw new HttpError(409, 'invalid_state',
+      'Kan bare flytte bookinger som ikke er fullført, kansellert eller no-show.');
+  }
+
+  const service = await queryOne(
+    `SELECT id, salon_id, duration_min, active
+       FROM services WHERE id = ?`,
+    [booking.service_id]
+  );
+  if (!service) throw new HttpError(409, 'service_unavailable', 'Tjenesten er ikke tilgjengelig.');
+
+  const salon = await queryOne(
+    `SELECT id, status, accepts_new_bookings,
+            cancellation_lead_hours, booking_window_days,
+            min_booking_lead_hours, booking_buffer_min,
+            lunch_break_start, lunch_break_end
+       FROM salons WHERE id = ?`,
+    [booking.salon_id]
+  );
+  if (!salon || salon.status !== 'active') {
+    throw new HttpError(409, 'salon_unavailable', 'Salongen er ikke aktiv.');
+  }
+
+  const startAt = new Date(startAtIso);
+  const { endAt } = await tx(async (conn) => {
+    const result = await validateSlot({
+      salon,
+      service,
+      startAt,
+      excludeBookingId: id,
+      conn,
+    });
+    // Conditional UPDATE — only if the booking is still in a reschedulable
+    // state. If something else (cancel, complete) raced us, affectedRows is 0.
+    const [update] = await conn.execute(
+      `UPDATE bookings SET start_at = ?, end_at = ?
+        WHERE id = ? AND status IN ('pending','confirmed')`,
+      [startAt, result.endAt, id]
+    );
+    if (!update.affectedRows) {
+      throw new HttpError(409, 'conflict', 'Booking ble endret av en annen prosess. Last på nytt.');
+    }
+    return { endAt: result.endAt };
+  });
+
+  audit(req.user.id, 'booking.reschedule', 'booking', id, {
+    old_start_at: booking.old_start_at,
+    old_end_at: booking.old_end_at,
+    new_start_at: startAt.toISOString(),
+    new_end_at: endAt.toISOString(),
+    actor_role: isAdmin ? 'admin' : (isOwner ? 'salon' : 'customer'),
+  });
+
+  res.json({ ok: true, start_at: startAt.toISOString(), end_at: endAt.toISOString() });
 }));
 
 module.exports = router;

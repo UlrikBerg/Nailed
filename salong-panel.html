@@ -299,6 +299,126 @@
       vertical-align: middle;
     }
     .nav-item__badge[hidden] { display: none; }
+
+    /* Owner reviews list */
+    .owner-reviews { display: flex; flex-direction: column; }
+    .owner-review {
+      padding: 18px 4px;
+      border-bottom: 1px solid var(--stone-200);
+    }
+    .owner-review:last-child { border-bottom: 0; }
+    .owner-review__head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+    .owner-review__stars { display: inline-flex; gap: 1px; }
+    .owner-review__name { font-weight: 600; color: var(--ink); }
+    .owner-review__dot { color: var(--stone-300); }
+    .owner-review__body {
+      margin: 8px 0 0;
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--ink);
+      white-space: pre-wrap;
+    }
+    .owner-review__reply {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: var(--cream-100);
+      border-radius: var(--radius-md);
+      border-left: 3px solid var(--rouge-500);
+    }
+    .owner-review__reply-head {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--rouge-500);
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .owner-review__reply-body {
+      margin: 0;
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.45;
+      color: var(--ink);
+      white-space: pre-wrap;
+    }
+    .owner-review__actions { margin-top: 10px; display: flex; gap: 8px; }
+    .owner-review__form {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .owner-review__form textarea {
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 10px 12px;
+      border: 1px solid var(--stone-300);
+      border-radius: var(--radius-sm);
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    /* Inline reschedule widget — rendered as a colspan row below the booking. */
+    .sp-resched-form {
+      padding: 16px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .sp-resched-form__title { font-weight: 600; font-size: 15px; margin: 0; }
+    .sp-resched-form__compare { font-size: 13px; color: var(--fg-muted); }
+    .sp-resched-form__compare strong { color: var(--ink); }
+    .sp-resched-days { display: flex; gap: 6px; flex-wrap: wrap; }
+    .sp-resched-day {
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-100);
+      color: var(--ink);
+      cursor: pointer;
+      line-height: 1.15;
+      text-align: center;
+      min-width: 64px;
+    }
+    .sp-resched-day:hover { border-color: var(--stone-400); }
+    .sp-resched-day.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .sp-resched-day[disabled], .sp-resched-day.taken { opacity: .45; cursor: not-allowed; }
+    .sp-resched-day__dow { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    .sp-resched-day__num { display: block; font-weight: 700; font-size: 15px; }
+    .sp-resched-slots {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+      gap: 6px;
+    }
+    .sp-resched-slot {
+      font-size: 13px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-100);
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .sp-resched-slot:hover { border-color: var(--stone-400); }
+    .sp-resched-slot.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .sp-resched-slot[disabled], .sp-resched-slot.taken { opacity: .45; cursor: not-allowed; }
+    .sp-resched-form__empty { font-size: 13px; color: var(--fg-muted); text-align: center; padding: 12px; }
+    .sp-resched-form__actions { display: flex; gap: 8px; justify-content: flex-end; }
   </style>
 </head>
 <body>
@@ -316,6 +436,7 @@
       <button class="nav-item active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
       <button class="nav-item" data-tab="bookinger"><i data-lucide="calendar-check"></i> Bookinger <span class="nav-item__badge" id="bookingsPendingBadge" hidden>0</span></button>
       <button class="nav-item" data-tab="tjenester"><i data-lucide="sparkles"></i> Tjenester</button>
+      <button class="nav-item" data-tab="anmeldelser"><i data-lucide="star"></i> Anmeldelser <span class="nav-item__badge" id="reviewsUnansweredBadge" hidden>0</span></button>
 
       <div class="sidebar__section">Salong</div>
       <button class="nav-item" data-tab="profil"><i data-lucide="store"></i> Salongprofil</button>
@@ -482,6 +603,26 @@
           </table>
           <div id="servicesEmpty" style="display:none; padding: 24px; text-align: center; color: var(--fg-muted);">
             Du har ingen tjenester. Legg til en for å starte.
+          </div>
+        </div>
+      </div>
+
+      <!-- ANMELDELSER -->
+      <div class="tab-content" id="tab-anmeldelser">
+        <div class="topbar">
+          <div>
+            <h1 class="topbar__title">Anmeldelser</h1>
+            <div class="topbar__sub">Hva kundene synes om salongen. Skriv svar for å bygge tillit.</div>
+          </div>
+          <div class="topbar__actions">
+            <div id="reviewsSummary" style="display:flex; align-items:center; gap:10px; font-size:14px; color: var(--fg-muted);"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div id="ownerReviewsList" class="owner-reviews"></div>
+          <div id="ownerReviewsEmpty" style="display:none; padding: 32px; text-align: center; color: var(--fg-muted);">
+            Ingen anmeldelser ennå. Når kunder anmelder bookingene sine, dukker de opp her.
           </div>
         </div>
       </div>
@@ -949,6 +1090,11 @@
         tabContents.forEach(function (t) { t.classList.remove('active'); });
         var target = document.getElementById('tab-' + tab);
         if (target) target.classList.add('active');
+        // Lazy-load the reviews list when the tab is opened. The unanswered
+        // badge in the sidebar is refreshed independently in loadReviewsBadge().
+        if (tab === 'anmeldelser' && typeof loadOwnerReviews === 'function') {
+          loadOwnerReviews();
+        }
       });
     });
 
@@ -1764,13 +1910,17 @@
         var actions = '';
         if (b.status === 'pending') {
           actions += '<button class="btn btn-success btn-sm" data-action="confirmed" data-id="' + b.id + '">Bekreft</button> ';
-          actions += '<button class="btn btn-ghost btn-sm" data-action="cancelled" data-id="' + b.id + '">Avvis</button>';
+          actions += '<button class="btn btn-ghost btn-sm" data-action="cancelled" data-id="' + b.id + '">Avvis</button> ';
+          actions += '<button class="btn btn-ghost btn-sm" data-resched="' + b.id + '">Flytt</button>';
         } else if (b.status === 'confirmed') {
           actions += '<button class="btn btn-success btn-sm" data-action="completed" data-id="' + b.id + '">Marker fullført</button> ';
           actions += '<button class="btn btn-ghost btn-sm" data-action="no_show" data-id="' + b.id + '">No-show</button> ';
+          actions += '<button class="btn btn-ghost btn-sm" data-resched="' + b.id + '">Flytt</button> ';
           actions += '<button class="btn btn-ghost btn-sm" data-action="cancelled" data-id="' + b.id + '">Avbestill</button>';
         }
         var tr = document.createElement('tr');
+        tr.dataset.bookingId = b.id;
+        tr.dataset.startAt = b.start_at;
         tr.innerHTML =
           '<td>' + fmt(b.start_at) + '</td>' +
           '<td><strong>' + escapeHtml(b.customer_name) + '</strong>' +
@@ -1790,6 +1940,402 @@
           var res = await NailedAuth.api('/api/v1/bookings/' + id, { method: 'PATCH', body: { status: status } });
           if (res.ok) loadIncoming(); else alert('Kunne ikke oppdatere booking.');
         });
+      });
+      tbody.querySelectorAll('button[data-resched]').forEach(function (btn) {
+        btn.addEventListener('click', function () { openOwnerRescheduleForm(btn); });
+      });
+      window.lucide && window.lucide.createIcons();
+    }
+
+    // Inline reschedule for the owner's bookings table. Inserts a colspan row
+    // immediately after the booking's tr, containing the day-row + slot grid.
+    // The slot rendering is mirrored from kunde-panel.html — see the comment
+    // there about why we don't share it (one-page-of-overlap isn't worth a
+    // shared module for static HTML pages).
+    function openOwnerRescheduleForm(triggerBtn) {
+      var bookingId = triggerBtn.getAttribute('data-resched');
+      var tr = triggerBtn.closest('tr');
+      if (!tr || !salon) return;
+      // Toggle off if the form row already exists right after.
+      if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('sp-resched-row')) {
+        tr.nextElementSibling.remove();
+        return;
+      }
+      var formTr = document.createElement('tr');
+      formTr.className = 'sp-resched-row';
+      var oldStartAt = tr.dataset.startAt;
+      formTr.innerHTML =
+        '<td colspan="6">' +
+          '<div class="sp-resched-form">' +
+            '<h4 class="sp-resched-form__title">Flytt time</h4>' +
+            '<div class="sp-resched-form__compare">' +
+              'Nåværende: <strong>' + escapeHtml(fmt(oldStartAt)) + '</strong> · ' +
+              'Ny: <strong data-newtime>—</strong>' +
+            '</div>' +
+            '<div data-days class="sp-resched-days"><div class="sp-resched-form__empty">Laster …</div></div>' +
+            '<div data-slots class="sp-resched-slots"></div>' +
+            '<div class="sp-resched-form__actions">' +
+              '<button type="button" class="btn btn-ghost btn-sm" data-cancel-resched>Avbryt</button>' +
+              '<button type="button" class="btn btn-primary btn-sm" data-confirm-resched disabled>Bekreft flytt</button>' +
+            '</div>' +
+          '</div>' +
+        '</td>';
+      tr.parentNode.insertBefore(formTr, tr.nextSibling);
+      formTr.querySelector('[data-cancel-resched]').addEventListener('click', function () { formTr.remove(); });
+      mountOwnerRescheduleWidget({
+        form: formTr.querySelector('.sp-resched-form'),
+        salonSlug: salon.slug,
+        salonId: salon.id,
+        bookingId: bookingId,
+        oldStartAt: oldStartAt,
+        onSuccess: function () { loadIncoming(); },
+      });
+    }
+
+    async function mountOwnerRescheduleWidget(opts) {
+      var form = opts.form;
+      var daysEl = form.querySelector('[data-days]');
+      var slotsEl = form.querySelector('[data-slots]');
+      var newTimeEl = form.querySelector('[data-newtime]');
+      var confirmBtn = form.querySelector('[data-confirm-resched]');
+
+      var [salonRes, availRes, bookingRes] = await Promise.all([
+        fetch('/api/v1/salons/' + encodeURIComponent(opts.salonSlug)),
+        fetch('/api/v1/salons/' + encodeURIComponent(opts.salonId) + '/availability'),
+        NailedAuth.api('/api/v1/bookings/' + encodeURIComponent(opts.bookingId)),
+      ]);
+      if (!salonRes.ok || !bookingRes.ok) {
+        daysEl.innerHTML = '<div class="sp-resched-form__empty">Kunne ikke laste salongdata.</div>';
+        return;
+      }
+      var salonData = await salonRes.json();
+      var availData = availRes.ok ? await availRes.json() : { busy: [] };
+      var bookingData = (await bookingRes.json()).booking || {};
+
+      var s = salonData.salon || {};
+      var services = salonData.services || [];
+      var hours = salonData.hours || [];
+      var closures = salonData.closures || [];
+      var service = services.find(function (x) { return x.id === bookingData.service_id; }) || { duration_min: 60 };
+      var dur = service.duration_min || 60;
+
+      var hoursByDay = {};
+      hours.forEach(function (h) { hoursByDay[h.weekday] = h; });
+      var closedDateSet = new Set(closures.map(function (c) { return c.date; }));
+      var busy = (availData.busy || []).map(function (b) {
+        return { start: new Date(b.start_at).getTime(), end: new Date(b.end_at).getTime() };
+      });
+      var oldStartMs = new Date(opts.oldStartAt).getTime();
+      var oldEndMs = oldStartMs + dur * 60_000;
+      busy = busy.filter(function (b) { return !(b.start === oldStartMs && b.end === oldEndMs); });
+
+      var leadHours = Number(s.min_booking_lead_hours) || 0;
+      var windowDays = Math.max(1, Math.min(30, Number(s.booking_window_days) || 30));
+      var bufferMin = Number(s.booking_buffer_min) || 0;
+
+      function slotIsBusy(slotStartMs) {
+        var slotEnd = slotStartMs + dur * 60_000;
+        var bufMs = bufferMin * 60_000;
+        for (var i = 0; i < busy.length; i++) {
+          if (slotStartMs - bufMs < busy[i].end && slotEnd + bufMs > busy[i].start) return true;
+        }
+        return false;
+      }
+      function isoWeekdayLocal(d) { var w = d.getDay(); return w === 0 ? 7 : w; }
+      function timeStrToMin(t) {
+        if (!t) return null;
+        var m = String(t).match(/^(\d{2}):(\d{2})/);
+        return m ? (parseInt(m[1], 10) * 60 + parseInt(m[2], 10)) : null;
+      }
+
+      var chosenIso = null;
+      function setChosen(iso) {
+        chosenIso = iso;
+        confirmBtn.disabled = !iso;
+        newTimeEl.textContent = iso ? fmt(iso) : '—';
+      }
+      function renderSlots(dateIso) {
+        slotsEl.innerHTML = '';
+        var nowMs = Date.now();
+        var earliestMs = nowMs + leadHours * 3_600_000;
+        var hasAny = false;
+        for (var k in hoursByDay) { if (Object.prototype.hasOwnProperty.call(hoursByDay, k)) { hasAny = true; break; } }
+        var p = dateIso.split('-');
+        var d = new Date(parseInt(p[0],10), parseInt(p[1],10) - 1, parseInt(p[2],10));
+        var wd = isoWeekdayLocal(d);
+        var row = hasAny ? hoursByDay[wd] : null;
+        if (hasAny && row && row.is_closed) {
+          slotsEl.innerHTML = '<div class="sp-resched-form__empty">Stengt denne dagen</div>';
+          setChosen(null);
+          return;
+        }
+        var openMin = 8 * 60, closeMin = 19 * 60;
+        if (hasAny && row && !row.is_closed) {
+          var o = timeStrToMin(row.open_at); var c = timeStrToMin(row.close_at);
+          if (o != null && c != null) { openMin = o; closeMin = c; }
+        }
+        var startGrid = Math.ceil(openMin / 60) * 60;
+        var any = false;
+        for (var m = startGrid; m + dur <= closeMin; m += 60) {
+          var h = Math.floor(m / 60), mm = m % 60;
+          var hh = h < 10 ? '0' + h : '' + h;
+          var mmStr = mm < 10 ? '0' + mm : '' + mm;
+          var dt = new Date(dateIso + 'T' + hh + ':' + mmStr + ':00');
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'sp-resched-slot';
+          btn.textContent = hh + ':' + mmStr;
+          var beforeCutoff = dt.getTime() < earliestMs;
+          var taken = !beforeCutoff && slotIsBusy(dt.getTime());
+          if (beforeCutoff || taken) { btn.classList.add('taken'); btn.disabled = true; }
+          else {
+            btn.dataset.iso = dt.toISOString();
+            btn.addEventListener('click', function () {
+              slotsEl.querySelectorAll('.sp-resched-slot').forEach(function (x) { x.classList.remove('active'); });
+              this.classList.add('active');
+              setChosen(this.dataset.iso);
+            });
+            any = true;
+          }
+          slotsEl.appendChild(btn);
+        }
+        if (!any) slotsEl.innerHTML = '<div class="sp-resched-form__empty">Ingen ledige tider denne dagen.</div>';
+        setChosen(null);
+      }
+
+      daysEl.innerHTML = '';
+      var totalDays = Math.min(14, windowDays);
+      var DOW = ['Søn','Man','Tirs','Ons','Tors','Fre','Lør'];
+      for (var i = 0; i < totalDays; i++) {
+        var dd = new Date(); dd.setHours(0,0,0,0); dd.setDate(dd.getDate() + i);
+        var iso = dd.getFullYear() + '-' + String(dd.getMonth()+1).padStart(2,'0') + '-' + String(dd.getDate()).padStart(2,'0');
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sp-resched-day';
+        btn.dataset.iso = iso;
+        var isClosure = closedDateSet.has(iso);
+        var wd = isoWeekdayLocal(dd);
+        var hRow = hoursByDay[wd];
+        var weekdayClosed = !!(hRow && hRow.is_closed);
+        btn.innerHTML = '<span class="sp-resched-day__dow">' + DOW[dd.getDay()] + '</span>' +
+                        '<span class="sp-resched-day__num">' + dd.getDate() + '</span>';
+        if (isClosure || weekdayClosed) {
+          btn.classList.add('taken');
+          btn.disabled = true;
+          btn.title = 'Stengt';
+        } else {
+          btn.addEventListener('click', function () {
+            daysEl.querySelectorAll('.sp-resched-day').forEach(function (x) { x.classList.remove('active'); });
+            this.classList.add('active');
+            renderSlots(this.dataset.iso);
+          });
+        }
+        daysEl.appendChild(btn);
+      }
+      var firstOpen = daysEl.querySelector('.sp-resched-day:not([disabled])');
+      if (firstOpen) firstOpen.click();
+      else slotsEl.innerHTML = '<div class="sp-resched-form__empty">Ingen åpne dager i bookingvinduet.</div>';
+
+      confirmBtn.addEventListener('click', async function () {
+        if (!chosenIso) return;
+        confirmBtn.disabled = true;
+        var prev = confirmBtn.textContent;
+        confirmBtn.textContent = 'Sender …';
+        var res = await NailedAuth.api('/api/v1/bookings/' + encodeURIComponent(opts.bookingId) + '/reschedule', {
+          method: 'PATCH',
+          body: { start_at: chosenIso },
+        });
+        if (res.ok) {
+          if (window.NailedForms) NailedForms.toast('Booking flyttet');
+          if (typeof opts.onSuccess === 'function') opts.onSuccess();
+        } else {
+          var data = await res.json().catch(function () { return {}; });
+          var msg = (data.error && data.error.message) || 'Kunne ikke flytte timen';
+          if (window.NailedForms) NailedForms.toast(msg, { type: 'error' });
+          else alert(msg);
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = prev;
+        }
+      });
+    }
+
+    /* ---------- REVIEWS (owner view) ---------- */
+    // Star row used inside the owner reviews list (always integer 1..5).
+    function renderOwnerStars(n) {
+      var v = Math.max(0, Math.min(5, parseInt(n, 10) || 0));
+      var html = '';
+      for (var i = 0; i < 5; i++) {
+        var fill = i < v ? 'var(--rouge-500)' : 'transparent';
+        html += '<i data-lucide="star" style="width:14px; height:14px; color: var(--rouge-500); fill: ' + fill + ';"></i>';
+      }
+      return html;
+    }
+
+    function fmtReviewDate(iso) {
+      try {
+        return new Date(iso).toLocaleDateString('no-NO', { year: 'numeric', month: 'short', day: '2-digit' });
+      } catch (_) { return ''; }
+    }
+
+    // Refreshes only the sidebar badge: count of unanswered reviews.
+    async function loadReviewsBadge() {
+      if (!salon) return;
+      try {
+        var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/reviews?unanswered=1&limit=1');
+        if (!res.ok) return;
+        var data = await res.json();
+        var badge = document.getElementById('reviewsUnansweredBadge');
+        if (!badge) return;
+        var n = Number(data.total || 0);
+        if (n > 0) { badge.textContent = n; badge.hidden = false; }
+        else { badge.hidden = true; }
+      } catch (_) {}
+    }
+
+    async function loadOwnerReviews() {
+      if (!salon) return;
+      var listEl = document.getElementById('ownerReviewsList');
+      var emptyEl = document.getElementById('ownerReviewsEmpty');
+      var summaryEl = document.getElementById('reviewsSummary');
+      if (!listEl || !emptyEl) return;
+      listEl.innerHTML = '';
+      emptyEl.style.display = 'none';
+
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/reviews?limit=50');
+      if (!res.ok) {
+        listEl.innerHTML = '<p style="padding:24px; color: var(--fg-muted);">Kunne ikke laste anmeldelser.</p>';
+        return;
+      }
+      var data = await res.json();
+      var reviews = Array.isArray(data.reviews) ? data.reviews : [];
+
+      // Summary header — average + count, computed client-side since the list
+      // endpoint only returns rows. We compute mean from the visible page; for
+      // tiny salons this matches the global average exactly.
+      var count = reviews.length;
+      var avg = null;
+      if (count > 0) {
+        var sum = 0; reviews.forEach(function (r) { sum += Number(r.rating); });
+        avg = Math.round((sum / count) * 10) / 10;
+      }
+      if (summaryEl) {
+        if (count > 0 && avg != null) {
+          summaryEl.innerHTML = '<span>' + renderOwnerStars(Math.round(avg)) + '</span>' +
+            '<strong style="color:var(--ink);">' + avg.toFixed(1) + '</strong>' +
+            ' · ' + count + ' ' + (count === 1 ? 'anmeldelse' : 'anmeldelser');
+        } else {
+          summaryEl.innerHTML = '';
+        }
+      }
+
+      if (count === 0) {
+        emptyEl.style.display = '';
+        window.lucide && window.lucide.createIcons();
+        return;
+      }
+
+      var html = '';
+      reviews.forEach(function (r) {
+        var hasReply = !!r.owner_reply;
+        var bodyHtml = r.body ? '<p class="owner-review__body">' + escapeHtml(r.body) + '</p>' : '';
+        var replyHtml = '';
+        if (hasReply) {
+          replyHtml =
+            '<div class="owner-review__reply">' +
+              '<div class="owner-review__reply-head">' +
+                '<span>Ditt svar</span>' +
+                '<span>' + escapeHtml(fmtReviewDate(r.owner_reply_at)) + '</span>' +
+              '</div>' +
+              '<p class="owner-review__reply-body">' + escapeHtml(r.owner_reply) + '</p>' +
+            '</div>';
+        }
+        var actionsHtml = hasReply
+          ? ''
+          : '<div class="owner-review__actions">' +
+              '<button class="btn btn-ghost btn-sm" data-reply="' + r.id + '">' +
+                '<i data-lucide="reply"></i> Svar</button>' +
+            '</div>';
+        html +=
+          '<div class="owner-review" data-review-id="' + r.id + '">' +
+            '<div class="owner-review__head">' +
+              '<span class="owner-review__stars">' + renderOwnerStars(r.rating) + '</span>' +
+              '<span class="owner-review__dot">·</span>' +
+              '<span class="owner-review__name">' + escapeHtml(r.customer_name || 'Anonym') + '</span>' +
+              '<span class="owner-review__dot">·</span>' +
+              '<span>' + escapeHtml(fmtReviewDate(r.created_at)) + '</span>' +
+            '</div>' +
+            bodyHtml + replyHtml + actionsHtml +
+          '</div>';
+      });
+      listEl.innerHTML = html;
+      window.lucide && window.lucide.createIcons();
+
+      // Wire "Svar" buttons to the inline reply editor.
+      listEl.querySelectorAll('button[data-reply]').forEach(function (btn) {
+        btn.addEventListener('click', function () { openReplyForm(btn); });
+      });
+
+      // Refresh the sidebar badge whenever the list reloads.
+      loadReviewsBadge();
+    }
+
+    function openReplyForm(triggerBtn) {
+      var card = triggerBtn.closest('.owner-review');
+      if (!card) return;
+      // Toggle off if already open.
+      if (card.querySelector('.owner-review__form')) {
+        card.querySelector('.owner-review__form').remove();
+        triggerBtn.parentElement.style.display = '';
+        return;
+      }
+      // Hide the action button while editing.
+      var actionsWrap = triggerBtn.parentElement;
+      actionsWrap.style.display = 'none';
+
+      var reviewId = triggerBtn.getAttribute('data-reply');
+      var form = document.createElement('div');
+      form.className = 'owner-review__form';
+      form.innerHTML =
+        '<textarea maxlength="1000" placeholder="Skriv et svar til kunden ..."></textarea>' +
+        '<div style="display:flex; gap:8px;">' +
+          '<button type="button" class="btn btn-primary btn-sm" data-save>' +
+            '<i data-lucide="save"></i> Lagre svar</button>' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-cancel>Avbryt</button>' +
+        '</div>';
+      card.appendChild(form);
+      window.lucide && window.lucide.createIcons();
+      var ta = form.querySelector('textarea');
+      ta.focus();
+
+      form.querySelector('[data-cancel]').addEventListener('click', function () {
+        form.remove();
+        actionsWrap.style.display = '';
+      });
+      form.querySelector('[data-save]').addEventListener('click', async function () {
+        var reply = ta.value.trim();
+        if (!reply) {
+          NailedForms.toast('Svaret kan ikke være tomt.', { type: 'error' });
+          return;
+        }
+        var btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Lagrer …';
+        var res = await NailedAuth.api('/api/v1/reviews/' + reviewId + '/reply', {
+          method: 'PATCH',
+          body: { reply: reply },
+        });
+        if (!res.ok) {
+          var data = await res.json().catch(function () { return {}; });
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="save"></i> Lagre svar';
+          window.lucide && window.lucide.createIcons();
+          NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre svaret.', { type: 'error' });
+          return;
+        }
+        NailedForms.toast('Svar lagret');
+        // Reload the whole list so the new reply renders in the canonical
+        // styled card under the review.
+        loadOwnerReviews();
       });
     }
 
@@ -2383,6 +2929,9 @@
       if (!s) return;
       await loadIncoming();
       await loadServices();
+      // Sidebar badge — kept fresh on initial load. The full list is
+      // fetched lazily when the Anmeldelser tab opens.
+      loadReviewsBadge();
       NailedForms.enhanceUrlInputs();
       window.lucide && window.lucide.createIcons();
     })();

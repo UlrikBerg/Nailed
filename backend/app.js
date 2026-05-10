@@ -13,6 +13,7 @@ const teamRoutes = require('./routes/team');
 const bookingRoutes = require('./routes/bookings');
 const favoriteRoutes = require('./routes/favorites');
 const salonApplicationRoutes = require('./routes/salon-applications');
+const reviewRoutes = require('./routes/reviews');
 const adminRoutes = require('./routes/admin');
 
 function buildApp() {
@@ -89,6 +90,9 @@ function buildApp() {
   app.use('/api/v1/bookings', bookingRoutes);
   app.use('/api/v1/favorites', favoriteRoutes);
   app.use('/api/v1/salon-applications', salonApplicationRoutes);
+  // Reviews cover several paths (/salons/:id/reviews, /bookings/:id/review,
+  // /reviews/:id) so it's mounted at the API root instead of a single prefix.
+  app.use('/api/v1', reviewRoutes);
   app.use('/api/v1/admin', adminRoutes);
 
   // 404 for unknown /api/v1/* — let static handler reply for everything else.

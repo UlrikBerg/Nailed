@@ -114,6 +114,54 @@
     }
     .booking-panel--side { padding: 20px 24px; }
 
+    /* Anmeldelser */
+    .review-card {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--stone-200);
+    }
+    .review-card:last-child { border-bottom: 0; }
+    .review-card__head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+    .review-card__stars { display: inline-flex; gap: 1px; align-items: center; }
+    .review-card__name { font-weight: 600; color: var(--ink); }
+    .review-card__dot { color: var(--stone-300); }
+    .review-card__body {
+      margin: 8px 0 0;
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--ink);
+      white-space: pre-wrap;
+    }
+    .review-card__reply {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: var(--cream-100);
+      border-radius: var(--radius-md);
+      border-left: 3px solid var(--rouge-500);
+    }
+    .review-card__reply-head {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--rouge-500);
+      margin-bottom: 4px;
+    }
+    .review-card__reply-body {
+      margin: 0;
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.45;
+      color: var(--ink);
+      white-space: pre-wrap;
+    }
+
     /* Compact opening-hours used inside the right-side card */
     .profile-hours--compact .profile-hours__row {
       padding: 7px 0;
@@ -224,16 +272,15 @@
 
           <!-- Anmeldelser -->
           <div style="display:flex; align-items:baseline; justify-content:space-between; margin-top: 56px; margin-bottom: 16px;">
-            <h3 style="margin: 0; font-size: 24px;">
-              Anmeldelser
-              <span style="font-family:var(--font-body); font-size:14px; font-weight:500; color:var(--fg-muted); margin-left:10px;">
-                <i data-lucide="star" style="width:14px; height:14px; color:var(--rouge-500); fill:var(--rouge-500); vertical-align:-2px;"></i>
-                Kommer snart
-              </span>
-            </h3>
+            <h3 style="margin: 0; font-size: 24px;">Anmeldelser</h3>
+            <span id="reviewsSummary" style="font-family:var(--font-body); font-size:14px; color:var(--fg-muted);"></span>
           </div>
-          <div class="reviews">
-            <p style="font-family:var(--font-body); color:var(--fg-muted); margin:0;">Anmeldelser kommer i en senere fase.</p>
+          <div class="reviews" id="reviewsBlock">
+            <p id="reviewsEmpty" style="font-family:var(--font-body); color:var(--fg-muted); margin:0; display:none;"></p>
+            <div id="reviewsList"></div>
+            <button type="button" id="reviewsShowAll" class="btn btn-ghost btn-sm" style="margin-top:14px; display:none;">
+              <i data-lucide="chevron-down"></i> Vis alle anmeldelser
+            </button>
           </div>
         </div>
 
@@ -1043,6 +1090,114 @@
       return html;
     }
 
+    // Render stars at a fixed integer size (no halves). Used in review cards
+    // where ratings are always 1..5 ints.
+    function renderStarRowInt(rating) {
+      var n = Math.max(0, Math.min(5, parseInt(rating, 10) || 0));
+      var html = '';
+      for (var i = 0; i < 5; i++) {
+        var fill = i < n ? 'var(--rouge-500)' : 'transparent';
+        html += '<i data-lucide="star" style="width:14px; height:14px; color: var(--rouge-500); fill: ' + fill + ';"></i>';
+      }
+      return html;
+    }
+
+    function formatReviewDate(iso) {
+      try {
+        return new Date(iso).toLocaleDateString('no-NO', { year: 'numeric', month: 'short', day: '2-digit' });
+      } catch (_) { return ''; }
+    }
+
+    function reviewCardHtml(r, salonName) {
+      var stars = '<span class="review-card__stars">' + renderStarRowInt(r.rating) + '</span>';
+      var name = '<span class="review-card__name">' + escapeHtml(r.customer_name || 'Anonym') + '</span>';
+      var date = '<span>' + escapeHtml(formatReviewDate(r.created_at)) + '</span>';
+      var body = r.body ? '<p class="review-card__body">' + escapeHtml(r.body) + '</p>' : '';
+      var reply = '';
+      if (r.owner_reply) {
+        reply = '<div class="review-card__reply">' +
+          '<div class="review-card__reply-head">Svar fra ' + escapeHtml(salonName || 'salongen') + '</div>' +
+          '<p class="review-card__reply-body">' + escapeHtml(r.owner_reply) + '</p>' +
+        '</div>';
+      }
+      return '<div class="review-card">' +
+        '<div class="review-card__head">' + stars +
+          '<span class="review-card__dot">·</span>' + name +
+          '<span class="review-card__dot">·</span>' + date +
+        '</div>' +
+        body + reply +
+      '</div>';
+    }
+
+    // Renders the reviews section: header summary, latest 3 cards, empty state,
+    // and the "Vis alle anmeldelser" button that expands inline up to 20.
+    function renderReviews(salonId, salonName, reviews) {
+      var summaryEl = document.getElementById('reviewsSummary');
+      var listEl = document.getElementById('reviewsList');
+      var emptyEl = document.getElementById('reviewsEmpty');
+      var showAllBtn = document.getElementById('reviewsShowAll');
+      if (!listEl || !summaryEl || !showAllBtn) return;
+
+      var count = (reviews && reviews.count) || 0;
+      var avg = reviews && reviews.avg;
+      var latest = (reviews && Array.isArray(reviews.latest)) ? reviews.latest : [];
+
+      // Summary header — only when we have ratings to show.
+      if (count > 0 && avg != null) {
+        summaryEl.innerHTML = renderStarRow(avg) +
+          ' <strong style="color:var(--ink);">' + avg.toFixed(1) + '</strong>' +
+          ' · ' + count + ' ' + (count === 1 ? 'anmeldelse' : 'anmeldelser');
+      } else {
+        summaryEl.innerHTML = '';
+      }
+
+      // Empty state.
+      if (count === 0) {
+        emptyEl.style.display = '';
+        emptyEl.textContent = 'Ingen anmeldelser ennå. Bli den første til å anmelde ' + (salonName || 'denne salongen') + '!';
+        listEl.innerHTML = '';
+        showAllBtn.style.display = 'none';
+        lucide.createIcons();
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      var html = '';
+      latest.forEach(function (r) { html += reviewCardHtml(r, salonName); });
+      listEl.innerHTML = html;
+
+      // Only offer "Vis alle" when there are more than the inline 3.
+      if (count > latest.length) {
+        showAllBtn.style.display = '';
+        showAllBtn.disabled = false;
+        showAllBtn.innerHTML = '<i data-lucide="chevron-down"></i> Vis alle ' + count + ' anmeldelser';
+        showAllBtn.onclick = function () {
+          showAllBtn.disabled = true;
+          showAllBtn.innerHTML = '<i data-lucide="loader-2"></i> Henter …';
+          lucide.createIcons();
+          fetch('/api/v1/salons/' + encodeURIComponent(salonId) + '/reviews?limit=20')
+            .then(function (r) { return r.ok ? r.json() : { reviews: [] }; })
+            .then(function (j) {
+              var all = Array.isArray(j.reviews) ? j.reviews : [];
+              var allHtml = '';
+              all.forEach(function (r) { allHtml += reviewCardHtml(r, salonName); });
+              listEl.innerHTML = allHtml;
+              showAllBtn.style.display = 'none';
+              lucide.createIcons();
+            })
+            .catch(function () {
+              showAllBtn.disabled = false;
+              showAllBtn.innerHTML = '<i data-lucide="chevron-down"></i> Vis alle anmeldelser';
+              lucide.createIcons();
+            });
+        };
+      } else {
+        showAllBtn.style.display = 'none';
+      }
+
+      lucide.createIcons();
+    }
+
     // Build "Tilbys av: X, Y" snippet from team-member ids + a name lookup.
     function teamOfferLine(ids, byId) {
       if (!Array.isArray(ids) || !ids.length || !byId) return '';
@@ -1282,6 +1437,7 @@
       renderAmenities(amenities);
       renderHours(hours);
       renderTeam(team);
+      renderReviews(s.id, s.name, data.reviews || { count: 0, avg: null, latest: [] });
 
       lucide.createIcons();
       // Re-init favorites in case future heart buttons are added (idempotent for current page).

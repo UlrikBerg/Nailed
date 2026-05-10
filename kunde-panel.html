@@ -259,6 +259,145 @@
     }
     .kp-empty__desc a { color: var(--rouge-500); font-weight: 600; }
 
+    /* Inline review form (appears under a booking row) */
+    .kp-review-form {
+      grid-column: 1 / -1;
+      margin-top: 8px;
+      padding: 16px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1 0 100%;
+    }
+    .kp-review-form__title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 15px;
+      margin: 0;
+    }
+    .kp-stars-input {
+      display: inline-flex;
+      gap: 2px;
+    }
+    .kp-stars-input button {
+      background: none;
+      border: 0;
+      padding: 2px;
+      cursor: pointer;
+      color: var(--rouge-500);
+      line-height: 0;
+    }
+    .kp-stars-input button i { width: 22px; height: 22px; fill: transparent; transition: fill var(--dur-fast); }
+    .kp-stars-input button.active i,
+    .kp-stars-input button.hover i { fill: var(--rouge-500); }
+    .kp-review-form textarea {
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 10px 12px;
+      border: 1px solid var(--stone-300);
+      border-radius: var(--radius-sm);
+      resize: vertical;
+      min-height: 80px;
+    }
+    .kp-review-form__count {
+      font-size: 12px;
+      color: var(--fg-muted);
+      text-align: right;
+    }
+    .kp-review-form__actions { display: flex; gap: 8px; }
+    .kp-review-sent {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      color: #486041;
+      padding: 4px 10px;
+      background: rgba(141, 160, 121, 0.18);
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+    }
+
+    /* Inline reschedule form (appears under a booking row). Same layout
+       pattern as .kp-review-form so the two never visually clash. */
+    .kp-resched-form {
+      grid-column: 1 / -1;
+      margin-top: 8px;
+      padding: 16px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1 0 100%;
+    }
+    .kp-resched-form__title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 15px;
+      margin: 0;
+    }
+    .kp-resched-form__compare {
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+    .kp-resched-form__compare strong { color: var(--ink); }
+    .kp-resched-days {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .kp-resched-day {
+      font-family: var(--font-body);
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-100);
+      color: var(--ink);
+      cursor: pointer;
+      line-height: 1.15;
+      text-align: center;
+      min-width: 64px;
+    }
+    .kp-resched-day:hover { border-color: var(--stone-400); }
+    .kp-resched-day.active { background: var(--ink); color: var(--cream-50); border-color: var(--ink); }
+    .kp-resched-day[disabled],
+    .kp-resched-day.taken { opacity: .45; cursor: not-allowed; }
+    .kp-resched-day__dow { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    .kp-resched-day__num { display: block; font-weight: 700; font-size: 15px; }
+    .kp-resched-slots {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+      gap: 6px;
+    }
+    .kp-resched-slot {
+      font-family: var(--font-body);
+      font-size: 13px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-100);
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .kp-resched-slot:hover { border-color: var(--stone-400); }
+    .kp-resched-slot.active { background: var(--ink); color: var(--cream-50); border-color: var(--ink); }
+    .kp-resched-slot[disabled],
+    .kp-resched-slot.taken { opacity: .45; cursor: not-allowed; }
+    .kp-resched-form__empty {
+      font-size: 13px;
+      color: var(--fg-muted);
+      text-align: center;
+      padding: 12px;
+    }
+    .kp-resched-form__actions { display: flex; gap: 8px; justify-content: flex-end; }
+
     /* Booking filter — borrows the .pill look from /utforsk.html */
     .kp-filter {
       display: inline-flex;
@@ -866,8 +1005,22 @@
 
       bookings.forEach(function (b) {
         var canCancel = filter === 'upcoming' && (b.status === 'pending' || b.status === 'confirmed');
+        var canReschedule = filter === 'upcoming' && (b.status === 'pending' || b.status === 'confirmed');
+        // .ics download — only worthwhile while the booking is still live or
+        // just-completed; suppress on cancelled/no_show.
+        var canIcs = b.status === 'pending' || b.status === 'confirmed' || b.status === 'completed';
+        // Review button only on completed bookings that the customer hasn't reviewed yet.
+        var canReview = b.status === 'completed' && !b.has_review;
+        var alreadyReviewed = b.status === 'completed' && b.has_review;
         var row = document.createElement('div');
         row.className = 'kp-row';
+        // Allow the inline review/reschedule form (full-width) to flow under the row.
+        row.style.flexWrap = 'wrap';
+        row.dataset.bookingId = b.id;
+        // Stash the data the reschedule form needs without re-fetching it.
+        row.dataset.salonId = b.salon_id;
+        row.dataset.salonSlug = b.salon_slug || '';
+        row.dataset.startAt = b.start_at;
         row.innerHTML =
           '<div class="kp-row__when">' +
             '<div class="kp-row__when-date">' + escapeHtml(formatDate(b.start_at)) + '</div>' +
@@ -885,8 +1038,22 @@
             '<span class="' + (statusClass[b.status] || 'kp-status') + '">' +
               escapeHtml(statusLabel[b.status] || b.status || '') +
             '</span>' +
+            (canIcs
+              ? '<button class="btn btn-ghost btn-sm" data-ics="' + b.id + '" title="Legg til i kalender" aria-label="Legg til i kalender">' +
+                  '<i data-lucide="calendar-plus"></i></button>'
+              : '') +
+            (canReschedule
+              ? '<button class="btn btn-ghost btn-sm" data-resched="' + b.id + '">Flytt time</button>'
+              : '') +
             (canCancel
               ? '<button class="btn btn-ghost btn-sm" data-cancel="' + b.id + '">Avbestill</button>'
+              : '') +
+            (canReview
+              ? '<button class="btn btn-primary btn-sm" data-review="' + b.id + '">' +
+                  '<i data-lucide="star"></i> Skriv anmeldelse</button>'
+              : '') +
+            (alreadyReviewed
+              ? '<span class="kp-review-sent"><i data-lucide="check" style="width:12px;height:12px;"></i> Anmeldelse sendt</span>'
               : '') +
           '</div>';
         list.appendChild(row);
@@ -909,7 +1076,377 @@
         });
       });
 
+      // "Skriv anmeldelse" — opens an inline form under the booking row.
+      list.querySelectorAll('button[data-review]').forEach(function (btn) {
+        btn.addEventListener('click', function () { openReviewForm(btn); });
+      });
+
+      // Calendar icon — fetches the auth-gated .ics endpoint and downloads as a Blob.
+      list.querySelectorAll('button[data-ics]').forEach(function (btn) {
+        btn.addEventListener('click', function () { downloadIcs(btn.getAttribute('data-ics'), btn); });
+      });
+
+      // "Flytt time" — opens an inline reschedule form under the row.
+      list.querySelectorAll('button[data-resched]').forEach(function (btn) {
+        btn.addEventListener('click', function () { openRescheduleForm(btn, filter); });
+      });
+
       window.lucide && window.lucide.createIcons();
+    }
+
+    // Fetch .ics from the auth-gated endpoint and trigger a Blob-URL download.
+    async function downloadIcs(bookingId, btn) {
+      var token = NailedAuth.getAccess && NailedAuth.getAccess();
+      if (!bookingId || !token) {
+        NailedForms.toast('Mangler tilgang', { type: 'error' });
+        return;
+      }
+      var prev = btn ? btn.innerHTML : null;
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader"></i>'; window.lucide && window.lucide.createIcons(); }
+      try {
+        var r = await fetch('/api/v1/bookings/' + encodeURIComponent(bookingId) + '/ics', {
+          headers: { Authorization: 'Bearer ' + token },
+        });
+        if (!r.ok) throw new Error('ics fetch failed');
+        var blob = await r.blob();
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'nailed-booking-' + bookingId + '.ics';
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      } catch (_) {
+        NailedForms.toast('Kunne ikke laste ned kalenderfil', { type: 'error' });
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = prev; window.lucide && window.lucide.createIcons(); }
+      }
+    }
+
+    // Inline reschedule form. Builds the same day-carousel + slot grid that
+    // /salon.html shows, scoped to this booking's salon. Uses the public
+    // /api/v1/salons/:slug payload for hours/closures/services and
+    // /api/v1/salons/:id/availability for busy windows. The minimal subset
+    // of salon.html slot rendering is inlined here — extracting a shared
+    // helper wasn't worth the indirection for one extra surface (the salon
+    // owner panel uses the same code below, copy-pasted minus the salon
+    // lookup).
+    function openRescheduleForm(triggerBtn, filter) {
+      var bookingId = triggerBtn.getAttribute('data-resched');
+      var row = triggerBtn.closest('.kp-row');
+      if (!row) return;
+      var existing = row.querySelector('.kp-resched-form');
+      if (existing) { existing.remove(); return; }
+
+      var salonSlug = row.dataset.salonSlug;
+      var salonId = row.dataset.salonId;
+      var oldStartAt = row.dataset.startAt;
+
+      var form = document.createElement('div');
+      form.className = 'kp-resched-form';
+      form.innerHTML =
+        '<h4 class="kp-resched-form__title">Flytt time</h4>' +
+        '<div class="kp-resched-form__compare">' +
+          'Nåværende: <strong>' + escapeHtml(formatDateTime(oldStartAt)) + '</strong>' +
+          ' · Ny: <strong data-newtime>—</strong>' +
+        '</div>' +
+        '<div data-days class="kp-resched-days"><div class="kp-resched-form__empty">Laster …</div></div>' +
+        '<div data-slots class="kp-resched-slots"></div>' +
+        '<div class="kp-resched-form__actions">' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-cancel-resched>Avbryt</button>' +
+          '<button type="button" class="btn btn-primary btn-sm" data-confirm-resched disabled>Bekreft flytt</button>' +
+        '</div>';
+      row.appendChild(form);
+      window.lucide && window.lucide.createIcons();
+
+      form.querySelector('[data-cancel-resched]').addEventListener('click', function () { form.remove(); });
+
+      mountRescheduleWidget({
+        form: form,
+        salonSlug: salonSlug,
+        salonId: salonId,
+        bookingId: bookingId,
+        oldStartAt: oldStartAt,
+        onSuccess: function () { loadBookings(filter); },
+      });
+    }
+
+    // Shared widget mounter — also used by salon owner /salong-panel.html.
+    // Exposed on window for that page to call. Builds the day-row + slot grid
+    // inside the given `form` element, then wires Bekreft to PATCH the
+    // /reschedule endpoint.
+    async function mountRescheduleWidget(opts) {
+      var form = opts.form;
+      var daysEl = form.querySelector('[data-days]');
+      var slotsEl = form.querySelector('[data-slots]');
+      var newTimeEl = form.querySelector('[data-newtime]');
+      var confirmBtn = form.querySelector('[data-confirm-resched]');
+
+      // Fetch salon (for hours/lunch/closures/rules) + availability (busy) in
+      // parallel. We need the service id and duration_min for slot length;
+      // grab them from the salon's services list, matched against the
+      // existing booking's service if we can identify it from the row.
+      var [salonRes, availRes, bookingRes] = await Promise.all([
+        fetch('/api/v1/salons/' + encodeURIComponent(opts.salonSlug)),
+        fetch('/api/v1/salons/' + encodeURIComponent(opts.salonId) + '/availability'),
+        NailedAuth.api('/api/v1/bookings/' + encodeURIComponent(opts.bookingId)),
+      ]);
+      if (!salonRes.ok || !bookingRes.ok) {
+        daysEl.innerHTML = '<div class="kp-resched-form__empty">Kunne ikke laste salongdata.</div>';
+        return;
+      }
+      var salonData = await salonRes.json();
+      var availData = availRes.ok ? await availRes.json() : { busy: [] };
+      var bookingData = (await bookingRes.json()).booking || {};
+
+      var salon = salonData.salon || {};
+      var services = salonData.services || [];
+      var hours = salonData.hours || [];
+      var closures = salonData.closures || [];
+      var service = services.find(function (s) { return s.id === bookingData.service_id; }) || { duration_min: 60 };
+      var dur = service.duration_min || 60;
+
+      var hoursByDay = {};
+      hours.forEach(function (h) { hoursByDay[h.weekday] = h; });
+      var closedDateSet = new Set(closures.map(function (c) { return c.date; }));
+      var busy = (availData.busy || []).map(function (b) {
+        return { start: new Date(b.start_at).getTime(), end: new Date(b.end_at).getTime() };
+      });
+      // The booking we're moving is itself in `busy` — strip it so the user
+      // can pick its current slot (or any nearby slot it currently fills).
+      var oldStartMs = new Date(opts.oldStartAt).getTime();
+      var oldEndMs = oldStartMs + dur * 60_000;
+      busy = busy.filter(function (b) { return !(b.start === oldStartMs && b.end === oldEndMs); });
+
+      var leadHours = Number(salon.min_booking_lead_hours) || 0;
+      var windowDays = Math.max(1, Math.min(30, Number(salon.booking_window_days) || 30));
+      var bufferMin = Number(salon.booking_buffer_min) || 0;
+
+      function slotIsBusy(slotStartMs) {
+        var slotEnd = slotStartMs + dur * 60_000;
+        var bufMs = bufferMin * 60_000;
+        for (var i = 0; i < busy.length; i++) {
+          if (slotStartMs - bufMs < busy[i].end && slotEnd + bufMs > busy[i].start) return true;
+        }
+        return false;
+      }
+      function isoWeekdayLocal(d) { var w = d.getDay(); return w === 0 ? 7 : w; }
+      function timeStrToMin(t) {
+        if (!t) return null;
+        var m = String(t).match(/^(\d{2}):(\d{2})/);
+        return m ? (parseInt(m[1], 10) * 60 + parseInt(m[2], 10)) : null;
+      }
+
+      var chosenIso = null;
+      function setChosen(iso) {
+        chosenIso = iso;
+        confirmBtn.disabled = !iso;
+        newTimeEl.textContent = iso ? formatDateTime(iso) : '—';
+      }
+
+      function renderSlots(dateIso, dayBtn) {
+        slotsEl.innerHTML = '';
+        var nowMs = Date.now();
+        var earliestMs = nowMs + leadHours * 3_600_000;
+        var hasAny = false;
+        for (var k in hoursByDay) { if (Object.prototype.hasOwnProperty.call(hoursByDay, k)) { hasAny = true; break; } }
+        var p = dateIso.split('-');
+        var d = new Date(parseInt(p[0],10), parseInt(p[1],10) - 1, parseInt(p[2],10));
+        var wd = isoWeekdayLocal(d);
+        var row = hasAny ? hoursByDay[wd] : null;
+        if (hasAny && row && row.is_closed) {
+          slotsEl.innerHTML = '<div class="kp-resched-form__empty">Stengt denne dagen</div>';
+          setChosen(null);
+          return;
+        }
+        var openMin = 8 * 60, closeMin = 19 * 60;
+        if (hasAny && row && !row.is_closed) {
+          var o = timeStrToMin(row.open_at); var c = timeStrToMin(row.close_at);
+          if (o != null && c != null) { openMin = o; closeMin = c; }
+        }
+        var startGrid = Math.ceil(openMin / 60) * 60;
+        var any = false;
+        for (var m = startGrid; m + dur <= closeMin; m += 60) {
+          var h = Math.floor(m / 60), mm = m % 60;
+          var hh = h < 10 ? '0' + h : '' + h;
+          var mmStr = mm < 10 ? '0' + mm : '' + mm;
+          var dt = new Date(dateIso + 'T' + hh + ':' + mmStr + ':00');
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'kp-resched-slot';
+          btn.textContent = hh + ':' + mmStr;
+          var beforeCutoff = dt.getTime() < earliestMs;
+          var taken = !beforeCutoff && slotIsBusy(dt.getTime());
+          if (beforeCutoff || taken) {
+            btn.classList.add('taken');
+            btn.disabled = true;
+          } else {
+            btn.dataset.iso = dt.toISOString();
+            btn.addEventListener('click', function () {
+              slotsEl.querySelectorAll('.kp-resched-slot').forEach(function (s) { s.classList.remove('active'); });
+              this.classList.add('active');
+              setChosen(this.dataset.iso);
+            });
+            any = true;
+          }
+          slotsEl.appendChild(btn);
+        }
+        if (!any) {
+          slotsEl.innerHTML = '<div class="kp-resched-form__empty">Ingen ledige tider denne dagen.</div>';
+        }
+        setChosen(null);
+      }
+
+      // Day row — show up to windowDays into the future (capped at 14 for
+      // the compact form; users wanting further out can simply pick another
+      // booking offer later).
+      daysEl.innerHTML = '';
+      var totalDays = Math.min(14, windowDays);
+      var DOW = ['Søn','Man','Tirs','Ons','Tors','Fre','Lør'];
+      var pickedAny = false;
+      for (var i = 0; i < totalDays; i++) {
+        var dd = new Date(); dd.setHours(0,0,0,0); dd.setDate(dd.getDate() + i);
+        var iso = dd.getFullYear() + '-' + String(dd.getMonth()+1).padStart(2,'0') + '-' + String(dd.getDate()).padStart(2,'0');
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'kp-resched-day';
+        btn.dataset.iso = iso;
+        var isClosure = closedDateSet.has(iso);
+        var wd = isoWeekdayLocal(dd);
+        var hoursRow = hoursByDay[wd];
+        var weekdayClosed = !!(hoursRow && hoursRow.is_closed);
+        btn.innerHTML = '<span class="kp-resched-day__dow">' + DOW[dd.getDay()] + '</span>' +
+                        '<span class="kp-resched-day__num">' + dd.getDate() + '</span>';
+        if (isClosure || weekdayClosed) {
+          btn.classList.add('taken');
+          btn.disabled = true;
+          btn.title = 'Stengt';
+        } else {
+          btn.addEventListener('click', function () {
+            daysEl.querySelectorAll('.kp-resched-day').forEach(function (b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            renderSlots(this.dataset.iso, this);
+          });
+          if (!pickedAny) { pickedAny = true; /* auto-click below */ }
+        }
+        daysEl.appendChild(btn);
+      }
+      var firstOpen = daysEl.querySelector('.kp-resched-day:not([disabled])');
+      if (firstOpen) firstOpen.click();
+      else slotsEl.innerHTML = '<div class="kp-resched-form__empty">Ingen åpne dager i bookingvinduet.</div>';
+
+      confirmBtn.addEventListener('click', async function () {
+        if (!chosenIso) return;
+        confirmBtn.disabled = true;
+        var prev = confirmBtn.textContent;
+        confirmBtn.textContent = 'Sender …';
+        var res = await NailedAuth.api('/api/v1/bookings/' + encodeURIComponent(opts.bookingId) + '/reschedule', {
+          method: 'PATCH',
+          body: { start_at: chosenIso },
+        });
+        if (res.ok) {
+          NailedForms.toast('Booking flyttet');
+          if (typeof opts.onSuccess === 'function') opts.onSuccess();
+        } else {
+          var data = await res.json().catch(function () { return {}; });
+          NailedForms.toast((data.error && data.error.message) || 'Kunne ikke flytte timen', { type: 'error' });
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = prev;
+        }
+      });
+    }
+
+    // Expose for use by salon owner panel via window.opener / shared script.
+    window.NailedRescheduleWidget = { mount: mountRescheduleWidget };
+
+    // Opens the inline review form under a booking row. Stars 1..5 + textarea
+    // (800 char limit). On save we POST to /bookings/:id/review and swap the
+    // button for the "Anmeldelse sendt" pill in-place (no reload).
+    function openReviewForm(triggerBtn) {
+      var bookingId = triggerBtn.getAttribute('data-review');
+      var row = triggerBtn.closest('.kp-row');
+      if (!row) return;
+      // Toggle off if already open.
+      var existing = row.querySelector('.kp-review-form');
+      if (existing) { existing.remove(); return; }
+
+      var form = document.createElement('div');
+      form.className = 'kp-review-form';
+      form.innerHTML =
+        '<h4 class="kp-review-form__title">Skriv en anmeldelse</h4>' +
+        '<div class="kp-stars-input" role="radiogroup" aria-label="Vurdering">' +
+          [1,2,3,4,5].map(function (n) {
+            return '<button type="button" data-star="' + n + '" aria-label="' + n + ' stjerner">' +
+              '<i data-lucide="star"></i></button>';
+          }).join('') +
+        '</div>' +
+        '<textarea maxlength="800" placeholder="Hvordan var opplevelsen? (valgfritt)"></textarea>' +
+        '<div class="kp-review-form__count"><span data-count>0</span> / 800</div>' +
+        '<div class="kp-review-form__actions">' +
+          '<button type="button" class="btn btn-primary btn-sm" data-submit>Send anmeldelse</button>' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-cancel-review>Avbryt</button>' +
+        '</div>';
+      row.appendChild(form);
+      window.lucide && window.lucide.createIcons();
+
+      var rating = 0;
+      var starBtns = form.querySelectorAll('button[data-star]');
+      function paintStars(n) {
+        starBtns.forEach(function (b) {
+          var v = parseInt(b.getAttribute('data-star'), 10);
+          b.classList.toggle('active', v <= n);
+        });
+      }
+      starBtns.forEach(function (b) {
+        var v = parseInt(b.getAttribute('data-star'), 10);
+        b.addEventListener('mouseenter', function () { paintStars(v); });
+        b.addEventListener('mouseleave', function () { paintStars(rating); });
+        b.addEventListener('click', function () { rating = v; paintStars(rating); });
+      });
+
+      var ta = form.querySelector('textarea');
+      var counter = form.querySelector('[data-count]');
+      ta.addEventListener('input', function () {
+        counter.textContent = String(ta.value.length);
+      });
+
+      form.querySelector('[data-cancel-review]').addEventListener('click', function () {
+        form.remove();
+      });
+
+      form.querySelector('[data-submit]').addEventListener('click', async function () {
+        if (rating < 1) {
+          NailedForms.toast('Velg en vurdering (1–5 stjerner).', { type: 'error' });
+          return;
+        }
+        var btn = this;
+        btn.disabled = true;
+        var prevLabel = btn.textContent;
+        btn.textContent = 'Sender …';
+        var body = { rating: rating };
+        if (ta.value.trim()) body.body = ta.value.trim();
+        var res = await NailedAuth.api('/api/v1/bookings/' + bookingId + '/review', {
+          method: 'POST',
+          body: body,
+        });
+        if (!res.ok) {
+          var data = await res.json().catch(function () { return {}; });
+          btn.disabled = false;
+          btn.textContent = prevLabel;
+          NailedForms.toast((data.error && data.error.message) || 'Kunne ikke sende anmeldelsen', { type: 'error' });
+          return;
+        }
+        // Success — remove the form and swap the trigger button for a "sent" pill.
+        form.remove();
+        var actions = row.querySelector('.kp-row__actions');
+        if (actions) {
+          var pill = document.createElement('span');
+          pill.className = 'kp-review-sent';
+          pill.innerHTML = '<i data-lucide="check" style="width:12px;height:12px;"></i> Anmeldelse sendt';
+          triggerBtn.replaceWith(pill);
+          window.lucide && window.lucide.createIcons();
+        }
+        NailedForms.toast('Takk for anmeldelsen!');
+      });
     }
 
     // ---------------------------------------------------------------------
