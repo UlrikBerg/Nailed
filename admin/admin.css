@@ -374,16 +374,24 @@ p { margin: 0 0 var(--space-4) 0; }
 
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  /* Six KPI tiles on one row at desktop; collapse to a fluid grid below. */
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
   margin-bottom: 32px;
+}
+@media (max-width: 1280px) {
+  .kpi-row { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 720px) {
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
 }
 
 .kpi {
   background: var(--cream-50);
   border: 1px solid var(--stone-200);
   border-radius: var(--radius-lg);
-  padding: 20px 22px;
+  padding: 18px 18px;
+  min-width: 0;
 }
 
 .kpi__icon {
