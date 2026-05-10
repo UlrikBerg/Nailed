@@ -994,9 +994,10 @@ p { margin: 0 0 var(--space-4) 0; }
   max-width: 50ch;
 }
 .confirm__card {
-  max-width: 480px;
+  max-width: 600px;
+  width: 100%;
   margin: 0 auto;
-  padding: 44px 48px;
+  padding: 44px 56px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--stone-200);
   background: var(--cream-50);
@@ -1633,7 +1634,9 @@ p { margin: 0 0 var(--space-4) 0; }
 .confirm__card-eyebrow { font-family: var(--font-body); font-weight: 700; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-muted); }
 .confirm__paid { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-body); font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: var(--radius-pill); background: rgba(255, 91, 36, 0.1); color: #FF5B24; }
 .confirm__paid i { width: 12px; height: 12px; }
-.confirm__divider { height: 1px; background: var(--stone-200); margin: 24px 0 18px; }
+/* Each row already has its own bottom border, so an extra hairline here
+   shows up as a double line. Keep the spacing, drop the second line. */
+.confirm__divider { height: 0; margin: 16px 0; }
 .confirm__user { display: grid; grid-template-columns: 44px 1fr auto; gap: 14px; align-items: center; margin-top: 12px; }
 .confirm__avatar { width: 44px; height: 44px; border-radius: var(--radius-pill); background: var(--rouge-100); color: var(--rouge-500); font-family: var(--font-display); font-weight: 700; font-size: 18px; display: flex; align-items: center; justify-content: center; }
 .confirm__user-name { font-family: var(--font-body); font-weight: 700; font-size: 15px; }
