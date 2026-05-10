@@ -67,21 +67,46 @@ router.post('/', asyncRoute(async (req, res) => {
   );
   if (!service || !service.active) throw new HttpError(404, 'service_unavailable', 'Tjenesten finnes ikke eller er ikke aktiv.');
 
-  const salon = await queryOne(`SELECT id, status FROM salons WHERE id = ?`, [data.salon_id]);
+  const salon = await queryOne(
+    `SELECT id, status, accepts_new_bookings FROM salons WHERE id = ?`,
+    [data.salon_id]
+  );
   if (!salon || salon.status !== 'active') throw new HttpError(404, 'salon_unavailable', 'Salongen er ikke aktiv.');
+  if (!salon.accepts_new_bookings) {
+    throw new HttpError(409, 'bookings_paused', 'Salongen tar ikke imot nye bookinger akkurat nå.');
+  }
 
   const startAt = new Date(data.start_at);
   if (Number.isNaN(startAt.getTime())) throw new HttpError(400, 'bad_start_at', 'Ugyldig start-tidspunkt.');
   if (startAt.getTime() < Date.now()) throw new HttpError(400, 'past_start', 'Start må være i framtiden.');
   const endAt = new Date(startAt.getTime() + service.duration_min * 60_000);
 
-  const result = await query(
-    `INSERT INTO bookings
-       (customer_user_id, salon_id, service_id, start_at, end_at, price_nok, status, customer_note)
-     VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)`,
-    [req.user.id, data.salon_id, data.service_id, startAt, endAt, service.price_nok, data.customer_note || null]
-  );
-  res.status(201).json({ id: result.insertId });
+  // Reject overlap with any other live booking at the same salon.
+  // Treats one-stylist salons as the realistic default; multi-stylist scheduling
+  // would need to scope this check by team_member instead of salon.
+  const insertedId = await tx(async (conn) => {
+    const [overlap] = await conn.execute(
+      `SELECT id FROM bookings
+        WHERE salon_id = ?
+          AND status IN ('pending','confirmed')
+          AND start_at < ?
+          AND end_at   > ?
+        LIMIT 1
+        FOR UPDATE`,
+      [data.salon_id, endAt, startAt]
+    );
+    if (overlap.length > 0) {
+      throw new HttpError(409, 'slot_taken', 'Tidspunktet er allerede tatt. Velg et annet.');
+    }
+    const [insertResult] = await conn.execute(
+      `INSERT INTO bookings
+         (customer_user_id, salon_id, service_id, start_at, end_at, price_nok, status, customer_note)
+       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)`,
+      [req.user.id, data.salon_id, data.service_id, startAt, endAt, service.price_nok, data.customer_note || null]
+    );
+    return insertResult.insertId;
+  });
+  res.status(201).json({ id: insertedId });
 }));
 
 // GET /bookings/:id — single booking, accessible to the customer or salon owner
@@ -117,6 +142,15 @@ router.get('/:id', asyncRoute(async (req, res) => {
 }));
 
 // PATCH /bookings/:id — change status (confirm/complete/cancel/no_show)
+//
+// Allowed transitions:
+//   pending   → confirmed | cancelled
+//   confirmed → completed | cancelled | no_show
+//   completed | cancelled | no_show — terminal
+const ALLOWED_TRANSITIONS = {
+  pending:   new Set(['confirmed', 'cancelled']),
+  confirmed: new Set(['completed', 'cancelled', 'no_show']),
+};
 router.patch('/:id', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
@@ -146,6 +180,12 @@ router.patch('/:id', asyncRoute(async (req, res) => {
     if (!isOwner && !isAdmin) throw new HttpError(403, 'forbidden', 'Bare salongen kan endre denne statusen.');
   }
 
+  const allowedFromCurrent = ALLOWED_TRANSITIONS[booking.status];
+  if (!allowedFromCurrent || !allowedFromCurrent.has(status)) {
+    throw new HttpError(409, 'invalid_transition',
+      `Kan ikke endre booking fra "${booking.status}" til "${status}".`);
+  }
+
   const cancelledByRole = status === 'cancelled'
     ? (isAdmin ? 'admin' : (isOwner ? 'salon' : 'customer'))
     : null;
@@ -153,15 +193,20 @@ router.patch('/:id', asyncRoute(async (req, res) => {
   const completedAt = status === 'completed' ? new Date() : null;
   const cancelledAt = status === 'cancelled' ? new Date() : null;
 
-  await query(
+  // Conditional UPDATE: only if status is still what we just read. If a
+  // concurrent request beat us to it, affectedRows is 0 and we 409.
+  const result = await query(
     `UPDATE bookings
         SET status = ?,
             cancelled_at  = COALESCE(?, cancelled_at),
             cancelled_by_role = COALESCE(?, cancelled_by_role),
             completed_at  = COALESCE(?, completed_at)
-      WHERE id = ?`,
-    [status, cancelledAt, cancelledByRole, completedAt, id]
+      WHERE id = ? AND status = ?`,
+    [status, cancelledAt, cancelledByRole, completedAt, id, booking.status]
   );
+  if (!result.affectedRows) {
+    throw new HttpError(409, 'conflict', 'Booking ble endret av en annen prosess. Last på nytt.');
+  }
   res.json({ ok: true });
 }));
 
