@@ -1,6 +1,7 @@
 const { verifyAccessToken } = require('../lib/jwt');
 const { queryOne } = require('../db');
 const { HttpError } = require('../lib/util');
+const config = require('../config');
 
 function readBearer(req) {
   const h = req.headers.authorization || '';
@@ -11,6 +12,7 @@ function readBearer(req) {
 async function loadUser(req, res, next) {
   const token = readBearer(req);
   if (!token) return next();
+  if (!config.jwt.secret) return next(); // server misconfigured — handled in requireAuth
   try {
     const claims = verifyAccessToken(token);
     const user = await queryOne(
@@ -28,6 +30,10 @@ async function loadUser(req, res, next) {
 }
 
 function requireAuth(req, _res, next) {
+  if (!config.jwt.secret) {
+    return next(new HttpError(503, 'jwt_not_configured',
+      'Server-secret er ikke konfigurert. Sett JWT_SECRET i miljovariabel og restart serveren.'));
+  }
   if (!req.user) return next(new HttpError(401, 'auth_required', 'Du må være logget inn.'));
   next();
 }

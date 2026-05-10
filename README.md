@@ -63,15 +63,16 @@ Peer-to-peer marketplace for beauty services. Web + iOS + Android.
 
 ## Deploy to Hostinger Cloud
 
-1. **MySQL:** in hPanel → Databases → MySQL Databases, create a new DB. Copy host/user/password into `.env` on the server.
-2. **Node.js app:** in hPanel → Advanced → Node.js, create an app. Set entry point to `server.js`, Node version 20+.
-3. **Push code:** SSH or Git deploy to the app's webroot.
-4. **Apply schema:** `npm run db:setup` once.
-5. **Set env vars:** in hPanel → Node.js app → Environment Variables (matches `.env.example`).
-6. **OAuth redirect URIs:**
-   - Google: `https://nailed.no/api/v1/auth/google/callback` (add in Google Cloud Console).
-   - Vipps (when ready): `https://nailed.no/api/v1/auth/vipps/callback` (register in Vipps portal).
-7. **Restart the app** in hPanel.
+See [docs/HOSTINGER_DEPLOY.md](docs/HOSTINGER_DEPLOY.md) for step-by-step. Summary:
+
+1. Create MySQL DB in hPanel → copy creds.
+2. Configure Node.js app in hPanel → entry `server.js`, Node 20+.
+3. Run `npm install` + set env vars (`JWT_SECRET` is required to make auth work).
+4. Run `npm run db:setup` once.
+5. Restart the app. Verify with `curl /api/v1/health` — `ready.jwt`, `ready.db` should be `true` and `issues` should be empty.
+
+The server boots even with missing env vars — auth-protected routes return 503 with a clear
+`jwt_not_configured` error so you can debug from `curl /api/v1/health` alone.
 
 ## API
 

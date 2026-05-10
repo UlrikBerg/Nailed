@@ -1,14 +1,23 @@
 require('dotenv').config();
 
-function required(name) {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing required env var: ${name}`);
-  return v;
-}
+// Module-load must NEVER throw. If a critical env var is missing, surface it via
+// config.issues + the /api/v1/health endpoint so ops can debug from logs and
+// the Hostinger edge proxy can still return 200 for static files.
+
+const issues = [];
 
 function optional(name, fallback) {
   const v = process.env[name];
   return v === undefined || v === '' ? fallback : v;
+}
+
+function expected(name, severity, hint) {
+  const v = process.env[name];
+  if (v === undefined || v === '') {
+    issues.push({ name, severity, hint });
+    return null;
+  }
+  return v;
 }
 
 function list(name) {
@@ -31,7 +40,10 @@ const config = {
   },
 
   jwt: {
-    secret: required('JWT_SECRET'),
+    // null when missing — auth endpoints fail with 503 + clear message,
+    // public endpoints keep working.
+    secret: expected('JWT_SECRET', 'critical',
+      'Generate with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"'),
     accessTtlSeconds: parseInt(optional('JWT_ACCESS_TTL_SECONDS', '900'), 10),
     refreshTtlDays: parseInt(optional('JWT_REFRESH_TTL_DAYS', '30'), 10),
   },
@@ -75,6 +87,27 @@ const config = {
       publicBaseUrl: optional('R2_PUBLIC_BASE_URL', ''),
     },
   },
+
+  issues,
 };
+
+// Cross-checks that depend on combinations of env vars.
+if (config.storage.backend === 'r2') {
+  const r = config.storage.r2;
+  if (!r.accountId || !r.accessKeyId || !r.secretAccessKey || !r.bucket || !r.publicBaseUrl) {
+    issues.push({
+      name: 'R2_*',
+      severity: 'critical',
+      hint: 'STORAGE_BACKEND=r2 but R2_ACCOUNT_ID/R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY/R2_BUCKET/R2_PUBLIC_BASE_URL are not all set. See docs/R2_SETUP.md.',
+    });
+  }
+}
+if (!config.db.password) {
+  issues.push({
+    name: 'DB_PASSWORD',
+    severity: 'warning',
+    hint: 'DB_PASSWORD is empty — DB queries will fail unless your MySQL user has no password.',
+  });
+}
 
 module.exports = config;

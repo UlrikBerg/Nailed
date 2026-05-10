@@ -54,8 +54,24 @@ function buildApp() {
   // Auth context (sets req.user when a valid Bearer is present).
   app.use(loadUser);
 
-  // Health check
-  app.get('/api/v1/health', (_req, res) => res.json({ ok: true, env: config.env }));
+  // Health check — also exposes config status (no secret values, just flags)
+  // so ops can `curl /api/v1/health` from prod and see what's missing.
+  app.get('/api/v1/health', (_req, res) => {
+    res.json({
+      ok: true,
+      env: config.env,
+      storage: config.storage.backend,
+      providers: {
+        google: config.google.enabled(),
+        vipps: config.vipps.enabled(),
+      },
+      ready: {
+        jwt: Boolean(config.jwt.secret),
+        db: Boolean(config.db.password),
+      },
+      issues: config.issues.map(i => ({ name: i.name, severity: i.severity })),
+    });
+  });
 
   // Routes
   app.use('/api/v1/auth', authRoutes);
