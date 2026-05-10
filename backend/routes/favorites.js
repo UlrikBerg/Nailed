@@ -3,6 +3,7 @@ const { z } = require('zod');
 const { query, queryOne } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { asyncRoute, HttpError } = require('../lib/util');
+const storage = require('../storage');
 
 const router = express.Router();
 
@@ -18,7 +19,12 @@ router.get('/', asyncRoute(async (req, res) => {
       ORDER BY f.created_at DESC`,
     [req.user.id]
   );
-  res.json({ favorites: rows });
+  res.json({
+    favorites: rows.map(r => ({
+      ...r,
+      cover_url: r.cover_image_key ? storage.publicUrl(r.cover_image_key) : null,
+    })),
+  });
 }));
 
 // POST /favorites — { salon_id }

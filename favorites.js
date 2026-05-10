@@ -74,7 +74,6 @@ function initFavorites() {
 function updateNavHeart() {
   var btn = document.querySelector('.btn-icon[data-fav]') || document.querySelector('.top-nav__actions .btn-icon');
   if (!btn) return;
-  if (!btn) return;
   var count = getFavorites().length;
   var badge = btn.querySelector('.fav-badge');
   if (count > 0) {

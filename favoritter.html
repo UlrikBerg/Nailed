@@ -149,10 +149,11 @@
     }
 
     function buildFavCard(fav) {
-      // Favorites endpoint returns cover_image_key but no cover_url — so fall
-      // back to a gradient. (Swapping in a real cover would need the server
-      // to expose cover_url here too.)
-      var photoStyle = 'background: ' + gradientFor(fav.id) + ';';
+      // Backend now returns cover_url alongside cover_image_key — use it when
+      // present, fall back to a gradient otherwise.
+      var photoStyle = fav.cover_url
+        ? 'background: #000 center/cover no-repeat url(\'' + escapeHtml(fav.cover_url) + '\');'
+        : 'background: ' + gradientFor(fav.id) + ';';
       var slug = encodeURIComponent(fav.slug || '');
       var locationLine = fav.city
         ? '<div class="service-card__meta"><i data-lucide="map-pin"></i>' + escapeHtml(fav.city) + '</div>'
@@ -210,13 +211,31 @@
       cta.textContent = 'Logg inn';
       cta.setAttribute('href', 'login.html?next=' + encodeURIComponent('/favoritter.html'));
 
-      // Also show any anonymous local favorites stored on this device.
+      // Also show any anonymous local favorites stored on this device, but
+      // only the ones that resolve to a real, active salon. Bogus slugs (from
+      // mock cards on the home page) are dropped silently — clicking them
+      // would 404 on /salon.html, which is worse than not showing them.
       var local = (typeof getFavorites === 'function') ? getFavorites() : [];
       if (local.length) {
-        var html = local.map(buildAnonCard).join('');
-        var anonGrid = document.getElementById('favAnonGrid');
-        anonGrid.innerHTML = html;
-        document.getElementById('favAnonExtra').style.display = '';
+        Promise.all(local.map(function (slug) {
+          return fetch('/api/v1/salons/' + encodeURIComponent(slug))
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (j) { return j && j.salon ? j.salon : null; })
+            .catch(function () { return null; });
+        })).then(function (results) {
+          var realSalons = results.filter(Boolean);
+          var anonGrid = document.getElementById('favAnonGrid');
+          if (!realSalons.length) {
+            // Quietly purge dead slugs from the cookie so the UI matches.
+            if (typeof saveFavorites === 'function') saveFavorites([]);
+            return;
+          }
+          // buildFavCard expects {id, slug, name, city, cover_url} — server
+          // already gives us all that.
+          anonGrid.innerHTML = realSalons.map(buildFavCard).join('');
+          document.getElementById('favAnonExtra').style.display = '';
+          window.lucide && window.lucide.createIcons();
+        });
         bindAnonHearts();
       }
       window.lucide && window.lucide.createIcons();
