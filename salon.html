@@ -79,8 +79,15 @@
       margin-top: 4px;
     }
 
-    /* Right column stacks the booking panel and a separate hours card. */
-    .salon-detail__right { display: flex; flex-direction: column; gap: 16px; }
+    /* Right column stacks the booking panel and a separate hours card.
+       Make the entire stack sticky so the inner cards never overlap. */
+    .salon-detail__right {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 100px;
+    }
     .booking-panel--side { padding: 20px 24px; }
 
     /* Compact opening-hours used inside the right-side card */
@@ -158,8 +165,9 @@
           <p class="salon-detail__about"></p>
           <div class="salon-detail__chips" id="amenitiesChips" style="display:none;"></div>
 
-          <!-- Åpningstider -->
-          <div class="salon-detail__section" id="hoursSection" style="display:none;">
+          <!-- Åpningstider — kept in DOM so renderHours() doesn't crash, but
+               hidden because the canonical hours card lives on the right side. -->
+          <div class="salon-detail__section" id="hoursSection" style="display:none;" hidden>
             <h3 class="salon-detail__section-title">Åpningstider</h3>
             <div class="salon-detail__section-card">
               <div class="profile-hours" id="hoursList"></div>
@@ -676,8 +684,8 @@
                 '</div>';
       }
       list.innerHTML = html;
-      section.style.display = '';
-      // Mirror into the right-side booking panel.
+      // Left-column section stays hidden; the canonical card lives on the right.
+      section.style.display = 'none';
       if (panelSection && panelList) {
         panelList.innerHTML = html;
         panelSection.style.display = '';

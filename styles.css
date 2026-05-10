@@ -828,8 +828,6 @@ p { margin: 0 0 var(--space-4) 0; }
   border-radius: var(--radius-xl);
   padding: 28px;
   box-shadow: var(--shadow-md);
-  position: sticky;
-  top: 100px;
 }
 .booking-panel__header {
   display: flex;
