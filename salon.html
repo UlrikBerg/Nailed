@@ -79,14 +79,18 @@
       margin-top: 4px;
     }
 
-    /* Compact opening-hours used inside the right-side booking panel */
+    /* Right column stacks the booking panel and a separate hours card. */
+    .salon-detail__right { display: flex; flex-direction: column; gap: 16px; }
+    .booking-panel--side { padding: 20px 24px; }
+
+    /* Compact opening-hours used inside the right-side card */
     .profile-hours--compact .profile-hours__row {
-      padding: 6px 0;
-      font-size: 13px;
+      padding: 7px 0;
+      font-size: 14px;
     }
     .profile-hours--compact .profile-hours__row.today {
-      margin: 0 -10px;
-      padding: 6px 10px;
+      margin: 0 -12px;
+      padding: 7px 12px;
     }
   </style>
 </head>
@@ -196,21 +200,14 @@
           </div>
         </div>
 
-        <!-- Right column: booking panel -->
+        <!-- Right column: booking panel + a separate hours card below it -->
+        <div class="salon-detail__right">
         <div class="booking-panel">
           <div class="booking-panel__header">
             <h3 id="bookingPanelTitle">Velg behandling</h3>
           </div>
 
           <div class="service-list" id="serviceList"></div>
-
-          <!-- Åpningstider — kompakt versjon i bookingpanelet -->
-          <div id="hoursPanelSection" style="display:none; margin-top: 20px;">
-            <div class="booking-panel__header" style="margin-bottom: 8px;">
-              <h3 style="font-size: 16px;">Åpningstider</h3>
-            </div>
-            <div class="profile-hours profile-hours--compact" id="hoursPanelList"></div>
-          </div>
 
           <div class="booking-panel__header" style="margin-top: 24px;">
             <h3>Velg en dag</h3>
@@ -235,6 +232,16 @@
           <div class="booking-panel__fineprint">
             <i data-lucide="shield-check"></i> Avbestill gratis inntil 24 timer før
           </div>
+        </div>
+
+        <!-- Separate Åpningstider card under the booking panel -->
+        <div id="hoursPanelSection" class="booking-panel booking-panel--side" style="display:none;">
+          <div class="booking-panel__header" style="margin-bottom: 12px;">
+            <h3>Åpningstider</h3>
+          </div>
+          <div class="profile-hours profile-hours--compact" id="hoursPanelList"></div>
+        </div>
+
         </div>
 
       </div>
