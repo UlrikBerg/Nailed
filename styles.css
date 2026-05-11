@@ -432,6 +432,20 @@ p { margin: 0 0 var(--space-4) 0; }
   transform: rotate(8deg);
   animation: spin 30s linear infinite;
   opacity: 0.92;
+  pointer-events: none;
+}
+/* Avoid overlapping the search bar on narrower viewports.
+   The hero search is max-width 760px and centered, so the sticker starts
+   to clip into it below ~1040px wide. We shrink + push it further off
+   the edge, then hide it entirely on mobile. */
+@media (max-width: 1040px) {
+  .hero__sticker { width: 160px; top: 40px; right: -64px; opacity: 0.82; }
+}
+@media (max-width: 820px) {
+  .hero__sticker { width: 120px; top: 28px; right: -52px; opacity: 0.75; }
+}
+@media (max-width: 640px) {
+  .hero__sticker { display: none; }
 }
 @keyframes spin { to { transform: rotate(368deg); } }
 
