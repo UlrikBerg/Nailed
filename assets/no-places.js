@@ -547,7 +547,10 @@
     var css = [
       '.nailed-places-wrap{position:relative;display:block;width:100%;}',
       '.nailed-places-wrap > input{width:100%;box-sizing:border-box;}',
-      '.nailed-places-dropdown{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:var(--cream-50,#fff);border:1px solid var(--stone-200,#e3dcd5);border-radius:12px;box-shadow:0 12px 32px rgba(27,18,24,0.12);max-height:min(440px,65vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;z-index:1000;display:none;font-family:var(--font-body,system-ui,sans-serif);scrollbar-width:thin;scrollbar-color:var(--stone-400,#a89e93) transparent;}',
+      // Dropdown is position:fixed and appended to <body> so it escapes any
+      // ancestor with overflow:hidden (e.g. .hero on the homepage clips its
+      // rotating sticker and was clipping this dropdown too).
+      '.nailed-places-dropdown{position:fixed;background:var(--cream-50,#fff);border:1px solid var(--stone-200,#e3dcd5);border-radius:12px;box-shadow:0 12px 32px rgba(27,18,24,0.12);max-height:min(440px,65vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;z-index:1000;display:none;font-family:var(--font-body,system-ui,sans-serif);scrollbar-width:thin;scrollbar-color:var(--stone-400,#a89e93) transparent;}',
       '.nailed-places-dropdown::-webkit-scrollbar{width:8px;}',
       '.nailed-places-dropdown::-webkit-scrollbar-thumb{background:var(--stone-400,#a89e93);border-radius:4px;}',
       '.nailed-places-dropdown::-webkit-scrollbar-thumb:hover{background:var(--stone-500,#86796d);}',
@@ -588,8 +591,9 @@
 
     opts = opts || {};
 
-    // Wrap the input in a positioned container so the dropdown can absolute-
-    // position relative to it. Preserve existing parent.
+    // Wrap the input in a positioned container so callers can flex-size it
+    // (e.g. /utforsk.html targets `.nailed-places-wrap` to grow inside the
+    // sted-search row). Preserve existing parent.
     var wrap = document.createElement('div');
     wrap.className = 'nailed-places-wrap';
     input.parentNode.insertBefore(wrap, input);
@@ -598,7 +602,35 @@
     var dropdown = document.createElement('div');
     dropdown.className = 'nailed-places-dropdown';
     dropdown.setAttribute('role', 'listbox');
-    wrap.appendChild(dropdown);
+    document.body.appendChild(dropdown);
+
+    function positionDropdown() {
+      var r = input.getBoundingClientRect();
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      var gap = 4;
+      var spaceBelow = vh - r.bottom - 8;
+      var spaceAbove = r.top - 8;
+      var maxH = Math.min(440, Math.max(160, vh - 16));
+      // Flip above if there's clearly more room above and below is cramped.
+      var openAbove = spaceBelow < 200 && spaceAbove > spaceBelow;
+      if (openAbove) {
+        var h = Math.min(maxH, spaceAbove);
+        dropdown.style.top = Math.max(8, r.top - gap - h) + 'px';
+        dropdown.style.maxHeight = h + 'px';
+      } else {
+        var h2 = Math.min(maxH, Math.max(160, spaceBelow));
+        dropdown.style.top = (r.bottom + gap) + 'px';
+        dropdown.style.maxHeight = h2 + 'px';
+      }
+      dropdown.style.left = r.left + 'px';
+      dropdown.style.width = r.width + 'px';
+    }
+
+    function onReflow() {
+      if (dropdown.classList.contains('is-open')) positionDropdown();
+    }
+    window.addEventListener('scroll', onReflow, true);
+    window.addEventListener('resize', onReflow);
 
     input.setAttribute('autocomplete', 'off');
     input.setAttribute('spellcheck', 'false');
@@ -632,6 +664,7 @@
         dropdown.innerHTML = '<div class="nailed-places-empty">Ingen treff. Prøv et annet sted.</div>';
         dropdown.classList.add('is-open');
         input.setAttribute('aria-expanded', 'true');
+        positionDropdown();
         return;
       }
       var html = '';
@@ -647,6 +680,7 @@
       dropdown.innerHTML = html;
       dropdown.classList.add('is-open');
       input.setAttribute('aria-expanded', 'true');
+      positionDropdown();
     }
 
     function close() {
