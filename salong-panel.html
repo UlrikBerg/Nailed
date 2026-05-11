@@ -1312,28 +1312,6 @@
       </nav>
       <div class="top-nav__actions">
         <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
-        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
-      </div>
-    </div>
-  </header>
-
-  <section class="kp-page">
-    <div class="page">
-
-      <!-- Greeting hero -->
-      <div class="kp-hero">
-        <div>
-          <h1 class="kp-hero__title">Hei, <em id="greetingName">der!</em></h1>
-          <p class="kp-hero__sub">Velkommen tilbake til salongpanelet.</p>
-          <div class="kp-hero__actions">
-            <button type="button" class="btn btn-ghost btn-sm" data-tab-goto="profil">
-              <i data-lucide="store"></i> Redigere salongprofil
-            </button>
-            <a class="btn btn-ghost btn-sm" id="publicLink" href="#" target="_blank">
-              <i data-lucide="external-link"></i> Se kundevisning
-            </a>
-          </div>
-        </div>
         <div class="kp-hero__userWrap">
           <button type="button" class="kp-hero__user" id="userMenuToggle" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu">
             <span class="kp-hero__avatar" id="avatar">U</span>
@@ -1359,6 +1337,27 @@
             <button type="button" class="kp-hero__menuItem" role="menuitem" id="userMenuLogout">
               <i data-lucide="log-out"></i> Logg ut
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="kp-page">
+    <div class="page">
+
+      <!-- Greeting hero -->
+      <div class="kp-hero">
+        <div>
+          <h1 class="kp-hero__title">Hei, <em id="greetingName">der!</em></h1>
+          <p class="kp-hero__sub">Velkommen tilbake til salongpanelet.</p>
+          <div class="kp-hero__actions">
+            <button type="button" class="btn btn-ghost btn-sm" data-tab-goto="profil">
+              <i data-lucide="store"></i> Redigere salongprofil
+            </button>
+            <a class="btn btn-ghost btn-sm" id="publicLink" href="#" target="_blank">
+              <i data-lucide="external-link"></i> Se kundevisning
+            </a>
           </div>
         </div>
       </div>
@@ -2309,7 +2308,10 @@
   <script src="/assets/forms.js"></script>
   <script src="/assets/amenities.js"></script>
   <script src="/assets/no-places.js"></script>
-  <script defer src="/assets/nav.js"></script>
+  <!-- nav.js intentionally NOT loaded here: salong-panel renders its own
+       full user-pill + dropdown directly in the top-nav. -->
+  <!-- <script defer src="/assets/nav.js"></script> -->
+
   <script>
     var salon = null;
 
