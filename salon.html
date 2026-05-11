@@ -1917,6 +1917,74 @@
       return 'Tilbys av: ' + names.join(', ');
     }
 
+    // Rewrite SEO tags (meta description, canonical, OG/Twitter, BeautySalon
+    // LD+JSON) based on the live API payload. Safe to call multiple times —
+    // we update existing tags in place and only inject the LD+JSON once.
+    function updateSalonSeo(data) {
+      try {
+        var s = (data && data.salon) || {};
+        var url = location.origin + location.pathname + '?slug=' + encodeURIComponent(s.slug || '');
+        var desc = (s.bio && String(s.bio).trim()) ||
+                   ('Book time hos ' + (s.name || 'salongen') + (s.city ? ' i ' + s.city : '') + ' på nailed.');
+        desc = String(desc).slice(0, 300);
+        var img = (s.cover_url) || (location.origin + '/assets/logo-wordmark.svg');
+        var title = (s.name || 'Salong') + ' — nailed';
+
+        function setMeta(selector, attr, value) {
+          var el = document.querySelector(selector);
+          if (el) el.setAttribute(attr, value);
+        }
+        setMeta('meta[name="description"]', 'content', desc);
+        setMeta('link[rel="canonical"]', 'href', url);
+        setMeta('meta[property="og:title"]', 'content', title);
+        setMeta('meta[property="og:description"]', 'content', desc);
+        setMeta('meta[property="og:url"]', 'content', url);
+        setMeta('meta[property="og:image"]', 'content', img);
+        setMeta('meta[name="twitter:title"]', 'content', title);
+        setMeta('meta[name="twitter:description"]', 'content', desc);
+        setMeta('meta[name="twitter:image"]', 'content', img);
+
+        // LD+JSON BeautySalon. Replace any prior one we injected.
+        var prior = document.getElementById('salonLdJson');
+        if (prior && prior.parentNode) prior.parentNode.removeChild(prior);
+        var ld = {
+          '@context': 'https://schema.org',
+          '@type': 'BeautySalon',
+          name: s.name || undefined,
+          description: desc,
+          url: url,
+          image: img,
+          address: (s.address_line || s.postal_code || s.city) ? {
+            '@type': 'PostalAddress',
+            streetAddress: s.address_line || undefined,
+            postalCode: s.postal_code || undefined,
+            addressLocality: s.city || undefined,
+            addressCountry: 'NO',
+          } : undefined,
+          geo: (Number.isFinite(s.lat) && Number.isFinite(s.lng)) ? {
+            '@type': 'GeoCoordinates',
+            latitude: s.lat,
+            longitude: s.lng,
+          } : undefined,
+          telephone: undefined, // public_phone_visible is off; don't expose
+        };
+        if (data && data.reviews && data.reviews.count > 0 && data.reviews.avg != null) {
+          ld.aggregateRating = {
+            '@type': 'AggregateRating',
+            ratingValue: data.reviews.avg,
+            reviewCount: data.reviews.count,
+          };
+        }
+        var script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.id = 'salonLdJson';
+        script.textContent = JSON.stringify(ld);
+        document.head.appendChild(script);
+      } catch (_) {
+        // SEO is best-effort; never let it break the page render.
+      }
+    }
+
     function renderSalon(data) {
       var s = data.salon || {};
       var services = Array.isArray(data.services) ? data.services : [];
