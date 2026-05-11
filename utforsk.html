@@ -150,39 +150,20 @@
     }
     .filter-row-vertical { display: flex; flex-direction: column; gap: 2px; }
 
-    /* Fylke-grid: 2 kolonner. Når en fylke er valgt collapsar grid'et til kun
-       den valgte pillen (med ✕-knapp) som full-width "header", resten skjules. */
-    #fylkeRow {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-    }
-    #fylkeRow .v-pill {
-      justify-content: center;
-      text-align: center;
-      padding: 7px 10px;
-      font-size: 13px;
-      min-height: 32px;
-      border-radius: 999px;
-      border: 1px solid var(--stone-200);
-      background: var(--cream-50);
-    }
-    #fylkeRow .v-pill:hover { background: var(--cream-100); }
+    /* Fylke: 1-kolonners liste. Når et fylke er valgt, header-pillen viser
+       et ✕ for å klarere valget. */
     #fylkeRow .v-pill.active {
-      grid-column: 1 / -1;
       background: var(--rouge-50);
-      border-color: var(--rouge-500);
+      border: 1px solid var(--rouge-500);
       color: var(--rouge-700);
       font-weight: 600;
       justify-content: space-between;
-      padding-right: 12px;
+      border-radius: 999px;
     }
-    #fylkeRow.is-collapsed > .v-pill:not(.active) {
-      display: none;
-    }
+    #fylkeRow.is-collapsed > .v-pill:not(.active) { display: none; }
     #fylkeRow .v-pill__clear {
       display: none;
-      margin-left: 6px;
+      margin-left: 8px;
       background: transparent;
       border: 0;
       cursor: pointer;
@@ -1041,7 +1022,10 @@
       if (currentCity) { stedTriggerLabel.textContent = currentCity; return; }
       if (currentFylke === 'all') { stedTriggerLabel.textContent = 'Hele Norge'; return; }
       var pill = document.querySelector('#fylkeRow [data-fylke="' + currentFylke + '"]');
-      stedTriggerLabel.textContent = pill ? pill.textContent.trim() : 'Hele Norge';
+      if (!pill) { stedTriggerLabel.textContent = 'Hele Norge'; return; }
+      // Read only the leading text node, not the appended ✕ clear-span.
+      var first = pill.childNodes[0];
+      stedTriggerLabel.textContent = (first && first.nodeType === 3 ? first.nodeValue : pill.textContent).replace(/✕/g, '').trim();
     }
 
     // Inject ✕ clear-buttons into every fylke pill (except 'all') so they
