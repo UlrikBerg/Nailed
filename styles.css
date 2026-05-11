@@ -1827,3 +1827,193 @@ p { margin: 0 0 var(--space-4) 0; }
 .user-pill__menu-item:focus-visible { background: var(--cream-100); outline: none; }
 .user-pill__menu-item i { width: 16px; height: 16px; color: var(--fg-muted); }
 .user-pill__menu-divider { height: 1px; background: var(--stone-200); margin: 6px 4px; }
+
+/* =========================================================================
+   Homepage: "Hvorfor nailed" — editorial promise row
+   Replaces the older .home-values card grid on index.html.
+   Layout: two columns on desktop (lede + list), single column on mobile.
+   ========================================================================= */
+
+.home-promise {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 56px;
+  align-items: start;
+  padding: 16px 0 8px;
+}
+@media (max-width: 880px) {
+  .home-promise { grid-template-columns: 1fr; gap: 32px; }
+}
+.home-promise__lede { max-width: 36ch; }
+.home-promise__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(28px, 3.4vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 12px 0 0;
+}
+.home-promise__title em {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--rouge-700);
+}
+.home-promise__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.home-promise__item {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 18px;
+  align-items: start;
+  padding: 22px 0;
+  border-top: 1px solid var(--stone-200);
+}
+.home-promise__item:last-child { border-bottom: 1px solid var(--stone-200); }
+.home-promise__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--rouge-50);
+  color: var(--rouge-600);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.home-promise__icon i { width: 20px; height: 20px; }
+.home-promise__h {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.home-promise__p {
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  color: var(--fg-muted);
+  line-height: 1.55;
+  margin: 4px 0 0;
+  max-width: 52ch;
+}
+
+/* =========================================================================
+   Homepage: "Salonger i din by" — city quick-filter chips
+   Each chip links to /utforsk.html?city=<canonical city name>.
+   No counts shown — we don't want to invent numbers we can't verify.
+   ========================================================================= */
+
+.home-cities {
+  background: var(--cream-50);
+  border: 1px solid var(--stone-200);
+  border-radius: var(--radius-2xl);
+  padding: 40px;
+}
+@media (max-width: 760px) {
+  .home-cities { padding: 28px 22px; border-radius: var(--radius-xl); }
+}
+.home-cities__head { margin-bottom: 22px; }
+.home-cities__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(24px, 2.8vw, 34px);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--ink);
+  margin: 8px 0 0;
+}
+.home-cities__title em {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--rouge-700);
+}
+.home-cities__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.home-city-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: var(--radius-pill);
+  background: var(--cream-100);
+  border: 1px solid var(--stone-200);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  transition: transform var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast);
+}
+.home-city-chip:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--cream-50);
+  transform: translateY(-1px);
+}
+.home-city-chip i { width: 14px; height: 14px; opacity: 0.7; }
+.home-city-chip:hover i { opacity: 1; }
+.home-city-chip--all {
+  background: var(--rouge-500);
+  border-color: var(--rouge-500);
+  color: var(--cream-50);
+}
+.home-city-chip--all:hover {
+  background: var(--rouge-600);
+  border-color: var(--rouge-600);
+  color: var(--cream-50);
+}
+
+/* =========================================================================
+   Homepage: pre-footer mini-CTA
+   Sits right above the footer to give a final push to /utforsk.html.
+   ========================================================================= */
+
+.home-prefooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 44px 48px;
+  background: var(--ink);
+  color: var(--cream-50);
+  border-radius: var(--radius-2xl);
+  flex-wrap: wrap;
+}
+@media (max-width: 760px) {
+  .home-prefooter { padding: 32px 24px; gap: 20px; text-align: center; justify-content: center; }
+}
+.home-prefooter__kicker {
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rouge-200);
+  margin-bottom: 10px;
+}
+.home-prefooter__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--cream-50);
+  max-width: 22ch;
+}
+.home-prefooter__title em {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--rouge-300);
+}
+.home-prefooter__cta { flex-shrink: 0; }

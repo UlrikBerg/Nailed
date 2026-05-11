@@ -171,47 +171,38 @@
   </section>
 
   <!-- ============================================================
-       Editorial quote band (rotated client-side)
+       Hvorfor nailed — value props (editorial row)
        ============================================================ -->
-  <section style="padding: 32px 0 56px;">
+  <section style="padding: 8px 0 64px;">
     <div class="page">
-      <div class="editorial-band">
-        <div class="editorial-band__inner">
-          <div class="editorial-band__quote" id="editorialQuote">
-            &ldquo;Gå inn med klør, <em>gå ut med kunst.</em>&rdquo;
-          </div>
-          <div class="editorial-band__attr" id="editorialAttr">— Maja, neglestylist · Studio Lakk</div>
+      <div class="home-promise">
+        <div class="home-promise__lede">
+          <div class="eyebrow">Hvorfor <em>nailed</em></div>
+          <h2 class="home-promise__title">Bygget for <em>norske salonger</em> — og kundene deres.</h2>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       Hvorfor nailed — value props
-       ============================================================ -->
-  <section style="padding: 0 0 56px;">
-    <div class="page">
-      <div class="section-head">
-        <div>
-          <h2>Hvorfor <em>nailed</em></h2>
-        </div>
-      </div>
-      <div class="home-values">
-        <div class="home-value">
-          <div class="home-value__icon"><i data-lucide="shield-check"></i></div>
-          <div class="home-value__title">Gratis avbestilling</div>
-          <p class="home-value__body">Avbestill opptil 24 timer før, helt gratis.</p>
-        </div>
-        <div class="home-value">
-          <div class="home-value__icon"><i data-lucide="star"></i></div>
-          <div class="home-value__title">Ekte anmeldelser</div>
-          <p class="home-value__body">Bare verifiserte kunder kan anmelde salonger på nailed.</p>
-        </div>
-        <div class="home-value">
-          <div class="home-value__icon"><i data-lucide="map-pin"></i></div>
-          <div class="home-value__title">Norske salonger</div>
-          <p class="home-value__body">Hjelp lokale skjønnhetssalonger vokse — uten provisjon.</p>
-        </div>
+        <ul class="home-promise__list">
+          <li class="home-promise__item">
+            <div class="home-promise__icon"><i data-lucide="shield-check"></i></div>
+            <div>
+              <div class="home-promise__h">Gratis avbestilling</div>
+              <p class="home-promise__p">Avbestill opptil 24 timer før time. Uten gebyr, uten kjas.</p>
+            </div>
+          </li>
+          <li class="home-promise__item">
+            <div class="home-promise__icon"><i data-lucide="badge-check"></i></div>
+            <div>
+              <div class="home-promise__h">Verifiserte anmeldelser</div>
+              <p class="home-promise__p">Bare kunder som faktisk har vært i salongen kan skrive en anmeldelse.</p>
+            </div>
+          </li>
+          <li class="home-promise__item">
+            <div class="home-promise__icon"><i data-lucide="heart-handshake"></i></div>
+            <div>
+              <div class="home-promise__h">Lokale, ikke kjeder</div>
+              <p class="home-promise__p">Hver booking går rett til salongen — vi tar ingen provisjon på behandlingen.</p>
+            </div>
+          </li>
+        </ul>
       </div>
     </div>
   </section>
@@ -219,15 +210,76 @@
   <!-- ============================================================
        Folkets favoritter — live API (top-rated)
        ============================================================ -->
-  <section id="topRatedSection" style="padding: 0 0 56px; display: none;">
+  <section id="topRatedSection" style="padding: 0 0 64px; display: none;">
     <div class="page">
       <div class="section-head">
         <div>
-          <h2>Folkets favoritter denne uken</h2>
+          <h2>Folkets favoritter <em>denne uken</em></h2>
         </div>
         <a class="section-head__link" href="utforsk?has_reviews=1&min_rating=4" style="text-decoration:none;">Se alle <i data-lucide="arrow-right"></i></a>
       </div>
       <div class="grid-3" id="topRatedGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Populære byer — quick-filter chips to /utforsk.html?city=X
+       ============================================================ -->
+  <section style="padding: 0 0 72px;">
+    <div class="page">
+      <div class="home-cities">
+        <div class="home-cities__head">
+          <div class="eyebrow">Bla etter sted</div>
+          <h2 class="home-cities__title">Salonger i <em>din by</em></h2>
+        </div>
+        <div class="home-cities__chips">
+          <a class="home-city-chip" href="/utforsk.html?city=Oslo">
+            <span class="home-city-chip__name">Oslo</span>
+            <i data-lucide="arrow-up-right"></i>
+          </a>
+          <a class="home-city-chip" href="/utforsk.html?city=Bergen">
+            <span class="home-city-chip__name">Bergen</span>
+            <i data-lucide="arrow-up-right"></i>
+          </a>
+          <a class="home-city-chip" href="/utforsk.html?city=Trondheim">
+            <span class="home-city-chip__name">Trondheim</span>
+            <i data-lucide="arrow-up-right"></i>
+          </a>
+          <a class="home-city-chip" href="/utforsk.html?city=Stavanger">
+            <span class="home-city-chip__name">Stavanger</span>
+            <i data-lucide="arrow-up-right"></i>
+          </a>
+          <a class="home-city-chip" href="/utforsk.html?city=Tromsø">
+            <span class="home-city-chip__name">Tromsø</span>
+            <i data-lucide="arrow-up-right"></i>
+          </a>
+          <a class="home-city-chip" href="/utforsk.html?city=Kristiansand">
+            <span class="home-city-chip__name">Kristiansand</span>
+            <i data-lucide="arrow-up-right"></i>
+          </a>
+          <a class="home-city-chip home-city-chip--all" href="/utforsk.html">
+            <span class="home-city-chip__name">Se alle</span>
+            <i data-lucide="arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Pre-footer mini-CTA — "Klar til å booke?"
+       ============================================================ -->
+  <section style="padding: 0 0 72px;">
+    <div class="page">
+      <div class="home-prefooter">
+        <div class="home-prefooter__text">
+          <div class="home-prefooter__kicker">Klar til å booke?</div>
+          <div class="home-prefooter__title">Finn en salong, og <em>book på et minutt.</em></div>
+        </div>
+        <a href="/utforsk.html" class="btn btn-primary btn-lg home-prefooter__cta">
+          Utforsk salonger <i data-lucide="arrow-right"></i>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -314,21 +366,6 @@
         nav.classList.remove('scrolled');
       }
     });
-
-    // Rotating editorial quote — picked once at page load from a small set.
-    (function () {
-      var quotes = [
-        { q: '&ldquo;Gå inn med klør, <em>gå ut med kunst.</em>&rdquo;', a: '— Maja, neglestylist · Studio Lakk' },
-        { q: '&ldquo;Skjønnhet er <em>en avtale med deg selv.</em>&rdquo;', a: '— nailed-redaksjonen' },
-        { q: '&ldquo;En time hos en god salong, <em>en uke i godt humør.</em>&rdquo;', a: '— nailed-redaksjonen' },
-        { q: '&ldquo;Vi liker små studioer, <em>store detaljer.</em>&rdquo;', a: '— nailed-redaksjonen' }
-      ];
-      var pick = quotes[Math.floor(Math.random() * quotes.length)];
-      var qEl = document.getElementById('editorialQuote');
-      var aEl = document.getElementById('editorialAttr');
-      if (qEl) qEl.innerHTML = pick.q;
-      if (aEl) aEl.textContent = pick.a;
-    })();
 
     // ----- Salon card rendering (shared between featured + top-rated grids) -----
     var FEATURED_FALLBACK_GRADIENTS = [
