@@ -55,8 +55,13 @@ function initFavorites() {
     }
   });
 
-  // Bind click events
+  // Bind click events. initFavorites() can be called more than once per page
+  // (index.html calls it after each grid renders), so guard with data-fav-bound
+  // to avoid stacking listeners — two listeners cause toggleFavorite to fire
+  // twice per click and cancel itself out.
   document.querySelectorAll('[data-fav]').forEach(function(btn) {
+    if (btn.dataset.favBound === '1') return;
+    btn.dataset.favBound = '1';
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
       e.preventDefault();
