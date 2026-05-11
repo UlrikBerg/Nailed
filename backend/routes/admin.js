@@ -231,6 +231,80 @@ router.post('/salon-applications/:id/reject', asyncRoute(async (req, res) => {
 }));
 
 // ----------------------------------------------------------------------------
+// Review reports (moderation queue for flagged reviews)
+// ----------------------------------------------------------------------------
+
+router.get('/review-reports', asyncRoute(async (req, res) => {
+  const status = (req.query.status || 'pending').toString();
+  const allowed = ['pending', 'dismissed', 'actioned', 'all'];
+  if (!allowed.includes(status)) throw new HttpError(400, 'bad_status', 'Ugyldig status.');
+
+  const where = status === 'all' ? '1 = 1' : 'rr.status = ?';
+  const params = status === 'all' ? [] : [status];
+
+  const rows = await query(
+    `SELECT rr.id, rr.review_id, rr.reason, rr.details, rr.status, rr.created_at,
+            rr.resolved_at,
+            SUBSTRING(r.body, 1, 200) AS review_snippet,
+            r.rating AS review_rating, r.hidden_at AS review_hidden_at,
+            s.name AS salon_name, s.slug AS salon_slug,
+            reporter.name AS reporter_name, reporter.email AS reporter_email
+       FROM review_reports rr
+       JOIN reviews r       ON r.id = rr.review_id
+       JOIN salons  s       ON s.id = r.salon_id
+       JOIN users   reporter ON reporter.id = rr.reporter_user_id
+      WHERE ${where}
+      ORDER BY rr.created_at DESC LIMIT 200`,
+    params
+  );
+  res.json({ reports: rows });
+}));
+
+router.patch('/review-reports/:id', asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+
+  const schema = z.object({ action: z.enum(['dismiss', 'hide']) });
+  const { action } = schema.parse(req.body || {});
+
+  const report = await queryOne(
+    `SELECT id, review_id, status FROM review_reports WHERE id = ?`,
+    [id]
+  );
+  if (!report) throw new HttpError(404, 'not_found', 'Rapporten finnes ikke.');
+  if (report.status !== 'pending') {
+    throw new HttpError(409, 'not_pending', 'Rapporten er allerede behandlet.');
+  }
+
+  if (action === 'dismiss') {
+    await query(
+      `UPDATE review_reports
+          SET status = 'dismissed', resolved_at = NOW(), resolved_by_user_id = ?
+        WHERE id = ?`,
+      [req.user.id, id]
+    );
+    await audit(req.user.id, 'review_report.dismiss', 'review_report', id, { review_id: report.review_id });
+    return res.json({ ok: true });
+  }
+
+  // action === 'hide' — atomically resolve the report AND hide the review.
+  await tx(async (conn) => {
+    await conn.execute(
+      `UPDATE review_reports
+          SET status = 'actioned', resolved_at = NOW(), resolved_by_user_id = ?
+        WHERE id = ?`,
+      [req.user.id, id]
+    );
+    await conn.execute(
+      `UPDATE reviews SET hidden_at = NOW() WHERE id = ? AND hidden_at IS NULL`,
+      [report.review_id]
+    );
+  });
+  await audit(req.user.id, 'review_report.hide', 'review_report', id, { review_id: report.review_id });
+  res.json({ ok: true });
+}));
+
+// ----------------------------------------------------------------------------
 // Bookings (read-only listing for admin)
 // ----------------------------------------------------------------------------
 
