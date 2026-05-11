@@ -1753,3 +1753,164 @@ p { margin: 0 0 var(--space-4) 0; }
 @media (max-width: 560px) { .home-stat + .home-stat { border-left: 0; } }
 .home-stat__num { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 3vw, 36px); color: var(--ink); letter-spacing: -0.02em; }
 .home-stat__label { font-family: var(--font-body); font-size: 13px; color: var(--fg-muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; }
+
+/* =========================================================================
+   Home — Finn.no-inspirert utility-fokusert forside
+   ========================================================================= */
+
+/* Hero: tighter, search-as-content. Soft cream wash that fades to bg. */
+.home-hero {
+  padding: 56px 0 72px;
+  background: linear-gradient(180deg, var(--cream-100) 0%, var(--cream-50) 100%);
+}
+@media (max-width: 760px) {
+  .home-hero { padding: 36px 0 48px; }
+}
+.home-hero__inner { gap: 14px; }
+.home-hero__title {
+  font-size: clamp(40px, 6.5vw, 72px);
+  line-height: 1.05;
+}
+.home-hero__sub {
+  font-size: 17px;
+  max-width: 58ch;
+}
+.home-hero__search-wrap {
+  max-width: 820px;
+  margin-top: 10px;
+}
+.home-hero__quick {
+  margin-top: 10px;
+  gap: 6px;
+}
+.home-hero__quick .chip { font-size: 13px; padding: 6px 12px; }
+.home-hero__quick .eyebrow { font-size: 12px; }
+
+/* Sticker reduced + pushed further off the edge. */
+.home-hero__sticker {
+  width: 140px;
+  top: 36px;
+  right: -56px;
+  opacity: 0.78;
+}
+@media (max-width: 1040px) {
+  .home-hero__sticker { width: 110px; top: 28px; right: -60px; opacity: 0.7; }
+}
+@media (max-width: 820px) {
+  .home-hero__sticker { width: 86px; top: 20px; right: -44px; opacity: 0.65; }
+}
+@media (max-width: 640px) {
+  .home-hero__sticker { display: none; }
+}
+
+/* Bigger search bar — Finn-style ~64px tall fields, named CTA. */
+.home-search-bar {
+  padding: 10px;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg, var(--shadow-md));
+}
+.home-search-bar .search-bar__field {
+  padding: 14px 24px;
+  gap: 14px;
+}
+.home-search-bar .search-bar__field-icon { width: 22px; height: 22px; }
+.home-search-bar .search-bar__label { font-size: 13px; }
+.home-search-bar .search-bar__field input { font-size: 15px; }
+.home-search-bar__cta {
+  width: auto;
+  min-width: 120px;
+  height: 64px;
+  padding: 0 26px;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+}
+.home-search-bar__cta i { width: 18px; height: 18px; }
+@media (max-width: 640px) {
+  .home-search-bar { border-radius: var(--radius-lg); padding: 8px; }
+  .home-search-bar .search-bar__field { padding: 10px 16px; }
+  .home-search-bar__cta { min-width: 0; width: 100%; height: 52px; }
+  .home-search-bar__cta span { display: inline; }
+}
+
+/* Section padding — 64px desktop, 40px mobile. */
+.home-section { padding: 64px 0; }
+.home-section--cats { padding-top: 48px; }
+.home-section--compact { padding: 48px 0; }
+@media (max-width: 760px) {
+  .home-section { padding: 40px 0; }
+  .home-section--cats { padding-top: 32px; }
+  .home-section--compact { padding: 32px 0; }
+}
+
+/* Section heading tweak — slightly smaller on the new home. */
+.home-section-head { margin-bottom: 22px; }
+.home-section-head h2 { font-size: clamp(26px, 3.4vw, 34px); }
+
+/* Category tile grid — 3x2 desktop, 2x3 tablet, 2-col mobile. */
+.home-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .home-cat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 420px) {
+  .home-cat-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+}
+
+.home-cat-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--stone-200);
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+.home-cat-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--stone-300, var(--rouge-100));
+}
+.home-cat-tile--a { background: var(--rouge-50); }
+.home-cat-tile--b { background: var(--cream-100); }
+.home-cat-tile__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--cream-50);
+  color: var(--rouge-600);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--stone-200);
+}
+.home-cat-tile__icon i { width: 22px; height: 22px; }
+.home-cat-tile__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+@media (max-width: 420px) {
+  .home-cat-tile { min-height: 120px; padding: 18px; }
+  .home-cat-tile__name { font-size: 17px; }
+  .home-cat-tile__icon { width: 38px; height: 38px; }
+  .home-cat-tile__icon i { width: 18px; height: 18px; }
+}
+
+/* Tighter "Slik fungerer" — smaller step number. */
+.home-steps--tight { gap: 24px; }
+.home-step__num--sm {
+  width: 36px;
+  height: 36px;
+  font-size: 15px;
+}
