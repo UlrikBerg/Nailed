@@ -3,9 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>nailed — utforsk</title>
+  <title>Utforsk salonger — nailed</title>
+  <meta name="description" content="Utforsk alle salonger på nailed. Filtrer på by, pris, behandling og åpningstider — finn perfekt salong for negler, vipper, bryn og makeup." />
+  <meta name="theme-color" content="#EE3F7E" />
+  <link rel="canonical" href="https://skyblue-cod-739202.hostingersite.com/utforsk.html" />
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="nailed" />
+  <meta property="og:title" content="Utforsk salonger — nailed" />
+  <meta property="og:description" content="Filtrer salonger på by, pris og behandling. Book time på nailed." />
+  <meta property="og:url" content="https://skyblue-cod-739202.hostingersite.com/utforsk.html" />
+  <meta property="og:image" content="https://skyblue-cod-739202.hostingersite.com/assets/logo-wordmark.svg" />
+  <meta property="og:locale" content="nb_NO" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Utforsk salonger — nailed" />
+  <meta name="twitter:description" content="Filtrer salonger på by, pris og behandling. Book time på nailed." />
+  <meta name="twitter:image" content="https://skyblue-cod-739202.hostingersite.com/assets/logo-wordmark.svg" />
   <style>
     /* Slide-down filter panel — opens above the fylke/city pills. */
     .filter-panel-bar {
@@ -147,6 +165,18 @@
     .card-pill--open .card-pill__dot { background: #2EA66F; box-shadow: 0 0 0 3px rgba(46, 166, 111, 0.16); }
     .card-pill--closed .card-pill__dot { background: var(--rouge-500); }
     .card-pill--closed-today .card-pill__dot { background: var(--stone-500); }
+    .card-pill__sep { color: var(--stone-400); margin: 0 1px; }
+    .card-pill__sub { color: var(--fg-muted); font-weight: 500; }
+
+    /* Stack salon name → location → rating with breathing room. The default
+       .service-card__row puts these three in one flexbox column with no gap;
+       we add an inner wrapper so the location/rating sit visually separate
+       from the name. Also shrink the location pin + text so it doesn't
+       compete with the salon name. */
+    .service-card__info { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .service-card__info .service-card__name { margin-bottom: 2px; }
+    .service-card__info .service-card__meta { font-size: 12px; }
+    .service-card__info .service-card__meta i { width: 12px; height: 12px; }
     .service-card__rating {
       display: inline-flex; align-items: center; gap: 4px;
       font-size: 13px; color: var(--ink); font-weight: 600;
@@ -610,13 +640,17 @@
         locationLine = '<div class="service-card__meta"><i data-lucide="map-pin"></i>' + escapeHtml(salon.city) + '</div>';
       }
 
-      // Open-now pill. The API returns is_open_now (bool). When null/0 we
-      // show "Stengt nå". We don't yet distinguish "Stengt i dag" from
-      // "Stengt nå" without the per-weekday is_closed flag — to keep this
-      // commit focused, surface both as "Stengt nå".
+      // Open-now pill. API returns is_open_now (bool) and reopens_today
+      // ('HH:MM' string when the salon will open later TODAY, else null).
       var openPill = '';
       if (salon.is_open_now === true) {
         openPill = '<span class="card-pill card-pill--open"><span class="card-pill__dot"></span>Åpent nå</span>';
+      } else if (salon.reopens_today) {
+        openPill = '<span class="card-pill card-pill--closed">'
+          + '<span class="card-pill__dot"></span>Stengt'
+          + '<span class="card-pill__sep">·</span>'
+          + '<span class="card-pill__sub">Åpner ' + escapeHtml(salon.reopens_today) + '</span>'
+          + '</span>';
       } else {
         openPill = '<span class="card-pill card-pill--closed"><span class="card-pill__dot"></span>Stengt nå</span>';
       }
@@ -669,7 +703,7 @@
           + '</div>'
           + '<div class="service-card__body">'
             + '<div class="service-card__row">'
-              + '<div>'
+              + '<div class="service-card__info">'
                 + '<div class="service-card__name">' + escapeHtml(salon.name || 'Salong') + '</div>'
                 + locationLine
                 + ratingLine
