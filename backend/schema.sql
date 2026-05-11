@@ -429,6 +429,12 @@ ALTER TABLE reviews
   ADD COLUMN IF NOT EXISTS owner_reply    TEXT DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS owner_reply_at DATETIME DEFAULT NULL;
 
+-- Reviews: author edit marker. NULL until the author edits the review; then
+-- holds the timestamp of the most recent edit (shown as "(redigert ...)" on
+-- public listings and the customer panel).
+ALTER TABLE reviews
+  ADD COLUMN IF NOT EXISTS edited_at DATETIME DEFAULT NULL;
+
 -- Add the FK on services.category_id only once. INFORMATION_SCHEMA check keeps
 -- this idempotent (MySQL has no ADD CONSTRAINT IF NOT EXISTS).
 SET @fk_exists := (

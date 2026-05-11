@@ -7,7 +7,7 @@
 const express = require('express');
 const { z } = require('zod');
 const { query, queryOne } = require('../db');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth } = require('../middleware/auth');
 const { asyncRoute, HttpError } = require('../lib/util');
 
 const router = express.Router();
@@ -130,6 +130,69 @@ router.post('/bookings/:id/review', requireAuth, asyncRoute(async (req, res) => 
   }
 }));
 
+// GET /reviews/mine — the caller's own reviews, newest first.
+// Includes hidden reviews so the author still sees what they wrote (if a hide
+// happened we don't surprise them by silently dropping it from their list).
+// MUST be declared before any `/:id` route so Express doesn't capture "mine"
+// as an id.
+router.get('/reviews/mine', requireAuth, asyncRoute(async (req, res) => {
+  const rows = await query(
+    `SELECT r.id, r.rating, r.body, r.created_at, r.edited_at,
+            s.id   AS salon_id, s.slug AS salon_slug, s.name AS salon_name,
+            b.id   AS booking_id,
+            sv.name AS service_name
+       FROM reviews r
+       JOIN salons   s  ON s.id  = r.salon_id
+       JOIN bookings b  ON b.id  = r.booking_id
+       JOIN services sv ON sv.id = b.service_id
+      WHERE r.customer_user_id = ?
+      ORDER BY r.created_at DESC`,
+    [req.user.id]
+  );
+
+  res.json({
+    reviews: rows.map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      body: r.body,
+      created_at: r.created_at,
+      edited_at: r.edited_at,
+      salon: { id: r.salon_id, slug: r.salon_slug, name: r.salon_name },
+      booking: { id: r.booking_id, service_name: r.service_name },
+    })),
+  });
+}));
+
+// PATCH /reviews/:id — author-only edit. Updates rating/body and marks
+// edited_at. 404 when the review is hidden or missing; 403 for non-authors.
+router.patch('/reviews/:id', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+
+  const schema = z.object({
+    rating: z.number().int().min(1).max(5),
+    body: z.string().trim().max(2000).optional().nullable(),
+  });
+  const data = schema.parse(req.body);
+
+  const review = await queryOne(
+    `SELECT id, customer_user_id, hidden_at FROM reviews WHERE id = ?`,
+    [id]
+  );
+  if (!review || review.hidden_at) {
+    throw new HttpError(404, 'not_found', 'Anmeldelsen finnes ikke.');
+  }
+  if (review.customer_user_id !== req.user.id) {
+    throw new HttpError(403, 'forbidden', 'Du kan bare redigere dine egne anmeldelser.');
+  }
+
+  await query(
+    `UPDATE reviews SET rating = ?, body = ?, edited_at = NOW() WHERE id = ?`,
+    [data.rating, data.body || null, id]
+  );
+  res.json({ ok: true });
+}));
+
 // PATCH /reviews/:id/reply — salon owner of the reviewed salon adds a reply.
 router.patch('/reviews/:id/reply', requireAuth, asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
@@ -160,17 +223,27 @@ router.patch('/reviews/:id/reply', requireAuth, asyncRoute(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// DELETE /reviews/:id — admin-only soft-hide (sets hidden_at = NOW()).
-// Audited in audit_log so we can trace removals later.
-router.delete('/reviews/:id', requireAuth, requireRole('admin'), asyncRoute(async (req, res) => {
+// DELETE /reviews/:id — soft-hide (sets hidden_at = NOW()).
+// Two allowed callers, same DB effect so the row stays consistent:
+//   - admin: moderation hide, audited as 'review.hide'.
+//   - author (the customer who wrote it): self-delete, audited as 'review.delete'.
+// Anyone else gets 403.
+router.delete('/reviews/:id', requireAuth, asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
 
   const review = await queryOne(
-    `SELECT id, salon_id, hidden_at FROM reviews WHERE id = ?`,
+    `SELECT id, salon_id, customer_user_id, hidden_at FROM reviews WHERE id = ?`,
     [id]
   );
   if (!review) throw new HttpError(404, 'not_found', 'Anmeldelsen finnes ikke.');
+
+  const isAdmin = req.user.role === 'admin';
+  const isAuthor = review.customer_user_id === req.user.id;
+  if (!isAdmin && !isAuthor) {
+    throw new HttpError(403, 'forbidden', 'Du har ikke tilgang til å slette denne anmeldelsen.');
+  }
+
   if (review.hidden_at) return res.json({ ok: true });
 
   await query(`UPDATE reviews SET hidden_at = NOW() WHERE id = ?`, [id]);
@@ -180,10 +253,16 @@ router.delete('/reviews/:id', requireAuth, requireRole('admin'), asyncRoute(asyn
     await query(
       `INSERT INTO audit_log (actor_user_id, action, entity_type, entity_id, meta_json)
        VALUES (?, ?, ?, ?, ?)`,
-      [req.user.id, 'review.hide', 'review', id, JSON.stringify({ salon_id: review.salon_id })]
+      [
+        req.user.id,
+        isAdmin ? 'review.hide' : 'review.delete',
+        'review',
+        id,
+        JSON.stringify({ salon_id: review.salon_id }),
+      ]
     );
   } catch (err) {
-    console.error('[audit] review.hide failed', err);
+    console.error('[audit] review delete/hide failed', err);
   }
 
   res.json({ ok: true });
