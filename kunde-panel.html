@@ -878,11 +878,10 @@
             <h3 class="kp-card__title">Last ned mine data</h3>
           </div>
           <p class="kp-card__desc">
-            Last ned alt vi har lagret om deg som JSON-fil — profil, sesjoner, bookinger,
-            favoritter, anmeldelser og søknader. Følger GDPR art. 20 (dataportabilitet).
+            Få en kopi av alt du har lagret på nailed.
           </p>
           <button class="btn btn-ghost" id="exportBtn">
-            <i data-lucide="download"></i> Last ned JSON
+            <i data-lucide="download"></i> Last ned data
           </button>
         </div>
 
@@ -892,8 +891,7 @@
             <h3 class="kp-card__title">Slett konto</h3>
           </div>
           <p class="kp-card__desc">
-            Sletter all profilinformasjon og logger deg ut. Booking-historikk beholdes
-            anonymisert i 5 år i samsvar med bokføringsloven.
+            Sletter kontoen din permanent. Denne handlingen kan ikke angres.
           </p>
           <button class="btn btn-ghost" id="deleteAccountBtn" style="color: var(--rouge-700); border-color: var(--rouge-200);">
             <i data-lucide="trash-2"></i> Slett konto
@@ -1056,6 +1054,41 @@
     function formatDateTime(iso) {
       return formatDate(iso) + ' · ' + formatTime(iso);
     }
+
+    function parseUserAgent(ua) {
+      if (!ua) return { browser: 'Ukjent', os: '', label: 'Ukjent enhet' };
+      ua = String(ua);
+
+      var os = 'Ukjent';
+      if (/iPhone/.test(ua))            os = 'iPhone';
+      else if (/iPad/.test(ua))         os = 'iPad';
+      else if (/Android/.test(ua))      os = 'Android';
+      else if (/Macintosh|Mac OS X/.test(ua)) os = 'Mac';
+      else if (/Windows/.test(ua))      os = 'Windows';
+      else if (/Linux/.test(ua))        os = 'Linux';
+      else if (/CrOS/.test(ua))         os = 'ChromeOS';
+
+      var browser = 'Ukjent';
+      if (/Edg\//.test(ua))             browser = 'Edge';
+      else if (/OPR\/|Opera/.test(ua))  browser = 'Opera';
+      else if (/Firefox\//.test(ua))    browser = 'Firefox';
+      else if (/Chrome\//.test(ua))     browser = 'Chrome';
+      else if (/Safari\//.test(ua))     browser = 'Safari';
+
+      var label = browser !== 'Ukjent' && os !== 'Ukjent'
+        ? browser + ' på ' + os
+        : (browser !== 'Ukjent' ? browser : (os !== 'Ukjent' ? os : 'Ukjent enhet'));
+
+      return { browser: browser, os: os, label: label };
+    }
+
+    function deviceIconForOs(os) {
+      if (os === 'iPhone' || os === 'Android') return 'smartphone';
+      if (os === 'iPad') return 'tablet';
+      return 'monitor';
+    }
+
+    var SESSION_DT_FMT = new Intl.DateTimeFormat('nb-NO', { dateStyle: 'long', timeStyle: 'short' });
 
     // ---------------------------------------------------------------------
     // Dashboard — KPI tiles + become-salon callout state
