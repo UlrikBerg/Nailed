@@ -3228,7 +3228,7 @@
 
       if (!imgs.length) {
         el.innerHTML =
-          '<button type="button" class="gallery-tile gallery-tile--add gallery-tile--empty" id="galleryAddTile" aria-label="Last opp bilder">' +
+          '<label for="imageUploader" class="gallery-tile gallery-tile--add gallery-tile--empty" id="galleryAddTile" role="button" tabindex="0" aria-label="Last opp bilder">' +
             '<i data-lucide="image-plus"></i>' +
             '<span class="gallery-tile__emptyTitle">Last opp dine første bilder</span>' +
             '<span class="gallery-tile__emptySub">Dra bilder hit, eller klikk for å velge</span>' +
@@ -3272,10 +3272,10 @@
 
       if (imgs.length < MAX_IMAGES_PER_SALON) {
         html +=
-          '<button type="button" class="gallery-tile gallery-tile--add" id="galleryAddTile" aria-label="Legg til bilde">' +
+          '<label for="imageUploader" class="gallery-tile gallery-tile--add" id="galleryAddTile" role="button" tabindex="0" aria-label="Legg til bilde">' +
             '<i data-lucide="plus"></i>' +
             '<span>Legg til bilde</span>' +
-          '</button>';
+          '</label>';
       }
 
       el.innerHTML = html;
