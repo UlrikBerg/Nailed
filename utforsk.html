@@ -150,7 +150,50 @@
     }
     .filter-row-vertical { display: flex; flex-direction: column; gap: 2px; }
 
-    /* Fylke-listen viser alle fylker som plain rader (samme som by-listen).
+    /* Sted-søkefelt (erstatter den gamle fylke/by-listen). */
+    .sted-search {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .sted-search__icon {
+      position: absolute;
+      left: 12px;
+      width: 16px; height: 16px;
+      color: var(--fg-muted);
+      pointer-events: none;
+    }
+    .sted-search__input {
+      width: 100%;
+      padding: 9px 36px 9px 36px;
+      border: 1px solid var(--stone-200);
+      border-radius: 999px;
+      background: var(--cream-50);
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .sted-search__input:focus {
+      outline: none;
+      border-color: var(--rouge-500);
+    }
+    .sted-search__clear {
+      position: absolute;
+      right: 6px;
+      width: 26px; height: 26px;
+      border-radius: 999px;
+      border: 0;
+      background: transparent;
+      color: var(--fg-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sted-search__clear:hover { color: var(--ink); background: var(--cream-100); }
+    .sted-search__clear i { width: 14px; height: 14px; }
+
+    /* Eksisterende fylke-css beholdes for kompatibilitet med skjulte noder. */
        Valg vises i sted-trigger-knappen — vi unngår å markere det valgte
        fylket i listen så det ikke dobles. ✕-clear-spannen skjules. */
     #fylkeRow .v-pill,
@@ -634,38 +677,19 @@
 
       <div class="utforsk-sidebar__sections">
 
-        <!-- Sted (accordion) -->
+        <!-- Sted (søk) -->
         <div class="filter-section">
           <p class="filter-section__label">Sted</p>
-          <div class="accordion" id="stedAccordion">
-            <button type="button" class="accordion__trigger" id="stedTrigger" aria-expanded="false">
-              <span id="stedTriggerLabel">Hele Norge</span>
-              <i data-lucide="chevron-right"></i>
+          <div class="sted-search" id="stedSearchWrap">
+            <i data-lucide="search" class="sted-search__icon"></i>
+            <input type="text" id="stedSearch" class="sted-search__input" placeholder="Søk fylke, by eller sted" autocomplete="off" />
+            <button type="button" class="sted-search__clear" id="stedSearchClear" aria-label="Nullstill" hidden>
+              <i data-lucide="x"></i>
             </button>
-            <div class="accordion__body">
-              <div class="filter-row-vertical" id="fylkeRow">
-                <button class="v-pill active" data-fylke="all">Hele Norge</button>
-                <button class="v-pill" data-fylke="oslo">Oslo</button>
-                <button class="v-pill" data-fylke="akershus">Akershus</button>
-                <button class="v-pill" data-fylke="vestland">Vestland</button>
-                <button class="v-pill" data-fylke="rogaland">Rogaland</button>
-                <button class="v-pill" data-fylke="trondelag">Trøndelag</button>
-                <button class="v-pill" data-fylke="innlandet">Innlandet</button>
-                <button class="v-pill" data-fylke="ostfold">Østfold</button>
-                <button class="v-pill" data-fylke="agder">Agder</button>
-                <button class="v-pill" data-fylke="buskerud">Buskerud</button>
-                <button class="v-pill" data-fylke="mr">Møre og Romsdal</button>
-                <button class="v-pill" data-fylke="vestfold">Vestfold</button>
-                <button class="v-pill" data-fylke="nordland">Nordland</button>
-                <button class="v-pill" data-fylke="telemark">Telemark</button>
-                <button class="v-pill" data-fylke="troms">Troms</button>
-                <button class="v-pill" data-fylke="finnmark">Finnmark</button>
-              </div>
-              <div class="filter-row-vertical" id="cityRow" style="display:none;">
-                <div id="citiesInner" class="filter-row-vertical"></div>
-              </div>
-            </div>
           </div>
+          <!-- Hidden compatibility nodes — eksisterende JS leser disse. -->
+          <div id="fylkeRow" style="display:none;"><button data-fylke="all" class="active">Hele Norge</button></div>
+          <div id="cityRow" style="display:none;"><div id="citiesInner"></div></div>
         </div>
 
         <!-- Behandling -->
@@ -1030,10 +1054,48 @@
       x.textContent = '✕';
       p.appendChild(x);
     });
-    function updateFylkeGridCollapse() {
-      // No-op: fylke-listen vises alltid full ut. Valg er reflektert i
-      // sted-trigger-knappen over.
-    }
+    function updateFylkeGridCollapse() { /* no-op (legacy hook) */ }
+
+    // --- Sted-søk: én input som typeahead'er kommune/tettsted/bydel -------
+    var FYLKER = ['Oslo','Akershus','Vestland','Rogaland','Trøndelag','Innlandet','Østfold','Agder','Buskerud','Møre og Romsdal','Vestfold','Nordland','Telemark','Troms','Finnmark'];
+    (function wireStedSearch() {
+      var input = document.getElementById('stedSearch');
+      var clearBtn = document.getElementById('stedSearchClear');
+      if (!input) return;
+      if (window.NailedPlaces && NailedPlaces.attachTypeahead) {
+        NailedPlaces.attachTypeahead(input, { permissive: true });
+      }
+      function applySearchValue() {
+        var v = (input.value || '').trim();
+        clearBtn.hidden = !v;
+        if (!v) {
+          currentFylke = 'all';
+          currentCity = null;
+        } else if (FYLKER.indexOf(v) >= 0) {
+          // Fylke-treff: vi har ingen fylke-filter i API'et per nå, så vi
+          // setter currentCity = null og lar brukeren se alle salonger.
+          // (Backend støtter ikke fylke-filter direkte — vi kunne lagt det
+          // til senere; nå er fylke-valget kun visuell intent.)
+          currentFylke = v.toLowerCase().replace(/[^a-z]/g, '').slice(0, 12) || 'all';
+          currentCity = null;
+        } else {
+          currentFylke = 'all';
+          currentCity = v;
+        }
+        refreshFilterBtnBadge();
+        syncUrl();
+        filterResults();
+      }
+      input.addEventListener('change', applySearchValue);
+      clearBtn.addEventListener('click', function () {
+        input.value = '';
+        if (input._nailedPlaces && input._nailedPlaces.setValue) input._nailedPlaces.setValue('');
+        applySearchValue();
+        input.focus();
+      });
+      // Seed from existing URL state
+      if (currentCity) input.value = currentCity;
+    })();
     // Fylke selection
     document.getElementById('fylkeRow').addEventListener('click', function(e) {
       // ✕ clear → revert to "all".
