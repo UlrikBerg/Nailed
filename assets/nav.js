@@ -1,7 +1,7 @@
 // Public-page top-nav: replaces the "Logg inn" button with a profile chip +
 // logout when the user is signed in. Role determines the home destination:
-//   user        → /kunde-panel.html       label: "Min konto"
-//   salon_owner → /salong-panel.html      label: "Salongpanel"
+//   user        → /kunde-panel            label: "Min konto"
+//   salon_owner → /salong-panel           label: "Salongpanel"
 //   admin       → /admin/                 label: "Admin"
 //
 // Self-contained: depends on /assets/auth.js for NailedAuth. No new CSS
@@ -24,8 +24,8 @@
 
   function homeForRole(role) {
     if (role === 'admin') return { href: '/admin/', label: 'Admin' };
-    if (role === 'salon_owner') return { href: '/salong-panel.html', label: 'Salongpanel' };
-    return { href: '/kunde-panel.html', label: 'Min konto' };
+    if (role === 'salon_owner') return { href: '/salong-panel', label: 'Salongpanel' };
+    return { href: '/kunde-panel', label: 'Min konto' };
   }
 
   function avatarHtml(name) {
@@ -43,7 +43,7 @@
     var anchors = actions.querySelectorAll('a');
     for (var i = 0; i < anchors.length; i++) {
       var href = anchors[i].getAttribute('href') || '';
-      if (/(^|\/)login\.html(\?|$|#)/.test(href)) return anchors[i];
+      if (/(^|\/)login(\.html)?(\?|$|#)/.test(href)) return anchors[i];
     }
     return null;
   }

@@ -646,13 +646,13 @@
         <img src="/assets/logo-wordmark.svg" alt="nailed" />
       </a>
       <nav class="top-nav__links">
-        <a href="/utforsk.html">Utforsk</a>
-        <a href="/for-salonger.html">For salonger</a>
-        <a href="/last-ned-app.html">Last ned app</a>
+        <a href="/utforsk">Utforsk</a>
+        <a href="/for-salonger">For salonger</a>
+        <a href="/last-ned-app">Last ned app</a>
       </nav>
       <div class="top-nav__actions">
-        <a href="/favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
-        <a href="/login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+        <a href="/favoritter" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="/login" class="btn btn-ghost btn-sm">Logg inn</a>
       </div>
     </div>
   </header>
@@ -1324,12 +1324,12 @@
         </div>
       </div>
       <div class="footer__links">
-        <a href="/utforsk.html">Utforsk</a>
-        <a href="/for-salonger.html">For salonger</a>
-        <a href="/last-ned-app.html">Last ned app</a>
-        <a href="/personvern.html">Personvern</a>
-        <a href="/vilkar.html">Bruksvilkår</a>
-        <a href="/cookies.html">Cookies</a>
+        <a href="/utforsk">Utforsk</a>
+        <a href="/for-salonger">For salonger</a>
+        <a href="/last-ned-app">Last ned app</a>
+        <a href="/personvern">Personvern</a>
+        <a href="/vilkar">Bruksvilkår</a>
+        <a href="/cookies">Cookies</a>
         <a href="#">FAQ</a>
         <a href="#">Kontakt oss</a>
         <a href="#">Om oss</a>
@@ -1775,7 +1775,7 @@
         }
 
         var profileLink = s.slug
-          ? '<a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="/salon.html?slug=' + encodeURIComponent(s.slug) + '"><i data-lucide="external-link"></i> Se profil</a>'
+          ? '<a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="/salon?slug=' + encodeURIComponent(s.slug) + '"><i data-lucide="external-link"></i> Se profil</a>'
           : '';
 
         var deleteBtn = (s.status !== 'deleted')
@@ -2354,7 +2354,7 @@
         } else {
           ts.innerHTML = data.top_salons.map(function (s) {
             var nameCell = s.slug
-              ? '<a href="/salon.html?slug=' + encodeURIComponent(s.slug) + '" target="_blank" rel="noopener">' + escapeHtml(s.name) + '</a>'
+              ? '<a href="/salon?slug=' + encodeURIComponent(s.slug) + '" target="_blank" rel="noopener">' + escapeHtml(s.name) + '</a>'
               : escapeHtml(s.name);
             return '<tr>' +
               '<td><strong>' + nameCell + '</strong></td>' +

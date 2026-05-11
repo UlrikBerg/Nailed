@@ -178,8 +178,8 @@
     body.innerHTML =
       'Vi bruker strengt nødvendige kapsler for at nailed skal fungere, og vil gjerne sette ' +
       'flere for å forbedre tjenesten. Du velger selv. Les mer i vår ' +
-      '<a href="/cookies.html">cookie-erklæring</a> og ' +
-      '<a href="/personvern.html">personvernerklæring</a>.';
+      '<a href="/cookies">cookie-erklæring</a> og ' +
+      '<a href="/personvern">personvernerklæring</a>.';
     wrap.appendChild(body);
 
     var actions = document.createElement('div');

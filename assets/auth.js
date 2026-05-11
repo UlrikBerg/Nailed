@@ -76,21 +76,21 @@
   // Redirect helper for panel pages.
   async function requireAuth(redirectTo) {
     if (!isLoggedIn()) {
-      window.location.replace('/login.html?next=' + encodeURIComponent(window.location.pathname));
+      window.location.replace('/login?next=' + encodeURIComponent(window.location.pathname));
       return null;
     }
     var res = await api('/api/v1/me');
     if (!res.ok) {
       clearTokens();
-      window.location.replace('/login.html?next=' + encodeURIComponent(window.location.pathname));
+      window.location.replace('/login?next=' + encodeURIComponent(window.location.pathname));
       return null;
     }
     var data = await res.json();
     if (redirectTo && data.user.role !== redirectTo && data.user.role !== 'admin') {
       // Wrong panel for this role — send to their home.
-      var home = data.user.role === 'salon_owner' ? '/salong-panel.html'
+      var home = data.user.role === 'salon_owner' ? '/salong-panel'
                : data.user.role === 'admin' ? '/admin/'
-               : '/kunde-panel.html';
+               : '/kunde-panel';
       window.location.replace(home);
       return null;
     }

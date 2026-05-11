@@ -63,23 +63,23 @@
 
   <header class="top-nav" id="topNav">
     <div class="page top-nav__inner">
-      <a class="top-nav__brand" href="index.html">
+      <a class="top-nav__brand" href="/">
         <img src="assets/logo-wordmark.svg" alt="nailed" />
       </a>
       <nav class="top-nav__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
       </nav>
       <div class="top-nav__actions">
-        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
-        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+        <a href="favoritter" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login" class="btn btn-ghost btn-sm">Logg inn</a>
       </div>
     </div>
   </header>
 
   <main class="apply">
-    <a class="apply__back" href="/kunde-panel.html"><i data-lucide="arrow-left"></i> Tilbake</a>
+    <a class="apply__back" href="/kunde-panel"><i data-lucide="arrow-left"></i> Tilbake</a>
 
     <h1>Bli salong på <em>nailed</em></h1>
     <p class="apply__lede">
@@ -141,7 +141,7 @@
         <div style="grid-column: 1 / -1;">
           <p class="help-text" style="margin-bottom: 16px;">
             Ved å sende inn søknaden samtykker du til at vi behandler informasjonen for vurdering. Se
-            <a href="/personvern.html">personvernerklæring</a>. Som registrert salong er du selv ansvarlig for skatt,
+            <a href="/personvern">personvernerklæring</a>. Som registrert salong er du selv ansvarlig for skatt,
             yrkesgodkjenning og forsvarlig behandling i henhold til norsk lov.
           </p>
           <button class="btn btn-primary" type="submit"><i data-lucide="send"></i> Send søknad</button>
@@ -191,7 +191,7 @@
           '<div class="status-card status-card--approved">' +
           '<h3>Søknad godkjent</h3>' +
           '<p>Velkommen som salong på nailed!</p>' +
-          '<a class="btn btn-primary" href="/salong-panel.html" style="margin-top: 12px;">Gå til salongpanel</a>' +
+          '<a class="btn btn-primary" href="/salong-panel" style="margin-top: 12px;">Gå til salongpanel</a>' +
           '</div>';
         statusContainer.innerHTML = card;
       } else if (application.status === 'rejected') {

@@ -118,6 +118,28 @@ function buildApp() {
   // repo root would shadow our dynamic version.
   app.use('/', seoRoutes);
 
+  // Pretty URLs: 301-redirect any incoming /foo.html request to /foo.
+  // The static handler below uses `extensions: ['html']`, so /foo already
+  // resolves to /foo.html on disk — this middleware just rewrites the
+  // address bar (and pleases SEO crawlers by giving a single canonical URL).
+  //
+  // Skips /api/*, /sitemap.xml and /robots.txt so we never break server
+  // routes. Preserves the query string. /index.html collapses to / and
+  // /admin/index.html collapses to /admin/.
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    if (req.path.startsWith('/api/')) return next();
+    if (req.path === '/sitemap.xml' || req.path === '/robots.txt') return next();
+    const m = /^(\/[A-Za-z0-9_\-\/]*)\.html$/.exec(req.path);
+    if (!m) return next();
+    let newPath = m[1];
+    // /index → /, /admin/index → /admin/
+    if (newPath === '/index') newPath = '/';
+    else if (newPath.endsWith('/index')) newPath = newPath.slice(0, -'index'.length);
+    const qs = req.url.slice(req.path.length); // preserves ?slug=... etc.
+    return res.redirect(301, newPath + qs);
+  });
+
   // Static frontend (project root). API mounts at /api/v1 below.
   app.use(express.static(path.join(__dirname, '..'), {
     extensions: ['html'],

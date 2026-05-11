@@ -12,17 +12,17 @@
 
   <header class="top-nav" id="topNav">
     <div class="page top-nav__inner">
-      <a class="top-nav__brand" href="index.html">
+      <a class="top-nav__brand" href="/">
         <img src="assets/logo-wordmark.svg" alt="nailed" />
       </a>
       <nav class="top-nav__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
       </nav>
       <div class="top-nav__actions">
-        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
-        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+        <a href="favoritter" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login" class="btn btn-ghost btn-sm">Logg inn</a>
       </div>
     </div>
   </header>
@@ -109,13 +109,13 @@
       </div>
 
       <div class="confirm__actions">
-        <a href="kunde-panel.html" class="btn btn-ghost">Til mine bookinger</a>
+        <a href="kunde-panel" class="btn btn-ghost">Til mine bookinger</a>
         <!-- Hidden until the booking id + token are confirmed in init(); the
              route is auth-gated so a plain href download would never authenticate. -->
         <button id="icsBtn" class="btn btn-ghost" type="button" style="display:none;">
           <i data-lucide="calendar-plus"></i> Legg til i kalender
         </button>
-        <a href="utforsk.html" class="btn btn-primary">Utforsk flere salonger</a>
+        <a href="utforsk" class="btn btn-primary">Utforsk flere salonger</a>
       </div>
     </div>
   </section>
@@ -131,12 +131,12 @@
         </div>
       </div>
       <div class="footer__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
-        <a href="/personvern.html">Personvern</a>
-        <a href="/vilkar.html">Bruksvilkår</a>
-        <a href="/cookies.html">Cookies</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
+        <a href="/personvern">Personvern</a>
+        <a href="/vilkar">Bruksvilkår</a>
+        <a href="/cookies">Cookies</a>
       </div>
       <div class="footer__bottom">
         <small>&copy; 2026 nailed AS &middot; Made in Norway</small>
@@ -170,7 +170,7 @@
         '<div style="text-align:center; padding: 80px 24px;">' +
         '<h1 style="margin:0 0 12px;">' + escapeHtml(title) + '</h1>' +
         '<p style="color: var(--fg-muted); margin: 0 0 24px;">' + escapeHtml(message) + '</p>' +
-        '<a class="btn btn-primary" href="/kunde-panel.html">Til mine bookinger</a>' +
+        '<a class="btn btn-primary" href="/kunde-panel">Til mine bookinger</a>' +
         '</div>';
     }
 
@@ -189,7 +189,7 @@
         return;
       }
       if (!window.NailedAuth || !NailedAuth.isLoggedIn()) {
-        location.replace('/login.html?next=' + encodeURIComponent(location.pathname + location.search));
+        location.replace('/login?next=' + encodeURIComponent(location.pathname + location.search));
         return;
       }
 
@@ -228,7 +228,7 @@
 
       document.getElementById('confWhat').textContent = booking.service_name || '';
       var salonLink = document.createElement('a');
-      salonLink.href = '/salon.html?slug=' + encodeURIComponent(booking.salon_slug || '');
+      salonLink.href = '/salon?slug=' + encodeURIComponent(booking.salon_slug || '');
       salonLink.textContent = booking.salon_name || '';
       var where = document.getElementById('confWhere');
       where.textContent = '';
