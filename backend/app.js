@@ -137,6 +137,8 @@ function buildApp() {
       providers: {
         google: config.google.enabled(),
         vipps: config.vipps.enabled(),
+        email: config.notify.email.enabled(),
+        sms:   config.notify.sms.enabled(),
       },
       ready: {
         jwt: Boolean(config.jwt.secret),

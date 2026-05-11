@@ -628,6 +628,31 @@ CREATE TABLE IF NOT EXISTS waitlist_entries (
 -- UNIQUE (reporter_user_id, review_id) prevents the same user reporting the
 -- same review twice.
 -- -----------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
+-- notification_log
+-- Append-only audit + dedup of every email/SMS send attempt. `kind` namespaces
+-- the notification type (e.g. 'booking_created.customer', 'booking_reminder.customer').
+-- Used as the dedup index for reminders: before firing 'booking_reminder.*' we
+-- check for an existing 'sent' row on the same (booking_id, kind).
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS notification_log (
+  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  booking_id   BIGINT UNSIGNED DEFAULT NULL,
+  user_id      BIGINT UNSIGNED DEFAULT NULL,
+  channel      ENUM('email','sms') NOT NULL,
+  kind         VARCHAR(64) NOT NULL,
+  recipient    VARCHAR(255) NOT NULL,
+  provider_id  VARCHAR(128) DEFAULT NULL,
+  status       ENUM('sent','failed','skipped') NOT NULL,
+  error        TEXT DEFAULT NULL,
+  created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_booking_kind (booking_id, kind),
+  KEY idx_user (user_id),
+  CONSTRAINT fk_nl_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL,
+  CONSTRAINT fk_nl_user    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS review_reports (
   id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   review_id    BIGINT UNSIGNED NOT NULL,
