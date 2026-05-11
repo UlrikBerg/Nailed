@@ -1542,6 +1542,13 @@
         var data = await res.json();
         ALL_SALONS = Array.isArray(data.salons) ? data.salons : [];
       } catch (err) {
+        // Tøm DOM-cards så bruker ikke ser stale resultater fra forrige
+        // filterstate samtidig som «Kunne ikke laste»-melding vises.
+        ALL_SALONS = [];
+        var gridErr = document.getElementById('resultsGrid');
+        if (gridErr) gridErr.querySelectorAll('.service-card').forEach(function (c) { c.parentNode.removeChild(c); });
+        var headErr = document.getElementById('resultsHeadCount');
+        if (headErr) headErr.textContent = '';
         setState('Kunne ikke laste salonger. Prøv igjen senere.');
         return;
       }
@@ -1687,10 +1694,19 @@
       fState.min_rating = null;
       fState.open_now = false;
       fState.has_reviews = false;
+      currentQ = '';
       currentFylke = 'all';
       currentCity = null;
       currentTx = 'all';
       activeQuick = [];
+      // Rydd Sted-søk-inputen så bruker ikke ser «Halden» igjen etter Nullstill.
+      var stedInput = document.getElementById('stedSearch');
+      var stedClear = document.getElementById('stedSearchClear');
+      if (stedInput) {
+        stedInput.value = '';
+        if (stedInput._nailedPlaces && stedInput._nailedPlaces.setValue) stedInput._nailedPlaces.setValue('');
+      }
+      if (stedClear) stedClear.hidden = true;
       // Reset visual state of pill rows
       document.querySelectorAll('#fylkeRow .v-pill').forEach(function (p) { p.classList.remove('active'); });
       var allFylke = document.querySelector('#fylkeRow [data-fylke="all"]');
