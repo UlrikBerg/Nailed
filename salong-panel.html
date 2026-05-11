@@ -2869,6 +2869,8 @@
       if (!m) return;
       var card = document.querySelector('.team-edit-card[data-member="' + id + '"]');
       if (!card) return;
+      var notifyEmail = (m.notify_email_bookings === false) ? false : true;
+      var notifySms = m.notify_sms_bookings === true;
       // Replace card contents with inline edit form
       card.innerHTML =
         '<form class="team-edit-form" data-team-form="' + id + '">' +
@@ -2884,6 +2886,31 @@
             '<label>Bio</label>' +
             '<textarea class="form-input" name="bio" rows="2" maxlength="500">' + escapeHtml(m.bio || '') + '</textarea>' +
           '</div>' +
+          '<div class="form-group">' +
+            '<label>E-post (privat)</label>' +
+            '<input class="form-input" name="email" type="email" maxlength="255" value="' + escapeHtml(m.email || '') + '" placeholder="navn@eksempel.no" />' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label>Telefon (privat)</label>' +
+            '<input class="form-input" name="phone" type="tel" maxlength="32" value="' + escapeHtml(m.phone || '') + '" placeholder="+47…" />' +
+          '</div>' +
+          '<div class="form-group form-group--full" style="display:grid; gap:8px; padding:10px 12px; background:var(--cream-100, #F4ECDF); border-radius:10px;">' +
+            '<div style="font-size:12px; font-weight:600; color: var(--fg-muted);">Egne booking-varsler til dette teammedlemmet</div>' +
+            '<label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">' +
+              '<input type="checkbox" name="notify_email_bookings" style="margin-top:3px;"' + (notifyEmail ? ' checked' : '') + ' />' +
+              '<span>' +
+                '<span style="display:block; font-weight:600;">E-post-varsler</span>' +
+                '<span style="display:block; color: var(--fg-muted); font-size:13px;">Send e-post når en booking tildeles dette medlemmet.</span>' +
+              '</span>' +
+            '</label>' +
+            '<label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">' +
+              '<input type="checkbox" name="notify_sms_bookings" style="margin-top:3px;"' + (notifySms ? ' checked' : '') + ' />' +
+              '<span>' +
+                '<span style="display:block; font-weight:600;">SMS-varsler</span>' +
+                '<span style="display:block; color: var(--fg-muted); font-size:13px;">Send SMS til medlemmets telefonnummer ved tildelt booking.</span>' +
+              '</span>' +
+            '</label>' +
+          '</div>' +
           '<div class="form-group--full" style="display:flex; gap:8px;">' +
             '<button class="btn btn-primary btn-sm" type="submit"><i data-lucide="save"></i> Lagre</button>' +
             '<button class="btn btn-ghost btn-sm" type="button" data-team-cancel>Avbryt</button>' +
@@ -2896,6 +2923,10 @@
           name: (fd.get('name') || '').toString().trim(),
           role: ((fd.get('role') || '').toString().trim() || null),
           bio: ((fd.get('bio') || '').toString().trim() || null),
+          email: ((fd.get('email') || '').toString().trim() || null),
+          phone: ((fd.get('phone') || '').toString().trim() || null),
+          notify_email_bookings: !!fd.get('notify_email_bookings'),
+          notify_sms_bookings: !!fd.get('notify_sms_bookings'),
         };
         var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/team/' + id, { method: 'PATCH', body: body });
         if (!res.ok) {

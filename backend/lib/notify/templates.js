@@ -581,13 +581,145 @@ function bookingReminderCustomerSms(ctx) {
   return `nailed: Påminnelse — ${ctx.serviceName} hos ${ctx.salonName} ${fmtShortDate(ctx.startAt)} kl. ${fmtTime(ctx.startAt)}.`;
 }
 
+// =============================================================================
+// bookingCreated.team — addressed to the assigned stylist directly
+// =============================================================================
+// ctx: { teamMemberName, salonName, serviceName, durationMin, startAt, endAt,
+//        customerDisplayName, customerPhone, customerNote, bookingId, occurrences }
+function bookingCreatedTeam(ctx) {
+  const isSeries = ctx.occurrences && ctx.occurrences.length > 1;
+  const subject = isSeries
+    ? `Ny serie tildelt: ${ctx.customerDisplayName || 'kunde'} (${ctx.occurrences.length} timer)`
+    : `Ny time tildelt: ${ctx.customerDisplayName || 'kunde'} · ${fmtShortDate(ctx.startAt)} kl. ${fmtTime(ctx.startAt)}`;
+  const preheader = `${ctx.serviceName} · ${fmtShortDate(ctx.startAt)} kl. ${fmtTime(ctx.startAt)}`;
+
+  const panelLink = `${baseUrl()}/salong-panel.html`;
+  const callLink = ctx.customerPhone ? `tel:${ctx.customerPhone.replace(/\s+/g, '')}` : null;
+
+  let body = '';
+  body += heroHtml({
+    title: isSeries ? `Ny serie tildelt deg` : `Ny time tildelt deg`,
+    accent: 'Behandler',
+  });
+  body += `<p style="margin:0 0 22px 0;font-size:15px;line-height:1.55;color:${C.fgMuted};">Hei ${escapeHtml(ctx.teamMemberName || '')}, du har fått en ny time hos <strong style="color:${C.ink};">${escapeHtml(ctx.salonName)}</strong>.</p>`;
+
+  if (isSeries) {
+    body += `<div style="margin:0 0 20px 0;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${C.rouge700};margin-bottom:8px;">${ctx.occurrences.length} tider</div>
+      <ul style="margin:0;padding:0 0 0 20px;color:${C.ink};font-size:14px;line-height:1.7;">
+        ${ctx.occurrences.map(o => `<li>${escapeHtml(fmtDateTime(o.start_at))}</li>`).join('')}
+      </ul>
+    </div>`;
+  } else {
+    body += whenBlockHtml({ startAt: ctx.startAt, endAt: ctx.endAt, durationMin: ctx.durationMin });
+  }
+
+  body += detailSectionHtml('Kunde', [
+    { label: 'Navn', value: ctx.customerDisplayName || '—' },
+    ctx.customerPhone ? {
+      label: 'Telefon',
+      value: callLink
+        ? `<a href="${callLink}" style="color:${C.rouge700};text-decoration:none;">${escapeHtml(ctx.customerPhone)}</a>`
+        : escapeHtml(ctx.customerPhone),
+      html: true,
+    } : null,
+  ]);
+
+  body += detailSectionHtml('Behandling', [
+    { label: 'Tjeneste', value: ctx.serviceName },
+    ctx.durationMin ? { label: 'Varighet', value: `${ctx.durationMin} min` } : null,
+  ]);
+
+  if (ctx.customerNote) {
+    body += `<div style="margin:0 0 18px 0;padding:14px 16px;background:${C.cream};border:1px dashed ${C.stone200};border-radius:10px;color:${C.ink};font-size:13px;line-height:1.55;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${C.fgMuted};margin-bottom:6px;">Beskjed fra kunden</div>
+      ${escapeHtml(ctx.customerNote)}
+    </div>`;
+  }
+
+  body += buttonHtml('Åpne salong-panelet', panelLink);
+  body += divider();
+  body += `<div style="font-size:12px;color:${C.fgMuted};">Bookings-ID: <span style="font-family:Menlo,Consolas,monospace;color:${C.ink};">#${escapeHtml(String(ctx.bookingId))}</span></div>`;
+
+  const lines = [
+    `Hei ${ctx.teamMemberName || ''},`,
+    '',
+    isSeries
+      ? `Du har fått tildelt ${ctx.occurrences.length} timer hos ${ctx.salonName}:`
+      : `Du har fått tildelt en ny time hos ${ctx.salonName}:`,
+    '',
+  ];
+  if (isSeries) {
+    for (const o of ctx.occurrences) lines.push(`  • ${fmtDateTime(o.start_at)}`);
+  } else {
+    lines.push(`Tid: ${fmtDateTime(ctx.startAt)}`);
+    if (ctx.durationMin) lines.push(`Varighet: ${ctx.durationMin} min`);
+  }
+  lines.push('');
+  lines.push(`Kunde: ${ctx.customerDisplayName || '—'}`);
+  if (ctx.customerPhone) lines.push(`Telefon: ${ctx.customerPhone}`);
+  lines.push('');
+  lines.push(`Behandling: ${ctx.serviceName}`);
+  if (ctx.customerNote) lines.push('', `Beskjed fra kunden: ${ctx.customerNote}`);
+  lines.push('', `Åpne salong-panelet: ${panelLink}`);
+  lines.push(`Bookings-ID: #${ctx.bookingId}`);
+
+  return { subject, html: shell({ bodyHtml: body, preheader }), text: lines.join('\n') };
+}
+
+// =============================================================================
+// bookingCreated.team SMS
+// =============================================================================
+function bookingCreatedTeamSms(ctx) {
+  if (ctx.occurrences && ctx.occurrences.length > 1) {
+    return `nailed: Ny serie (${ctx.occurrences.length}×) tildelt deg — første ${fmtShortDate(ctx.startAt)} kl. ${fmtTime(ctx.startAt)} · ${ctx.customerDisplayName || 'kunde'} · ${ctx.serviceName}`;
+  }
+  return `nailed: Ny time ${fmtShortDate(ctx.startAt)} kl. ${fmtTime(ctx.startAt)} — ${ctx.customerDisplayName || 'kunde'} · ${ctx.serviceName}`;
+}
+
+// =============================================================================
+// bookingCancelled.team (customer cancelled — stylist's slot freed up)
+// =============================================================================
+function bookingCancelledTeam(ctx) {
+  const subject = `Avbestilt: ${ctx.customerDisplayName || 'kunde'} · ${fmtShortDate(ctx.startAt)} kl. ${fmtTime(ctx.startAt)}`;
+  const preheader = `${ctx.customerDisplayName || 'Kunden'} har avbestilt — slotten din er ledig igjen`;
+  const link = `${baseUrl()}/salong-panel.html`;
+
+  let body = '';
+  body += heroHtml({ title: 'Kunden har avbestilt', accent: 'Avbestilling' });
+  body += `<p style="margin:0 0 22px 0;font-size:15px;line-height:1.55;color:${C.fgMuted};">Hei ${escapeHtml(ctx.teamMemberName || '')}, en time hos <strong style="color:${C.ink};">${escapeHtml(ctx.salonName)}</strong> ble avbestilt. Slotten er nå ledig igjen.</p>`;
+  body += whenBlockHtml({ startAt: ctx.startAt });
+  body += detailSectionHtml('Det gjaldt', [
+    { label: 'Kunde', value: ctx.customerDisplayName || '—' },
+    { label: 'Behandling', value: ctx.serviceName },
+  ]);
+  body += buttonHtml('Åpne salong-panelet', link);
+
+  const text = [
+    `Hei ${ctx.teamMemberName || ''},`,
+    '',
+    `En time hos ${ctx.salonName} ble avbestilt.`,
+    '',
+    `Tid: ${fmtDateTime(ctx.startAt)}`,
+    `Kunde: ${ctx.customerDisplayName || '—'}`,
+    `Behandling: ${ctx.serviceName}`,
+    '',
+    `Åpne salong-panelet: ${link}`,
+  ].join('\n');
+
+  return { subject, html: shell({ bodyHtml: body, preheader }), text };
+}
+
 module.exports = {
   bookingCreatedCustomer,
   bookingCreatedOwner,
   bookingCreatedOwnerSms,
+  bookingCreatedTeam,
+  bookingCreatedTeamSms,
   bookingConfirmedCustomer,
   bookingCancelledCustomer,
   bookingCancelledOwner,
+  bookingCancelledTeam,
   bookingReminderCustomer,
   bookingReminderCustomerSms,
 };
