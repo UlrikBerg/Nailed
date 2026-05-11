@@ -322,6 +322,13 @@
       overflow: hidden;
       border: 1px solid var(--stone-200);
       background: var(--cream-50);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 480ms var(--ease-out-soft), transform 480ms var(--ease-out-soft);
+    }
+    .salon-map.is-loaded {
+      opacity: 1;
+      transform: translateY(0);
     }
     .salon-map-section__actions {
       margin-top: 12px;
@@ -332,6 +339,17 @@
     /* Leaflet attribution sits in the bottom-right of the tile area; keep the
        default font small but readable against our cream background. */
     .leaflet-container { font-family: var(--font-body); font-size: 11px; }
+    /* Subtle glow-pulse on the marker so the salon's location draws the eye.
+       We animate `filter` (drop-shadow) instead of transform because Leaflet
+       sets transform: translate3d(...) on the marker for positioning — any
+       transform animation here would fight that and snap the pin off-target. */
+    .leaflet-marker-icon {
+      animation: salonMarkerPulse 2.2s ease-in-out infinite;
+    }
+    @keyframes salonMarkerPulse {
+      0%, 100% { filter: drop-shadow(0 2px 4px rgba(238, 63, 126, 0.35)); }
+      50%      { filter: drop-shadow(0 6px 14px rgba(238, 63, 126, 0.7)); }
+    }
 
   </style>
 </head>
@@ -635,6 +653,20 @@
       }).addTo(salonMapInstance);
       L.marker([lat, lng]).addTo(salonMapInstance)
         .bindPopup(escapeHtml(s.name || 'Salongen'));
+
+      // Fade-in: trigger after first paint so the transition runs. Also a
+      // gentle fly-in animation (zoom from slightly further out → final zoom).
+      var mapEl = document.getElementById('salonMap');
+      if (mapEl) {
+        requestAnimationFrame(function () { mapEl.classList.add('is-loaded'); });
+      }
+      try {
+        salonMapInstance.setView([lat, lng], 14, { animate: false });
+        setTimeout(function () {
+          try { salonMapInstance.flyTo([lat, lng], 16, { duration: 1.4, easeLinearity: 0.25 }); }
+          catch (_) {}
+        }, 280);
+      } catch (_) { /* fly-in is decorative; never block render on it */ }
     }
 
     // ---- 1. Read slug; redirect if missing ----

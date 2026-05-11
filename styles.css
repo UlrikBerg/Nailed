@@ -335,7 +335,10 @@ p { margin: 0 0 var(--space-4) 0; }
 .top-nav {
   position: sticky;
   top: 0;
-  z-index: 50;
+  /* Leaflet's panes use z-index up to 400 and controls up to 1000, so the
+     nav must sit above both — otherwise the map covers the brand/logo when
+     the user scrolls past it. */
+  z-index: 1100;
   transition: all var(--dur-base) var(--ease-out-soft);
 }
 .top-nav.scrolled {
