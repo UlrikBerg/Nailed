@@ -46,9 +46,9 @@
 
     /* --- Sidebar --- */
     .utforsk-sidebar {
-      background: var(--cream-50);
+      background: var(--cream-100);
       border-radius: var(--radius-lg);
-      padding: 20px;
+      padding: 24px;
       position: sticky;
       top: 88px;
       max-height: calc(100vh - 104px);
@@ -58,40 +58,57 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
       border-bottom: 1px solid var(--stone-200);
     }
     .utforsk-sidebar__title {
       font-family: var(--font-body);
       font-size: 12px;
       font-weight: 700;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--ink);
       margin: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
     }
     .utforsk-sidebar__count {
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       color: #fff;
       background: var(--rouge-500);
       padding: 2px 8px;
       border-radius: var(--radius-pill);
+      line-height: 1.5;
+      min-width: 18px;
+      text-align: center;
     }
     .utforsk-sidebar__sections {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 0;
+    }
+    .filter-section {
+      padding-top: 22px;
+      border-top: 1px solid var(--stone-200);
+    }
+    .filter-section:first-child {
+      padding-top: 0;
+      border-top: 0;
     }
     .filter-section__label {
       font-family: var(--font-body);
-      font-size: 12px;
       font-weight: 700;
-      letter-spacing: 0.06em;
+      font-size: 11px;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--fg-muted);
-      margin: 0 0 10px;
+      color: var(--rouge-700);
+      padding-left: 10px;
+      border-left: 3px solid var(--rouge-500);
+      line-height: 1;
+      margin: 0 0 14px;
     }
 
     /* --- Accordion (Sted) --- */
@@ -108,16 +125,17 @@
       font-size: 13px;
       font-weight: 600;
       color: var(--ink);
-      background: transparent;
+      background: var(--cream-50);
       border: 1px solid var(--stone-200);
       border-radius: 8px;
-      padding: 9px 12px;
+      padding: 10px 12px;
       cursor: pointer;
       text-align: left;
+      transition: border-color var(--dur-fast) var(--ease-out-soft);
     }
-    .accordion__trigger:hover { border-color: var(--stone-400); }
-    .accordion__trigger i { width: 14px; height: 14px; transition: transform 180ms var(--ease-out-soft); }
-    .accordion.is-open .accordion__trigger i { transform: rotate(90deg); }
+    .accordion__trigger:hover { border-color: var(--stone-300); }
+    .accordion__trigger i { width: 14px; height: 14px; color: var(--fg-muted); transition: transform 180ms var(--ease-out-soft); }
+    .accordion.is-open .accordion__trigger i { transform: rotate(90deg); color: var(--rouge-500); }
     .accordion__body {
       max-height: 0;
       overflow: hidden;
@@ -136,13 +154,57 @@
     .v-pill {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       width: 100%;
-      min-height: 32px;
-      padding: 6px 10px;
+      min-height: 34px;
+      padding: 7px 10px 7px 9px;
       font-family: var(--font-body);
       font-size: 13px;
       font-weight: 500;
+      color: var(--ink);
+      background: transparent;
+      border: 0;
+      border-left: 3px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft);
+    }
+    .v-pill:hover { background: var(--cream-50); }
+    .v-pill.active {
+      background: var(--rouge-50);
+      color: var(--rouge-700);
+      font-weight: 600;
+      border-left-color: var(--rouge-500);
+    }
+    .v-pill i {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      color: var(--fg-muted);
+    }
+    .v-pill.active i { color: var(--rouge-500); }
+
+    /* Sub-list (cities inside fylke accordion) */
+    .v-pill--sub {
+      padding-left: 24px;
+      font-size: 12px;
+      color: var(--fg-muted);
+      min-height: 30px;
+      font-weight: 500;
+    }
+    .v-pill--sub.active { color: var(--rouge-700); }
+
+    /* --- Checkbox-style filter row (snarveier) --- */
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 34px;
+      padding: 6px 10px;
+      font-family: var(--font-body);
+      font-size: 13px;
       color: var(--ink);
       background: transparent;
       border: 0;
@@ -151,42 +213,12 @@
       text-align: left;
       transition: background var(--dur-fast) var(--ease-out-soft);
     }
-    .v-pill:hover { background: rgba(0, 0, 0, 0.04); }
-    .v-pill.active { background: var(--ink); color: var(--cream-50); font-weight: 600; }
-    .v-pill i { width: 13px; height: 13px; flex-shrink: 0; }
-
-    /* Sub-list (cities inside fylke accordion) */
-    .v-pill--sub {
-      padding-left: 22px;
-      font-size: 12px;
-      color: var(--fg-muted);
-      min-height: 28px;
-    }
-    .v-pill--sub.active { color: var(--cream-50); }
-
-    /* --- Checkbox-style filter row (snarveier, toggles) --- */
-    .check-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: 100%;
-      min-height: 32px;
-      padding: 4px 8px;
-      font-family: var(--font-body);
-      font-size: 13px;
-      color: var(--ink);
-      background: transparent;
-      border: 0;
-      border-radius: 8px;
-      cursor: pointer;
-      text-align: left;
-    }
-    .check-row:hover { background: rgba(0, 0, 0, 0.04); }
+    .check-row:hover { background: var(--cream-50); }
     .check-row__box {
       width: 16px;
       height: 16px;
       border-radius: 4px;
-      border: 1.5px solid var(--stone-400);
+      border: 1.5px solid var(--stone-300);
       background: var(--cream-50);
       display: inline-flex;
       align-items: center;
@@ -204,6 +236,7 @@
       transition: transform 160ms var(--ease-out-soft);
       margin-top: -2px;
     }
+    .check-row.is-checked { color: var(--rouge-700); font-weight: 600; }
     .check-row.is-checked .check-row__box {
       background: var(--rouge-500);
       border-color: var(--rouge-500);
@@ -212,24 +245,86 @@
     .check-row__label { flex: 1; }
     .check-row i { width: 13px; height: 13px; color: var(--fg-muted); }
 
+    /* --- Toggle row (annet — switch on right) --- */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      min-height: 38px;
+      padding: 7px 10px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink);
+      background: transparent;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: background var(--dur-fast) var(--ease-out-soft);
+    }
+    .toggle-row:hover { background: var(--cream-50); }
+    .toggle-row__switch {
+      flex-shrink: 0;
+      width: 32px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--stone-200);
+      position: relative;
+      transition: background var(--dur-fast) var(--ease-out-soft);
+    }
+    .toggle-row__switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(27, 18, 24, 0.18);
+      transition: transform var(--dur-fast) var(--ease-out-soft);
+    }
+    .toggle-row.is-checked { color: var(--rouge-700); font-weight: 600; }
+    .toggle-row.is-checked .toggle-row__switch { background: var(--rouge-500); }
+    .toggle-row.is-checked .toggle-row__switch::after { transform: translateX(14px); }
+
     /* --- Price range, max-duration select, rating stars --- */
     .filter-field { display: flex; flex-direction: column; gap: 6px; }
     .filter-field__pair { display: flex; gap: 8px; align-items: center; }
     .filter-field__pair input { flex: 1; min-width: 0; }
-    .filter-field__pair span { color: var(--fg-muted); font-size: 12px; }
+    .filter-field__pair span { color: var(--stone-300); font-size: 13px; }
     .filter-field input[type="number"],
     .filter-field select {
       font-family: var(--font-body);
       font-size: 13px;
-      padding: 7px 10px;
+      padding: 9px 11px;
       border-radius: 8px;
       border: 1px solid var(--stone-200);
       background: var(--cream-50);
       color: var(--ink);
       width: 100%;
       box-sizing: border-box;
+      transition: border-color var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast) var(--ease-out-soft);
     }
-    .rating-stars { display: inline-flex; gap: 4px; }
+    .filter-field input[type="number"]:focus,
+    .filter-field select:focus {
+      outline: none;
+      border-color: var(--rouge-300);
+      box-shadow: 0 0 0 3px var(--rouge-50);
+    }
+    .filter-field input[type="number"]::placeholder { color: var(--stone-300); }
+
+    .rating-stars {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px 6px;
+      border-radius: 8px;
+      transition: background var(--dur-fast) var(--ease-out-soft);
+    }
+    .rating-stars.has-selection { background: var(--rouge-50); }
     .rating-stars button {
       border: 0;
       background: transparent;
@@ -239,18 +334,44 @@
       transition: color var(--dur-fast) var(--ease-out-soft);
     }
     .rating-stars button.is-on { color: var(--rouge-500); }
-    .rating-stars button:hover { color: var(--rouge-400); }
-    .rating-stars i { width: 20px; height: 20px; fill: currentColor; stroke: currentColor; }
+    /* Cascade hover-fill: rouge from start up to hovered star, muted after. */
+    .rating-stars:hover button { color: var(--rouge-400); }
+    .rating-stars:hover button:hover ~ button { color: var(--stone-300); }
+    .rating-stars i { width: 24px; height: 24px; fill: currentColor; stroke: currentColor; }
 
     /* --- Sidebar footer (reset / apply) --- */
     .utforsk-sidebar__footer {
-      margin-top: 8px;
-      padding-top: 16px;
+      margin-top: 22px;
+      padding-top: 18px;
       border-top: 1px solid var(--stone-200);
       display: flex;
       gap: 8px;
     }
     .utforsk-sidebar__footer .btn { flex: 1; }
+    .filter-reset-ghost {
+      flex: 1;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--rouge-500);
+      background: transparent;
+      border: 1px solid var(--rouge-100);
+      border-radius: var(--radius-pill);
+      padding: 9px 16px;
+      cursor: pointer;
+      transition: background var(--dur-fast) var(--ease-out-soft), color var(--dur-fast) var(--ease-out-soft), border-color var(--dur-fast) var(--ease-out-soft);
+    }
+    .filter-reset-ghost:hover:not(:disabled) {
+      background: var(--rouge-50);
+      color: var(--rouge-700);
+      border-color: var(--rouge-200);
+    }
+    .filter-reset-ghost:disabled {
+      color: var(--stone-300);
+      border-color: var(--stone-200);
+      background: transparent;
+      cursor: not-allowed;
+    }
     /* Apply button is only meaningful on mobile (filters apply live on desktop). */
     .utforsk-sidebar__apply { display: none; }
 
@@ -304,6 +425,18 @@
       text-align: center;
       color: var(--fg-muted);
       font-size: 14px;
+    }
+
+    /* Card polish — consistent aspect ratio & gentle hover lift. */
+    .utforsk-results .service-card {
+      transition: transform 220ms var(--ease-out-soft), box-shadow 220ms var(--ease-out-soft);
+    }
+    .utforsk-results .service-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(27, 18, 24, 0.06);
+    }
+    .utforsk-results .service-card__photo {
+      aspect-ratio: 16 / 11;
     }
 
     /* Mobile filter button — shown only when sidebar is drawer-mode. */
@@ -523,31 +656,28 @@
         <div class="filter-section">
           <p class="filter-section__label">Behandling</p>
           <div class="filter-row-vertical" id="treatmentRow">
-            <button class="v-pill active" data-tx="all"><i data-lucide="layout-grid"></i> Alt</button>
-            <button class="v-pill" data-tx="nails"><i data-lucide="sparkles"></i> Negler</button>
-            <button class="v-pill" data-tx="lashes"><i data-lucide="eye"></i> Vipper</button>
-            <button class="v-pill" data-tx="brows">Bryn</button>
-            <button class="v-pill" data-tx="makeup"><i data-lucide="palette"></i> Makeup</button>
-            <button class="v-pill" data-tx="hair"><i data-lucide="scissors"></i> Hår</button>
-            <button class="v-pill" data-tx="wax">Voksing</button>
-            <button class="v-pill" data-tx="tan">Spraytan</button>
-            <button class="v-pill" data-tx="massage">Massasje</button>
+            <button class="v-pill active" data-tx="all"><i data-lucide="layout-grid"></i><span>Alt</span></button>
+            <button class="v-pill" data-tx="nails"><i data-lucide="sparkles"></i><span>Negler</span></button>
+            <button class="v-pill" data-tx="lashes"><i data-lucide="eye"></i><span>Vipper</span></button>
+            <button class="v-pill" data-tx="brows"><i data-lucide="tag"></i><span>Bryn</span></button>
+            <button class="v-pill" data-tx="makeup"><i data-lucide="palette"></i><span>Makeup</span></button>
+            <button class="v-pill" data-tx="hair"><i data-lucide="scissors"></i><span>Hår</span></button>
+            <button class="v-pill" data-tx="wax"><i data-lucide="tag"></i><span>Voksing</span></button>
+            <button class="v-pill" data-tx="tan"><i data-lucide="tag"></i><span>Spraytan</span></button>
+            <button class="v-pill" data-tx="massage"><i data-lucide="tag"></i><span>Massasje</span></button>
           </div>
-          <div class="filter-field" style="margin-top: 10px;">
-            <select id="fCategory" aria-label="Presis kategori">
-              <option value="">Alle kategorier</option>
-            </select>
-          </div>
+          <!-- Hidden: pill list above already filters category. Kept as input so JS contracts don't break. -->
+          <input type="hidden" id="fCategory" value="" />
         </div>
 
         <!-- Pris -->
         <div class="filter-section">
-          <p class="filter-section__label">Pris (NOK)</p>
+          <p class="filter-section__label">Pris</p>
           <div class="filter-field">
             <div class="filter-field__pair">
-              <input type="number" id="fMinPrice" min="0" step="50" placeholder="Min" inputmode="numeric" />
+              <input type="number" id="fMinPrice" min="0" step="50" placeholder="Min kr" inputmode="numeric" aria-label="Minimum pris i kroner" />
               <span>–</span>
-              <input type="number" id="fMaxPrice" min="0" step="50" placeholder="Maks" inputmode="numeric" />
+              <input type="number" id="fMaxPrice" min="0" step="50" placeholder="Maks kr" inputmode="numeric" aria-label="Maks pris i kroner" />
             </div>
           </div>
         </div>
@@ -622,13 +752,13 @@
         <div class="filter-section">
           <p class="filter-section__label">Annet</p>
           <div class="filter-row-vertical">
-            <button type="button" class="check-row" id="fOpenNowRow">
-              <span class="check-row__box"></span>
-              <span class="check-row__label">Åpent nå</span>
+            <button type="button" class="toggle-row" id="fOpenNowRow" aria-pressed="false">
+              <span class="toggle-row__label">Åpent nå</span>
+              <span class="toggle-row__switch" aria-hidden="true"></span>
             </button>
-            <button type="button" class="check-row" id="fHasReviewsRow">
-              <span class="check-row__box"></span>
-              <span class="check-row__label">Har anmeldelser</span>
+            <button type="button" class="toggle-row" id="fHasReviewsRow" aria-pressed="false">
+              <span class="toggle-row__label">Har anmeldelser</span>
+              <span class="toggle-row__switch" aria-hidden="true"></span>
             </button>
           </div>
           <!-- Hidden inputs preserve existing JS contract. -->
@@ -639,7 +769,7 @@
       </div>
 
       <div class="utforsk-sidebar__footer">
-        <button class="btn btn-ghost btn-sm" id="filterReset" type="button">Nullstill</button>
+        <button class="filter-reset-ghost" id="filterReset" type="button" disabled>Nullstill</button>
         <button class="btn btn-primary btn-sm utforsk-sidebar__apply" id="filterApply" type="button">Anvend filter</button>
       </div>
     </aside>
@@ -691,7 +821,7 @@
         <div class="footer__socials">
           <a class="footer__social" href="#" aria-label="Instagram"><i data-lucide="instagram"></i></a>
           <a class="footer__social" href="#" aria-label="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.17a8.16 8.16 0 004.76 1.51v-3.45a4.85 4.85 0 01-1-.54z"/></svg></a>
-          <a class="footer__social" href="#" aria-label="Facebook"><i data-lucide="facebook"></i></a>
+          <a class="footer__social" href="#" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.408.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.324V1.325C24 .593 23.407 0 22.675 0z"/></svg></a>
         </div>
       </div>
       <div class="footer__links">
@@ -846,8 +976,12 @@
     function refreshFilterBtnBadge() {
       var badge = document.getElementById('filterBtnCount');
       var n = countAdvanced();
-      if (n > 0) { badge.textContent = String(n); badge.style.display = ''; }
+      if (n > 0) { badge.textContent = String(n); badge.style.display = 'inline-flex'; }
       else { badge.style.display = 'none'; }
+      var resetBtn = document.getElementById('filterReset');
+      if (resetBtn) resetBtn.disabled = (n === 0);
+      var starsBox = document.getElementById('fRatingStars');
+      if (starsBox) starsBox.classList.toggle('has-selection', fState.min_rating != null);
     }
 
     // --- Sted accordion -------------------------------------------------------
@@ -905,7 +1039,7 @@
       filterResults();
     });
 
-    // Open-now + has-reviews check rows mirror the hidden inputs
+    // Open-now + has-reviews toggle rows mirror the hidden inputs
     function bindCheckRow(rowId, inputId, stateKey) {
       var row = document.getElementById(rowId);
       var input = document.getElementById(inputId);
@@ -913,6 +1047,7 @@
         var nowChecked = !input.checked;
         input.checked = nowChecked;
         row.classList.toggle('is-checked', nowChecked);
+        row.setAttribute('aria-pressed', nowChecked ? 'true' : 'false');
         fState[stateKey] = nowChecked;
         syncUrl();
         refreshFilterBtnBadge();
@@ -1171,7 +1306,7 @@
     }
 
     function fylkeLabelForHead() {
-      if (currentFylke === 'all') return 'hele Norge';
+      if (currentFylke === 'all') return 'Norge';
       if (currentCity) return currentCity;
       var pill = document.querySelector('#fylkeRow [data-fylke="' + currentFylke + '"]');
       return pill ? pill.textContent.trim() : currentFylke;
@@ -1197,7 +1332,7 @@
       });
       var head = document.getElementById('resultsHeadCount');
       if (head) {
-        head.innerHTML = '<strong>' + count + '</strong> salonger i ' + escapeHtml(fylkeLabelForHead().toLowerCase());
+        head.innerHTML = '<strong>' + count + '</strong> salonger i ' + escapeHtml(fylkeLabelForHead());
       }
       var noCards = cards.length === 0;
       var noMatches = count === 0;
@@ -1326,10 +1461,14 @@
       document.getElementById('fCategory').value = fState.category || '';
       var openInput = document.getElementById('fOpenNow');
       openInput.checked = !!fState.open_now;
-      document.getElementById('fOpenNowRow').classList.toggle('is-checked', !!fState.open_now);
+      var openRow = document.getElementById('fOpenNowRow');
+      openRow.classList.toggle('is-checked', !!fState.open_now);
+      openRow.setAttribute('aria-pressed', fState.open_now ? 'true' : 'false');
       var revInput = document.getElementById('fHasReviews');
       revInput.checked = !!fState.has_reviews;
-      document.getElementById('fHasReviewsRow').classList.toggle('is-checked', !!fState.has_reviews);
+      var revRow = document.getElementById('fHasReviewsRow');
+      revRow.classList.toggle('is-checked', !!fState.has_reviews);
+      revRow.setAttribute('aria-pressed', fState.has_reviews ? 'true' : 'false');
       var stars = document.querySelectorAll('#fRatingStars button');
       stars.forEach(function (b) {
         var v = parseInt(b.dataset.r, 10);
