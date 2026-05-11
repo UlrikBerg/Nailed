@@ -165,6 +165,68 @@ async function validateSlot({ salon, service, startAt, excludeBookingId, teamMem
   return { endAt };
 }
 
+// resolveAnyoneStylist — assign a specific stylist when the caller passed
+// teamMemberId == null ("Hvem som helst"). Returns the chosen stylist id, or
+// null if the salon has no team_members at all (single-stylist salons, where
+// NULL is the legacy salon-wide row).
+//
+// Why this exists: validateSlot's overlap check uses
+//   (team_member_id = ? OR team_member_id IS NULL)
+// when a stylist is set — so a NULL row would block every other stylist
+// forever. We pick a random stylist whose calendar is clear for every
+// occurrence (`starts`), and throw HttpError(409, 'no_stylist_available')
+// when none is free.
+//
+// Caller must be inside a transaction; `conn` is used so the SELECT ... FOR
+// UPDATE locks the same rows the subsequent INSERT will touch.
+async function resolveAnyoneStylist({ conn, salonId, serviceId, starts, durationMin, bufferMin }) {
+  const [linkRows] = await conn.execute(
+    `SELECT team_member_id FROM service_team_members WHERE service_id = ?`,
+    [serviceId]
+  );
+  let candidateIds;
+  if (linkRows.length > 0) {
+    candidateIds = linkRows.map(r => Number(r.team_member_id));
+  } else {
+    const [memberRows] = await conn.execute(
+      `SELECT id FROM team_members WHERE salon_id = ? AND active = 1`,
+      [salonId]
+    );
+    candidateIds = memberRows.map(r => Number(r.id));
+  }
+  if (candidateIds.length === 0) return null;
+  // Fisher-Yates shuffle so two simultaneous "anyone" bookings don't always
+  // race to the same first stylist.
+  for (let i = candidateIds.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [candidateIds[i], candidateIds[j]] = [candidateIds[j], candidateIds[i]];
+  }
+  const bufferMs = (Number(bufferMin) || 0) * 60_000;
+  const durMs = durationMin * 60_000;
+  for (const cid of candidateIds) {
+    let free = true;
+    for (const s of starts) {
+      const overlapStart = new Date(s.getTime() - bufferMs);
+      const overlapEnd   = new Date(s.getTime() + durMs + bufferMs);
+      const [conflicts] = await conn.execute(
+        `SELECT id FROM bookings
+          WHERE salon_id = ?
+            AND status IN ('pending','confirmed')
+            AND start_at < ?
+            AND end_at   > ?
+            AND (team_member_id = ? OR team_member_id IS NULL)
+          LIMIT 1
+          FOR UPDATE`,
+        [salonId, overlapEnd, overlapStart, cid]
+      );
+      if (conflicts.length > 0) { free = false; break; }
+    }
+    if (free) return cid;
+  }
+  throw new HttpError(409, 'no_stylist_available',
+    'Ingen behandler er ledig på dette tidspunktet. Velg en annen tid.');
+}
+
 router.use(requireAuth);
 
 // GET /bookings/mine — bookings as a customer
@@ -343,63 +405,18 @@ router.post('/', asyncRoute(async (req, res) => {
   const result = await tx(async (conn) => {
     // When the customer picked "Hvem som helst" (teamMemberId == null), assign
     // a specific stylist now so the row never goes in with team_member_id NULL.
-    // Why: validateSlot's overlap check uses `(team_member_id = ? OR team_member_id IS NULL)`
-    // when a stylist is set — so a NULL row blocks every other stylist forever.
-    // We pick a random stylist whose calendar is clear for every series
-    // occurrence, falling back to NULL only if the salon has no team_members at
-    // all (single-stylist salons, where NULL is the legacy salon-wide row).
+    // See resolveAnyoneStylist() for the full rationale.
     let resolvedTeamMemberId = teamMemberId;
     if (resolvedTeamMemberId == null) {
-      const [linkRows] = await conn.execute(
-        `SELECT team_member_id FROM service_team_members WHERE service_id = ?`,
-        [data.service_id]
-      );
-      let candidateIds;
-      if (linkRows.length > 0) {
-        candidateIds = linkRows.map(r => Number(r.team_member_id));
-      } else {
-        const [memberRows] = await conn.execute(
-          `SELECT id FROM team_members WHERE salon_id = ? AND active = 1`,
-          [data.salon_id]
-        );
-        candidateIds = memberRows.map(r => Number(r.id));
-      }
-      if (candidateIds.length > 0) {
-        // Fisher-Yates shuffle so two simultaneous "anyone" bookings don't
-        // always race to the same first stylist.
-        for (let i = candidateIds.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [candidateIds[i], candidateIds[j]] = [candidateIds[j], candidateIds[i]];
-        }
-        const bufferMs = (Number(salon.booking_buffer_min) || 0) * 60_000;
-        const durMs = service.duration_min * 60_000;
-        let picked = null;
-        for (const cid of candidateIds) {
-          let free = true;
-          for (const s of starts) {
-            const overlapStart = new Date(s.getTime() - bufferMs);
-            const overlapEnd   = new Date(s.getTime() + durMs + bufferMs);
-            const [conflicts] = await conn.execute(
-              `SELECT id FROM bookings
-                WHERE salon_id = ?
-                  AND status IN ('pending','confirmed')
-                  AND start_at < ?
-                  AND end_at   > ?
-                  AND (team_member_id = ? OR team_member_id IS NULL)
-                LIMIT 1
-                FOR UPDATE`,
-              [data.salon_id, overlapEnd, overlapStart, cid]
-            );
-            if (conflicts.length > 0) { free = false; break; }
-          }
-          if (free) { picked = cid; break; }
-        }
-        if (picked == null) {
-          throw new HttpError(409, 'no_stylist_available',
-            'Ingen behandler er ledig på dette tidspunktet. Velg en annen tid.');
-        }
-        resolvedTeamMemberId = picked;
-      }
+      const picked = await resolveAnyoneStylist({
+        conn,
+        salonId: data.salon_id,
+        serviceId: data.service_id,
+        starts,
+        durationMin: service.duration_min,
+        bufferMin: salon.booking_buffer_min,
+      });
+      if (picked != null) resolvedTeamMemberId = picked;
     }
 
     const validated = [];
@@ -467,6 +484,118 @@ router.post('/', asyncRoute(async (req, res) => {
     }
     return { id: parentId, series_id: parentId, series_total: totalOccurrences };
   });
+  res.status(201).json(result);
+}));
+
+// POST /bookings/manual — salon owner creates a booking on behalf of a walk-in
+// or phone customer. The row goes in with customer_user_id = NULL and the
+// guest's name/phone captured directly on the booking (guest_name/guest_phone).
+// Status is 'confirmed' immediately — the owner is the one creating it, so
+// there's no pending-approval step.
+router.post('/manual', asyncRoute(async (req, res) => {
+  const schema = z.object({
+    salon_id: z.number().int().positive(),
+    service_id: z.number().int().positive(),
+    start_at: z.string().datetime(),
+    team_member_id: z.number().int().positive().nullable().optional(),
+    guest_name: z.string().trim().min(1).max(255),
+    guest_phone: z.string().trim().max(32).optional().nullable(),
+    customer_note: z.string().trim().max(1000).optional().nullable(),
+  });
+  const data = schema.parse(req.body);
+
+  // Owner check — req.user.id must own salons.id = data.salon_id.
+  const salon = await queryOne(
+    `SELECT id, owner_user_id, status, accepts_new_bookings,
+            cancellation_lead_hours, booking_window_days,
+            min_booking_lead_hours, booking_buffer_min,
+            lunch_break_start, lunch_break_end
+       FROM salons WHERE id = ?`,
+    [data.salon_id]
+  );
+  if (!salon) throw new HttpError(404, 'salon_unavailable', 'Salongen finnes ikke.');
+  if (salon.owner_user_id !== req.user.id) {
+    throw new HttpError(403, 'forbidden', 'Du eier ikke denne salongen.');
+  }
+  if (salon.status !== 'active') {
+    throw new HttpError(409, 'salon_unavailable', 'Salongen er ikke aktiv.');
+  }
+
+  const service = await queryOne(
+    `SELECT id, salon_id, duration_min, price_nok, active
+       FROM services WHERE id = ? AND salon_id = ?`,
+    [data.service_id, data.salon_id]
+  );
+  if (!service || !service.active) {
+    throw new HttpError(404, 'service_unavailable', 'Tjenesten finnes ikke eller er ikke aktiv.');
+  }
+
+  // Validate stylist when picked — same rule as POST /bookings.
+  const teamMemberId = data.team_member_id ?? null;
+  if (teamMemberId != null) {
+    const linkRows = await query(
+      `SELECT team_member_id FROM service_team_members WHERE service_id = ?`,
+      [data.service_id]
+    );
+    if (linkRows.length > 0) {
+      const allowed = new Set(linkRows.map(r => Number(r.team_member_id)));
+      if (!allowed.has(Number(teamMemberId))) {
+        throw new HttpError(400, 'invalid_team_member', 'Behandleren tilbyr ikke denne tjenesten.');
+      }
+    } else {
+      const member = await queryOne(
+        `SELECT id FROM team_members WHERE id = ? AND salon_id = ? AND active = 1`,
+        [teamMemberId, data.salon_id]
+      );
+      if (!member) {
+        throw new HttpError(400, 'invalid_team_member', 'Behandleren finnes ikke i denne salongen.');
+      }
+    }
+  }
+
+  const startAt = new Date(data.start_at);
+
+  const result = await tx(async (conn) => {
+    // "Hvem som helst" → pick a free stylist now so the row doesn't go in with
+    // team_member_id NULL and block other stylists.
+    let resolvedTeamMemberId = teamMemberId;
+    if (resolvedTeamMemberId == null) {
+      const picked = await resolveAnyoneStylist({
+        conn,
+        salonId: data.salon_id,
+        serviceId: data.service_id,
+        starts: [startAt],
+        durationMin: service.duration_min,
+        bufferMin: salon.booking_buffer_min,
+      });
+      if (picked != null) resolvedTeamMemberId = picked;
+    }
+
+    const { endAt } = await validateSlot({
+      salon: { ...salon, id: data.salon_id },
+      service,
+      startAt,
+      teamMemberId: resolvedTeamMemberId,
+      conn,
+    });
+
+    const [insertResult] = await conn.execute(
+      `INSERT INTO bookings
+         (customer_user_id, salon_id, service_id, start_at, end_at, price_nok, status,
+          customer_note, team_member_id, guest_name, guest_phone)
+       VALUES (NULL, ?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?)`,
+      [data.salon_id, data.service_id, startAt, endAt,
+       service.price_nok, data.customer_note || null, resolvedTeamMemberId,
+       data.guest_name, data.guest_phone || null]
+    );
+    return { id: insertResult.insertId };
+  });
+
+  audit(req.user.id, 'booking.manual', 'booking', result.id, {
+    salon_id: data.salon_id,
+    guest_name: data.guest_name,
+  });
+
   res.status(201).json(result);
 }));
 

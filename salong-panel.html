@@ -860,6 +860,71 @@
     .sp-resched-form__empty { font-size: 13px; color: var(--fg-muted); text-align: center; padding: 12px; }
     .sp-resched-form__actions { display: flex; gap: 8px; justify-content: flex-end; }
 
+    /* ------------------ Manuell booking-modal ------------------
+       Centered cream card on top of a tinted backdrop. Visual language matches
+       the public site (cream/rouge), reuses .form-input from elsewhere on
+       this page so input styling stays consistent. */
+    .sp-modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(27, 18, 24, 0.4);
+      z-index: 200;
+      display: none;
+    }
+    .sp-modal-backdrop.open { display: block; }
+    .sp-modal {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.96);
+      width: 520px; max-width: calc(100vw - 32px);
+      max-height: calc(100vh - 64px);
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 24px 60px rgba(40, 30, 20, 0.18);
+      padding: 28px;
+      z-index: 201;
+      overflow-y: auto;
+      display: none;
+      opacity: 0;
+      transition: opacity .18s var(--ease-out-soft), transform .18s var(--ease-out-soft);
+    }
+    .sp-modal.open { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .sp-modal__head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 18px;
+    }
+    .sp-modal__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 22px;
+      margin: 0;
+    }
+    .sp-modal__close {
+      width: 34px; height: 34px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .sp-modal__close i { width: 16px; height: 16px; }
+    .sp-modal__form { display: flex; flex-direction: column; gap: 14px; }
+    .sp-modal__field { display: flex; flex-direction: column; gap: 6px; }
+    .sp-modal__field label { font-weight: 600; font-size: 13px; color: var(--ink); }
+    .sp-modal__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 480px) { .sp-modal__row { grid-template-columns: 1fr; } }
+    .sp-modal__error {
+      font-size: 13px; color: var(--danger-500);
+      padding: 8px 12px;
+      background: var(--danger-50);
+      border-radius: var(--radius-sm);
+      display: none;
+    }
+    .sp-modal__error.show { display: block; }
+    .sp-modal__actions {
+      display: flex; gap: 8px; justify-content: flex-end;
+      margin-top: 4px;
+    }
+
     /* ------------------ Analyse-fane ------------------ */
     /* Period chip-row (7d / 30d / 90d / 6m / 12m / Alt). Visual style matches
        the rouge accent used elsewhere on the panel. */
@@ -1114,6 +1179,9 @@
           <div>
             <h2 class="kp-section__title">Innkommende bookinger</h2>
             <p class="kp-section__sub">Bekreft eller avvis bookinger og marker fullføring.</p>
+          </div>
+          <div class="kp-section__actions">
+            <button class="btn btn-primary" id="newManualBookingBtn"><i data-lucide="plus"></i> Ny manuell booking</button>
           </div>
         </div>
 
@@ -1886,6 +1954,56 @@
 
     </div>
   </section>
+
+  <!-- Manual-booking modal (walk-in / telefon) -->
+  <div class="sp-modal-backdrop" id="manualBookingBackdrop"></div>
+  <div class="sp-modal" id="manualBookingModal" role="dialog" aria-modal="true" aria-labelledby="manualBookingTitle">
+    <div class="sp-modal__head">
+      <h2 class="sp-modal__title" id="manualBookingTitle">Ny manuell booking</h2>
+      <button type="button" class="sp-modal__close" id="manualBookingClose" aria-label="Lukk"><i data-lucide="x"></i></button>
+    </div>
+    <form class="sp-modal__form" id="manualBookingForm" novalidate>
+      <div class="sp-modal__error" id="manualBookingError"></div>
+      <div class="sp-modal__field">
+        <label for="mbService">Behandling</label>
+        <select class="form-input" id="mbService" required>
+          <option value="">Velg behandling</option>
+        </select>
+      </div>
+      <div class="sp-modal__field">
+        <label for="mbTeam">Behandler</label>
+        <select class="form-input" id="mbTeam">
+          <option value="">Hvem som helst</option>
+        </select>
+      </div>
+      <div class="sp-modal__row">
+        <div class="sp-modal__field">
+          <label for="mbDate">Dato</label>
+          <input class="form-input" id="mbDate" type="date" required />
+        </div>
+        <div class="sp-modal__field">
+          <label for="mbTime">Tid</label>
+          <input class="form-input" id="mbTime" type="time" required />
+        </div>
+      </div>
+      <div class="sp-modal__field">
+        <label for="mbName">Kundenavn</label>
+        <input class="form-input" id="mbName" type="text" required maxlength="255" placeholder="F.eks. Kari Nordmann" />
+      </div>
+      <div class="sp-modal__field">
+        <label for="mbPhone">Telefon (valgfritt)</label>
+        <input class="form-input" id="mbPhone" type="tel" maxlength="32" placeholder="+47 12345678" />
+      </div>
+      <div class="sp-modal__field">
+        <label for="mbNote">Notat (valgfritt)</label>
+        <textarea class="form-input" id="mbNote" rows="3" maxlength="1000" placeholder="Intern merknad, f.eks. allergier .."></textarea>
+      </div>
+      <div class="sp-modal__actions">
+        <button type="button" class="btn btn-ghost" id="manualBookingCancel">Avbryt</button>
+        <button type="submit" class="btn btn-primary" id="manualBookingSubmit"><i data-lucide="calendar-plus"></i> Lagre booking</button>
+      </div>
+    </form>
+  </div>
 
   <!-- Public footer -->
   <footer class="footer">
@@ -2896,12 +3014,19 @@
              'data-booking-note title="' + noteTitle + '" aria-label="' + noteTitle + '">' +
              '<i data-lucide="' + noteIcon + '"></i></button>')
           : '';
+        var displayName = b.display_name || b.customer_name || '—';
+        var guestLine = '';
+        if (b.is_guest) {
+          var phoneTxt = b.display_phone ? escapeHtml(b.display_phone) : '';
+          guestLine = '<br><span class="td-muted">Manuell booking' + (phoneTxt ? ' · ' + phoneTxt : '') + '</span>';
+        }
         var tr = document.createElement('tr');
         tr.dataset.bookingId = b.id;
         tr.dataset.startAt = b.start_at;
         tr.innerHTML =
           '<td>' + fmt(b.start_at) + '</td>' +
-          '<td><strong>' + escapeHtml(b.customer_name) + '</strong>' + noteBtn +
+          '<td><strong>' + escapeHtml(displayName) + '</strong>' + noteBtn +
+            guestLine +
             (b.customer_note ? '<br><span class="td-muted">' + escapeHtml(b.customer_note) + '</span>' : '') + '</td>' +
           '<td>' + escapeHtml(b.service_name) +
             (b.team_member_name ? '<br><span class="td-muted">Behandler: ' + escapeHtml(b.team_member_name) + '</span>' : '') +
@@ -3143,6 +3268,196 @@
         }
       });
     }
+
+    /* ---------- MANUAL BOOKING (walk-in / phone) ---------- */
+    // The "Ny manuell booking" CTA in the Bookinger tab opens a small modal so
+    // the salon owner can register a walk-in or phone booking on behalf of a
+    // customer who isn't logged in. Goes through POST /api/v1/bookings/manual.
+
+    function closeManualBookingModal() {
+      var bd = document.getElementById('manualBookingBackdrop');
+      var md = document.getElementById('manualBookingModal');
+      if (bd) bd.classList.remove('open');
+      if (md) md.classList.remove('open');
+    }
+
+    function openManualBookingModal() {
+      if (!salon) return;
+      var bd = document.getElementById('manualBookingBackdrop');
+      var md = document.getElementById('manualBookingModal');
+      var form = document.getElementById('manualBookingForm');
+      var errEl = document.getElementById('manualBookingError');
+      var serviceSel = document.getElementById('mbService');
+      var teamSel = document.getElementById('mbTeam');
+      var dateEl = document.getElementById('mbDate');
+      var timeEl = document.getElementById('mbTime');
+      var submitBtn = document.getElementById('manualBookingSubmit');
+
+      // Reset form state
+      form.reset();
+      errEl.classList.remove('show');
+      errEl.textContent = '';
+      submitBtn.disabled = false;
+
+      // Populate services from the cached list (loaded by loadServices()).
+      var services = (window.__lastServices || []).filter(function (s) { return s.active; });
+      serviceSel.innerHTML = '<option value="">Velg behandling</option>' +
+        services.map(function (s) {
+          return '<option value="' + s.id + '" data-duration="' + s.duration_min + '">' +
+                 escapeHtml(s.name) + ' — ' + s.price_nok + ' kr (' + s.duration_min + ' min)</option>';
+        }).join('');
+
+      // Populate team members. The list is filtered when a service is picked
+      // (see service change handler below) so the dropdown only offers stylists
+      // actually allowed to perform the selected service.
+      renderManualBookingTeam(null);
+
+      // Default date = today (Europe/Oslo). Time empty so owner picks it.
+      var now = new Date();
+      var y = now.getFullYear();
+      var m = String(now.getMonth() + 1).padStart(2, '0');
+      var d = String(now.getDate()).padStart(2, '0');
+      dateEl.value = y + '-' + m + '-' + d;
+      timeEl.value = '';
+
+      // Re-render team options whenever the chosen service changes.
+      serviceSel.onchange = function () {
+        var sid = parseInt(serviceSel.value, 10);
+        renderManualBookingTeam(Number.isFinite(sid) ? sid : null);
+      };
+
+      bd.classList.add('open');
+      md.classList.add('open');
+      window.lucide && window.lucide.createIcons();
+      setTimeout(function () { document.getElementById('mbService').focus(); }, 0);
+    }
+
+    function renderManualBookingTeam(serviceId) {
+      var teamSel = document.getElementById('mbTeam');
+      var services = window.__lastServices || [];
+      var svc = services.find(function (s) { return s.id === serviceId; });
+      var linked = (svc && Array.isArray(svc.team_member_ids)) ? svc.team_member_ids : [];
+      var active = currentTeam.filter(function (m) { return m.active; });
+      // If the service has explicit team links, only those members can perform
+      // it. Empty links = "anyone", so we offer every active team member.
+      var allowed = linked.length > 0
+        ? active.filter(function (m) { return linked.indexOf(m.id) !== -1; })
+        : active;
+      teamSel.innerHTML = '<option value="">Hvem som helst</option>' +
+        allowed.map(function (m) {
+          return '<option value="' + m.id + '">' + escapeHtml(m.name) + '</option>';
+        }).join('');
+    }
+
+    async function submitManualBooking(e) {
+      e.preventDefault();
+      var errEl = document.getElementById('manualBookingError');
+      var submitBtn = document.getElementById('manualBookingSubmit');
+      var serviceSel = document.getElementById('mbService');
+      var teamSel = document.getElementById('mbTeam');
+      var dateEl = document.getElementById('mbDate');
+      var timeEl = document.getElementById('mbTime');
+      var nameEl = document.getElementById('mbName');
+      var phoneEl = document.getElementById('mbPhone');
+      var noteEl = document.getElementById('mbNote');
+
+      errEl.classList.remove('show');
+      errEl.textContent = '';
+
+      var serviceId = parseInt(serviceSel.value, 10);
+      var dateVal = dateEl.value;
+      var timeVal = timeEl.value;
+      var name = nameEl.value.trim();
+      if (!Number.isFinite(serviceId)) {
+        errEl.textContent = 'Velg en behandling.';
+        errEl.classList.add('show');
+        return;
+      }
+      if (!dateVal || !timeVal) {
+        errEl.textContent = 'Velg dato og tid.';
+        errEl.classList.add('show');
+        return;
+      }
+      if (!name) {
+        errEl.textContent = 'Skriv inn kundens navn.';
+        errEl.classList.add('show');
+        return;
+      }
+      // Phone is optional. When set, require either +47 8-digit Norwegian
+      // format or generic international (+ digits, 6..16 digits total).
+      var phone = phoneEl.value.trim();
+      if (phone) {
+        var norwegian = /^(\+47\s?)?\d{8}$/;
+        var international = /^\+\d{6,16}$/;
+        var stripped = phone.replace(/\s+/g, '');
+        if (!norwegian.test(stripped) && !international.test(stripped)) {
+          errEl.textContent = 'Telefonnummeret må være enten 8 sifre (+47) eller internasjonalt (+landskode + sifre).';
+          errEl.classList.add('show');
+          return;
+        }
+      }
+
+      // Build ISO start_at from the date+time inputs. The inputs are local
+      // (Europe/Oslo) — JS treats the value as the browser's local zone, and
+      // the backend's validateSlot() converts back to Europe/Oslo for the
+      // opening-hours check, so this matches the public booking flow.
+      var startLocal = new Date(dateVal + 'T' + timeVal);
+      if (Number.isNaN(startLocal.getTime())) {
+        errEl.textContent = 'Ugyldig dato/tid.';
+        errEl.classList.add('show');
+        return;
+      }
+
+      var teamId = parseInt(teamSel.value, 10);
+      var body = {
+        salon_id: salon.id,
+        service_id: serviceId,
+        start_at: startLocal.toISOString(),
+        guest_name: name,
+      };
+      if (Number.isFinite(teamId)) body.team_member_id = teamId;
+      if (phone) body.guest_phone = phone;
+      var note = noteEl.value.trim();
+      if (note) body.customer_note = note;
+
+      submitBtn.disabled = true;
+      var prevHtml = submitBtn.innerHTML;
+      submitBtn.textContent = 'Lagrer …';
+      var res = await NailedAuth.api('/api/v1/bookings/manual', { method: 'POST', body: body });
+      if (res.ok) {
+        closeManualBookingModal();
+        if (window.NailedForms) NailedForms.toast('Booking lagret');
+        await loadIncoming();
+      } else {
+        var data = await res.json().catch(function () { return {}; });
+        var msg = (data.error && data.error.message) || 'Kunne ikke lagre booking.';
+        errEl.textContent = msg;
+        errEl.classList.add('show');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = prevHtml;
+      }
+    }
+
+    // Wire up the modal triggers. The inline <script> runs after the modal
+    // markup is parsed, so the elements always exist by the time we get here.
+    (function () {
+      var openBtn = document.getElementById('newManualBookingBtn');
+      var closeBtn = document.getElementById('manualBookingClose');
+      var cancelBtn = document.getElementById('manualBookingCancel');
+      var backdrop = document.getElementById('manualBookingBackdrop');
+      var form = document.getElementById('manualBookingForm');
+      if (openBtn) openBtn.addEventListener('click', openManualBookingModal);
+      if (closeBtn) closeBtn.addEventListener('click', closeManualBookingModal);
+      if (cancelBtn) cancelBtn.addEventListener('click', closeManualBookingModal);
+      if (backdrop) backdrop.addEventListener('click', closeManualBookingModal);
+      if (form) form.addEventListener('submit', submitManualBooking);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          var md = document.getElementById('manualBookingModal');
+          if (md && md.classList.contains('open')) closeManualBookingModal();
+        }
+      });
+    })();
 
     /* ---------- REVIEWS (owner view) ---------- */
     // Star row used inside the owner reviews list (always integer 1..5).
