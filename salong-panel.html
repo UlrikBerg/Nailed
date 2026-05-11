@@ -642,9 +642,12 @@
 
     /* Amenities checkbox grid */
     .amen-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      display: grid; grid-template-columns: repeat(5, 1fr);
       gap: 10px;
     }
+    @media (max-width: 1100px) { .amen-grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 900px)  { .amen-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px)  { .amen-grid { grid-template-columns: repeat(2, 1fr); } }
     .amen-card {
       display: flex; align-items: center; gap: 10px;
       padding: 12px; border: 1px solid var(--stone-200);
@@ -2854,7 +2857,11 @@
     // Rediger button now, and the photo gallery has "Rediger bilder".
     var topEditBtn = document.getElementById('editProfileBtn');
     if (topEditBtn) topEditBtn.addEventListener('click', function () { setProfileMode('edit', 'all'); });
-    document.getElementById('cancelEditProfileBtn').addEventListener('click', function () { setProfileMode('view'); });
+    document.getElementById('cancelEditProfileBtn').addEventListener('click', function () {
+      setProfileMode('view');
+      var dashBtn = document.querySelector('.kp-tab[data-tab="dashboard"]');
+      if (dashBtn) dashBtn.click();
+    });
     document.getElementById('cancelEditProfileBtn2').addEventListener('click', function () { setProfileMode('view'); });
     document.querySelectorAll('[data-edit]').forEach(function (btn) {
       btn.addEventListener('click', function () {
