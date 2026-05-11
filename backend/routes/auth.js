@@ -6,12 +6,6 @@ const { issueAccessToken } = require('../lib/jwt');
 const { createSession, findValidSession, revokeSession } = require('../lib/sessions');
 const { pkcePair, randomBase64Url, asyncRoute, HttpError, nowPlusSeconds } = require('../lib/util');
 const config = require('../config');
-const {
-  refreshLimiter,
-  oauthStartLimiter,
-  oauthCallbackLimiter,
-  logoutLimiter,
-} = require('../middleware/rate-limit');
 
 const router = express.Router();
 
@@ -24,7 +18,7 @@ router.get('/providers', (_req, res) => {
 });
 
 // GET /auth/:provider/start — kick off OIDC flow, redirects to provider
-router.get('/:provider/start', oauthStartLimiter, asyncRoute(async (req, res) => {
+router.get('/:provider/start', asyncRoute(async (req, res) => {
   const provider = getProvider(req.params.provider);
   if (!provider.isEnabled()) {
     throw new HttpError(503, 'provider_disabled', `${provider.id} er ikke aktivert.`);
@@ -45,7 +39,7 @@ router.get('/:provider/start', oauthStartLimiter, asyncRoute(async (req, res) =>
 }));
 
 // GET /auth/:provider/callback — provider redirects back here
-router.get('/:provider/callback', oauthCallbackLimiter, asyncRoute(async (req, res) => {
+router.get('/:provider/callback', asyncRoute(async (req, res) => {
   const provider = getProvider(req.params.provider);
   const { code, state, error: providerError } = req.query;
 
@@ -170,7 +164,7 @@ router.get('/:provider/callback', oauthCallbackLimiter, asyncRoute(async (req, r
 }));
 
 // POST /auth/refresh — { refreshToken } -> { accessToken }
-router.post('/refresh', refreshLimiter, asyncRoute(async (req, res) => {
+router.post('/refresh', asyncRoute(async (req, res) => {
   const schema = z.object({ refreshToken: z.string().min(10) });
   const { refreshToken } = schema.parse(req.body);
 
@@ -190,7 +184,7 @@ router.post('/refresh', refreshLimiter, asyncRoute(async (req, res) => {
 }));
 
 // POST /auth/logout — { refreshToken }
-router.post('/logout', logoutLimiter, asyncRoute(async (req, res) => {
+router.post('/logout', asyncRoute(async (req, res) => {
   const refreshToken = (req.body && req.body.refreshToken) || null;
   if (refreshToken) await revokeSession(refreshToken);
   res.json({ ok: true });

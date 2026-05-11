@@ -3,7 +3,6 @@ const { z } = require('zod');
 const { pool, query, queryOne, tx } = require('../db');
 const { requireRole } = require('../middleware/auth');
 const { asyncRoute, HttpError, slugify, randomBase64Url } = require('../lib/util');
-const geocode = require('../lib/geocode');
 
 const router = express.Router();
 
@@ -158,10 +157,6 @@ router.post('/salon-applications/:id/approve', asyncRoute(async (req, res) => {
   if (!app) throw new HttpError(404, 'not_found', 'Søknaden finnes ikke.');
   if (app.status !== 'pending') throw new HttpError(409, 'not_pending', 'Søknaden er allerede behandlet.');
 
-  // Geocode the application's address before we open the transaction so a slow
-  // Nominatim response doesn't hold a DB row lock. Coords are best-effort.
-  const coords = await geocode(app.address_line, app.postal_code, app.city);
-
   await tx(async (conn) => {
     await conn.execute(
       `UPDATE salon_applications
@@ -188,13 +183,12 @@ router.post('/salon-applications/:id/approve', asyncRoute(async (req, res) => {
 
     await conn.execute(
       `INSERT INTO salons
-         (owner_user_id, slug, name, city, address_line, postal_code, lat, lng,
+         (owner_user_id, slug, name, city, address_line, postal_code,
           instagram_url, tiktok_url, facebook_url, website_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         app.applicant_user_id, slug, app.salon_name, app.city,
         app.address_line, app.postal_code,
-        coords ? coords.lat : null, coords ? coords.lng : null,
         app.instagram_url, app.tiktok_url, app.facebook_url, app.website_url,
       ]
     );

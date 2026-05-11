@@ -4,30 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Salong — nailed</title>
-  <meta name="description" content="Book time hos en av Norges beste skjønnhetssalonger. Se behandlinger, priser, anmeldelser og ledig tid — book direkte på nailed." />
-  <meta name="theme-color" content="#EE3F7E" />
-  <link rel="canonical" href="https://skyblue-cod-739202.hostingersite.com/salon.html" />
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="stylesheet" href="styles.css" />
-  <!-- Leaflet (OpenStreetMap viewer). Free, no API key. -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossorigin="" />
-
-  <!-- Open Graph (defaults; updated dynamically in renderSalon() once data loads) -->
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="nailed" />
-  <meta property="og:title" content="Salong — nailed" />
-  <meta property="og:description" content="Book time hos en av Norges beste skjønnhetssalonger på nailed." />
-  <meta property="og:url" content="https://skyblue-cod-739202.hostingersite.com/salon.html" />
-  <meta property="og:image" content="https://skyblue-cod-739202.hostingersite.com/assets/logo-wordmark.svg" />
-  <meta property="og:locale" content="nb_NO" />
-
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Salong — nailed" />
-  <meta name="twitter:description" content="Book time hos en av Norges beste skjønnhetssalonger på nailed." />
-  <meta name="twitter:image" content="https://skyblue-cod-739202.hostingersite.com/assets/logo-wordmark.svg" />
   <style>
     /* Opening hours (copied verbatim from /partner/profil.html) */
     .profile-hours {
@@ -227,43 +205,6 @@
       margin: 4px -8px;
       padding: 3px 8px;
     }
-
-    /* Location / OpenStreetMap card — shown below "Alle behandlinger". */
-    .salon-map-section {
-      margin-top: 56px;
-    }
-    .salon-map-section__head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .salon-map-section__title {
-      margin: 0;
-      font-size: 24px;
-    }
-    .salon-map-section__addr {
-      font-family: var(--font-body);
-      font-size: 14px;
-      color: var(--fg-muted);
-    }
-    .salon-map {
-      width: 100%;
-      height: 320px;
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      border: 1px solid var(--stone-200);
-      background: var(--cream-50);
-    }
-    .salon-map-section__actions {
-      margin-top: 12px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    /* Leaflet attribution sits in the bottom-right of the tile area; keep the
-       default font small but readable against our cream background. */
-    .leaflet-container { font-family: var(--font-body); font-size: 11px; }
   </style>
 </head>
 <body>
@@ -359,21 +300,6 @@
           <div class="svc-cat" id="servicesCategory">
             <ul class="all-services" id="allServicesList"></ul>
           </div>
-
-          <!-- Map (OpenStreetMap via Leaflet) — only shown when the API returns
-               lat/lng for this salon. Populated by initSalonMap() below. -->
-          <section class="salon-map-section" id="mapSection" style="display:none;">
-            <div class="salon-map-section__head">
-              <h3 class="salon-map-section__title">Slik finner du oss</h3>
-              <span class="salon-map-section__addr" id="mapAddr"></span>
-            </div>
-            <div class="salon-map" id="salonMap" aria-label="Kart over salongens beliggenhet"></div>
-            <div class="salon-map-section__actions">
-              <a id="mapDirections" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">
-                <i data-lucide="navigation"></i> Veibeskrivelse
-              </a>
-            </div>
-          </section>
 
           <!-- Anmeldelser -->
           <div style="display:flex; align-items:baseline; justify-content:space-between; margin-top: 56px; margin-bottom: 16px;">
@@ -488,12 +414,6 @@
   </footer>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <!-- Leaflet runtime. Loaded async-ish via plain <script>; the salon-map
-       initializer below guards on `window.L` so a network hiccup hides the
-       map block instead of breaking the page. -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-          crossorigin=""></script>
   <script src="favorites.js"></script>
   <script src="/assets/auth.js"></script>
   <script src="/assets/forms.js"></script>
@@ -509,57 +429,6 @@
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
     function qs(n) { return new URLSearchParams(window.location.search).get(n); }
-
-    // ---- Salon map (Leaflet + OpenStreetMap tiles) ----
-    // Renders an interactive map centered on the salon's lat/lng. The whole
-    // block is hidden when:
-    //   * the API returned no coords (geocoding hasn't run yet, or the salon
-    //     has no usable address — we never want to render a 0,0 map),
-    //   * Leaflet failed to load (e.g. unpkg blocked / offline).
-    var salonMapInstance = null;
-    function initSalonMap(s) {
-      var section = document.getElementById('mapSection');
-      var lat = s && s.lat != null ? Number(s.lat) : null;
-      var lng = s && s.lng != null ? Number(s.lng) : null;
-      if (!Number.isFinite(lat) || !Number.isFinite(lng) || !window.L) {
-        if (section) section.style.display = 'none';
-        return;
-      }
-      section.style.display = '';
-
-      // Address caption next to the title — best-effort, falls back to city.
-      var addrParts = [];
-      if (s.address_line) addrParts.push(s.address_line);
-      var pcCity = [s.postal_code, s.city].filter(Boolean).join(' ');
-      if (pcCity) addrParts.push(pcCity);
-      document.getElementById('mapAddr').textContent = addrParts.join(', ');
-
-      // Google Maps directions link — keep working even though the embedded
-      // map is OSM. We pass lat,lng as destination because address_line may
-      // be empty and coords are exact.
-      var dirEl = document.getElementById('mapDirections');
-      dirEl.href = 'https://www.google.com/maps/dir/?api=1&destination=' +
-        encodeURIComponent(lat + ',' + lng);
-
-      // Leaflet only allows one map per container — guard against re-init.
-      if (salonMapInstance) {
-        try { salonMapInstance.remove(); } catch (e) {}
-        salonMapInstance = null;
-      }
-      salonMapInstance = L.map('salonMap', {
-        center: [lat, lng],
-        zoom: 16,
-        scrollWheelZoom: false, // avoids hijacking page scroll on long pages
-        zoomControl: true,
-      });
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        // OSM tiles require visible attribution.
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-bidragsytere',
-      }).addTo(salonMapInstance);
-      L.marker([lat, lng]).addTo(salonMapInstance)
-        .bindPopup(escapeHtml(s.name || 'Salongen'));
-    }
 
     // ---- 1. Read slug; redirect if missing ----
     var slug = qs('slug');
@@ -1507,12 +1376,6 @@
       document.title = s.name + ' — nailed';
       document.querySelector('.salon-detail__title').textContent = s.name || '';
 
-      // SEO: rewrite description, OG/Twitter tags, canonical, and emit a
-      // BeautySalon LD+JSON block based on the live API payload. We do this
-      // client-side because the server returns static HTML to /salon.html and
-      // we don't want to fork a per-slug template just for meta tags.
-      updateSalonSeo(data);
-
       // Sub line: only show city when there's no street address that already
       // contains it (otherwise we render "Halden" twice — once here, once
       // inside the address line below). Status pill always renders if needed.
@@ -1540,9 +1403,6 @@
       } else {
         addrEl.style.display = 'none';
       }
-
-      // Map block — only shown when the API has lat/lng for this salon.
-      initSalonMap(s);
 
       // Bio
       var aboutEl = document.querySelector('.salon-detail__about');

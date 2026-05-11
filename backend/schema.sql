@@ -405,11 +405,6 @@ ALTER TABLE salons
   ADD COLUMN IF NOT EXISTS lunch_break_start TIME DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS lunch_break_end   TIME DEFAULT NULL;
 
--- Owner can dismiss the onboarding checklist on /salong-panel.html. Once set
--- to 1 the card never re-renders even if the underlying state changes.
-ALTER TABLE salons
-  ADD COLUMN IF NOT EXISTS onboarding_skipped TINYINT(1) NOT NULL DEFAULT 0;
-
 -- Per-date closures (vacation, holidays, …). One row per closed date.
 CREATE TABLE IF NOT EXISTS salon_closures (
   id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -490,79 +485,6 @@ SET @ix_sql := IF(@ix_exists = 0,
   'SELECT 1');
 PREPARE stmt FROM @ix_sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- Recurring bookings — a series is a parent + N-1 children sharing a series_id.
--- series_id = the id of the first (parent) booking row in the series. Position
--- is 1..N (1 = parent). series_total is the count at creation time and is
--- informational; cancelling a child doesn't decrement it. series_interval_weeks
--- preserves the cadence for display in the customer panel.
-ALTER TABLE bookings
-  ADD COLUMN IF NOT EXISTS series_id              BIGINT UNSIGNED DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS series_position        SMALLINT UNSIGNED DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS series_total           SMALLINT UNSIGNED DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS series_interval_weeks  TINYINT UNSIGNED DEFAULT NULL;
-
--- Index on (series_id, series_position) for the per-series lookup. Idempotent
--- via INFORMATION_SCHEMA gate (MySQL has no ADD INDEX IF NOT EXISTS).
-SET @bk_series_ix_exists := (
-  SELECT COUNT(*) FROM information_schema.STATISTICS
-   WHERE TABLE_SCHEMA = DATABASE()
-     AND TABLE_NAME = 'bookings'
-     AND INDEX_NAME = 'idx_series'
-);
-SET @bk_series_ix_sql := IF(@bk_series_ix_exists = 0,
-  'ALTER TABLE bookings ADD INDEX idx_series (series_id, series_position)',
-  'SELECT 1');
-PREPARE stmt FROM @bk_series_ix_sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-
--- Owner-side manual bookings (walk-ins, phone bookings). When the salon owner
--- books on behalf of someone, customer_user_id may be NULL (a "guest" booking)
--- and the guest's contact info lives in guest_name + guest_phone instead. To
--- allow NULL on a column that already has a FK we drop the existing FK, relax
--- the column, and re-add the FK — all idempotent.
---
--- 1) Add the guest columns.
-ALTER TABLE bookings
-  ADD COLUMN IF NOT EXISTS guest_name  VARCHAR(255) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS guest_phone VARCHAR(32)  DEFAULT NULL;
-
--- 2) Drop the existing FK on customer_user_id if the column is still NOT NULL.
---    The rewrite only runs the first time; subsequent runs are no-ops.
-SET @bk_cust_notnull := (
-  SELECT IS_NULLABLE FROM information_schema.COLUMNS
-   WHERE TABLE_SCHEMA = DATABASE()
-     AND TABLE_NAME = 'bookings'
-     AND COLUMN_NAME = 'customer_user_id'
-);
-SET @bk_cust_fk := (
-  SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
-   WHERE TABLE_SCHEMA = DATABASE()
-     AND TABLE_NAME = 'bookings'
-     AND CONSTRAINT_NAME = 'fk_bookings_customer'
-);
-SET @drop_fk_sql := IF(@bk_cust_notnull = 'NO' AND @bk_cust_fk > 0,
-  'ALTER TABLE bookings DROP FOREIGN KEY fk_bookings_customer',
-  'SELECT 1');
-PREPARE stmt FROM @drop_fk_sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-
--- 3) Relax customer_user_id to NULLable (only when it's still NOT NULL).
-SET @relax_sql := IF(@bk_cust_notnull = 'NO',
-  'ALTER TABLE bookings MODIFY customer_user_id BIGINT UNSIGNED NULL',
-  'SELECT 1');
-PREPARE stmt FROM @relax_sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-
--- 4) Re-add the FK if it's missing (covers fresh installs from the legacy
---    CREATE TABLE above AND the just-dropped case).
-SET @cust_fk_exists := (
-  SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
-   WHERE TABLE_SCHEMA = DATABASE()
-     AND TABLE_NAME = 'bookings'
-     AND CONSTRAINT_NAME = 'fk_bookings_customer'
-);
-SET @add_fk_sql := IF(@cust_fk_exists = 0,
-  'ALTER TABLE bookings ADD CONSTRAINT fk_bookings_customer FOREIGN KEY (customer_user_id) REFERENCES users(id) ON DELETE RESTRICT',
-  'SELECT 1');
-PREPARE stmt FROM @add_fk_sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-
 -- -----------------------------------------------------------------------------
 -- customer_notes
 -- Salon-owner-private notes about a specific customer (allergies, preferences,
@@ -583,33 +505,4 @@ CREATE TABLE IF NOT EXISTS customer_notes (
   KEY idx_salon (salon_id),
   CONSTRAINT fk_note_salon    FOREIGN KEY (salon_id)         REFERENCES salons(id) ON DELETE CASCADE,
   CONSTRAINT fk_note_customer FOREIGN KEY (customer_user_id) REFERENCES users(id)  ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- -----------------------------------------------------------------------------
--- waitlist_entries
--- A customer subscribes to a slot that's currently taken. When the slot frees
--- up (booking cancelled or no_show), the matching entry flips to 'ready' and
--- the customer can 1-click rebook from /kunde-panel.html. Email delivery isn't
--- wired yet — this only records intent and surfaces it in the panel.
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS waitlist_entries (
-  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  user_id         BIGINT UNSIGNED NOT NULL,
-  salon_id        BIGINT UNSIGNED NOT NULL,
-  service_id      BIGINT UNSIGNED NOT NULL,
-  team_member_id  BIGINT UNSIGNED DEFAULT NULL,
-  desired_start   DATETIME NOT NULL,
-  status          ENUM('waiting','ready','claimed','expired') NOT NULL DEFAULT 'waiting',
-  notified_at     DATETIME DEFAULT NULL,
-  claimed_booking_id BIGINT UNSIGNED DEFAULT NULL,
-  created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  expires_at      DATETIME DEFAULT NULL,
-  PRIMARY KEY (id),
-  KEY idx_user (user_id, status),
-  KEY idx_salon_slot (salon_id, desired_start, status),
-  CONSTRAINT fk_wl_user    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
-  CONSTRAINT fk_wl_salon   FOREIGN KEY (salon_id)   REFERENCES salons(id)   ON DELETE CASCADE,
-  CONSTRAINT fk_wl_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
-  CONSTRAINT fk_wl_team    FOREIGN KEY (team_member_id) REFERENCES team_members(id) ON DELETE SET NULL,
-  CONSTRAINT fk_wl_claimed FOREIGN KEY (claimed_booking_id) REFERENCES bookings(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

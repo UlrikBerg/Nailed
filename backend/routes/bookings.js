@@ -178,7 +178,6 @@ router.get('/mine', asyncRoute(async (req, res) => {
   const rows = await query(
     `SELECT b.id, b.start_at, b.end_at, b.status, b.price_nok,
             b.team_member_id,
-            b.series_id, b.series_position, b.series_total, b.series_interval_weeks,
             s.id AS salon_id, s.slug AS salon_slug, s.name AS salon_name, s.city AS salon_city,
             sv.name AS service_name,
             tm.name AS team_member_name,
@@ -210,23 +209,18 @@ router.get('/incoming', asyncRoute(async (req, res) => {
   const rows = await query(
     `SELECT b.id, b.start_at, b.end_at, b.status, b.price_nok, b.customer_note,
             b.team_member_id, b.customer_user_id,
-            b.guest_name, b.guest_phone,
             s.id AS salon_id, s.name AS salon_name,
             sv.name AS service_name, sv.duration_min,
             tm.name AS team_member_name,
-            u.name  AS customer_name,
-            u.email AS customer_email,
-            u.phone AS customer_phone,
-            (CASE WHEN b.customer_user_id IS NULL THEN 0 ELSE
-              (SELECT 1 FROM customer_notes cn
-                WHERE cn.salon_id = b.salon_id
-                  AND cn.customer_user_id = b.customer_user_id
-                LIMIT 1)
-             END) AS has_customer_note
+            u.name AS customer_name,
+            (SELECT 1 FROM customer_notes cn
+              WHERE cn.salon_id = b.salon_id
+                AND cn.customer_user_id = b.customer_user_id
+              LIMIT 1) AS has_customer_note
        FROM bookings b
        JOIN salons s ON s.id = b.salon_id
        JOIN services sv ON sv.id = b.service_id
-       LEFT JOIN users u ON u.id = b.customer_user_id
+       JOIN users u ON u.id = b.customer_user_id
        LEFT JOIN team_members tm ON tm.id = b.team_member_id
       WHERE s.owner_user_id = ?
       ORDER BY b.start_at DESC
@@ -234,26 +228,11 @@ router.get('/incoming', asyncRoute(async (req, res) => {
     [req.user.id]
   );
   res.json({
-    bookings: rows.map(r => ({
-      ...r,
-      has_customer_note: !!r.has_customer_note,
-      // Convenience for the panel: who to address as "the customer". For a
-      // walk-in/guest there is no users row, so we surface guest_* instead.
-      display_name:  r.customer_name  || r.guest_name  || null,
-      display_phone: r.customer_phone || r.guest_phone || null,
-      is_guest:      r.customer_user_id == null,
-    })),
+    bookings: rows.map(r => ({ ...r, has_customer_note: !!r.has_customer_note })),
   });
 }));
 
 // POST /bookings — customer creates a booking
-//
-// Optionally creates a recurring series: when `recurring` is supplied, every
-// occurrence is validated up-front (same lead/window/closure/hours/lunch/overlap
-// rules as a single booking). If ANY occurrence fails, the whole series is
-// rejected with a 409 carrying which one (zero-based index) failed and why.
-// Successful series are inserted in one transaction; series_id on every row
-// equals the parent's id (i.e. the inserted id of the first row).
 router.post('/', asyncRoute(async (req, res) => {
   const schema = z.object({
     salon_id: z.number().int().positive(),
@@ -262,15 +241,6 @@ router.post('/', asyncRoute(async (req, res) => {
     customer_note: z.string().trim().max(1000).optional().nullable(),
     // Optional stylist preference. null = "Hvem som helst" (salon-wide booking).
     team_member_id: z.number().int().positive().nullable().optional(),
-    // Optional recurring spec. Allowed intervals: 1/2/3/4/6/8 weeks; count
-    // 2..12 (caps server-side roundtrips and bounds the validation loop).
-    recurring: z.object({
-      interval_weeks: z.number().int().refine(
-        (n) => [1, 2, 3, 4, 6, 8].includes(n),
-        { message: 'interval_weeks must be 1, 2, 3, 4, 6 or 8' }
-      ),
-      occurrences: z.number().int().min(2).max(12),
-    }).optional(),
   });
   const data = schema.parse(req.body);
 
@@ -323,151 +293,25 @@ router.post('/', asyncRoute(async (req, res) => {
 
   const startAt = new Date(data.start_at);
 
-  // Compute the start timestamps for the whole series (single booking → just
-  // one). Offsets are ms-based so the wall-clock hour stays identical across
-  // DST transitions; the alternative (rebuild the local time each occurrence)
-  // would silently re-pick a slot during the spring-forward/fall-back week.
-  const recurring = data.recurring || null;
-  const totalOccurrences = recurring ? recurring.occurrences : 1;
-  const intervalWeeks = recurring ? recurring.interval_weeks : null;
-  const starts = [];
-  for (let i = 0; i < totalOccurrences; i++) {
-    const offsetMs = recurring ? i * intervalWeeks * 7 * 86_400_000 : 0;
-    starts.push(new Date(startAt.getTime() + offsetMs));
-  }
-
   // Run all rule checks + overlap inside a transaction so the SELECT FOR UPDATE
-  // inside validateSlot locks the same rows that the INSERT will touch. For a
-  // series we validate every occurrence before any insert; if one fails we
-  // surface its index + ISO start so the frontend can point at the bad date.
-  const result = await tx(async (conn) => {
-    // When the customer picked "Hvem som helst" (teamMemberId == null), assign
-    // a specific stylist now so the row never goes in with team_member_id NULL.
-    // Why: validateSlot's overlap check uses `(team_member_id = ? OR team_member_id IS NULL)`
-    // when a stylist is set — so a NULL row blocks every other stylist forever.
-    // We pick a random stylist whose calendar is clear for every series
-    // occurrence, falling back to NULL only if the salon has no team_members at
-    // all (single-stylist salons, where NULL is the legacy salon-wide row).
-    let resolvedTeamMemberId = teamMemberId;
-    if (resolvedTeamMemberId == null) {
-      const [linkRows] = await conn.execute(
-        `SELECT team_member_id FROM service_team_members WHERE service_id = ?`,
-        [data.service_id]
-      );
-      let candidateIds;
-      if (linkRows.length > 0) {
-        candidateIds = linkRows.map(r => Number(r.team_member_id));
-      } else {
-        const [memberRows] = await conn.execute(
-          `SELECT id FROM team_members WHERE salon_id = ? AND active = 1`,
-          [data.salon_id]
-        );
-        candidateIds = memberRows.map(r => Number(r.id));
-      }
-      if (candidateIds.length > 0) {
-        // Fisher-Yates shuffle so two simultaneous "anyone" bookings don't
-        // always race to the same first stylist.
-        for (let i = candidateIds.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [candidateIds[i], candidateIds[j]] = [candidateIds[j], candidateIds[i]];
-        }
-        const bufferMs = (Number(salon.booking_buffer_min) || 0) * 60_000;
-        const durMs = service.duration_min * 60_000;
-        let picked = null;
-        for (const cid of candidateIds) {
-          let free = true;
-          for (const s of starts) {
-            const overlapStart = new Date(s.getTime() - bufferMs);
-            const overlapEnd   = new Date(s.getTime() + durMs + bufferMs);
-            const [conflicts] = await conn.execute(
-              `SELECT id FROM bookings
-                WHERE salon_id = ?
-                  AND status IN ('pending','confirmed')
-                  AND start_at < ?
-                  AND end_at   > ?
-                  AND (team_member_id = ? OR team_member_id IS NULL)
-                LIMIT 1
-                FOR UPDATE`,
-              [data.salon_id, overlapEnd, overlapStart, cid]
-            );
-            if (conflicts.length > 0) { free = false; break; }
-          }
-          if (free) { picked = cid; break; }
-        }
-        if (picked == null) {
-          throw new HttpError(409, 'no_stylist_available',
-            'Ingen behandler er ledig på dette tidspunktet. Velg en annen tid.');
-        }
-        resolvedTeamMemberId = picked;
-      }
-    }
-
-    const validated = [];
-    for (let i = 0; i < starts.length; i++) {
-      try {
-        const { endAt } = await validateSlot({
-          salon: { ...salon, id: data.salon_id },
-          service,
-          startAt: starts[i],
-          teamMemberId: resolvedTeamMemberId,
-          conn,
-        });
-        validated.push({ start: starts[i], end: endAt });
-      } catch (err) {
-        if (recurring && err instanceof HttpError) {
-          // Re-throw with occurrence context so the client can tell the user
-          // exactly which date in the series caused the failure.
-          throw new HttpError(err.status, err.code, err.message, {
-            ...(err.details || {}),
-            occurrence_index: i,
-            occurrence_start_at: starts[i].toISOString(),
-          });
-        }
-        throw err;
-      }
-    }
-
-    if (!recurring) {
-      const [insertResult] = await conn.execute(
-        `INSERT INTO bookings
-           (customer_user_id, salon_id, service_id, start_at, end_at, price_nok, status, customer_note, team_member_id)
-         VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
-        [req.user.id, data.salon_id, data.service_id, validated[0].start, validated[0].end,
-         service.price_nok, data.customer_note || null, resolvedTeamMemberId]
-      );
-      return { id: insertResult.insertId };
-    }
-
-    // Series: insert parent first (position 1) so we know its id, then set
-    // series_id = parentId on the parent and on each child (positions 2..N).
-    const [parentInsert] = await conn.execute(
+  // inside validateSlot locks the same rows that the INSERT will touch.
+  const insertedId = await tx(async (conn) => {
+    const { endAt } = await validateSlot({
+      salon: { ...salon, id: data.salon_id },
+      service,
+      startAt,
+      teamMemberId,
+      conn,
+    });
+    const [insertResult] = await conn.execute(
       `INSERT INTO bookings
-         (customer_user_id, salon_id, service_id, start_at, end_at, price_nok, status,
-          customer_note, team_member_id,
-          series_position, series_total, series_interval_weeks)
-       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, 1, ?, ?)`,
-      [req.user.id, data.salon_id, data.service_id, validated[0].start, validated[0].end,
-       service.price_nok, data.customer_note || null, resolvedTeamMemberId,
-       totalOccurrences, intervalWeeks]
+         (customer_user_id, salon_id, service_id, start_at, end_at, price_nok, status, customer_note, team_member_id)
+       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+      [req.user.id, data.salon_id, data.service_id, startAt, endAt, service.price_nok, data.customer_note || null, teamMemberId]
     );
-    const parentId = parentInsert.insertId;
-    await conn.execute(`UPDATE bookings SET series_id = ? WHERE id = ?`, [parentId, parentId]);
-
-    for (let i = 1; i < validated.length; i++) {
-      await conn.execute(
-        `INSERT INTO bookings
-           (customer_user_id, salon_id, service_id, start_at, end_at, price_nok, status,
-            customer_note, team_member_id,
-            series_id, series_position, series_total, series_interval_weeks)
-         VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)`,
-        [req.user.id, data.salon_id, data.service_id, validated[i].start, validated[i].end,
-         service.price_nok, data.customer_note || null, resolvedTeamMemberId,
-         parentId, i + 1, totalOccurrences, intervalWeeks]
-      );
-    }
-    return { id: parentId, series_id: parentId, series_total: totalOccurrences };
+    return insertResult.insertId;
   });
-  res.status(201).json(result);
+  res.status(201).json({ id: insertedId });
 }));
 
 // GET /bookings/:id — single booking, accessible to the customer or salon owner
@@ -478,7 +322,6 @@ router.get('/:id', asyncRoute(async (req, res) => {
     `SELECT b.id, b.start_at, b.end_at, b.status, b.price_nok, b.customer_note,
             b.cancelled_at, b.cancelled_by_role, b.completed_at, b.created_at,
             b.customer_user_id, b.team_member_id,
-            b.series_id, b.series_position, b.series_total, b.series_interval_weeks,
             s.id AS salon_id, s.slug AS salon_slug, s.name AS salon_name,
             s.city AS salon_city, s.address_line AS salon_address,
             s.postal_code AS salon_postal, s.owner_user_id,
@@ -525,8 +368,7 @@ router.patch('/:id', asyncRoute(async (req, res) => {
   const { status } = schema.parse(req.body);
 
   const booking = await queryOne(
-    `SELECT b.id, b.customer_user_id, b.status, b.start_at, b.end_at,
-            b.salon_id,
+    `SELECT b.id, b.customer_user_id, b.status, b.start_at,
             s.owner_user_id, s.cancellation_lead_hours
        FROM bookings b JOIN salons s ON s.id = b.salon_id
       WHERE b.id = ?`,
@@ -586,38 +428,6 @@ router.patch('/:id', asyncRoute(async (req, res) => {
   if (!result.affectedRows) {
     throw new HttpError(409, 'conflict', 'Booking ble endret av en annen prosess. Last på nytt.');
   }
-
-  // Waitlist hand-off: if the slot just freed up (cancelled / no_show), flip
-  // the earliest matching waitlist entry to 'ready'. "Matching" = same salon
-  // and a desired_start that falls inside the now-vacated [start_at, end_at)
-  // window. We only promote ONE entry per slot (FIFO by created_at) so two
-  // customers don't both race to claim the same opening.
-  if (status === 'cancelled' || status === 'no_show') {
-    try {
-      const candidate = await queryOne(
-        `SELECT id FROM waitlist_entries
-          WHERE salon_id = ?
-            AND status = 'waiting'
-            AND desired_start >= ?
-            AND desired_start <  ?
-          ORDER BY created_at ASC
-          LIMIT 1`,
-        [booking.salon_id, booking.start_at, booking.end_at]
-      );
-      if (candidate) {
-        await query(
-          `UPDATE waitlist_entries
-              SET status = 'ready', notified_at = NOW()
-            WHERE id = ? AND status = 'waiting'`,
-          [candidate.id]
-        );
-      }
-    } catch (err) {
-      // Don't fail the cancel just because the waitlist hand-off failed.
-      console.error('[waitlist] notify-on-free failed', err);
-    }
-  }
-
   res.json({ ok: true });
 }));
 
@@ -809,7 +619,4 @@ router.patch('/:id/reschedule', asyncRoute(async (req, res) => {
   res.json({ ok: true, start_at: startAt.toISOString(), end_at: endAt.toISOString() });
 }));
 
-// Exported for reuse by other routes that need to validate a slot under the
-// same locking semantics (e.g. waitlist claim).
 module.exports = router;
-module.exports.validateSlot = validateSlot;
