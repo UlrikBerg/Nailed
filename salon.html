@@ -425,6 +425,13 @@
           </div>
           <div class="slots" id="slotGrid"></div>
 
+          <div id="waitlistOffer" style="display:none; margin-top: 10px; font-family: var(--font-body); font-size: 13px;">
+            <a href="#" id="waitlistOfferLink" style="color: var(--rouge-500); font-weight: 600; text-decoration: none;">
+              <i data-lucide="bell" style="width:14px;height:14px;vertical-align:-2px;"></i>
+              Få varsel når denne tiden blir ledig
+            </a>
+          </div>
+
           <button class="btn btn-primary btn-lg booking-panel__cta" id="bookCta" type="button" disabled>
             Velg behandling
           </button>
@@ -1074,11 +1081,13 @@
             grid.querySelectorAll('.slot').forEach(function(s) { s.classList.remove('active'); });
             this.classList.add('active');
             selectedDateTime = this.dataset.iso;
+            hideWaitlistOffer();
             updateCta();
           });
         }
         grid.appendChild(btn);
       }
+      hideWaitlistOffer();
 
       // Restore CTA from any prior "Stengt" lock. updateCta() picks the right
       // message based on current selection state.
@@ -1132,12 +1141,55 @@
         var data = await res.json().catch(function() { return {}; });
         cta.disabled = false;
         cta.textContent = prev;
+        if (data && data.error && data.error.code === 'slot_taken') {
+          showWaitlistOffer();
+        }
         if (window.NailedForms) NailedForms.toast((data.error && data.error.message) || 'Kunne ikke booke', { type: 'error' });
         return;
       }
       var json = await res.json();
       location.href = '/confirmation.html?id=' + encodeURIComponent(json.id);
     });
+
+    // ---- Waitlist offer (shown when server rejects with slot_taken) ----
+    function showWaitlistOffer() {
+      var el = document.getElementById('waitlistOffer');
+      if (el) el.style.display = '';
+    }
+    function hideWaitlistOffer() {
+      var el = document.getElementById('waitlistOffer');
+      if (el) el.style.display = 'none';
+    }
+
+    var waitlistLink = document.getElementById('waitlistOfferLink');
+    if (waitlistLink) {
+      waitlistLink.addEventListener('click', async function(e) {
+        e.preventDefault();
+        if (!selectedService || !currentSalon || !selectedDateTime) return;
+        if (!window.NailedAuth || !NailedAuth.isLoggedIn()) {
+          location.href = '/login.html?next=' + encodeURIComponent(location.pathname + location.search);
+          return;
+        }
+        waitlistLink.style.pointerEvents = 'none';
+        var res = await NailedAuth.api('/api/v1/waitlist', {
+          method: 'POST',
+          body: {
+            salon_id: currentSalon.id,
+            service_id: selectedService.id,
+            team_member_id: selectedStylistId,
+            desired_start: selectedDateTime,
+          },
+        });
+        waitlistLink.style.pointerEvents = '';
+        if (!res.ok) {
+          var data = await res.json().catch(function() { return {}; });
+          if (window.NailedForms) NailedForms.toast((data.error && data.error.message) || 'Kunne ikke sette på venteliste', { type: 'error' });
+          return;
+        }
+        hideWaitlistOffer();
+        if (window.NailedForms) NailedForms.toast('Du står på venteliste — vi varsler deg om timen frigjøres');
+      });
+    }
 
     function restorePendingBooking() {
       var raw;
