@@ -1089,6 +1089,34 @@ router.post('/:id/closures', requireAuth, asyncRoute(async (req, res) => {
   }
 }));
 
+// GET /salons/:id/waitlist — owner-only. Lists waitlist entries for this salon
+// so the panel can show who's queued for which slot. We don't expose the
+// requester's email here; the owner contacts them via the existing "varsle"
+// flow when a slot opens up (the auto-promotion on cancel/no_show handles that).
+router.get('/:id/waitlist', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const salon = await loadSalonOrThrow(id);
+  requireOwner(req, salon);
+
+  const rows = await query(
+    `SELECT w.id, w.desired_start, w.status, w.notified_at, w.created_at,
+            w.expires_at,
+            u.name AS user_name,
+            sv.name AS service_name,
+            tm.name AS team_member_name
+       FROM waitlist_entries w
+       JOIN users u    ON u.id  = w.user_id
+       JOIN services sv ON sv.id = w.service_id
+       LEFT JOIN team_members tm ON tm.id = w.team_member_id
+      WHERE w.salon_id = ?
+        AND w.status IN ('waiting','ready')
+      ORDER BY w.desired_start ASC, w.created_at ASC
+      LIMIT 200`,
+    [id]
+  );
+  res.json({ entries: rows });
+}));
+
 // DELETE /salons/:id/closures/:closureId — owner removes a closure.
 router.delete('/:id/closures/:closureId', requireAuth, asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
