@@ -1664,9 +1664,9 @@
               <div style="font-size: 13px; color: var(--fg-muted);">Maks 24 bilder, opptil 8 MB hver. JPEG, PNG, WEBP eller HEIC.</div>
             </div>
             <div id="coverPreview" style="margin-bottom: 16px;"></div>
-            <label class="btn btn-primary" style="cursor: pointer;">
-              <i data-lucide="upload"></i> Last opp bilde
-              <input type="file" id="imageUploader" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" style="display:none;" />
+            <label class="btn btn-primary" id="imageUploaderLabel" style="cursor: pointer;">
+              <i data-lucide="upload"></i> <span id="imageUploaderLabelText">Last opp bilde</span>
+              <input type="file" id="imageUploader" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple style="display:none;" />
             </label>
             <span id="uploadStatus" style="margin-left: 12px; color: var(--fg-muted); font-size: 13px;"></span>
             <div id="gallery" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 20px;"></div>
@@ -2921,9 +2921,10 @@
       window.lucide && window.lucide.createIcons();
     }
 
-    async function uploadImage(file) {
-      var status = document.getElementById('uploadStatus');
-      status.textContent = 'Laster opp ...';
+    var MAX_IMAGES_PER_SALON = 24;
+    var MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+    async function uploadOneImage(file) {
       var fd = new FormData();
       fd.append('file', file);
       var token = NailedAuth.getAccess();
@@ -2934,20 +2935,68 @@
       });
       if (!res.ok) {
         var data = await res.json().catch(function () { return {}; });
-        status.textContent = (data.error && data.error.message) || 'Opplasting feilet.';
-        setTimeout(function () { status.textContent = ''; }, 3000);
-        return;
+        var msg = (data.error && data.error.message) || 'Opplasting feilet.';
+        throw new Error(msg);
       }
-      status.textContent = 'Lastet opp.';
-      setTimeout(function () { status.textContent = ''; }, 1500);
-      await loadSalon();
+    }
+
+    async function uploadImages(fileList) {
+      var files = Array.from(fileList || []);
+      if (!files.length) return;
+      var label = document.getElementById('imageUploaderLabel');
+      var labelText = document.getElementById('imageUploaderLabelText');
+      var status = document.getElementById('uploadStatus');
+      var originalLabel = labelText.textContent;
+      label.style.pointerEvents = 'none';
+      label.style.opacity = '0.6';
+
+      var existingCount = (currentImages || []).length;
+      var uploaded = 0;
+      var skippedTooLarge = 0;
+      var failed = 0;
+      var capHit = false;
+
+      for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        if (existingCount + uploaded >= MAX_IMAGES_PER_SALON) {
+          capHit = true;
+          break;
+        }
+        if (file.size > MAX_IMAGE_BYTES) {
+          if (window.NailedForms) NailedForms.toast(file.name + ' er for stort (maks 8 MB).', { type: 'error' });
+          skippedTooLarge++;
+          continue;
+        }
+        labelText.textContent = 'Laster opp ' + (i + 1) + '/' + files.length + '…';
+        status.textContent = 'Laster opp bilde ' + (i + 1) + ' av ' + files.length + '…';
+        try {
+          await uploadOneImage(file);
+          uploaded++;
+        } catch (err) {
+          failed++;
+          if (window.NailedForms) NailedForms.toast(file.name + ': ' + err.message, { type: 'error' });
+        }
+      }
+
+      labelText.textContent = originalLabel;
+      label.style.pointerEvents = '';
+      label.style.opacity = '';
+      status.textContent = '';
+
+      if (capHit && window.NailedForms) {
+        NailedForms.toast('Maks 24 bilder per salong nådd. ' + uploaded + ' bilder ble lastet opp.', { type: 'error' });
+      } else if (uploaded > 0 && window.NailedForms) {
+        NailedForms.toast(uploaded + (uploaded === 1 ? ' bilde lastet opp.' : ' bilder lastet opp.'));
+      }
+
+      if (uploaded > 0) await loadSalon();
     }
 
     document.getElementById('imageUploader').addEventListener('change', function () {
-      if (this.files && this.files[0]) {
-        uploadImage(this.files[0]);
-        this.value = '';
-      }
+      var files = this.files;
+      this.value = '';
+      if (!files || !files.length) return;
+      uploadImages(files);
     });
 
     async function loadIncoming() {
