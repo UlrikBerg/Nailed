@@ -1074,12 +1074,11 @@
       opacity: 1;
       animation: image-drop-pulse 1.4s ease-in-out infinite;
     }
-    .image-drop-zone.is-dragging #gallery,
-    .image-drop-zone.is-dragging #coverPreview {
+    .image-drop-zone.is-dragging #gallery {
       transform: scale(0.98);
       transition: transform 150ms ease;
     }
-    #gallery, #coverPreview { transition: transform 150ms ease; }
+    #gallery { transition: transform 150ms ease; }
     @keyframes image-drop-pulse {
       0%, 100% { border-color: var(--rouge-500); background: rgba(190, 75, 95, 0.08); }
       50%      { border-color: var(--rouge-300, #d98a98); background: rgba(190, 75, 95, 0.14); }
@@ -1089,6 +1088,119 @@
       margin-top: 12px; font-size: 12px; color: var(--fg-muted);
     }
     .image-drop-hint.is-visible { display: block; }
+
+    /* Bilder — unified gallery grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    @media (min-width: 600px) {
+      .gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    }
+    @media (min-width: 900px) {
+      .gallery-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    }
+    .gallery-tile {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border-radius: var(--radius-md, 10px);
+      overflow: hidden;
+      border: 1px solid var(--stone-200);
+      background: var(--cream-100);
+      box-shadow: var(--shadow-sm);
+    }
+    .gallery-tile img {
+      display: block;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .gallery-tile--cover {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+    @media (max-width: 599px) {
+      .gallery-tile--cover { grid-column: 1 / -1; grid-row: auto; aspect-ratio: 16 / 10; }
+    }
+    .gallery-tile__overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: flex-end; justify-content: flex-end;
+      padding: 10px; gap: 6px;
+      background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0) 45%);
+      opacity: 0;
+      transition: opacity 150ms ease;
+      pointer-events: none;
+    }
+    @media (hover: hover) {
+      .gallery-tile:hover .gallery-tile__overlay { opacity: 1; pointer-events: auto; }
+      .gallery-tile:focus-within .gallery-tile__overlay { opacity: 1; pointer-events: auto; }
+    }
+    .gallery-tile__btn {
+      width: 34px; height: 34px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-pill);
+      background: rgba(255,255,255,0.95);
+      border: 1px solid var(--stone-200);
+      color: var(--fg, #1a1a1a);
+      cursor: pointer;
+      padding: 0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+      transition: background 120ms ease, color 120ms ease, transform 120ms ease;
+    }
+    .gallery-tile__btn:hover { background: #fff; transform: translateY(-1px); }
+    .gallery-tile__btn i { width: 16px; height: 16px; }
+    .gallery-tile__btn--danger:hover { color: #b91c1c; }
+    .gallery-tile__badge {
+      position: absolute; top: 10px; left: 10px;
+      background: var(--rouge-500); color: #fff;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 0.01em;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .gallery-tile__badge i { width: 12px; height: 12px; }
+    .gallery-tile--add {
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 8px;
+      background: var(--rouge-50);
+      border: 2px dashed var(--rouge-300);
+      box-shadow: none;
+      color: var(--rouge-500);
+      cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease;
+      text-align: center;
+      padding: 12px;
+    }
+    .gallery-tile--add:hover { background: var(--rouge-100, #f5d8de); border-color: var(--rouge-500); }
+    .gallery-tile--add i { width: 28px; height: 28px; }
+    .gallery-tile--add span { font-size: 13px; font-weight: 600; }
+    .gallery-tile--empty {
+      grid-column: 1 / -1;
+      grid-row: auto;
+      aspect-ratio: auto;
+      min-height: 280px;
+      gap: 10px;
+    }
+    .gallery-tile--empty i { width: 44px; height: 44px; }
+    .gallery-tile--empty .gallery-tile__emptyTitle {
+      font-family: var(--font-display);
+      font-size: 18px; font-weight: 600;
+      color: var(--fg, #1a1a1a);
+    }
+    .gallery-tile--empty .gallery-tile__emptySub {
+      font-size: 13px; color: var(--fg-muted); font-weight: 500;
+    }
+    .gallery-hint {
+      font-size: 13px; color: var(--fg-muted);
+      margin: 0 0 14px;
+    }
+    .gallery-status {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 13px; color: var(--fg-muted);
+    }
   </style>
 </head>
 <body>
@@ -1695,17 +1807,13 @@
           </div>
 
           <div class="kp-card image-drop-zone" id="imageDropZone" data-edit-section="photos">
-            <div class="kp-card__head">
+            <div class="kp-card__head" style="margin-bottom: 6px;">
               <h3>Bilder</h3>
-              <div style="font-size: 13px; color: var(--fg-muted);">Maks 24 bilder, opptil 8 MB hver. JPEG, PNG, WEBP eller HEIC.</div>
             </div>
-            <div id="coverPreview" style="margin-bottom: 16px;"></div>
-            <label class="btn btn-primary" id="imageUploaderLabel" style="cursor: pointer;">
-              <i data-lucide="upload"></i> <span id="imageUploaderLabelText">Last opp bilde</span>
-              <input type="file" id="imageUploader" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple style="display:none;" />
-            </label>
-            <span id="uploadStatus" style="margin-left: 12px; color: var(--fg-muted); font-size: 13px;"></span>
-            <div id="gallery" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 20px;"></div>
+            <p class="gallery-hint">Maks 24 bilder, opptil 8 MB hver. JPEG, PNG, WEBP eller HEIC.</p>
+            <input type="file" id="imageUploader" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple style="display:none;" />
+            <div id="gallery" class="gallery-grid"></div>
+            <span id="uploadStatus" class="gallery-status" aria-live="polite"></span>
             <div class="image-drop-hint" id="imageDropHint">Tips: dra bilder rett inn for å laste opp flere på en gang.</div>
             <div class="image-drop-zone__overlay" id="imageDropOverlay" aria-hidden="true">Slipp bildene her</div>
           </div>
@@ -2259,7 +2367,6 @@
         var todayIso = t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
         closureDateInput.min = todayIso;
       }
-      renderCover(salon, currentImages);
       renderGallery(salon, currentImages);
       renderProfileView(salon, currentImages);
       renderHoursView();
@@ -2912,41 +3019,66 @@
       });
     });
 
-    function renderCover(s, images) {
-      var el = document.getElementById('coverPreview');
-      if (s.cover_url) {
-        el.innerHTML =
-          '<div style="position:relative; max-width: 480px;">' +
-          '<img src="' + escapeHtml(s.cover_url) + '" alt="Cover" style="width:100%; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius-lg); border: 1px solid var(--stone-200);" />' +
-          '<div style="position:absolute; top:12px; left:12px; background: rgba(0,0,0,0.6); color: white; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600;">Forsidebilde</div>' +
-          '</div>';
-      } else {
-        el.innerHTML =
-          '<div style="max-width: 480px; aspect-ratio: 16/9; border: 2px dashed var(--stone-300); border-radius: var(--radius-lg); display:flex; align-items:center; justify-content:center; color: var(--fg-muted); font-size: 14px;">' +
-          'Ingen forsidebilde — last opp et bilde under.' +
-          '</div>';
-      }
-    }
-
     function renderGallery(s, images) {
       var el = document.getElementById('gallery');
       var hint = document.getElementById('imageDropHint');
-      if (hint) hint.classList.toggle('is-visible', !images.length);
-      if (!images.length) { el.innerHTML = ''; return; }
-      el.innerHTML = images.map(function (img) {
-        var isCover = s.cover_image_key === img.key;
+      var imgs = images || [];
+      if (hint) hint.classList.toggle('is-visible', !imgs.length);
+
+      if (!imgs.length) {
+        el.innerHTML =
+          '<button type="button" class="gallery-tile gallery-tile--add gallery-tile--empty" id="galleryAddTile" aria-label="Last opp bilder">' +
+            '<i data-lucide="image-plus"></i>' +
+            '<span class="gallery-tile__emptyTitle">Last opp dine første bilder</span>' +
+            '<span class="gallery-tile__emptySub">Dra bilder hit, eller klikk for å velge</span>' +
+          '</button>';
+        wireGalleryAddTile();
+        window.lucide && window.lucide.createIcons();
+        return;
+      }
+
+      var coverIdx = -1;
+      for (var i = 0; i < imgs.length; i++) {
+        if (s.cover_image_key && imgs[i].key === s.cover_image_key) { coverIdx = i; break; }
+      }
+      var ordered = imgs.slice();
+      if (coverIdx > 0) {
+        var c = ordered.splice(coverIdx, 1)[0];
+        ordered.unshift(c);
+      }
+
+      var html = ordered.map(function (img, idx) {
+        var isCover = s.cover_image_key
+          ? img.key === s.cover_image_key
+          : idx === 0;
+        var tileCls = 'gallery-tile' + (isCover ? ' gallery-tile--cover' : '');
+        var badge = isCover
+          ? '<span class="gallery-tile__badge"><i data-lucide="star"></i> Forsidebilde</span>'
+          : '';
+        var setCoverBtn = isCover
+          ? ''
+          : '<button type="button" class="gallery-tile__btn" data-set-cover="' + img.id + '" title="Sett som forsidebilde" aria-label="Sett som forsidebilde"><i data-lucide="star"></i></button>';
+        var deleteBtn =
+          '<button type="button" class="gallery-tile__btn gallery-tile__btn--danger" data-delete="' + img.id + '" title="Slett bilde" aria-label="Slett bilde"><i data-lucide="trash-2"></i></button>';
         return (
-          '<div style="position:relative; border-radius: var(--radius-md); overflow:hidden; border: 1px solid var(--stone-200); background: var(--cream-100);">' +
-            '<img src="' + escapeHtml(img.url) + '" alt="" style="display:block; width:100%; aspect-ratio: 1/1; object-fit: cover;" />' +
-            '<div style="position:absolute; inset:0; background: linear-gradient(to top, rgba(0,0,0,0.55), transparent 40%); display:flex; flex-direction:column; justify-content:flex-end; padding: 8px; gap: 6px; opacity: 0; transition: opacity 0.15s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">' +
-              (isCover
-                ? '<span class="status status--confirmed" style="align-self:flex-start;">Forsidebilde</span>'
-                : '<button class="btn btn-ghost btn-sm" data-set-cover="' + img.id + '" style="background: rgba(255,255,255,0.95);"><i data-lucide="star"></i> Sett som forside</button>') +
-              '<button class="btn btn-danger btn-sm" data-delete="' + img.id + '"><i data-lucide="trash-2"></i> Slett</button>' +
-            '</div>' +
+          '<div class="' + tileCls + '">' +
+            '<img src="' + escapeHtml(img.url) + '" alt="" />' +
+            badge +
+            '<div class="gallery-tile__overlay">' + setCoverBtn + deleteBtn + '</div>' +
           '</div>'
         );
       }).join('');
+
+      if (imgs.length < MAX_IMAGES_PER_SALON) {
+        html +=
+          '<button type="button" class="gallery-tile gallery-tile--add" id="galleryAddTile" aria-label="Legg til bilde">' +
+            '<i data-lucide="plus"></i>' +
+            '<span>Legg til bilde</span>' +
+          '</button>';
+      }
+
+      el.innerHTML = html;
+
       el.querySelectorAll('[data-set-cover]').forEach(function (b) {
         b.addEventListener('click', async function () {
           var id = parseInt(this.getAttribute('data-set-cover'), 10);
@@ -2962,7 +3094,18 @@
           if (res.ok) await loadSalon();
         });
       });
+
+      wireGalleryAddTile();
       window.lucide && window.lucide.createIcons();
+    }
+
+    function wireGalleryAddTile() {
+      var addTile = document.getElementById('galleryAddTile');
+      if (!addTile) return;
+      addTile.addEventListener('click', function () {
+        var input = document.getElementById('imageUploader');
+        if (input) input.click();
+      });
     }
 
     var MAX_IMAGES_PER_SALON = 24;
@@ -2988,12 +3131,12 @@
     async function uploadImages(fileList) {
       var files = Array.from(fileList || []);
       if (!files.length) return;
-      var label = document.getElementById('imageUploaderLabel');
-      var labelText = document.getElementById('imageUploaderLabelText');
       var status = document.getElementById('uploadStatus');
-      var originalLabel = labelText.textContent;
-      label.style.pointerEvents = 'none';
-      label.style.opacity = '0.6';
+      var addTile = document.getElementById('galleryAddTile');
+      if (addTile) {
+        addTile.style.pointerEvents = 'none';
+        addTile.style.opacity = '0.6';
+      }
       imageUploadInProgress = true;
 
       var existingCount = (currentImages || []).length;
@@ -3013,8 +3156,7 @@
           skippedTooLarge++;
           continue;
         }
-        labelText.textContent = 'Laster opp ' + (i + 1) + '/' + files.length + '…';
-        status.textContent = 'Laster opp bilde ' + (i + 1) + ' av ' + files.length + '…';
+        if (status) status.textContent = 'Laster opp bilde ' + (i + 1) + ' av ' + files.length + '…';
         try {
           await uploadOneImage(file);
           uploaded++;
@@ -3024,10 +3166,11 @@
         }
       }
 
-      labelText.textContent = originalLabel;
-      label.style.pointerEvents = '';
-      label.style.opacity = '';
-      status.textContent = '';
+      if (status) status.textContent = '';
+      if (addTile) {
+        addTile.style.pointerEvents = '';
+        addTile.style.opacity = '';
+      }
       imageUploadInProgress = false;
 
       if (capHit && window.NailedForms) {
