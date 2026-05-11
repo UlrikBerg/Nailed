@@ -426,7 +426,8 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
       [salon.id]
     ),
     query(
-      `SELECT id, name, role, bio, active, position, image_key
+      `SELECT id, name, role, bio, active, position, image_key,
+              email, phone, notify_email_bookings, notify_sms_bookings
          FROM team_members WHERE salon_id = ? ORDER BY position ASC, id ASC`,
       [salon.id]
     ),
@@ -488,7 +489,12 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
     salon: withCoverUrl(salonOut),
     images: images.map(i => ({ ...i, url: storage.publicUrl(i.key) })),
     hours,
-    team: team.map(m => ({ ...m, image_url: m.image_key ? storage.publicUrl(m.image_key) : null })),
+    team: team.map(m => ({
+      ...m,
+      image_url: m.image_key ? storage.publicUrl(m.image_key) : null,
+      notify_email_bookings: !!m.notify_email_bookings,
+      notify_sms_bookings: !!m.notify_sms_bookings,
+    })),
     amenities: amenities.map(a => a.amenity),
     categories,
     onboarding,

@@ -82,6 +82,9 @@ async function loadBookingContext(bookingId) {
             s.notify_sms_new_booking,
             sv.name AS service_name, sv.duration_min,
             tm.name AS team_member_name,
+            tm.email AS team_email, tm.phone AS team_phone,
+            tm.notify_email_bookings AS team_notify_email,
+            tm.notify_sms_bookings AS team_notify_sms,
             cu.id AS customer_id, cu.name AS customer_name, cu.email AS customer_email,
             cu.phone AS customer_phone,
             cu.notify_email_bookings, cu.notify_email_reminders, cu.notify_sms_reminders,
@@ -138,7 +141,13 @@ async function loadBookingContext(bookingId) {
       name: row.service_name,
       duration_min: row.duration_min,
     },
-    team_member: row.team_member_name ? { name: row.team_member_name } : null,
+    team_member: row.team_member_name ? {
+      name: row.team_member_name,
+      email: row.team_email,
+      phone: row.team_phone,
+      notify_email_bookings: !!row.team_notify_email,
+      notify_sms_bookings: !!row.team_notify_sms,
+    } : null,
     customer_note: row.customer_note || null,
     customer: row.customer_id ? {
       id: row.customer_id,
@@ -334,6 +343,49 @@ async function sendBookingCreated(bookingId) {
         body,
       });
     }
+
+    // -- Team member email (only when the booking is assigned to a stylist
+    //    who has an email on file and hasn't opted out).
+    if (ctx.team_member && ctx.team_member.email && ctx.team_member.notify_email_bookings) {
+      const tmpl = T.bookingCreatedTeam({
+        teamMemberName: ctx.team_member.name,
+        salonName: ctx.salon.name,
+        serviceName: ctx.service.name,
+        durationMin: ctx.service.duration_min,
+        startAt: ctx.booking.start_at,
+        endAt: ctx.booking.end_at,
+        customerDisplayName: cName,
+        customerPhone: cPhone,
+        customerNote: ctx.customer_note,
+        bookingId: ctx.booking.id,
+        occurrences,
+      });
+      await emailSendAndLog({
+        bookingId: ctx.booking.id,
+        kind: 'booking_created.team',
+        to: ctx.team_member.email,
+        subject: tmpl.subject,
+        html: tmpl.html,
+        text: tmpl.text,
+        replyTo,
+      });
+    }
+
+    // -- Team member SMS
+    if (ctx.team_member && ctx.team_member.phone && ctx.team_member.notify_sms_bookings) {
+      const body = T.bookingCreatedTeamSms({
+        serviceName: ctx.service.name,
+        startAt: ctx.booking.start_at,
+        customerDisplayName: cName,
+        occurrences,
+      });
+      await smsSendAndLog({
+        bookingId: ctx.booking.id,
+        kind: 'booking_created.team_sms',
+        to: ctx.team_member.phone,
+        body,
+      });
+    }
   } catch (err) {
     console.error('[notify] sendBookingCreated failed', err && err.message ? err.message : err);
   }
@@ -375,23 +427,42 @@ async function sendBookingCancelled(bookingId, by) {
 
     if (actor === 'customer') {
       // Customer cancelled → tell the owner (opt-out via notify_email_cancellation).
-      if (!ctx.salon.notify_email_cancellation) return;
-      const tmpl = T.bookingCancelledOwner({
-        ownerName: ctx.owner.name,
-        salonName: ctx.salon.name,
-        serviceName: ctx.service.name,
-        startAt: ctx.booking.start_at,
-        customerDisplayName: customerDisplayName(ctx),
-      });
-      await emailSendAndLog({
-        bookingId: ctx.booking.id,
-        userId: ctx.owner.id,
-        kind: 'booking_cancelled.owner',
-        to: ctx.owner.email,
-        subject: tmpl.subject,
-        html: tmpl.html,
-        text: tmpl.text,
-      });
+      if (ctx.salon.notify_email_cancellation) {
+        const tmpl = T.bookingCancelledOwner({
+          ownerName: ctx.owner.name,
+          salonName: ctx.salon.name,
+          serviceName: ctx.service.name,
+          startAt: ctx.booking.start_at,
+          customerDisplayName: customerDisplayName(ctx),
+        });
+        await emailSendAndLog({
+          bookingId: ctx.booking.id,
+          userId: ctx.owner.id,
+          kind: 'booking_cancelled.owner',
+          to: ctx.owner.email,
+          subject: tmpl.subject,
+          html: tmpl.html,
+          text: tmpl.text,
+        });
+      }
+      // Also tell the assigned stylist that their slot freed up.
+      if (ctx.team_member && ctx.team_member.email && ctx.team_member.notify_email_bookings) {
+        const tmpl = T.bookingCancelledTeam({
+          teamMemberName: ctx.team_member.name,
+          salonName: ctx.salon.name,
+          serviceName: ctx.service.name,
+          startAt: ctx.booking.start_at,
+          customerDisplayName: customerDisplayName(ctx),
+        });
+        await emailSendAndLog({
+          bookingId: ctx.booking.id,
+          kind: 'booking_cancelled.team',
+          to: ctx.team_member.email,
+          subject: tmpl.subject,
+          html: tmpl.html,
+          text: tmpl.text,
+        });
+      }
     } else {
       // Salon/admin cancelled → tell the customer. No opt-out: service-critical.
       if (!ctx.customer || !ctx.customer.email) return;

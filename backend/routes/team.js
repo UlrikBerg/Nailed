@@ -116,17 +116,26 @@ router.get('/:id/team', asyncRoute(async (req, res) => {
   if (!salon) throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
   const isOwner = req.user && (req.user.role === 'admin' || salon.owner_user_id === req.user.id);
   const activeFilter = isOwner ? '' : 'AND active = 1';
+  // Owners/admins get the private contact fields; the public listing does not.
+  const cols = isOwner
+    ? `id, name, role, bio, active, position, image_key, email, phone,
+       notify_email_bookings, notify_sms_bookings, created_at`
+    : `id, name, role, bio, position, image_key`;
   const rows = await query(
-    `SELECT id, name, role, bio, active, position, image_key, created_at
+    `SELECT ${cols}
        FROM team_members WHERE salon_id = ? ${activeFilter}
        ORDER BY position ASC, id ASC`,
     [id]
   );
   res.json({
-    team: rows.map(r => ({
-      ...r,
-      image_url: r.image_key ? storage.publicUrl(r.image_key) : null,
-    })),
+    team: rows.map(r => {
+      const out = { ...r, image_url: r.image_key ? storage.publicUrl(r.image_key) : null };
+      if (isOwner) {
+        out.notify_email_bookings = !!r.notify_email_bookings;
+        out.notify_sms_bookings = !!r.notify_sms_bookings;
+      }
+      return out;
+    }),
   });
 }));
 
@@ -136,6 +145,10 @@ router.post('/:id/team', requireAuth, asyncRoute(async (req, res) => {
     name: z.string().trim().min(1).max(255),
     role: z.string().trim().max(255).nullable().optional(),
     bio: z.string().trim().max(2000).nullable().optional(),
+    email: z.string().trim().email().max(255).nullable().optional(),
+    phone: z.string().trim().max(32).nullable().optional(),
+    notify_email_bookings: z.boolean().optional(),
+    notify_sms_bookings: z.boolean().optional(),
   }).parse(req.body || {});
 
   const countRow = await queryOne(
@@ -144,10 +157,17 @@ router.post('/:id/team', requireAuth, asyncRoute(async (req, res) => {
   );
   if (countRow.n >= 50) throw new HttpError(409, 'too_many', 'Maks 50 team-medlemmer.');
 
+  const notifyEmail = data.notify_email_bookings === false ? 0 : 1;
+  const notifySms = data.notify_sms_bookings === true ? 1 : 0;
   const result = await query(
-    `INSERT INTO team_members (salon_id, name, role, bio, position)
-     VALUES (?, ?, ?, ?, ?)`,
-    [salon.id, data.name, data.role || null, data.bio || null, countRow.n]
+    `INSERT INTO team_members
+       (salon_id, name, role, bio, position, email, phone,
+        notify_email_bookings, notify_sms_bookings)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      salon.id, data.name, data.role || null, data.bio || null, countRow.n,
+      data.email || null, data.phone || null, notifyEmail, notifySms,
+    ]
   );
   res.status(201).json({ id: result.insertId });
 }));
@@ -168,12 +188,23 @@ router.patch('/:id/team/:memberId', requireAuth, asyncRoute(async (req, res) => 
     role: z.string().trim().max(255).nullable().optional(),
     bio: z.string().trim().max(2000).nullable().optional(),
     active: z.boolean().optional(),
+    email: z.union([z.string().trim().email().max(255), z.literal('')]).nullable().optional(),
+    phone: z.string().trim().max(32).nullable().optional(),
+    notify_email_bookings: z.boolean().optional(),
+    notify_sms_bookings: z.boolean().optional(),
   }).parse(req.body || {});
 
   const fields = Object.keys(patch);
   if (!fields.length) return res.json({ ok: true });
+  const boolFields = new Set(['active', 'notify_email_bookings', 'notify_sms_bookings']);
+  const nullableTextFields = new Set(['role', 'bio', 'email', 'phone']);
   const setClause = fields.map(f => `${f} = ?`).join(', ');
-  const values = fields.map(f => f === 'active' ? (patch[f] ? 1 : 0) : patch[f]);
+  const values = fields.map(f => {
+    const v = patch[f];
+    if (boolFields.has(f)) return v ? 1 : 0;
+    if (nullableTextFields.has(f)) return (v === '' || v == null) ? null : v;
+    return v;
+  });
   values.push(memberId);
   await query(`UPDATE team_members SET ${setClause} WHERE id = ?`, values);
   res.json({ ok: true });
