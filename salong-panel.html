@@ -1316,6 +1316,56 @@
       margin-top: 10px;
       font-size: 13px; color: var(--fg-muted);
     }
+
+    /* Edit-mode toolbar: persistent bar at the top with Tilbake + Lagre
+       always visible so the primary action doesn't get lost when the user
+       scrolls. The Lagre button mirrors the form submit at the bottom. */
+    .profile-edit-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      position: sticky;
+      top: 12px;
+      z-index: 4;
+      box-shadow: var(--shadow-sm);
+    }
+    .profile-edit-toolbar__title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--ink);
+      margin: 0;
+    }
+    @media (max-width: 600px) {
+      .profile-edit-toolbar { flex-wrap: wrap; }
+      .profile-edit-toolbar__title { order: 3; flex-basis: 100%; }
+    }
+
+    /* Section sub-header inside the shared bio/contact/availability card.
+       Smaller than the main card head so it reads as a divider rather than
+       a competing title. The first sub-header gets no top margin. */
+    [data-section-header] {
+      margin: 22px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--stone-200);
+    }
+    [data-section-header] h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0;
+      font-family: var(--font-display);
+      color: var(--ink);
+    }
+    .kp-card__head + [data-section-header],
+    .kp-card > [data-section-header]:first-child {
+      margin-top: 0;
+    }
   </style>
 </head>
 <body>
@@ -1941,9 +1991,13 @@
              EDIT MODE — image manager + form (default hidden)
              ====================================================== -->
         <div id="profileEdit" style="display:none;">
-          <div style="margin-bottom:16px;">
-            <button class="btn btn-ghost btn-sm" id="cancelEditProfileBtn">
+          <div class="profile-edit-toolbar">
+            <button class="btn btn-ghost btn-sm" id="cancelEditProfileBtn" type="button">
               <i data-lucide="arrow-left"></i> Tilbake til visning
+            </button>
+            <h3 class="profile-edit-toolbar__title" id="profileEditTitle">Rediger profil</h3>
+            <button class="btn btn-primary btn-sm" id="topSaveProfileBtn" type="button">
+              <i data-lucide="save"></i> Lagre
             </button>
           </div>
 
@@ -3166,6 +3220,18 @@
     // Switch between cards-overview ("view") and a single-section editor ("edit").
     // Passing section='all' from the top-level "Rediger profil" button shows
     // every editor panel; named sections show only their own panel.
+    var currentEditSection = 'all';
+    var EDIT_SECTION_TITLES = {
+      all: 'Rediger profil',
+      photos: 'Rediger bilder',
+      bio: 'Om salongen',
+      contact: 'Kontaktinformasjon',
+      availability: 'Tilgjengelighet',
+      hours: 'Åpningstider',
+      team: 'Team',
+      amenities: 'Hva tilbys',
+    };
+
     function setProfileMode(mode, section) {
       var view = document.getElementById('profileView');
       var edit = document.getElementById('profileEdit');
@@ -3174,6 +3240,9 @@
       edit.style.display = mode === 'edit' ? '' : 'none';
       if (mode === 'edit') {
         var sec = section || 'all';
+        currentEditSection = sec;
+        var titleEl = document.getElementById('profileEditTitle');
+        if (titleEl) titleEl.textContent = EDIT_SECTION_TITLES[sec] || EDIT_SECTION_TITLES.all;
         // Per-card: any card whose data-edit-section list includes this
         // section is shown; the rest hide. Cards with no attribute always show
         // when section='all', otherwise hide.
@@ -3196,8 +3265,13 @@
             el.disabled = !matches;
           });
         });
+        // Section-headers: when editing a single section, only the matching
+        // header is visible. When editing everything (sec='all'), show all
+        // three so the user can see the visual split between Om salongen,
+        // Kontakt and Tilgjengelighet inside the shared card.
         document.querySelectorAll('[data-section-header]').forEach(function (h) {
-          h.style.display = (sec !== 'all' && h.getAttribute('data-section-header') === sec) ? '' : 'none';
+          if (sec === 'all') { h.style.display = ''; return; }
+          h.style.display = h.getAttribute('data-section-header') === sec ? '' : 'none';
         });
         // Re-bind icons in case anything inside was just shown for the first time.
         if (window.lucide) window.lucide.createIcons();
@@ -3212,10 +3286,40 @@
     if (topEditBtn) topEditBtn.addEventListener('click', function () { setProfileMode('edit', 'all'); });
     document.getElementById('cancelEditProfileBtn').addEventListener('click', function () {
       setProfileMode('view');
-      var dashBtn = document.querySelector('.kp-tab[data-tab="dashboard"]');
-      if (dashBtn) dashBtn.click();
     });
     document.getElementById('cancelEditProfileBtn2').addEventListener('click', function () { setProfileMode('view'); });
+
+    // Sticky top "Lagre"-knapp triggers the save for whatever section is open.
+    // For sections backed by separate Save-buttons (hours/amenities) we click
+    // them; for sections in #salonForm we submit the form. The 'photos' card
+    // saves on upload, so the button just returns to view. 'team' lives in an
+    // add-form: clicking Lagre simply returns to view.
+    var topSaveBtn = document.getElementById('topSaveProfileBtn');
+    if (topSaveBtn) {
+      topSaveBtn.addEventListener('click', function () {
+        var sec = currentEditSection;
+        if (sec === 'hours') {
+          var btn = document.getElementById('saveHoursBtn');
+          if (btn) btn.click();
+          return;
+        }
+        if (sec === 'amenities') {
+          var btn2 = document.getElementById('saveAmenitiesBtn');
+          if (btn2) btn2.click();
+          return;
+        }
+        if (sec === 'photos' || sec === 'team') {
+          setProfileMode('view');
+          return;
+        }
+        var form = document.getElementById('salonForm');
+        if (form && typeof form.requestSubmit === 'function') {
+          form.requestSubmit();
+        } else if (form) {
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      });
+    }
     document.querySelectorAll('[data-edit]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var key = this.getAttribute('data-edit');
@@ -3242,8 +3346,7 @@
             '<i data-lucide="image-plus"></i>' +
             '<span class="gallery-tile__emptyTitle">Last opp dine første bilder</span>' +
             '<span class="gallery-tile__emptySub">Dra bilder hit, eller klikk for å velge</span>' +
-          '</button>';
-        wireGalleryAddTile();
+          '</label>';
         window.lucide && window.lucide.createIcons();
         return;
       }
@@ -3309,23 +3412,18 @@
       window.lucide && window.lucide.createIcons();
     }
 
-    // Delegated click handler — survives every gallery re-render so we never
-    // have to rebind. Triggers the hidden file input.
-    document.addEventListener('click', function (e) {
+    // The add-tile is a <label for="imageUploader">, so clicks open the file
+    // picker natively. Programmatic input.click() is intentionally NOT used —
+    // Safari blocks it in some cases and we get double-firing otherwise.
+    // Keyboard-only users still need parity: Enter/Space on a focused label
+    // doesn't trigger the for-target, so forward those keys to a click.
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
       var tile = e.target.closest && e.target.closest('#galleryAddTile');
       if (!tile) return;
-      var input = document.getElementById('imageUploader');
-      if (input) input.click();
+      e.preventDefault();
+      tile.click();
     });
-
-    function wireGalleryAddTile() {
-      var addTile = document.getElementById('galleryAddTile');
-      if (!addTile) return;
-      addTile.addEventListener('click', function () {
-        var input = document.getElementById('imageUploader');
-        if (input) input.click();
-      });
-    }
 
     var MAX_IMAGES_PER_SALON = 24;
     var MAX_IMAGE_BYTES = 8 * 1024 * 1024;
