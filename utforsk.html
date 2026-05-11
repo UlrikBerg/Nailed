@@ -150,29 +150,21 @@
     }
     .filter-row-vertical { display: flex; flex-direction: column; gap: 2px; }
 
-    /* Fylke: 1-kolonners liste. Når et fylke er valgt, header-pillen viser
-       et ✕ for å klarere valget. */
+    /* Fylke-listen viser alle fylker som plain rader (samme som by-listen).
+       Valg vises i sted-trigger-knappen — vi unngår å markere det valgte
+       fylket i listen så det ikke dobles. ✕-clear-spannen skjules. */
+    #fylkeRow .v-pill,
     #fylkeRow .v-pill.active {
-      background: var(--rouge-50);
-      border: 1px solid var(--rouge-500);
-      color: var(--rouge-700);
-      font-weight: 600;
-      justify-content: space-between;
-      border-radius: 999px;
-    }
-    #fylkeRow.is-collapsed > .v-pill:not(.active) { display: none; }
-    #fylkeRow .v-pill__clear {
-      display: none;
-      margin-left: 8px;
       background: transparent;
       border: 0;
-      cursor: pointer;
-      color: var(--rouge-700);
-      padding: 0;
-      line-height: 1;
-      font-size: 16px;
+      border-left: 3px solid transparent;
+      color: var(--ink);
+      font-weight: 500;
+      justify-content: flex-start;
+      border-radius: 8px;
     }
-    #fylkeRow.is-collapsed > .v-pill.active .v-pill__clear { display: inline-flex; align-items: center; }
+    #fylkeRow .v-pill:hover { background: var(--cream-50); }
+    #fylkeRow .v-pill__clear { display: none !important; }
 
     /* --- Vertical pill (sidebar list item) --- */
     .v-pill {
@@ -1039,8 +1031,8 @@
       p.appendChild(x);
     });
     function updateFylkeGridCollapse() {
-      var row = document.getElementById('fylkeRow');
-      row.classList.toggle('is-collapsed', currentFylke !== 'all');
+      // No-op: fylke-listen vises alltid full ut. Valg er reflektert i
+      // sted-trigger-knappen over.
     }
     // Fylke selection
     document.getElementById('fylkeRow').addEventListener('click', function(e) {
