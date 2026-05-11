@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>nailed — book deg pen</title>
+  <title>nailed — finn salongen din</title>
   <meta name="description" content="nailed er markedsplassen for skjønnhet i Norge. Finn en salong, velg behandling og tid, og book din time på minutter. Negler, vipper, bryn, makeup." />
   <meta name="theme-color" content="#EE3F7E" />
   <link rel="canonical" href="https://nailed.no/" />
@@ -62,16 +62,16 @@
   </header>
 
   <!-- ============================================================
-       Hero
+       Hero — utility-first search
        ============================================================ -->
-  <section class="hero">
-    <div class="page hero__inner">
-      <h1 class="hero__title">book deg <em>pen.</em></h1>
-      <p class="hero__sub">
-        Finn salong, velg behandling og tid — og book din time.
+  <section class="hero home-hero">
+    <div class="page hero__inner home-hero__inner">
+      <h1 class="hero__title home-hero__title">Finn salongen <em>din.</em></h1>
+      <p class="hero__sub home-hero__sub">
+        Søk på behandling, sted, eller bla i kategoriene under.
       </p>
-      <div class="hero__search-wrap">
-        <form class="search-bar" id="heroSearchForm" action="/utforsk.html" method="get">
+      <div class="hero__search-wrap home-hero__search-wrap">
+        <form class="search-bar home-search-bar" id="heroSearchForm" action="/utforsk.html" method="get">
           <div class="search-bar__field">
             <i data-lucide="sparkles" class="search-bar__field-icon"></i>
             <div class="search-bar__field-text">
@@ -87,12 +87,13 @@
               <input id="heroSearchCity" name="city" placeholder="By eller sted" autocomplete="off" />
             </div>
           </div>
-          <button type="submit" class="btn btn-primary search-bar__cta" aria-label="Søk">
+          <button type="submit" class="btn btn-primary search-bar__cta home-search-bar__cta" aria-label="Søk">
             <i data-lucide="search"></i>
+            <span>Søk</span>
           </button>
         </form>
       </div>
-      <div class="hero__quick">
+      <div class="hero__quick home-hero__quick">
         <span class="eyebrow">Populært:</span>
         <a class="chip" href="/utforsk.html?q=Gel+manikyr">Gel manikyr</a>
         <a class="chip" href="/utforsk.html?q=Klassiske+vipper">Klassiske vipper</a>
@@ -100,32 +101,57 @@
         <a class="chip" href="/utforsk.html?q=Brudemakeup">Brudemakeup</a>
       </div>
     </div>
-    <img src="assets/sticker-nailed-it.svg" class="hero__sticker" alt="" />
+    <img src="assets/sticker-nailed-it.svg" class="hero__sticker home-hero__sticker" alt="" />
   </section>
 
   <!-- ============================================================
-       Category rail — links to /utforsk.html?category=<Name>
+       Category tile grid — links to /utforsk.html?category=<Name>
        ============================================================ -->
-  <section style="padding: 24px 0 0;">
-    <div class="cat-rail">
-      <a class="chip active" href="/utforsk.html"><i data-lucide="sparkles"></i> Alle</a>
-      <a class="chip" href="/utforsk.html?category=Negler"><i data-lucide="sparkles"></i> Negler</a>
-      <a class="chip" href="/utforsk.html?category=Vipper"><i data-lucide="eye"></i> Vipper</a>
-      <a class="chip" href="/utforsk.html?category=Bryn"><i data-lucide="eye"></i> Bryn</a>
-      <a class="chip" href="/utforsk.html?category=Makeup"><i data-lucide="palette"></i> Makeup</a>
-      <a class="chip" href="/utforsk.html?category=Hud"><i data-lucide="flower-2"></i> Hud</a>
-      <a class="chip" href="/utforsk.html?category=Voksing"><i data-lucide="wind"></i> Voksing</a>
+  <section class="home-section home-section--cats">
+    <div class="page">
+      <div class="section-head home-section-head">
+        <div>
+          <h2>Bla i <em>kategorier</em></h2>
+        </div>
+        <a class="section-head__link" href="utforsk.html" style="text-decoration:none;">Se alle <i data-lucide="arrow-right"></i></a>
+      </div>
+      <div class="home-cat-grid">
+        <a class="home-cat-tile home-cat-tile--a" href="/utforsk.html?category=Negler">
+          <div class="home-cat-tile__icon"><i data-lucide="sparkles"></i></div>
+          <div class="home-cat-tile__name">Negler</div>
+        </a>
+        <a class="home-cat-tile home-cat-tile--b" href="/utforsk.html?category=Vipper">
+          <div class="home-cat-tile__icon"><i data-lucide="eye"></i></div>
+          <div class="home-cat-tile__name">Vipper</div>
+        </a>
+        <a class="home-cat-tile home-cat-tile--a" href="/utforsk.html?category=Bryn">
+          <div class="home-cat-tile__icon"><i data-lucide="brush"></i></div>
+          <div class="home-cat-tile__name">Bryn</div>
+        </a>
+        <a class="home-cat-tile home-cat-tile--b" href="/utforsk.html?category=Makeup">
+          <div class="home-cat-tile__icon"><i data-lucide="palette"></i></div>
+          <div class="home-cat-tile__name">Makeup</div>
+        </a>
+        <a class="home-cat-tile home-cat-tile--a" href="/utforsk.html?category=Hud">
+          <div class="home-cat-tile__icon"><i data-lucide="flower-2"></i></div>
+          <div class="home-cat-tile__name">Hud</div>
+        </a>
+        <a class="home-cat-tile home-cat-tile--b" href="/utforsk.html?category=Voksing">
+          <div class="home-cat-tile__icon"><i data-lucide="wind"></i></div>
+          <div class="home-cat-tile__name">Voksing</div>
+        </a>
+      </div>
     </div>
   </section>
 
   <!-- ============================================================
        Salon grid — live from API
        ============================================================ -->
-  <section id="featuredSection" style="padding: 32px 0 56px; display: none;">
+  <section id="featuredSection" class="home-section" style="display: none;">
     <div class="page">
-      <div class="section-head">
+      <div class="section-head home-section-head">
         <div>
-          <h2>Salonger på <em>nailed</em></h2>
+          <h2>Populært <em>akkurat nå</em></h2>
         </div>
         <a class="section-head__link" href="utforsk.html" style="text-decoration:none;">Se alle <i data-lucide="arrow-right"></i></a>
       </div>
@@ -134,47 +160,30 @@
   </section>
 
   <!-- ============================================================
-       For salongeiere CTA
-       ============================================================ -->
-  <section style="padding: 0 0 56px;">
-    <div class="page">
-      <div class="home-owner-cta">
-        <div class="home-owner-cta__text">
-          <div class="home-owner-cta__title">Driver du en salong? Bli synlig <em>der kundene er.</em></div>
-          <p class="home-owner-cta__sub">Lag salongprofilen på minutter, og ta i mot bookinger direkte. Gratis å komme i gang — ingen bindingstid.</p>
-        </div>
-        <div class="home-owner-cta__cta">
-          <a href="bli-salong.html" class="btn btn-primary btn-lg">Kom i gang gratis <i data-lucide="arrow-right"></i></a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
        Slik fungerer det (How it works)
        ============================================================ -->
-  <section style="padding: 24px 0 56px;">
+  <section class="home-section home-section--compact">
     <div class="page">
-      <div class="section-head">
+      <div class="section-head home-section-head">
         <div>
           <h2>Slik fungerer <em>nailed</em></h2>
         </div>
       </div>
-      <div class="home-steps">
+      <div class="home-steps home-steps--tight">
         <div class="home-step">
-          <div class="home-step__num">1</div>
+          <div class="home-step__num home-step__num--sm">1</div>
           <div class="home-step__icon"><i data-lucide="search"></i></div>
           <div class="home-step__title">Finn salong</div>
           <p class="home-step__body">Søk på behandling eller sted og oppdag salonger nær deg.</p>
         </div>
         <div class="home-step">
-          <div class="home-step__num">2</div>
+          <div class="home-step__num home-step__num--sm">2</div>
           <div class="home-step__icon"><i data-lucide="calendar"></i></div>
           <div class="home-step__title">Velg behandling og tid</div>
           <p class="home-step__body">Se ledige tider i sanntid og velg den som passer best.</p>
         </div>
         <div class="home-step">
-          <div class="home-step__num">3</div>
+          <div class="home-step__num home-step__num--sm">3</div>
           <div class="home-step__icon"><i data-lucide="sparkles"></i></div>
           <div class="home-step__title">Book og betal i salongen</div>
           <p class="home-step__body">Få bekreftelse på e-post. Du betaler hos salongen etter behandling.</p>
@@ -184,27 +193,11 @@
   </section>
 
   <!-- ============================================================
-       Editorial quote band (rotated client-side)
-       ============================================================ -->
-  <section style="padding: 32px 0 56px;">
-    <div class="page">
-      <div class="editorial-band">
-        <div class="editorial-band__inner">
-          <div class="editorial-band__quote" id="editorialQuote">
-            &ldquo;Gå inn med klør, <em>gå ut med kunst.</em>&rdquo;
-          </div>
-          <div class="editorial-band__attr" id="editorialAttr">— Maja, neglestylist · Studio Lakk</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
        Hvorfor nailed — value props
        ============================================================ -->
-  <section style="padding: 0 0 56px;">
+  <section class="home-section home-section--compact">
     <div class="page">
-      <div class="section-head">
+      <div class="section-head home-section-head">
         <div>
           <h2>Hvorfor <em>nailed</em></h2>
         </div>
@@ -230,11 +223,28 @@
   </section>
 
   <!-- ============================================================
+       For salongeiere CTA
+       ============================================================ -->
+  <section class="home-section">
+    <div class="page">
+      <div class="home-owner-cta">
+        <div class="home-owner-cta__text">
+          <div class="home-owner-cta__title">Driver du en salong? Bli synlig <em>der kundene er.</em></div>
+          <p class="home-owner-cta__sub">Lag salongprofilen på minutter, og ta i mot bookinger direkte. Gratis å komme i gang — ingen bindingstid.</p>
+        </div>
+        <div class="home-owner-cta__cta">
+          <a href="bli-salong.html" class="btn btn-primary btn-lg">Kom i gang gratis <i data-lucide="arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
        Folkets favoritter — live API (top-rated)
        ============================================================ -->
-  <section id="topRatedSection" style="padding: 0 0 56px; display: none;">
+  <section id="topRatedSection" class="home-section" style="display: none;">
     <div class="page">
-      <div class="section-head">
+      <div class="section-head home-section-head">
         <div>
           <h2>Folkets favoritter denne uken</h2>
         </div>
@@ -327,21 +337,6 @@
         nav.classList.remove('scrolled');
       }
     });
-
-    // Rotating editorial quote — picked once at page load from a small set.
-    (function () {
-      var quotes = [
-        { q: '&ldquo;Gå inn med klør, <em>gå ut med kunst.</em>&rdquo;', a: '— Maja, neglestylist · Studio Lakk' },
-        { q: '&ldquo;Skjønnhet er <em>en avtale med deg selv.</em>&rdquo;', a: '— nailed-redaksjonen' },
-        { q: '&ldquo;En time hos en god salong, <em>en uke i godt humør.</em>&rdquo;', a: '— nailed-redaksjonen' },
-        { q: '&ldquo;Vi liker små studioer, <em>store detaljer.</em>&rdquo;', a: '— nailed-redaksjonen' }
-      ];
-      var pick = quotes[Math.floor(Math.random() * quotes.length)];
-      var qEl = document.getElementById('editorialQuote');
-      var aEl = document.getElementById('editorialAttr');
-      if (qEl) qEl.innerHTML = pick.q;
-      if (aEl) aEl.textContent = pick.a;
-    })();
 
     // ----- Salon card rendering (shared between featured + top-rated grids) -----
     var FEATURED_FALLBACK_GRADIENTS = [
