@@ -214,6 +214,74 @@
       color: var(--ink);
       white-space: pre-wrap;
     }
+    .review-card__report {
+      margin-left: auto;
+      background: transparent;
+      border: 0;
+      padding: 4px 6px;
+      cursor: pointer;
+      color: var(--fg-muted);
+      font-family: var(--font-body);
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: var(--radius-md);
+    }
+    .review-card__report:hover { color: var(--rouge-500); background: var(--stone-100); }
+    .review-card__report i { width: 13px; height: 13px; }
+
+    /* Report modal — covers the page; centered card. */
+    .rr-modal {
+      position: fixed; inset: 0;
+      background: rgba(20, 14, 16, 0.55);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9000;
+      padding: 24px;
+    }
+    .rr-modal__card {
+      background: var(--cream-50);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 100%; max-width: 460px;
+      padding: 24px;
+    }
+    .rr-modal__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 20px;
+      margin: 0 0 6px;
+    }
+    .rr-modal__sub {
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--fg-muted);
+      margin: 0 0 16px;
+    }
+    .rr-modal__label {
+      display: block;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      margin: 12px 0 6px;
+      color: var(--ink);
+    }
+    .rr-modal__select, .rr-modal__textarea {
+      width: 100%;
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 10px 12px;
+      border: 1px solid var(--stone-300);
+      border-radius: var(--radius-md);
+      background: #fff;
+      color: var(--ink);
+      box-sizing: border-box;
+    }
+    .rr-modal__textarea { min-height: 90px; resize: vertical; }
+    .rr-modal__actions {
+      display: flex; gap: 8px; justify-content: flex-end;
+      margin-top: 18px;
+    }
 
     /* Compact opening-hours used inside the right-side card */
     .profile-hours--compact .profile-hours__row {
@@ -1372,6 +1440,8 @@
       var name = '<span class="review-card__name">' + escapeHtml(r.customer_name || 'Anonym') + '</span>';
       var date = '<span>' + escapeHtml(formatReviewDate(r.created_at)) + '</span>';
       var body = r.body ? '<p class="review-card__body">' + escapeHtml(r.body) + '</p>' : '';
+      var reportBtn = '<button type="button" class="review-card__report" data-report-review="' + escapeHtml(String(r.id)) + '" aria-label="Rapporter anmeldelse">' +
+        '<i data-lucide="flag"></i> Rapporter</button>';
       var reply = '';
       if (r.owner_reply) {
         reply = '<div class="review-card__reply">' +
@@ -1383,10 +1453,99 @@
         '<div class="review-card__head">' + stars +
           '<span class="review-card__dot">·</span>' + name +
           '<span class="review-card__dot">·</span>' + date +
+          reportBtn +
         '</div>' +
         body + reply +
       '</div>';
     }
+
+    // Modal for reporting a review. Built lazily on first open; reused after.
+    var reviewReportModal = null;
+    function openReviewReportModal(reviewId) {
+      // Login gate. Persist a return path so we land back on the same salon page.
+      if (!window.NailedAuth || !NailedAuth.isLoggedIn()) {
+        location.href = '/login.html?next=' + encodeURIComponent(location.pathname + location.search);
+        return;
+      }
+      if (!reviewReportModal) {
+        reviewReportModal = document.createElement('div');
+        reviewReportModal.className = 'rr-modal';
+        reviewReportModal.innerHTML =
+          '<div class="rr-modal__card" role="dialog" aria-labelledby="rrTitle">' +
+            '<h3 class="rr-modal__title" id="rrTitle">Rapporter anmeldelse</h3>' +
+            '<p class="rr-modal__sub">Fortell oss kort hva som er galt. En moderator ser på det.</p>' +
+            '<label class="rr-modal__label" for="rrReason">Årsak</label>' +
+            '<select class="rr-modal__select" id="rrReason">' +
+              '<option value="spam">Spam / reklame</option>' +
+              '<option value="offensive">Støtende språk</option>' +
+              '<option value="fake">Falsk anmeldelse</option>' +
+              '<option value="off_topic">Ikke relevant</option>' +
+              '<option value="other">Annet</option>' +
+            '</select>' +
+            '<label class="rr-modal__label" for="rrDetails">Detaljer (valgfritt)</label>' +
+            '<textarea class="rr-modal__textarea" id="rrDetails" maxlength="1000" placeholder="Maks 1000 tegn"></textarea>' +
+            '<div class="rr-modal__actions">' +
+              '<button type="button" class="btn btn-ghost btn-sm" id="rrCancel">Avbryt</button>' +
+              '<button type="button" class="btn btn-primary btn-sm" id="rrSubmit">Send rapport</button>' +
+            '</div>' +
+          '</div>';
+        document.body.appendChild(reviewReportModal);
+        reviewReportModal.addEventListener('click', function (e) {
+          if (e.target === reviewReportModal) closeReviewReportModal();
+        });
+        reviewReportModal.querySelector('#rrCancel').addEventListener('click', closeReviewReportModal);
+        reviewReportModal.querySelector('#rrSubmit').addEventListener('click', submitReviewReport);
+      }
+      // Reset form state for each open.
+      reviewReportModal.querySelector('#rrReason').value = 'spam';
+      reviewReportModal.querySelector('#rrDetails').value = '';
+      reviewReportModal.setAttribute('data-review-id', String(reviewId));
+      reviewReportModal.style.display = 'flex';
+      lucide.createIcons();
+    }
+    function closeReviewReportModal() {
+      if (reviewReportModal) reviewReportModal.style.display = 'none';
+    }
+    async function submitReviewReport() {
+      if (!reviewReportModal) return;
+      var id = reviewReportModal.getAttribute('data-review-id');
+      var reason = reviewReportModal.querySelector('#rrReason').value;
+      var details = reviewReportModal.querySelector('#rrDetails').value.trim();
+      var submitBtn = reviewReportModal.querySelector('#rrSubmit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sender …';
+      try {
+        var res = await NailedAuth.api('/api/v1/reviews/' + encodeURIComponent(id) + '/report', {
+          method: 'POST',
+          body: { reason: reason, details: details || undefined },
+        });
+        if (res.ok) {
+          closeReviewReportModal();
+          if (window.NailedForms) NailedForms.toast('Takk! Rapporten er sendt.', { type: 'success' });
+        } else if (res.status === 409) {
+          closeReviewReportModal();
+          if (window.NailedForms) NailedForms.toast('Du har allerede rapportert denne anmeldelsen.', { type: 'info' });
+        } else {
+          var data = {};
+          try { data = await res.json(); } catch (_) {}
+          if (window.NailedForms) NailedForms.toast((data.error && data.error.message) || 'Kunne ikke sende rapport.', { type: 'error' });
+        }
+      } catch (_) {
+        if (window.NailedForms) NailedForms.toast('Kunne ikke sende rapport.', { type: 'error' });
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send rapport';
+      }
+    }
+
+    // Single delegated handler for any "Rapporter" button on the reviews block,
+    // including ones rendered after "Vis alle" expands the list.
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-report-review]');
+      if (!btn) return;
+      var rid = btn.getAttribute('data-report-review');
+      if (rid) openReviewReportModal(rid);
+    });
 
     // Renders the reviews section: header summary, latest 3 cards, empty state,
     // and the "Vis alle anmeldelser" button that expands inline up to 20.

@@ -160,6 +160,49 @@ router.patch('/reviews/:id/reply', requireAuth, asyncRoute(async (req, res) => {
   res.json({ ok: true });
 }));
 
+// POST /reviews/:id/report — any logged-in user (other than the review author
+// and the salon owner) can flag a review as inappropriate. One report per
+// (user, review): a duplicate returns 409.
+router.post('/reviews/:id/report', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+
+  const schema = z.object({
+    reason: z.enum(['spam', 'offensive', 'fake', 'off_topic', 'other']),
+    details: z.string().trim().max(1000).optional().nullable(),
+  });
+  const data = schema.parse(req.body);
+
+  const review = await queryOne(
+    `SELECT r.id, r.customer_user_id, s.owner_user_id
+       FROM reviews r
+       JOIN salons s ON s.id = r.salon_id
+      WHERE r.id = ?`,
+    [id]
+  );
+  if (!review) throw new HttpError(404, 'not_found', 'Anmeldelsen finnes ikke.');
+  if (review.customer_user_id === req.user.id) {
+    throw new HttpError(403, 'forbidden', 'Du kan ikke rapportere din egen anmeldelse.');
+  }
+  if (review.owner_user_id === req.user.id) {
+    throw new HttpError(403, 'forbidden', 'Salongeieren kan ikke rapportere anmeldelser om egen salong.');
+  }
+
+  try {
+    const result = await query(
+      `INSERT INTO review_reports (review_id, reporter_user_id, reason, details)
+       VALUES (?, ?, ?, ?)`,
+      [id, req.user.id, data.reason, data.details || null]
+    );
+    res.status(201).json({ id: result.insertId });
+  } catch (err) {
+    if (err && err.code === 'ER_DUP_ENTRY') {
+      throw new HttpError(409, 'already_reported', 'Du har allerede rapportert denne anmeldelsen.');
+    }
+    throw err;
+  }
+}));
+
 // DELETE /reviews/:id — admin-only soft-hide (sets hidden_at = NOW()).
 // Audited in audit_log so we can trace removals later.
 router.delete('/reviews/:id', requireAuth, requireRole('admin'), asyncRoute(async (req, res) => {

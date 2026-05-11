@@ -613,3 +613,29 @@ CREATE TABLE IF NOT EXISTS waitlist_entries (
   CONSTRAINT fk_wl_team    FOREIGN KEY (team_member_id) REFERENCES team_members(id) ON DELETE SET NULL,
   CONSTRAINT fk_wl_claimed FOREIGN KEY (claimed_booking_id) REFERENCES bookings(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- review_reports
+-- Logged-in users (other than the review author and the salon owner) can flag
+-- a review as inappropriate. Admin works the queue from /admin (#tab-anmeldelser)
+-- and resolves each report by dismissing it or hiding the underlying review.
+-- UNIQUE (reporter_user_id, review_id) prevents the same user reporting the
+-- same review twice.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS review_reports (
+  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  review_id    BIGINT UNSIGNED NOT NULL,
+  reporter_user_id BIGINT UNSIGNED NOT NULL,
+  reason       ENUM('spam','offensive','fake','off_topic','other') NOT NULL,
+  details      TEXT DEFAULT NULL,
+  status       ENUM('pending','dismissed','actioned') NOT NULL DEFAULT 'pending',
+  resolved_at  DATETIME DEFAULT NULL,
+  resolved_by_user_id BIGINT UNSIGNED DEFAULT NULL,
+  created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_reporter_review (reporter_user_id, review_id),
+  KEY idx_status (status, created_at),
+  CONSTRAINT fk_rr_review   FOREIGN KEY (review_id)        REFERENCES reviews(id) ON DELETE CASCADE,
+  CONSTRAINT fk_rr_reporter FOREIGN KEY (reporter_user_id) REFERENCES users(id)   ON DELETE CASCADE,
+  CONSTRAINT fk_rr_resolver FOREIGN KEY (resolved_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

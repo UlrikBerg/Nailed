@@ -688,6 +688,7 @@
         <button class="ap-tab" role="tab" data-tab="booking-analyse"><i data-lucide="activity"></i> Booking-analyse</button>
         <button class="ap-tab" role="tab" data-tab="bruker-analyse"><i data-lucide="user-check"></i> Brukeranalyse</button>
         <button class="ap-tab" role="tab" data-tab="moderering"><i data-lucide="shield-alert"></i> Moderering <span class="ap-tab__count" id="navModereringCount">0</span></button>
+        <button class="ap-tab" role="tab" data-tab="anmeldelser"><i data-lucide="flag"></i> Anmeldelser <span class="ap-tab__count" id="navAnmeldelserCount">0</span></button>
         <button class="ap-tab" role="tab" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
       </div>
 
@@ -1175,6 +1176,25 @@
       </div>
 
       <!-- ============================================================
+           ANMELDELSER (review reports queue)
+           ============================================================ -->
+      <div class="tab-content" id="tab-anmeldelser">
+        <div class="ap-tab-head">
+          <div>
+            <h2 class="ap-section-title">Anmeldelser</h2>
+            <p class="ap-section-sub">Rapporterte anmeldelser til vurdering.</p>
+          </div>
+          <div class="ap-tab-head__actions">
+            <button class="btn btn-ghost btn-sm" id="anmeldelserRefreshBtn"><i data-lucide="refresh-cw"></i> Oppdater</button>
+          </div>
+        </div>
+
+        <div id="anmeldelserList">
+          <div class="td-muted">Laster ...</div>
+        </div>
+      </div>
+
+      <!-- ============================================================
            INNSTILLINGER
            ============================================================ -->
       <div class="tab-content" id="tab-innstillinger">
@@ -1603,6 +1623,7 @@
       loadBrukere('');
       loadBookinger();
       loadModerering();
+      loadAnmeldelser();
 
       lucide.createIcons();
     }
@@ -2115,6 +2136,131 @@
         actBtns.forEach(function (b) { b.disabled = false; });
       }
     });
+
+    /* ================================================================
+       Anmeldelser (review reports queue)
+       ================================================================ */
+
+    var REPORT_REASON_LABELS = {
+      spam:      'Spam / reklame',
+      offensive: 'Støtende språk',
+      fake:      'Falsk anmeldelse',
+      off_topic: 'Ikke relevant',
+      other:     'Annet',
+    };
+
+    async function loadAnmeldelser() {
+      var container = document.getElementById('anmeldelserList');
+      if (!container) return;
+      try {
+        var res = await NailedAuth.api('/api/v1/admin/review-reports?status=pending');
+        if (!res.ok) throw new Error('review-reports ' + res.status);
+        var data = await res.json();
+        renderAnmeldelser(data.reports || []);
+        var badge = document.getElementById('navAnmeldelserCount');
+        if (badge) badge.textContent = (data.reports || []).length;
+      } catch (err) {
+        console.error('[admin] review-reports failed', err);
+        container.innerHTML = '<div class="td-muted">Kunne ikke laste rapporter.</div>';
+      }
+    }
+
+    function renderAnmeldelser(reports) {
+      var container = document.getElementById('anmeldelserList');
+      if (!container) return;
+      if (!reports.length) {
+        container.innerHTML = '<div class="ap-empty">' +
+          '<span class="ap-empty__icon"><i data-lucide="shield-check"></i></span>' +
+          '<h3 class="ap-empty__title">Ingen rapporter</h3>' +
+          '<p class="ap-empty__desc">Alle rapporter er behandlet. Nye dukker opp her etter hvert.</p>' +
+        '</div>';
+        lucide.createIcons();
+        return;
+      }
+      container.innerHTML = reports.map(function (r) {
+        var snippet = r.review_snippet || '';
+        var stars = '';
+        var rating = parseInt(r.review_rating, 10) || 0;
+        for (var i = 0; i < 5; i++) {
+          stars += '<i data-lucide="star" style="fill:' + (i < rating ? 'currentColor' : 'transparent') + ';"></i>';
+        }
+        var reasonLabel = REPORT_REASON_LABELS[r.reason] || r.reason;
+        var details = r.details
+          ? '<div class="review-card__text" style="margin-top:10px;"><strong>Detaljer:</strong> ' + escapeHtml(r.details) + '</div>'
+          : '';
+        var hidden = r.review_hidden_at
+          ? '<span class="status status--inactive" style="margin-left:6px;">Allerede skjult</span>'
+          : '';
+        return '<div class="review-card" data-report-id="' + r.id + '" data-review-hidden="' + (r.review_hidden_at ? '1' : '0') + '">' +
+          '<div class="review-card__head">' +
+            '<div class="review-card__avatar">' + escapeHtml(initials(r.reporter_name || r.reporter_email)) + '</div>' +
+            '<div class="review-card__info">' +
+              '<div class="review-card__name">' + escapeHtml(r.salon_name || 'Salong') + hidden + '</div>' +
+              '<div class="review-card__meta">' +
+                'Rapportert av ' + escapeHtml(r.reporter_name || '') +
+                (r.reporter_email ? ' &middot; ' + escapeHtml(r.reporter_email) : '') +
+                ' &middot; ' + formatDate(r.created_at) +
+              '</div>' +
+            '</div>' +
+            '<span class="review-card__flag"><i data-lucide="flag"></i> ' + escapeHtml(reasonLabel) + '</span>' +
+          '</div>' +
+          '<div class="review-card__text">' +
+            '<span class="review-card__stars">' + stars + '</span>' +
+            '<div style="margin-top:8px;">' + escapeHtml(snippet) + (snippet.length >= 200 ? '…' : '') + '</div>' +
+          '</div>' +
+          details +
+          '<div class="review-card__actions">' +
+            '<button class="btn btn-ghost btn-sm" data-act="dismiss"><i data-lucide="check"></i> Avvis rapport</button>' +
+            '<button class="btn btn-danger btn-sm" data-act="hide"><i data-lucide="eye-off"></i> Skjul anmeldelse</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      lucide.createIcons();
+    }
+
+    document.getElementById('anmeldelserList').addEventListener('click', async function (e) {
+      var btn = e.target.closest('button[data-act]');
+      if (!btn) return;
+      var card = btn.closest('.review-card');
+      if (!card) return;
+      var id = card.getAttribute('data-report-id');
+      var act = btn.getAttribute('data-act');
+
+      var confirmTitle = act === 'hide' ? 'Skjul anmeldelse' : 'Avvis rapport';
+      var confirmBody = act === 'hide'
+        ? 'Anmeldelsen skjules fra salongsiden. Rapporten merkes som behandlet.'
+        : 'Rapporten avvises. Anmeldelsen forblir synlig.';
+      var ok = await showConfirm({
+        title: confirmTitle,
+        body: confirmBody,
+        okLabel: act === 'hide' ? 'Skjul' : 'Avvis',
+        okClass: act === 'hide' ? 'btn-danger' : 'btn-primary',
+      });
+      if (!ok) return;
+
+      var actBtns = card.querySelectorAll('button');
+      actBtns.forEach(function (b) { b.disabled = true; });
+      try {
+        var res = await NailedAuth.api('/api/v1/admin/review-reports/' + id, {
+          method: 'PATCH',
+          body: { action: act },
+        });
+        if (!res.ok) {
+          var errBody = {};
+          try { errBody = await res.json(); } catch (_) {}
+          var msg = (errBody.error && errBody.error.message) || ('review-report ' + act + ' ' + res.status);
+          throw new Error(msg);
+        }
+        showToast(act === 'hide' ? 'Anmeldelsen er skjult.' : 'Rapporten er avvist.', 'success');
+        await loadAnmeldelser();
+      } catch (err) {
+        console.error('[admin] review-report action failed', err);
+        showToast('Handlingen feilet: ' + err.message, 'error');
+        actBtns.forEach(function (b) { b.disabled = false; });
+      }
+    });
+
+    document.getElementById('anmeldelserRefreshBtn').addEventListener('click', loadAnmeldelser);
 
     /* ================================================================
        Period selectors (shared logic)
