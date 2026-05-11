@@ -183,6 +183,7 @@
       transition: border-color var(--dur-fast);
     }
     .kp-row:hover { border-color: var(--stone-300); }
+    .kp-row--ready { background: var(--rouge-50); border-color: var(--rouge-500); }
     .kp-row__when { min-width: 110px; }
     .kp-row__when-date {
       font-family: var(--font-display);
@@ -631,6 +632,12 @@
           <p class="kp-empty__desc" id="bookingsEmptyDesc">
             Når du booker en behandling, dukker den opp her. <a href="/utforsk.html">Utforsk salonger →</a>
           </p>
+        </div>
+
+        <div id="waitlistSection" style="display:none; margin-top: 32px;">
+          <h2 class="kp-section-title" style="font-size: 22px;">Venteliste</h2>
+          <p class="kp-section-sub">Tider du venter på skal bli ledige.</p>
+          <div class="kp-list" id="waitlistList"></div>
         </div>
       </div>
 
@@ -1090,6 +1097,91 @@
       // "Flytt time" — opens an inline reschedule form under the row.
       list.querySelectorAll('button[data-resched]').forEach(function (btn) {
         btn.addEventListener('click', function () { openRescheduleForm(btn, filter); });
+      });
+
+      window.lucide && window.lucide.createIcons();
+    }
+
+    // ---------------------------------------------------------------------
+    // Venteliste — entries waiting for taken slots to free up
+    // ---------------------------------------------------------------------
+    async function loadWaitlist() {
+      var section = document.getElementById('waitlistSection');
+      var list = document.getElementById('waitlistList');
+      if (!section || !list) return;
+      var res = await NailedAuth.api('/api/v1/waitlist/mine');
+      if (!res.ok) {
+        section.style.display = 'none';
+        return;
+      }
+      var data = await res.json();
+      var entries = (data.entries || []).filter(function (e) {
+        return e.status === 'waiting' || e.status === 'ready';
+      });
+      if (entries.length === 0) {
+        section.style.display = 'none';
+        list.innerHTML = '';
+        return;
+      }
+      section.style.display = '';
+      list.innerHTML = '';
+      entries.forEach(function (e) {
+        var row = document.createElement('div');
+        row.className = 'kp-row' + (e.status === 'ready' ? ' kp-row--ready' : '');
+        row.dataset.waitlistId = e.id;
+        var statusBlock = e.status === 'ready'
+          ? '<button class="btn btn-primary btn-sm" data-wl-claim="' + e.id + '">Tid ledig! Bestill nå</button>'
+          : '<span class="kp-status kp-status--pending">Venter på ledig tid</span>' +
+            '<button class="btn btn-ghost btn-sm" data-wl-cancel="' + e.id + '">Avbryt</button>';
+        row.innerHTML =
+          '<div class="kp-row__when">' +
+            '<div class="kp-row__when-date">' + escapeHtml(formatDate(e.desired_start)) + '</div>' +
+            '<div class="kp-row__when-time">kl. ' + escapeHtml(formatTime(e.desired_start)) + '</div>' +
+          '</div>' +
+          '<div class="kp-row__main">' +
+            '<div class="kp-row__name"><a href="/salon.html?slug=' + encodeURIComponent(e.salon_slug || '') + '">' +
+              escapeHtml(e.salon_name || '') +
+            '</a></div>' +
+            '<div class="kp-row__meta">' + escapeHtml(e.service_name || '') +
+              (e.team_member_name ? ' · m/ ' + escapeHtml(e.team_member_name) : '') +
+              (e.salon_city ? ' · ' + escapeHtml(e.salon_city) : '') + '</div>' +
+          '</div>' +
+          '<div class="kp-row__actions">' + statusBlock + '</div>';
+        list.appendChild(row);
+      });
+
+      list.querySelectorAll('button[data-wl-cancel]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          if (!confirm('Fjerne deg fra ventelisten?')) return;
+          var id = btn.getAttribute('data-wl-cancel');
+          var r = await NailedAuth.api('/api/v1/waitlist/' + id, { method: 'DELETE' });
+          if (r.ok) {
+            NailedForms.toast('Fjernet fra venteliste');
+            loadWaitlist();
+          } else {
+            NailedForms.toast('Kunne ikke fjerne', { type: 'error' });
+          }
+        });
+      });
+
+      list.querySelectorAll('button[data-wl-claim]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          var id = btn.getAttribute('data-wl-claim');
+          btn.disabled = true;
+          var prev = btn.textContent;
+          btn.textContent = 'Bestiller …';
+          var r = await NailedAuth.api('/api/v1/waitlist/' + id + '/claim', { method: 'POST' });
+          if (r.ok) {
+            NailedForms.toast('Booking opprettet');
+            loadWaitlist();
+            loadBookings('upcoming');
+          } else {
+            var data = await r.json().catch(function () { return {}; });
+            btn.disabled = false;
+            btn.textContent = prev;
+            NailedForms.toast((data.error && data.error.message) || 'Kunne ikke bestille', { type: 'error' });
+          }
+        });
       });
 
       window.lucide && window.lucide.createIcons();
@@ -1679,6 +1771,7 @@
 
       loadDashboard();
       loadBookings('upcoming');
+      loadWaitlist();
       loadFavorites();
       loadProfile();
       loadSessions();
