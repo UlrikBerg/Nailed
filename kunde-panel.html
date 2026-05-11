@@ -518,7 +518,8 @@
       border: 1px solid var(--stone-200);
       border-radius: var(--radius-md);
     }
-    .kp-session__device { flex: 1; min-width: 0; font-size: 14px; color: var(--ink); font-weight: 500; word-break: break-word; }
+    .kp-session__device { flex: 1; min-width: 0; font-size: 14px; color: var(--ink); font-weight: 600; word-break: break-word; display: flex; align-items: center; gap: 8px; }
+    .kp-session__icon { width: 16px; height: 16px; flex-shrink: 0; color: var(--fg-muted); }
     .kp-session__meta { font-size: 12px; color: var(--fg-muted); margin-top: 2px; }
     @media (max-width: 600px) {
       .kp-session { flex-wrap: wrap; }
@@ -1056,6 +1057,41 @@
     function formatDateTime(iso) {
       return formatDate(iso) + ' · ' + formatTime(iso);
     }
+
+    function parseUserAgent(ua) {
+      if (!ua) return { browser: 'Ukjent', os: '', label: 'Ukjent enhet' };
+      ua = String(ua);
+
+      var os = 'Ukjent';
+      if (/iPhone/.test(ua))            os = 'iPhone';
+      else if (/iPad/.test(ua))         os = 'iPad';
+      else if (/Android/.test(ua))      os = 'Android';
+      else if (/Macintosh|Mac OS X/.test(ua)) os = 'Mac';
+      else if (/Windows/.test(ua))      os = 'Windows';
+      else if (/Linux/.test(ua))        os = 'Linux';
+      else if (/CrOS/.test(ua))         os = 'ChromeOS';
+
+      var browser = 'Ukjent';
+      if (/Edg\//.test(ua))             browser = 'Edge';
+      else if (/OPR\/|Opera/.test(ua))  browser = 'Opera';
+      else if (/Firefox\//.test(ua))    browser = 'Firefox';
+      else if (/Chrome\//.test(ua))     browser = 'Chrome';
+      else if (/Safari\//.test(ua))     browser = 'Safari';
+
+      var label = browser !== 'Ukjent' && os !== 'Ukjent'
+        ? browser + ' på ' + os
+        : (browser !== 'Ukjent' ? browser : (os !== 'Ukjent' ? os : 'Ukjent enhet'));
+
+      return { browser: browser, os: os, label: label };
+    }
+
+    function deviceIconForOs(os) {
+      if (os === 'iPhone' || os === 'Android') return 'smartphone';
+      if (os === 'iPad') return 'tablet';
+      return 'monitor';
+    }
+
+    var SESSION_DT_FMT = new Intl.DateTimeFormat('nb-NO', { dateStyle: 'long', timeStyle: 'short' });
 
     // ---------------------------------------------------------------------
     // Dashboard — KPI tiles + become-salon callout state
@@ -1980,14 +2016,19 @@
         return;
       }
       sessions.forEach(function (s) {
+        var ua = parseUserAgent(s.user_agent);
+        var icon = deviceIconForOs(ua.os);
+        var when = s.last_used_at ? SESSION_DT_FMT.format(new Date(s.last_used_at)) : '—';
         var row = document.createElement('div');
         row.className = 'kp-session';
         row.innerHTML =
           '<div class="kp-row__main">' +
-            '<div class="kp-session__device">' + escapeHtml((s.user_agent || 'Ukjent enhet').slice(0, 80)) + '</div>' +
+            '<div class="kp-session__device">' +
+              '<i data-lucide="' + icon + '" class="kp-session__icon"></i>' +
+              '<span>' + escapeHtml(ua.label) + '</span>' +
+            '</div>' +
             '<div class="kp-session__meta">' +
-              escapeHtml(s.ip || '—') + ' · Sist brukt ' +
-              escapeHtml(new Date(s.last_used_at).toLocaleString('no-NO')) +
+              escapeHtml(s.ip || '—') + ' · Sist brukt ' + escapeHtml(when) +
             '</div>' +
           '</div>' +
           '<div class="kp-row__actions">' +
@@ -1995,6 +2036,7 @@
           '</div>';
         list.appendChild(row);
       });
+      window.lucide && window.lucide.createIcons();
       list.querySelectorAll('button[data-revoke]').forEach(function (btn) {
         btn.addEventListener('click', async function () {
           var id = this.getAttribute('data-revoke');
