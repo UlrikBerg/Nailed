@@ -107,10 +107,31 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--rouge-700);
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding-left: 10px;
       border-left: 3px solid var(--rouge-500);
       line-height: 1;
       margin: 0 0 14px;
+    }
+    .filter-section__label .filter-section__chev {
+      width: 14px; height: 14px;
+      transition: transform 200ms var(--ease-out-soft);
+      color: var(--rouge-700);
+    }
+    .filter-section.is-collapsed .filter-section__chev { transform: rotate(-90deg); }
+    .filter-section__body {
+      overflow: hidden;
+      max-height: 1200px;
+      transition: max-height 260ms var(--ease-out-soft), opacity 200ms var(--ease-out-soft);
+      opacity: 1;
+    }
+    .filter-section.is-collapsed .filter-section__body {
+      max-height: 0;
+      opacity: 0;
     }
 
     /* --- Accordion (Sted) --- */
@@ -1027,22 +1048,53 @@
       if (starsBox) starsBox.classList.toggle('has-selection', fState.min_rating != null);
     }
 
-    // --- Sted accordion -------------------------------------------------------
+    // --- Sted accordion (legacy — markup byttet til søkefelt; guards) -------
     var stedAccordion = document.getElementById('stedAccordion');
     var stedTrigger = document.getElementById('stedTrigger');
     var stedTriggerLabel = document.getElementById('stedTriggerLabel');
-    stedTrigger.addEventListener('click', function () {
-      var open = !stedAccordion.classList.contains('is-open');
-      stedAccordion.classList.toggle('is-open', open);
-      stedTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (stedTrigger && stedAccordion) {
+      stedTrigger.addEventListener('click', function () {
+        var open = !stedAccordion.classList.contains('is-open');
+        stedAccordion.classList.toggle('is-open', open);
+        stedTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    }
+
+    // Click-to-collapse på filter-seksjons-overskrifter. Wrapper alt etter
+    // .filter-section__label i en .filter-section__body slik at vi får
+    // smooth max-height/opacity-overgang. Legger til chevron-ikon.
+    document.querySelectorAll('.filter-section').forEach(function (section) {
+      var label = section.querySelector('.filter-section__label');
+      if (!label) return;
+      // Append chevron to label
+      if (!label.querySelector('.filter-section__chev')) {
+        var chev = document.createElement('i');
+        chev.setAttribute('data-lucide', 'chevron-down');
+        chev.className = 'filter-section__chev';
+        label.appendChild(chev);
+      }
+      // Wrap siblings after label in a body
+      var siblings = [];
+      var n = label.nextElementSibling;
+      while (n) { siblings.push(n); n = n.nextElementSibling; }
+      if (siblings.length && !section.querySelector('.filter-section__body')) {
+        var body = document.createElement('div');
+        body.className = 'filter-section__body';
+        siblings.forEach(function (el) { body.appendChild(el); });
+        section.appendChild(body);
+      }
+      label.addEventListener('click', function () {
+        section.classList.toggle('is-collapsed');
+      });
     });
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
 
     function updateStedLabel() {
+      if (!stedTriggerLabel) return;
       if (currentCity) { stedTriggerLabel.textContent = currentCity; return; }
       if (currentFylke === 'all') { stedTriggerLabel.textContent = 'Hele Norge'; return; }
       var pill = document.querySelector('#fylkeRow [data-fylke="' + currentFylke + '"]');
       if (!pill) { stedTriggerLabel.textContent = 'Hele Norge'; return; }
-      // Read only the leading text node, not the appended ✕ clear-span.
       var first = pill.childNodes[0];
       stedTriggerLabel.textContent = (first && first.nodeType === 3 ? first.nodeValue : pill.textContent).replace(/✕/g, '').trim();
     }

@@ -27,7 +27,7 @@
     var anchors = actions.querySelectorAll('a');
     for (var i = 0; i < anchors.length; i++) {
       var href = anchors[i].getAttribute('href') || '';
-      if (/(^|\/)login\.html(\?|$|#)/.test(href)) return anchors[i];
+      if (/(^|\/)login(\.html)?(\?|$|#)/.test(href)) return anchors[i];
     }
     return null;
   }
