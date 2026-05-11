@@ -16,7 +16,7 @@
 
     .kp-page { padding: 48px 0 96px; }
 
-    /* Hero greeting + tiny profile chip */
+    /* Hero greeting */
     .kp-hero {
       display: flex;
       justify-content: space-between;
@@ -34,25 +34,6 @@
     }
     .kp-hero__title em { font-style: normal; color: var(--rouge-500); }
     .kp-hero__sub { font-size: 15px; color: var(--fg-muted); margin: 0; }
-    .kp-hero__user {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 14px 8px 8px;
-      background: var(--cream-50);
-      border: 1px solid var(--stone-200);
-      border-radius: var(--radius-pill);
-    }
-    .kp-hero__avatar {
-      width: 36px; height: 36px;
-      border-radius: var(--radius-pill);
-      background: var(--rouge-500); color: #fff;
-      display: inline-flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 14px;
-    }
-    .kp-hero__userText { display: flex; flex-direction: column; line-height: 1.2; }
-    .kp-hero__userName { font-weight: 600; font-size: 14px; color: var(--ink); }
-    .kp-hero__userEmail { font-size: 12px; color: var(--fg-muted); }
 
     /* Horizontal tab strip — pill style matching /utforsk.html filter rows.
        Wraps on wide screens, horizontally scrolls on narrow viewports. */
@@ -650,13 +631,6 @@
         <div>
           <h1 class="kp-hero__title">Hei, <em id="greetingName">der!</em></h1>
           <p class="kp-hero__sub">Velkommen tilbake til kontoen din.</p>
-        </div>
-        <div class="kp-hero__user">
-          <span class="kp-hero__avatar" id="avatar">U</span>
-          <span class="kp-hero__userText">
-            <span class="kp-hero__userName" id="userName">Laster …</span>
-            <span class="kp-hero__userEmail" id="userEmail"></span>
-          </span>
         </div>
       </div>
 
@@ -2115,9 +2089,6 @@
       // too because their salon panel doesn't replicate these.
       var user = await NailedAuth.requireAuth();
       if (!user) return;
-      document.getElementById('userName').textContent = user.name || 'Bruker';
-      document.getElementById('userEmail').textContent = user.email || '';
-      document.getElementById('avatar').textContent = (user.name || '?').charAt(0).toUpperCase();
       document.getElementById('greetingName').textContent = ((user.name || '').split(' ')[0] || 'der') + '!';
 
       // Apply the initial tab from the URL hash (e.g. /kunde-panel.html#tab-innstillinger).
