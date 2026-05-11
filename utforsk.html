@@ -150,6 +150,49 @@
     }
     .filter-row-vertical { display: flex; flex-direction: column; gap: 2px; }
 
+    /* Fylke-grid: 2 kolonner. Når en fylke er valgt collapsar grid'et til kun
+       den valgte pillen (med ✕-knapp) som full-width "header", resten skjules. */
+    #fylkeRow {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    #fylkeRow .v-pill {
+      justify-content: center;
+      text-align: center;
+      padding: 7px 10px;
+      font-size: 13px;
+      min-height: 32px;
+      border-radius: 999px;
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+    }
+    #fylkeRow .v-pill:hover { background: var(--cream-100); }
+    #fylkeRow .v-pill.active {
+      grid-column: 1 / -1;
+      background: var(--rouge-50);
+      border-color: var(--rouge-500);
+      color: var(--rouge-700);
+      font-weight: 600;
+      justify-content: space-between;
+      padding-right: 12px;
+    }
+    #fylkeRow.is-collapsed > .v-pill:not(.active) {
+      display: none;
+    }
+    #fylkeRow .v-pill__clear {
+      display: none;
+      margin-left: 6px;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      color: var(--rouge-700);
+      padding: 0;
+      line-height: 1;
+      font-size: 16px;
+    }
+    #fylkeRow.is-collapsed > .v-pill.active .v-pill__clear { display: inline-flex; align-items: center; }
+
     /* --- Vertical pill (sidebar list item) --- */
     .v-pill {
       display: flex;
@@ -1001,20 +1044,53 @@
       stedTriggerLabel.textContent = pill ? pill.textContent.trim() : 'Hele Norge';
     }
 
+    // Inject ✕ clear-buttons into every fylke pill (except 'all') so they
+    // can be cleared back to the full grid from the collapsed state.
+    document.querySelectorAll('#fylkeRow .v-pill').forEach(function (p) {
+      if (p.dataset.fylke === 'all') return;
+      var x = document.createElement('span');
+      x.className = 'v-pill__clear';
+      x.setAttribute('aria-label', 'Vis alle fylker');
+      x.textContent = '✕';
+      p.appendChild(x);
+    });
+    function updateFylkeGridCollapse() {
+      var row = document.getElementById('fylkeRow');
+      row.classList.toggle('is-collapsed', currentFylke !== 'all');
+    }
     // Fylke selection
     document.getElementById('fylkeRow').addEventListener('click', function(e) {
+      // ✕ clear → revert to "all".
+      if (e.target.classList.contains('v-pill__clear')) {
+        e.stopPropagation();
+        currentFylke = 'all';
+        currentCity = null;
+        document.querySelectorAll('#fylkeRow .v-pill').forEach(function(p) { p.classList.remove('active'); });
+        var allPill = document.querySelector('#fylkeRow [data-fylke="all"]');
+        if (allPill) allPill.classList.add('active');
+        updateFylkeGridCollapse();
+        renderCities();
+        updateStedLabel();
+        refreshFilterBtnBadge();
+        syncUrl();
+        filterResults();
+        return;
+      }
       var pill = e.target.closest('[data-fylke]');
       if (!pill) return;
       currentFylke = pill.dataset.fylke;
       currentCity = null;
       document.querySelectorAll('#fylkeRow .v-pill').forEach(function(p) { p.classList.remove('active'); });
       pill.classList.add('active');
+      updateFylkeGridCollapse();
       renderCities();
       updateStedLabel();
       refreshFilterBtnBadge();
       syncUrl();
       filterResults();
     });
+    // Initial state — collapse if URL preselected a fylke.
+    updateFylkeGridCollapse();
 
     // Treatment selection (single-select, matches API contract of currentTx)
     document.getElementById('treatmentRow').addEventListener('click', function(e) {
