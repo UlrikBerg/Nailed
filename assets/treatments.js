@@ -116,7 +116,9 @@
     var css = [
       '.nailed-treatments-wrap{position:relative;display:block;width:100%;}',
       '.nailed-treatments-wrap > input{width:100%;box-sizing:border-box;}',
-      '.nailed-treatments-dropdown{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:var(--cream-50,#fff);border:1px solid var(--stone-200,#e3dcd5);border-radius:12px;box-shadow:0 12px 32px rgba(27,18,24,0.12);max-height:min(320px,55vh);max-width:320px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;z-index:1000;display:none;font-family:var(--font-body,system-ui,sans-serif);scrollbar-width:thin;scrollbar-color:var(--stone-300,#cdc4ba) transparent;}',
+      // position:fixed + appended to <body> so the dropdown escapes any
+      // ancestor med overflow:hidden (.hero på forsiden klipper sticker-en).
+      '.nailed-treatments-dropdown{position:fixed;background:var(--cream-50,#fff);border:1px solid var(--stone-200,#e3dcd5);border-radius:12px;box-shadow:0 12px 32px rgba(27,18,24,0.12);max-height:min(320px,55vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;z-index:1000;display:none;font-family:var(--font-body,system-ui,sans-serif);scrollbar-width:thin;scrollbar-color:var(--stone-300,#cdc4ba) transparent;}',
       '.nailed-treatments-dropdown::-webkit-scrollbar{width:8px;}',
       '.nailed-treatments-dropdown::-webkit-scrollbar-thumb{background:var(--stone-300,#cdc4ba);border-radius:4px;}',
       '.nailed-treatments-dropdown::-webkit-scrollbar-track{background:transparent;}',
@@ -157,7 +159,34 @@
     var dropdown = document.createElement('div');
     dropdown.className = 'nailed-treatments-dropdown';
     dropdown.setAttribute('role', 'listbox');
-    wrap.appendChild(dropdown);
+    document.body.appendChild(dropdown);
+
+    function positionDropdown() {
+      var r = input.getBoundingClientRect();
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      var gap = 4;
+      var spaceBelow = vh - r.bottom - 8;
+      var spaceAbove = r.top - 8;
+      var maxH = Math.min(320, Math.max(160, vh - 16));
+      var openAbove = spaceBelow < 200 && spaceAbove > spaceBelow;
+      if (openAbove) {
+        var h = Math.min(maxH, spaceAbove);
+        dropdown.style.top = Math.max(8, r.top - gap - h) + 'px';
+        dropdown.style.maxHeight = h + 'px';
+      } else {
+        var h2 = Math.min(maxH, Math.max(160, spaceBelow));
+        dropdown.style.top = (r.bottom + gap) + 'px';
+        dropdown.style.maxHeight = h2 + 'px';
+      }
+      dropdown.style.left = r.left + 'px';
+      dropdown.style.width = r.width + 'px';
+    }
+
+    function onReflow() {
+      if (dropdown.classList.contains('is-open')) positionDropdown();
+    }
+    window.addEventListener('scroll', onReflow, true);
+    window.addEventListener('resize', onReflow);
 
     input.setAttribute('autocomplete', 'off');
     input.setAttribute('spellcheck', 'false');
@@ -175,6 +204,7 @@
         dropdown.innerHTML = '<div class="nailed-treatments-empty">Ingen treff. Du kan likevel søke på det du har skrevet.</div>';
         dropdown.classList.add('is-open');
         input.setAttribute('aria-expanded', 'true');
+        positionDropdown();
         return;
       }
       var html = '';
@@ -189,6 +219,7 @@
       dropdown.innerHTML = html;
       dropdown.classList.add('is-open');
       input.setAttribute('aria-expanded', 'true');
+      positionDropdown();
     }
 
     function close() {
