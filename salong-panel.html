@@ -38,8 +38,8 @@
     .kp-hero__user {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
-      padding: 8px 14px 8px 8px;
+      gap: 8px;
+      padding: 5px 12px 5px 5px;
       background: var(--cream-50);
       border: 1px solid var(--stone-200);
       border-radius: var(--radius-pill);
@@ -51,16 +51,26 @@
     .kp-hero__user:hover { border-color: var(--stone-400); }
     .kp-hero__user[aria-expanded="true"] { border-color: var(--stone-400); }
     .kp-hero__avatar {
-      width: 36px; height: 36px;
+      width: 22px; height: 22px;
       border-radius: var(--radius-pill);
       background: var(--rouge-500); color: #fff;
       display: inline-flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 14px;
+      font-weight: 700; font-size: 11px;
     }
-    .kp-hero__userText { display: flex; flex-direction: column; line-height: 1.2; text-align: left; }
-    .kp-hero__userName { font-weight: 600; font-size: 14px; color: var(--ink); }
-    .kp-hero__userEmail { font-size: 12px; color: var(--fg-muted); display: inline-flex; align-items: center; gap: 4px; }
-    .kp-hero__userEmail i { width: 12px; height: 12px; }
+    /* Compact single-line layout in the top-nav: only the role label is shown,
+       name is folded into the title attribute for hover. */
+    .kp-hero__userText {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      line-height: 1;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .kp-hero__userName { display: none; }
+    .kp-hero__userEmail { font-size: 13px; color: var(--ink); display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
+    .kp-hero__userEmail i { width: 14px; height: 14px; }
     .kp-hero__menu {
       position: absolute;
       top: calc(100% + 6px);
