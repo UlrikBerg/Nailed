@@ -1312,16 +1312,16 @@
   <!-- Public top navigation -->
   <header class="top-nav" id="topNav">
     <div class="page top-nav__inner">
-      <a class="top-nav__brand" href="index.html">
+      <a class="top-nav__brand" href="/">
         <img src="assets/logo-wordmark.svg" alt="nailed" />
       </a>
       <nav class="top-nav__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
       </nav>
       <div class="top-nav__actions">
-        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="favoritter" class="btn-icon"><i data-lucide="heart"></i></a>
         <div class="kp-hero__userWrap">
           <button type="button" class="kp-hero__user" id="userMenuToggle" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu">
             <span class="kp-hero__avatar" id="avatar">U</span>
@@ -1334,13 +1334,13 @@
             </span>
           </button>
           <div class="kp-hero__menu" id="userMenu" role="menu" aria-labelledby="userMenuToggle">
-            <a class="kp-hero__menuItem" role="menuitem" href="/kunde-panel.html">
+            <a class="kp-hero__menuItem" role="menuitem" href="/kunde-panel">
               <i data-lucide="user-round"></i> Min profil
             </a>
-            <a class="kp-hero__menuItem" role="menuitem" href="/kunde-panel.html#tab-bookinger">
+            <a class="kp-hero__menuItem" role="menuitem" href="/kunde-panel#tab-bookinger">
               <i data-lucide="calendar"></i> Mine bookinger
             </a>
-            <a class="kp-hero__menuItem" role="menuitem" href="/favoritter.html">
+            <a class="kp-hero__menuItem" role="menuitem" href="/favoritter">
               <i data-lucide="heart"></i> Mine favoritter
             </a>
             <div class="kp-hero__menuDivider" role="separator"></div>
@@ -2219,7 +2219,7 @@
         <div class="kp-card">
           <p style="margin:0; color: var(--fg-muted);">
             Personlige profil-innstillinger og kontosletting administreres fra
-            <a href="/kunde-panel.html#tab-innstillinger">kontosiden din</a>.
+            <a href="/kunde-panel#tab-innstillinger">kontosiden din</a>.
           </p>
         </div>
 
@@ -2293,12 +2293,12 @@
         </div>
       </div>
       <div class="footer__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
-        <a href="/personvern.html">Personvern</a>
-        <a href="/vilkar.html">Bruksvilkår</a>
-        <a href="/cookies.html">Cookies</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
+        <a href="/personvern">Personvern</a>
+        <a href="/vilkar">Bruksvilkår</a>
+        <a href="/cookies">Cookies</a>
         <a href="#">FAQ</a>
         <a href="#">Kontakt oss</a>
         <a href="#">Om oss</a>
@@ -2446,7 +2446,7 @@
               '<span class="kp-empty__icon"><i data-lucide="store"></i></span>' +
               '<h3 class="kp-empty__title">Ingen salong</h3>' +
               '<p class="kp-empty__desc">Du er ikke registrert som salongeier ennå. ' +
-              '<a href="/bli-salong.html">Søk om å bli salong →</a></p>' +
+              '<a href="/bli-salong">Søk om å bli salong →</a></p>' +
             '</div>';
         }
         // Hide the other tabs and their tab pills — there's nothing to show
@@ -2470,7 +2470,7 @@
       currentClosures = data.closures || [];
       document.getElementById('dashTitle').innerHTML = escapeHtml(salon.name);
       document.getElementById('dashSub').textContent = salon.city;
-      document.getElementById('publicLink').href = '/salon.html?slug=' + encodeURIComponent(salon.slug);
+      document.getElementById('publicLink').href = '/salon?slug=' + encodeURIComponent(salon.slug);
       // Scope to #salonForm — the service form also has an input[name=name].
       document.querySelector('#salonForm input[name=name]').value = salon.name || '';
       document.querySelector('#salonForm textarea[name=bio]').value = salon.bio || '';
@@ -3074,7 +3074,7 @@
       if (s.accepts_new_bookings) bits.push('<span style="color:var(--success-500)"><i data-lucide="check-circle"></i>Tar imot bookinger</span>');
       else bits.push('<span style="color:var(--danger-500)"><i data-lucide="x-circle"></i>Tar ikke imot bookinger</span>');
       meta.innerHTML = bits.join('');
-      var publicHref = '/salon.html?slug=' + encodeURIComponent(s.slug);
+      var publicHref = '/salon?slug=' + encodeURIComponent(s.slug);
       document.getElementById('phPublicLink').href = publicHref;
       document.getElementById('phPreviewLink').href = publicHref;
 

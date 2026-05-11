@@ -6,7 +6,7 @@
   <title>Salong — nailed</title>
   <meta name="description" content="Book time hos en av Norges beste skjønnhetssalonger. Se behandlinger, priser, anmeldelser og ledig tid — book direkte på nailed." />
   <meta name="theme-color" content="#EE3F7E" />
-  <link rel="canonical" href="https://skyblue-cod-739202.hostingersite.com/salon.html" />
+  <link rel="canonical" href="https://skyblue-cod-739202.hostingersite.com/salon" />
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="preload" as="image" href="assets/logo-wordmark.svg">
@@ -20,7 +20,7 @@
   <meta property="og:site_name" content="nailed" />
   <meta property="og:title" content="Salong — nailed" />
   <meta property="og:description" content="Book time hos en av Norges beste skjønnhetssalonger på nailed." />
-  <meta property="og:url" content="https://skyblue-cod-739202.hostingersite.com/salon.html" />
+  <meta property="og:url" content="https://skyblue-cod-739202.hostingersite.com/salon" />
   <meta property="og:image" content="https://skyblue-cod-739202.hostingersite.com/assets/logo-wordmark.svg" />
   <meta property="og:locale" content="nb_NO" />
 
@@ -359,17 +359,17 @@
   <!-- Top navigation -->
   <header class="top-nav" id="topNav">
     <div class="page top-nav__inner">
-      <a class="top-nav__brand" href="index.html">
+      <a class="top-nav__brand" href="/">
         <img src="assets/logo-wordmark.svg" alt="nailed" />
       </a>
       <nav class="top-nav__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
       </nav>
       <div class="top-nav__actions">
-        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
-        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+        <a href="favoritter" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login" class="btn btn-ghost btn-sm">Logg inn</a>
       </div>
     </div>
   </header>
@@ -380,7 +380,7 @@
 
       <!-- Airbnb-style photo gallery -->
       <div class="salon-gallery" id="gallery">
-        <a href="utforsk.html" class="btn btn-ghost btn-sm salon-gallery__back">
+        <a href="utforsk" class="btn btn-ghost btn-sm salon-gallery__back">
           <i data-lucide="arrow-left"></i> Tilbake
         </a>
         <button class="salon-gallery__tile salon-gallery__tile--hero" style="background: linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 60%, #82103D 100%);"></button>
@@ -562,12 +562,12 @@
         </div>
       </div>
       <div class="footer__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
-        <a href="/personvern.html">Personvern</a>
-        <a href="/vilkar.html">Bruksvilkår</a>
-        <a href="/cookies.html">Cookies</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
+        <a href="/personvern">Personvern</a>
+        <a href="/vilkar">Bruksvilkår</a>
+        <a href="/cookies">Cookies</a>
         <a href="#">FAQ</a>
         <a href="#">Kontakt oss</a>
         <a href="#">Om oss</a>
@@ -672,7 +672,7 @@
 
     // ---- 1. Read slug; redirect if missing ----
     var slug = qs('slug');
-    if (!slug) { window.location.replace('utforsk.html'); }
+    if (!slug) { window.location.replace('utforsk'); }
 
     // ---- Sticky nav (kept) ----
     var nav = document.getElementById('topNav');
@@ -1223,7 +1223,7 @@
           stylistId: selectedStylistId,
           dateTime: selectedDateTime,
         }));
-        location.href = '/login.html?next=' + encodeURIComponent('/salon.html?slug=' + encodeURIComponent(slug));
+        location.href = '/login?next=' + encodeURIComponent('/salon?slug=' + encodeURIComponent(slug));
         return;
       }
       cta.disabled = true;
@@ -1251,7 +1251,7 @@
         return;
       }
       var json = await res.json();
-      location.href = '/confirmation.html?id=' + encodeURIComponent(json.id);
+      location.href = '/confirmation?id=' + encodeURIComponent(json.id);
     });
 
     // ---- Waitlist offer (shown when server rejects with slot_taken) ----
@@ -1270,7 +1270,7 @@
         e.preventDefault();
         if (!selectedService || !currentSalon || !selectedDateTime) return;
         if (!window.NailedAuth || !NailedAuth.isLoggedIn()) {
-          location.href = '/login.html?next=' + encodeURIComponent(location.pathname + location.search);
+          location.href = '/login?next=' + encodeURIComponent(location.pathname + location.search);
           return;
         }
         waitlistLink.style.pointerEvents = 'none';
@@ -1336,7 +1336,7 @@
         '<div class="page" style="padding:80px 24px; text-align:center;">' +
           '<h1 style="margin:0 0 12px 0; font-size:28px;">' + escapeHtml(title) + '</h1>' +
           '<p style="font-family:var(--font-body); color:var(--fg-muted); margin:0 0 24px 0;">' + escapeHtml(message) + '</p>' +
-          '<a class="btn btn-primary btn-sm" href="utforsk.html">Tilbake til Utforsk</a>' +
+          '<a class="btn btn-primary btn-sm" href="utforsk">Tilbake til Utforsk</a>' +
         '</div>';
       lucide.createIcons();
     }
@@ -1551,7 +1551,7 @@
     function openReviewReportModal(reviewId) {
       // Login gate. Persist a return path so we land back on the same salon page.
       if (!window.NailedAuth || !NailedAuth.isLoggedIn()) {
-        location.href = '/login.html?next=' + encodeURIComponent(location.pathname + location.search);
+        location.href = '/login?next=' + encodeURIComponent(location.pathname + location.search);
         return;
       }
       if (!reviewReportModal) {

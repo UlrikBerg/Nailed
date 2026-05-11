@@ -45,17 +45,17 @@
 
   <header class="top-nav" id="topNav">
     <div class="page top-nav__inner">
-      <a class="top-nav__brand" href="index.html">
+      <a class="top-nav__brand" href="/">
         <img src="assets/logo-wordmark.svg" alt="nailed" />
       </a>
       <nav class="top-nav__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
       </nav>
       <div class="top-nav__actions">
-        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
-        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+        <a href="favoritter" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login" class="btn btn-ghost btn-sm">Logg inn</a>
       </div>
     </div>
   </header>
@@ -73,7 +73,7 @@
         <div class="fav-empty__icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></div>
         <h3 class="fav-empty__title" id="favEmptyTitle">Ingen favoritter ennå</h3>
         <p class="fav-empty__desc" id="favEmptyDesc">Trykk på hjertet på en salong for å lagre den her. Favorittene dine synkroniseres på tvers av sider.</p>
-        <a href="utforsk.html" class="btn btn-primary" id="favEmptyCta">Utforsk salonger</a>
+        <a href="utforsk" class="btn btn-primary" id="favEmptyCta">Utforsk salonger</a>
       </div>
 
       <div id="favAnonExtra" class="fav-anon-section" style="display:none;">
@@ -95,12 +95,12 @@
         </div>
       </div>
       <div class="footer__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
-        <a href="/personvern.html">Personvern</a>
-        <a href="/vilkar.html">Bruksvilkår</a>
-        <a href="/cookies.html">Cookies</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
+        <a href="/personvern">Personvern</a>
+        <a href="/vilkar">Bruksvilkår</a>
+        <a href="/cookies">Cookies</a>
         <a href="#">FAQ</a>
         <a href="#">Kontakt oss</a>
         <a href="#">Om oss</a>
@@ -163,7 +163,7 @@
         : '';
 
       return ''
-        + '<article class="service-card card" onclick="location.href=\'salon.html?slug=' + slug + '\'">'
+        + '<article class="service-card card" onclick="location.href=\'salon?slug=' + slug + '\'">'
           + '<div class="service-card__photo" style="' + photoStyle + '">'
             + '<button class="service-card__heart is-favorite" data-salon-id="' + fav.id + '" aria-pressed="true">'
               + '<i data-lucide="heart" style="color:var(--rouge-500);fill:var(--rouge-500);"></i>'
@@ -185,7 +185,7 @@
       // name/city without a lookup, so show the slug pretty-printed.
       var pretty = String(slug).replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
       return ''
-        + '<article class="service-card card" onclick="location.href=\'salon.html?slug=' + encodeURIComponent(slug) + '\'">'
+        + '<article class="service-card card" onclick="location.href=\'salon?slug=' + encodeURIComponent(slug) + '\'">'
           + '<div class="service-card__photo" style="background: ' + FALLBACK_GRADIENTS[0] + ';">'
             + '<button class="service-card__heart is-favorite" data-fav="' + escapeHtml(slug) + '" aria-pressed="true">'
               + '<i data-lucide="heart" style="color:var(--rouge-500);fill:var(--rouge-500);"></i>'
@@ -212,12 +212,12 @@
       document.getElementById('favEmptyDesc').textContent = 'Når du er logget inn lagres favorittene dine i kontoen din og synkroniseres på tvers av enheter.';
       var cta = document.getElementById('favEmptyCta');
       cta.textContent = 'Logg inn';
-      cta.setAttribute('href', 'login.html?next=' + encodeURIComponent('/favoritter.html'));
+      cta.setAttribute('href', 'login?next=' + encodeURIComponent('/favoritter'));
 
       // Also show any anonymous local favorites stored on this device, but
       // only the ones that resolve to a real, active salon. Bogus slugs (from
       // mock cards on the home page) are dropped silently — clicking them
-      // would 404 on /salon.html, which is worse than not showing them.
+      // would 404 on /salon, which is worse than not showing them.
       var local = (typeof getFavorites === 'function') ? getFavorites() : [];
       if (local.length) {
         Promise.all(local.map(function (slug) {
@@ -288,10 +288,10 @@
         empty.style.display = '';
         countEl.textContent = 'Du har ingen favoritter ennå.';
         document.getElementById('favEmptyTitle').textContent = 'Ingen favoritter ennå';
-        document.getElementById('favEmptyDesc').innerHTML = 'Trykk på hjertet på en salong for å lagre den her. <a href="utforsk.html">Utforsk salonger →</a>';
+        document.getElementById('favEmptyDesc').innerHTML = 'Trykk på hjertet på en salong for å lagre den her. <a href="utforsk">Utforsk salonger →</a>';
         var cta = document.getElementById('favEmptyCta');
         cta.textContent = 'Utforsk salonger';
-        cta.setAttribute('href', 'utforsk.html');
+        cta.setAttribute('href', 'utforsk');
         window.lucide && window.lucide.createIcons();
         return;
       }

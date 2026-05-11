@@ -47,17 +47,17 @@
        ============================================================ -->
   <header class="top-nav" id="topNav">
     <div class="page top-nav__inner">
-      <a class="top-nav__brand" href="index.html">
+      <a class="top-nav__brand" href="/">
         <img src="assets/logo-wordmark.svg" alt="nailed" />
       </a>
       <nav class="top-nav__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
       </nav>
       <div class="top-nav__actions">
-        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
-        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+        <a href="favoritter" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login" class="btn btn-ghost btn-sm">Logg inn</a>
       </div>
     </div>
   </header>
@@ -72,7 +72,7 @@
         Finn salong, velg behandling og tid — og book din time.
       </p>
       <div class="hero__search-wrap">
-        <form class="search-bar" id="heroSearchForm" action="/utforsk.html" method="get">
+        <form class="search-bar" id="heroSearchForm" action="/utforsk" method="get">
           <div class="search-bar__field">
             <i data-lucide="sparkles" class="search-bar__field-icon"></i>
             <div class="search-bar__field-text">
@@ -95,10 +95,10 @@
       </div>
       <div class="hero__quick">
         <span class="eyebrow">Populært:</span>
-        <a class="chip" href="/utforsk.html?q=Gel+manikyr">Gel manikyr</a>
-        <a class="chip" href="/utforsk.html?q=Klassiske+vipper">Klassiske vipper</a>
-        <a class="chip" href="/utforsk.html?q=Brynsfarge">Brynsfarge</a>
-        <a class="chip" href="/utforsk.html?q=Brudemakeup">Brudemakeup</a>
+        <a class="chip" href="/utforsk?q=Gel+manikyr">Gel manikyr</a>
+        <a class="chip" href="/utforsk?q=Klassiske+vipper">Klassiske vipper</a>
+        <a class="chip" href="/utforsk?q=Brynsfarge">Brynsfarge</a>
+        <a class="chip" href="/utforsk?q=Brudemakeup">Brudemakeup</a>
       </div>
     </div>
     <img src="assets/sticker-nailed-it.svg" class="hero__sticker" alt="" />
@@ -114,7 +114,7 @@
         <div>
           <h2>Salonger på <em>nailed</em></h2>
         </div>
-        <a class="section-head__link" href="utforsk.html" style="text-decoration:none;">Se alle <i data-lucide="arrow-right"></i></a>
+        <a class="section-head__link" href="utforsk" style="text-decoration:none;">Se alle <i data-lucide="arrow-right"></i></a>
       </div>
       <div class="grid-3" id="featuredGrid"></div>
     </div>
@@ -131,7 +131,7 @@
           <p class="home-owner-cta__sub">Lag salongprofilen på minutter, og ta i mot bookinger direkte. Gratis å komme i gang — ingen bindingstid.</p>
         </div>
         <div class="home-owner-cta__cta">
-          <a href="bli-salong.html" class="btn btn-primary btn-lg">Kom i gang gratis <i data-lucide="arrow-right"></i></a>
+          <a href="bli-salong" class="btn btn-primary btn-lg">Kom i gang gratis <i data-lucide="arrow-right"></i></a>
         </div>
       </div>
     </div>
@@ -225,7 +225,7 @@
         <div>
           <h2>Folkets favoritter denne uken</h2>
         </div>
-        <a class="section-head__link" href="utforsk.html?has_reviews=1&min_rating=4" style="text-decoration:none;">Se alle <i data-lucide="arrow-right"></i></a>
+        <a class="section-head__link" href="utforsk?has_reviews=1&min_rating=4" style="text-decoration:none;">Se alle <i data-lucide="arrow-right"></i></a>
       </div>
       <div class="grid-3" id="topRatedGrid"></div>
     </div>
@@ -245,12 +245,12 @@
         </div>
       </div>
       <div class="footer__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
-        <a href="/personvern.html">Personvern</a>
-        <a href="/vilkar.html">Bruksvilkår</a>
-        <a href="/cookies.html">Cookies</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
+        <a href="/personvern">Personvern</a>
+        <a href="/vilkar">Bruksvilkår</a>
+        <a href="/cookies">Cookies</a>
         <a href="mailto:hei@nailed.no">Kontakt oss</a>
       </div>
       <div class="footer__bottom">
@@ -301,7 +301,7 @@
         if (q) parts.push('q=' + encodeURIComponent(q));
         if (city) parts.push('city=' + encodeURIComponent(city));
         var qs = parts.length ? '?' + parts.join('&') : '';
-        window.location.href = '/utforsk.html' + qs;
+        window.location.href = '/utforsk' + qs;
       });
     })();
 
@@ -378,7 +378,7 @@
       }
 
       return ''
-        + '<article class="service-card card' + featured + '" onclick="location.href=\'salon.html?slug=' + slug + '\'">'
+        + '<article class="service-card card' + featured + '" onclick="location.href=\'salon?slug=' + slug + '\'">'
           + '<div class="service-card__photo" style="' + photoStyle + '">'
             + '<button class="service-card__heart" data-fav="' + featuredEscapeHtml(salon.slug || '') + '" data-salon-id="' + salon.id + '">'
               + '<i data-lucide="heart"></i>'

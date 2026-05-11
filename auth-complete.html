@@ -36,12 +36,12 @@
 
         if (!access || !refresh) {
           msg.textContent = 'Mangler innloggings-token. Prøv igjen.';
-          setTimeout(function () { window.location.replace('/login.html?error=missing_token'); }, 1500);
+          setTimeout(function () { window.location.replace('/login?error=missing_token'); }, 1500);
           return;
         }
         window.NailedAuth.setTokens({ accessToken: access, refreshToken: refresh, role: role });
         // Strip the fragment from history so tokens don't linger in URL bar.
-        window.history.replaceState({}, document.title, '/auth-complete.html');
+        window.history.replaceState({}, document.title, '/auth-complete');
         window.location.replace(redirect);
       } catch (err) {
         msg.textContent = 'Innlogging feilet: ' + (err && err.message ? err.message : err);

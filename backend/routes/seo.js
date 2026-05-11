@@ -10,12 +10,12 @@ const router = express.Router();
 // those are user-area / fulfilment pages, not entry points.
 const STATIC_PAGES = [
   { path: '/', changefreq: 'weekly', priority: '1.0' },
-  { path: '/utforsk.html', changefreq: 'daily', priority: '0.9' },
-  { path: '/for-salonger.html', changefreq: 'weekly', priority: '0.7' },
-  { path: '/last-ned-app.html', changefreq: 'monthly', priority: '0.5' },
-  { path: '/personvern.html', changefreq: 'yearly', priority: '0.3' },
-  { path: '/vilkar.html', changefreq: 'yearly', priority: '0.3' },
-  { path: '/cookies.html', changefreq: 'yearly', priority: '0.3' },
+  { path: '/utforsk', changefreq: 'daily', priority: '0.9' },
+  { path: '/for-salonger', changefreq: 'weekly', priority: '0.7' },
+  { path: '/last-ned-app', changefreq: 'monthly', priority: '0.5' },
+  { path: '/personvern', changefreq: 'yearly', priority: '0.3' },
+  { path: '/vilkar', changefreq: 'yearly', priority: '0.3' },
+  { path: '/cookies', changefreq: 'yearly', priority: '0.3' },
 ];
 
 function baseUrl() {
@@ -60,7 +60,7 @@ router.get('/sitemap.xml', asyncRoute(async (_req, res) => {
 
   for (const s of salons) {
     if (!s.slug) continue;
-    const loc = `${root}/salon.html?slug=${encodeURIComponent(s.slug)}`;
+    const loc = `${root}/salon?slug=${encodeURIComponent(s.slug)}`;
     lines.push('  <url>');
     lines.push(`    <loc>${xmlEscape(loc)}</loc>`);
     if (s.updated_at) {
@@ -85,9 +85,9 @@ router.get('/robots.txt', (_req, res) => {
     'User-agent: *',
     'Allow: /',
     'Disallow: /admin/',
-    'Disallow: /salong-panel.html',
-    'Disallow: /kunde-panel.html',
-    'Disallow: /auth-complete.html',
+    'Disallow: /salong-panel',
+    'Disallow: /kunde-panel',
+    'Disallow: /auth-complete',
     'Disallow: /api/',
     '',
     `Sitemap: ${root}/sitemap.xml`,

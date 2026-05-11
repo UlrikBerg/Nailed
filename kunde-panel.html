@@ -626,17 +626,17 @@
   <!-- Public top navigation -->
   <header class="top-nav" id="topNav">
     <div class="page top-nav__inner">
-      <a class="top-nav__brand" href="index.html">
+      <a class="top-nav__brand" href="/">
         <img src="assets/logo-wordmark.svg" alt="nailed" />
       </a>
       <nav class="top-nav__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
       </nav>
       <div class="top-nav__actions">
-        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
-        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+        <a href="favoritter" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login" class="btn btn-ghost btn-sm">Logg inn</a>
       </div>
     </div>
   </header>
@@ -699,7 +699,7 @@
             </p>
             <div id="becomeSalonStatus" style="margin-top:10px;"></div>
           </div>
-          <a class="btn btn-primary" id="becomeSalonBtn" href="/bli-salong.html">
+          <a class="btn btn-primary" id="becomeSalonBtn" href="/bli-salong">
             <i data-lucide="store"></i> Søk om å bli salong
           </a>
         </div>
@@ -720,7 +720,7 @@
           <span class="kp-empty__icon"><i data-lucide="calendar"></i></span>
           <h3 class="kp-empty__title" id="bookingsEmptyTitle">Ingen bookinger her ennå</h3>
           <p class="kp-empty__desc" id="bookingsEmptyDesc">
-            Når du booker en behandling, dukker den opp her. <a href="/utforsk.html">Utforsk salonger →</a>
+            Når du booker en behandling, dukker den opp her. <a href="/utforsk">Utforsk salonger →</a>
           </p>
         </div>
 
@@ -741,7 +741,7 @@
           <span class="kp-empty__icon"><i data-lucide="heart"></i></span>
           <h3 class="kp-empty__title">Ingen favoritter ennå</h3>
           <p class="kp-empty__desc">
-            Trykk på hjertet på en salong for å lagre den her. <a href="/utforsk.html">Utforsk salonger →</a>
+            Trykk på hjertet på en salong for å lagre den her. <a href="/utforsk">Utforsk salonger →</a>
           </p>
         </div>
       </div>
@@ -920,12 +920,12 @@
         </div>
       </div>
       <div class="footer__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
-        <a href="/personvern.html">Personvern</a>
-        <a href="/vilkar.html">Bruksvilkår</a>
-        <a href="/cookies.html">Cookies</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
+        <a href="/personvern">Personvern</a>
+        <a href="/vilkar">Bruksvilkår</a>
+        <a href="/cookies">Cookies</a>
         <a href="#">FAQ</a>
         <a href="#">Kontakt oss</a>
         <a href="#">Om oss</a>
@@ -1129,7 +1129,7 @@
         } else if (appData.status === 'approved') {
           statusEl.innerHTML = '<span class="kp-status kp-status--approved">Godkjent</span>';
           btn.outerHTML =
-            '<a class="btn btn-primary" href="/salong-panel.html"><i data-lucide="store"></i> Gå til salongpanel</a>';
+            '<a class="btn btn-primary" href="/salong-panel"><i data-lucide="store"></i> Gå til salongpanel</a>';
         } else if (appData.status === 'rejected') {
           statusEl.innerHTML = '<span class="kp-status kp-status--rejected">Avslått</span>' +
             (appData.reviewer_notes
@@ -1161,7 +1161,7 @@
           emptyDesc.innerHTML = 'Når du har vært hos en salong, dukker historikken opp her.';
         } else {
           emptyTitle.textContent = 'Ingen kommende bookinger';
-          emptyDesc.innerHTML = 'Når du booker en behandling, dukker den opp her. <a href="/utforsk.html">Utforsk salonger →</a>';
+          emptyDesc.innerHTML = 'Når du booker en behandling, dukker den opp her. <a href="/utforsk">Utforsk salonger →</a>';
         }
         window.lucide && window.lucide.createIcons();
         return;
@@ -1194,7 +1194,7 @@
             '<div class="kp-row__when-time">kl. ' + escapeHtml(formatTime(b.start_at)) + '</div>' +
           '</div>' +
           '<div class="kp-row__main">' +
-            '<div class="kp-row__name"><a href="/salon.html?slug=' + encodeURIComponent(b.salon_slug || '') + '">' +
+            '<div class="kp-row__name"><a href="/salon?slug=' + encodeURIComponent(b.salon_slug || '') + '">' +
               escapeHtml(b.salon_name || '') +
             '</a></div>' +
             '<div class="kp-row__meta">' + escapeHtml(b.service_name || '') +
@@ -1299,7 +1299,7 @@
             '<div class="kp-row__when-time">kl. ' + escapeHtml(formatTime(e.desired_start)) + '</div>' +
           '</div>' +
           '<div class="kp-row__main">' +
-            '<div class="kp-row__name"><a href="/salon.html?slug=' + encodeURIComponent(e.salon_slug || '') + '">' +
+            '<div class="kp-row__name"><a href="/salon?slug=' + encodeURIComponent(e.salon_slug || '') + '">' +
               escapeHtml(e.salon_name || '') +
             '</a></div>' +
             '<div class="kp-row__meta">' + escapeHtml(e.service_name || '') +
@@ -1728,7 +1728,7 @@
         row.className = 'kp-row';
         row.innerHTML =
           '<div class="kp-row__main">' +
-            '<div class="kp-row__name"><a href="/salon.html?slug=' + encodeURIComponent(f.slug || '') + '">' +
+            '<div class="kp-row__name"><a href="/salon?slug=' + encodeURIComponent(f.slug || '') + '">' +
               escapeHtml(f.name || '') +
             '</a></div>' +
             '<div class="kp-row__meta">' +
@@ -1818,7 +1818,7 @@
           '<div class="kp-review-card__head">' +
             '<div>' +
               '<span class="kp-review-card__salon">' +
-                '<a href="/salon.html?slug=' + encodeURIComponent(salon.slug || '') + '">' +
+                '<a href="/salon?slug=' + encodeURIComponent(salon.slug || '') + '">' +
                   escapeHtml(salon.name || 'Salong') +
                 '</a>' +
               '</span>' +

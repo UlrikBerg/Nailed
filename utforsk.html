@@ -6,7 +6,7 @@
   <title>Utforsk salonger — nailed</title>
   <meta name="description" content="Utforsk alle salonger på nailed. Filtrer på by, pris, behandling og åpningstider — finn perfekt salong for negler, vipper, bryn og makeup." />
   <meta name="theme-color" content="#EE3F7E" />
-  <link rel="canonical" href="https://skyblue-cod-739202.hostingersite.com/utforsk.html" />
+  <link rel="canonical" href="https://skyblue-cod-739202.hostingersite.com/utforsk" />
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="preload" as="image" href="assets/logo-wordmark.svg">
@@ -16,7 +16,7 @@
   <meta property="og:site_name" content="nailed" />
   <meta property="og:title" content="Utforsk salonger — nailed" />
   <meta property="og:description" content="Filtrer salonger på by, pris og behandling. Book time på nailed." />
-  <meta property="og:url" content="https://skyblue-cod-739202.hostingersite.com/utforsk.html" />
+  <meta property="og:url" content="https://skyblue-cod-739202.hostingersite.com/utforsk" />
   <meta property="og:image" content="https://skyblue-cod-739202.hostingersite.com/assets/logo-wordmark.svg" />
   <meta property="og:locale" content="nb_NO" />
 
@@ -576,17 +576,17 @@
   <!-- Top navigation -->
   <header class="top-nav" id="topNav">
     <div class="page top-nav__inner">
-      <a class="top-nav__brand" href="index.html">
+      <a class="top-nav__brand" href="/">
         <img src="assets/logo-wordmark.svg" alt="nailed" />
       </a>
       <nav class="top-nav__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
       </nav>
       <div class="top-nav__actions">
-        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
-        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+        <a href="favoritter" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login" class="btn btn-ghost btn-sm">Logg inn</a>
       </div>
     </div>
   </header>
@@ -825,12 +825,12 @@
         </div>
       </div>
       <div class="footer__links">
-        <a href="utforsk.html">Utforsk</a>
-        <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html">Last ned app</a>
-        <a href="/personvern.html">Personvern</a>
-        <a href="/vilkar.html">Bruksvilkår</a>
-        <a href="/cookies.html">Cookies</a>
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
+        <a href="/personvern">Personvern</a>
+        <a href="/vilkar">Bruksvilkår</a>
+        <a href="/cookies">Cookies</a>
         <a href="#">FAQ</a>
         <a href="#">Kontakt oss</a>
         <a href="#">Om oss</a>
@@ -1193,7 +1193,7 @@
           + 'data-rating="' + (salon.avg_rating != null ? salon.avg_rating : '') + '" '
           + 'data-reviews="' + (salon.review_count || 0) + '" '
           + 'data-slot="" '
-          + 'onclick="location.href=\'salon.html?slug=' + slug + '\'">'
+          + 'onclick="location.href=\'salon?slug=' + slug + '\'">'
           + '<div class="service-card__photo" style="' + photoStyle + '">'
             + openPill
             + '<button class="' + heartClass + '" data-fav="' + escapeHtml(salon.slug || '') + '" data-salon-id="' + salon.id + '" aria-pressed="' + (isFav ? 'true' : 'false') + '">'
