@@ -4,6 +4,7 @@ const { query, queryOne, tx } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { asyncRoute, HttpError } = require('../lib/util');
 const { lazyUrl } = require('../lib/schema');
+const geocode = require('../lib/geocode');
 const storage = require('../storage');
 
 const router = express.Router();
@@ -68,6 +69,10 @@ router.get('/', asyncRoute(async (req, res) => {
       hour: '2-digit', minute: '2-digit',
       hour12: false,
     });
+    const dfmt = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Europe/Oslo',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+    });
     const parts = {};
     fmt.formatToParts(new Date()).forEach(p => { parts[p.type] = p.value; });
     const wdMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
@@ -75,6 +80,7 @@ router.get('/', asyncRoute(async (req, res) => {
     return {
       weekday: wdMap[parts.weekday] || 0,
       hhmm: `${hh}:${parts.minute}:00`,
+      dateStr: dfmt.format(new Date()),
     };
   })();
 
@@ -157,9 +163,11 @@ router.get('/', asyncRoute(async (req, res) => {
   // multiple services per salon.
   const qJoin = q ? 'LEFT JOIN services sv_q ON sv_q.salon_id = s.id AND sv_q.active = 1' : '';
 
-  // We pass oslo.weekday + oslo.hhmm a SECOND time for the is_open_now SELECT
-  // column even if open_now filter is off — it's a cheap correlated lookup.
-  const selectParams = [oslo.weekday, oslo.hhmm];
+  // selectParams ordering matches the `?` placeholders in the SELECT columns:
+  //   is_open_now   → (hhmm, weekday)
+  //   reopens_today → (hhmm, dateStr, weekday)
+  // They appear BEFORE the WHERE-clause params.
+  const selectParams = [oslo.hhmm, oslo.weekday, oslo.hhmm, oslo.dateStr, oslo.weekday];
 
   const rows = await query(
     `SELECT DISTINCT
@@ -171,15 +179,19 @@ router.get('/', asyncRoute(async (req, res) => {
             (SELECT CASE WHEN sh.is_closed = 0 AND sh.open_at IS NOT NULL AND sh.close_at IS NOT NULL
                           AND ? BETWEEN sh.open_at AND sh.close_at
                          THEN 1 ELSE 0 END
-               FROM salon_hours sh WHERE sh.salon_id = s.id AND sh.weekday = ?) AS is_open_now
+               FROM salon_hours sh WHERE sh.salon_id = s.id AND sh.weekday = ?) AS is_open_now,
+            (SELECT IF(
+               sh2.is_closed = 0 AND sh2.open_at IS NOT NULL AND ? < sh2.open_at
+               AND NOT EXISTS (SELECT 1 FROM salon_closures sc
+                                WHERE sc.salon_id = s.id AND sc.closed_date = ?),
+               DATE_FORMAT(sh2.open_at, '%H:%i'), NULL)
+               FROM salon_hours sh2 WHERE sh2.salon_id = s.id AND sh2.weekday = ?) AS reopens_today
        FROM salons s
        ${qJoin}
       WHERE ${where.join(' AND ')}
       ORDER BY s.created_at DESC
       LIMIT ? OFFSET ?`,
-    // Note: the two `?` in the is_open_now subquery are (HH:MM, weekday) in
-    // that order — they appear BEFORE the WHERE-clause params.
-    [oslo.hhmm, oslo.weekday, ...params, limit, offset]
+    [...selectParams, ...params, limit, offset]
   );
 
   // --- top_categories: distinct category names for active services, top 3. ---
@@ -218,6 +230,12 @@ router.get('/', asyncRoute(async (req, res) => {
       : null;
     r.review_count = Number(r.review_count || 0);
     r.is_open_now = r.is_open_now === 1 || r.is_open_now === '1';
+    // reopens_today is already 'HH:MM' or null from the SQL DATE_FORMAT, but
+    // some drivers can return null as the string 'null' if column is computed
+    // unusually; normalize defensively.
+    if (r.reopens_today != null && typeof r.reopens_today !== 'string') {
+      r.reopens_today = String(r.reopens_today);
+    }
     r.top_categories = topCatsBy.get(r.id) || [];
     return r;
   });
@@ -227,7 +245,7 @@ router.get('/', asyncRoute(async (req, res) => {
 // GET /salons/:slug — public salon detail
 router.get('/:slug', asyncRoute(async (req, res) => {
   const salon = await queryOne(
-    `SELECT id, slug, name, city, address_line, postal_code, bio,
+    `SELECT id, slug, name, city, address_line, postal_code, lat, lng, bio,
             instagram_url, tiktok_url, facebook_url, website_url,
             cover_image_key, public_phone_visible, accepts_new_bookings,
             cancellation_lead_hours, booking_window_days,
@@ -241,6 +259,22 @@ router.get('/:slug', asyncRoute(async (req, res) => {
   );
   if (!salon || salon.status !== 'active') {
     throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
+  }
+  // lat/lng come back from MySQL as strings (DECIMAL). Normalize to numbers
+  // so the frontend can pass them straight to Leaflet without parsing.
+  if (salon.lat != null) salon.lat = Number(salon.lat);
+  if (salon.lng != null) salon.lng = Number(salon.lng);
+
+  // Lazy backfill: if we have an address but no coords, kick off a geocode in
+  // the background (no await). Next page load will pick up the persisted coords.
+  if (salon.lat == null && salon.lng == null && (salon.address_line || salon.postal_code || salon.city)) {
+    geocode(salon.address_line, salon.postal_code, salon.city)
+      .then(coords => {
+        if (!coords) return;
+        return query(`UPDATE salons SET lat = ?, lng = ? WHERE id = ? AND lat IS NULL AND lng IS NULL`,
+          [coords.lat, coords.lng, salon.id]);
+      })
+      .catch(() => { /* fail silently — coords stay NULL */ });
   }
 
   const [services, categories, images, hours, team, amenities, serviceTeamLinks, reviewSummaryRow, latestReviews, closures] = await Promise.all([
@@ -372,6 +406,7 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
             notify_email_new_booking, notify_email_cancellation,
             notify_email_daily_summary, notify_sms_new_booking,
             booking_confirmation_text, lunch_break_start, lunch_break_end,
+            onboarding_skipped,
             status
        FROM salons WHERE owner_user_id = ? AND status != 'deleted'
        ORDER BY created_at ASC LIMIT 1`,
@@ -379,7 +414,7 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
   );
   if (!salon) throw new HttpError(404, 'no_salon', 'Du har ingen salong.');
 
-  const [images, hours, team, amenities, categories, closures] = await Promise.all([
+  const [images, hours, team, amenities, categories, closures, servicesCountRow] = await Promise.all([
     query(
       `SELECT id, image_key AS \`key\`, position, width, height
          FROM salon_images WHERE salon_id = ? ORDER BY position ASC, id ASC`,
@@ -413,15 +448,50 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
         ORDER BY closed_date ASC`,
       [salon.id]
     ),
+    queryOne(
+      `SELECT COUNT(*) AS n FROM services WHERE salon_id = ? AND active = 1`,
+      [salon.id]
+    ),
   ]);
 
+  // Compute onboarding state. Each flag mirrors one row in the checklist UI.
+  // has_booking_rules is always true — the salon row has defaults from schema.
+  const onboarding = (function () {
+    const hasCoverImage = !!salon.cover_image_key;
+    const hasBio        = !!(salon.bio && String(salon.bio).trim().length > 0);
+    const hasHours      = hours.some(h => h.is_closed === 0 || h.is_closed === false);
+    const hasServices   = !!(servicesCountRow && Number(servicesCountRow.n) >= 1);
+    const hasTeam       = team.some(m => m.active === 1 || m.active === true);
+    const hasAmenities  = amenities.length >= 1;
+    const hasBookingRules = true;
+    const flags = [hasCoverImage, hasBio, hasHours, hasServices, hasTeam, hasAmenities];
+    const completedCount = flags.filter(Boolean).length;
+    return {
+      has_cover_image: hasCoverImage,
+      has_bio: hasBio,
+      has_hours: hasHours,
+      has_services: hasServices,
+      has_team: hasTeam,
+      has_amenities: hasAmenities,
+      has_booking_rules: hasBookingRules,
+      completed_count: completedCount,
+      is_complete: completedCount >= 5,
+      skipped: !!salon.onboarding_skipped,
+    };
+  })();
+
+  // Don't expose the raw column on the salon object — it's surfaced via
+  // onboarding.skipped above.
+  const { onboarding_skipped: _omit, ...salonOut } = salon;
+
   res.json({
-    salon: withCoverUrl(salon),
+    salon: withCoverUrl(salonOut),
     images: images.map(i => ({ ...i, url: storage.publicUrl(i.key) })),
     hours,
     team: team.map(m => ({ ...m, image_url: m.image_key ? storage.publicUrl(m.image_key) : null })),
     amenities: amenities.map(a => a.amenity),
     categories,
+    onboarding,
     closures: closures.map(c => ({
       id: c.id,
       date: c.closed_date instanceof Date
@@ -499,6 +569,28 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
     throw new HttpError(403, 'forbidden', 'Du eier ikke denne salongen.');
   }
 
+  // If the owner edited address_line / postal_code / city, re-geocode and stash
+  // lat/lng alongside the rest of the update. Done synchronously inside the
+  // request because the cost is small (Nominatim usually replies < 1s) and we
+  // want next page load to render the map immediately. Failures degrade to
+  // (null, null) so an upstream outage doesn't block saving the address.
+  const addressTouched =
+    Object.prototype.hasOwnProperty.call(patch, 'address_line') ||
+    Object.prototype.hasOwnProperty.call(patch, 'postal_code') ||
+    Object.prototype.hasOwnProperty.call(patch, 'city');
+  if (addressTouched) {
+    const current = await queryOne(
+      `SELECT address_line, postal_code, city FROM salons WHERE id = ?`, [id]
+    );
+    const nextAddr   = Object.prototype.hasOwnProperty.call(patch, 'address_line') ? patch.address_line : current?.address_line ?? null;
+    const nextPostal = Object.prototype.hasOwnProperty.call(patch, 'postal_code')  ? patch.postal_code  : current?.postal_code  ?? null;
+    const nextCity   = Object.prototype.hasOwnProperty.call(patch, 'city')         ? patch.city         : current?.city         ?? null;
+    const coords = await geocode(nextAddr, nextPostal, nextCity);
+    // Always assign so a moved salon doesn't keep stale coords. Null on miss.
+    patch.lat = coords ? coords.lat : null;
+    patch.lng = coords ? coords.lng : null;
+  }
+
   const fields = Object.keys(patch);
   if (fields.length === 0) return res.json({ ok: true });
   const setClause = fields.map(f => `${f} = ?`).join(', ');
@@ -511,6 +603,24 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
   });
   values.push(id);
   await query(`UPDATE salons SET ${setClause} WHERE id = ?`, values);
+  res.json({ ok: true });
+}));
+
+// POST /salons/:id/onboarding/skip — owner dismisses the onboarding checklist
+// shown on the Dashboard tab of /salong-panel.html. Idempotent: subsequent
+// calls are no-ops. Once set, the card never re-renders even if the underlying
+// state changes (e.g. owner deletes their bio later).
+router.post('/:id/onboarding/skip', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const salon = await queryOne(
+    `SELECT owner_user_id FROM salons WHERE id = ?`, [id]
+  );
+  if (!salon) throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
+  if (req.user.role !== 'admin' && salon.owner_user_id !== req.user.id) {
+    throw new HttpError(403, 'forbidden', 'Du eier ikke denne salongen.');
+  }
+  await query(`UPDATE salons SET onboarding_skipped = 1 WHERE id = ?`, [id]);
   res.json({ ok: true });
 }));
 
