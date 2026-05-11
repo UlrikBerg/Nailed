@@ -1315,7 +1315,10 @@
         photoStyle = 'background: ' + gradientFor(salon.id) + ';';
       }
 
-      var isFav = FAV_SET.has(salon.id);
+      var loggedInForFav = window.NailedAuth && NailedAuth.isLoggedIn();
+      var isFav = loggedInForFav
+        ? FAV_SET.has(salon.id)
+        : (typeof isFavorite === 'function' && isFavorite(salon.slug || ''));
       var heartClass = 'service-card__heart' + (isFav ? ' is-favorite' : '');
       var heartFillStyle = isFav
         ? 'color:var(--rouge-500);fill:var(--rouge-500);'
@@ -1403,6 +1406,12 @@
       stateEl.insertAdjacentHTML('beforebegin', html);
       lucide.createIcons();
       bindHearts();
+      // lucide replaces the <i data-lucide="heart"> placeholder with <svg>,
+      // which drops any inline style we put on the <i>. Re-apply fav fill on
+      // every card whose button already has .is-favorite (set in buildCard).
+      document.querySelectorAll('#resultsGrid .service-card__heart.is-favorite').forEach(function (btn) {
+        styleHeartBtn(btn, true);
+      });
       filterResults();
     }
 

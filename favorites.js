@@ -67,7 +67,13 @@ function initFavorites() {
       e.preventDefault();
       var id = btn.getAttribute('data-fav');
       var isNowFav = toggleFavorite(id);
-      styleHeart(btn, isNowFav);
+      // Same salon can appear in multiple grids on the same page (e.g.
+      // Featured + Top-rated on /). Style every matching button so they
+      // stay in sync, not just the clicked one.
+      var sel = '[data-fav="' + (window.CSS && CSS.escape ? CSS.escape(id) : id.replace(/"/g, '\\"')) + '"]';
+      document.querySelectorAll(sel).forEach(function (twin) {
+        styleHeart(twin, isNowFav);
+      });
       updateNavHeart();
     });
   });
