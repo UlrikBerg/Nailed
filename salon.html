@@ -264,6 +264,112 @@
     /* Leaflet attribution sits in the bottom-right of the tile area; keep the
        default font small but readable against our cream background. */
     .leaflet-container { font-family: var(--font-body); font-size: 11px; }
+
+    /* "Gjør om til fast time" — recurring booking block. Soft cream/rouge tint
+       so it visually nests inside the booking widget. Collapsed by default;
+       JS toggles the .open class on the wrapper. */
+    .recurring-block {
+      margin-top: 16px;
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      background: var(--cream-50);
+      overflow: hidden;
+    }
+    .recurring-block.open {
+      background: var(--rouge-50);
+      border-color: var(--rouge-200);
+    }
+    .recurring-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--ink);
+      text-align: left;
+    }
+    .recurring-toggle__label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .recurring-toggle__label i { width: 16px; height: 16px; color: var(--rouge-500); }
+    .recurring-toggle__chevron {
+      transition: transform .15s ease;
+      width: 16px; height: 16px;
+      color: var(--fg-muted);
+    }
+    .recurring-block.open .recurring-toggle__chevron {
+      transform: rotate(180deg);
+    }
+    .recurring-body {
+      display: none;
+      padding: 0 14px 14px 14px;
+    }
+    .recurring-block.open .recurring-body { display: block; }
+    .recurring-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .recurring-field {
+      flex: 1 1 0;
+      min-width: 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .recurring-field label {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--fg-muted);
+    }
+    .recurring-field select,
+    .recurring-field input {
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 14px;
+    }
+    .recurring-field select:focus,
+    .recurring-field input:focus {
+      outline: none;
+      border-color: var(--rouge-500);
+    }
+    .recurring-preview {
+      margin-top: 12px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    .recurring-preview__label {
+      color: var(--fg-muted);
+      margin-right: 4px;
+    }
+    .recurring-preview__date {
+      display: inline-block;
+    }
+    .recurring-preview__date.failed {
+      color: var(--danger-500);
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-style: wavy;
+      text-decoration-color: var(--danger-500);
+    }
+    .recurring-preview__more {
+      color: var(--fg-muted);
+    }
   </style>
 </head>
 <body>
@@ -424,6 +530,41 @@
             <h3>Velg en tid</h3>
           </div>
           <div class="slots" id="slotGrid"></div>
+
+          <!-- Recurring booking: collapsed-by-default. When opened the user
+               picks interval + occurrences; the preview lists the first 6
+               upcoming dates. JS toggles .open on this wrapper. -->
+          <div class="recurring-block" id="recurringBlock">
+            <button type="button" class="recurring-toggle" id="recurringToggle" aria-expanded="false" aria-controls="recurringBody">
+              <span class="recurring-toggle__label">
+                <i data-lucide="repeat"></i> Gjør om til fast time
+              </span>
+              <i data-lucide="chevron-down" class="recurring-toggle__chevron"></i>
+            </button>
+            <div class="recurring-body" id="recurringBody">
+              <div class="recurring-row">
+                <div class="recurring-field">
+                  <label for="recurringInterval">Hyppighet</label>
+                  <select id="recurringInterval">
+                    <option value="1">Hver uke</option>
+                    <option value="2" selected>Annenhver uke</option>
+                    <option value="3">Hver 3. uke</option>
+                    <option value="4">Hver 4. uke</option>
+                    <option value="6">Hver 6. uke</option>
+                    <option value="8">Hver 8. uke</option>
+                  </select>
+                </div>
+                <div class="recurring-field">
+                  <label for="recurringCount">Antall ganger</label>
+                  <input id="recurringCount" type="number" min="2" max="12" step="1" value="4" />
+                </div>
+              </div>
+              <div class="recurring-preview" id="recurringPreview">
+                <span class="recurring-preview__label">Neste tider:</span>
+                <span id="recurringPreviewDates" style="font-family:var(--font-body); color:var(--fg-muted);">Velg en dag og et tidspunkt</span>
+              </div>
+            </div>
+          </div>
 
           <button class="btn btn-primary btn-lg booking-panel__cta" id="bookCta" type="button" disabled>
             Velg behandling
@@ -1094,6 +1235,88 @@
       updateCta();
     }
 
+    // ---- Recurring booking block ----
+    // Collapsed by default; the toggle reveals interval + occurrences inputs.
+    // Preview lists the first 6 dates computed client-side from selectedDateTime.
+    var recurringBlock = document.getElementById('recurringBlock');
+    var recurringToggle = document.getElementById('recurringToggle');
+    var recurringIntervalEl = document.getElementById('recurringInterval');
+    var recurringCountEl = document.getElementById('recurringCount');
+    var recurringPreviewDatesEl = document.getElementById('recurringPreviewDates');
+    var recurringDateFmt = new Intl.DateTimeFormat('nb-NO', { day: 'numeric', month: 'short' });
+
+    function recurringIsOn() { return recurringBlock.classList.contains('open'); }
+
+    function getRecurringSpec() {
+      var iv = parseInt(recurringIntervalEl.value, 10);
+      var oc = parseInt(recurringCountEl.value, 10);
+      if (![1, 2, 3, 4, 6, 8].includes(iv)) iv = 2;
+      if (!Number.isFinite(oc) || oc < 2) oc = 2;
+      if (oc > 12) oc = 12;
+      return { interval_weeks: iv, occurrences: oc };
+    }
+
+    function computeRecurringDates() {
+      if (!selectedDateTime) return [];
+      var spec = getRecurringSpec();
+      var startMs = new Date(selectedDateTime).getTime();
+      if (!Number.isFinite(startMs)) return [];
+      var weekMs = 7 * 86400000;
+      var out = [];
+      for (var i = 0; i < spec.occurrences; i++) {
+        out.push(new Date(startMs + i * spec.interval_weeks * weekMs));
+      }
+      return out;
+    }
+
+    // Re-render the preview line. `failedIdx` (optional) highlights one date
+    // when the server has rejected that specific occurrence.
+    function renderRecurringPreview(failedIdx) {
+      if (!recurringPreviewDatesEl) return;
+      var dates = computeRecurringDates();
+      if (!dates.length) {
+        recurringPreviewDatesEl.textContent = 'Velg en dag og et tidspunkt';
+        recurringPreviewDatesEl.style.color = 'var(--fg-muted)';
+        return;
+      }
+      recurringPreviewDatesEl.style.color = '';
+      var MAX = 6;
+      var visible = dates.slice(0, MAX);
+      var html = visible.map(function (d, i) {
+        var cls = 'recurring-preview__date' + (i === failedIdx ? ' failed' : '');
+        return '<span class="' + cls + '">' + escapeHtml(recurringDateFmt.format(d)) + '</span>';
+      }).join(', ');
+      if (dates.length > MAX) {
+        html += ' <span class="recurring-preview__more">(+' + (dates.length - MAX) + ' flere)</span>';
+      }
+      recurringPreviewDatesEl.innerHTML = html;
+    }
+
+    recurringToggle.addEventListener('click', function () {
+      var nowOpen = !recurringBlock.classList.contains('open');
+      recurringBlock.classList.toggle('open', nowOpen);
+      recurringToggle.setAttribute('aria-expanded', nowOpen ? 'true' : 'false');
+      if (nowOpen) renderRecurringPreview();
+    });
+    recurringIntervalEl.addEventListener('change', function () { renderRecurringPreview(); });
+    recurringCountEl.addEventListener('input', function () {
+      // Clamp to [2..12] without forcing the user out of the field mid-typing.
+      var v = parseInt(recurringCountEl.value, 10);
+      if (Number.isFinite(v)) {
+        if (v < 2) recurringCountEl.value = 2;
+        if (v > 12) recurringCountEl.value = 12;
+      }
+      renderRecurringPreview();
+    });
+
+    // Hook updateCta so the preview re-renders whenever the selected slot
+    // changes (updateCta runs on every slot click + day/service change).
+    var _origUpdateCta = updateCta;
+    updateCta = function () {
+      _origUpdateCta();
+      if (recurringIsOn()) renderRecurringPreview();
+    };
+
     // ---- Booking submit ----
     cta.addEventListener('click', async function() {
       if (!selectedService || !currentSalon) {
@@ -1118,20 +1341,31 @@
       cta.disabled = true;
       var prev = cta.textContent;
       cta.textContent = 'Sender booking …';
+      var body = {
+        salon_id: currentSalon.id,
+        service_id: selectedService.id,
+        start_at: selectedDateTime,
+        // null = "Hvem som helst" (salon-wide).
+        team_member_id: selectedStylistId,
+      };
+      if (recurringIsOn()) {
+        body.recurring = getRecurringSpec();
+      }
       var res = await NailedAuth.api('/api/v1/bookings', {
         method: 'POST',
-        body: {
-          salon_id: currentSalon.id,
-          service_id: selectedService.id,
-          start_at: selectedDateTime,
-          // null = "Hvem som helst" (salon-wide).
-          team_member_id: selectedStylistId,
-        },
+        body: body,
       });
       if (!res.ok) {
         var data = await res.json().catch(function() { return {}; });
         cta.disabled = false;
         cta.textContent = prev;
+        // If the server flagged a specific occurrence in a recurring series,
+        // highlight that date in the preview so the user can see which one
+        // failed (e.g. salon closed on that future date).
+        var errDetails = (data && data.error && data.error.details) || null;
+        if (recurringIsOn() && errDetails && typeof errDetails.occurrence_index === 'number') {
+          renderRecurringPreview(errDetails.occurrence_index);
+        }
         if (window.NailedForms) NailedForms.toast((data.error && data.error.message) || 'Kunne ikke booke', { type: 'error' });
         return;
       }
