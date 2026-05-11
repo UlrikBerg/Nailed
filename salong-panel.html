@@ -1329,6 +1329,9 @@
             <a class="btn btn-ghost btn-sm" id="publicLink" href="#" target="_blank">
               <i data-lucide="external-link"></i> Se kundevisning
             </a>
+            <button type="button" class="btn btn-ghost btn-sm" data-tab-goto="profil">
+              <i data-lucide="store"></i> Salongprofil
+            </button>
           </div>
         </div>
         <div class="kp-hero__userWrap">
@@ -1368,20 +1371,18 @@
         <button type="button" class="kp-tabs__chev kp-tabs__chev--right" id="kpTabsChevRight" aria-label="Bla til høyre"><i data-lucide="chevron-right"></i></button>
         <div class="kp-tabs" id="kpTabs" role="tablist">
           <button class="kp-tab active" role="tab" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+          <button class="kp-tab" role="tab" data-tab="analyse"><i data-lucide="bar-chart-3"></i> Analyse</button>
           <button class="kp-tab" role="tab" data-tab="bookinger">
             <i data-lucide="calendar-check"></i> Bookinger
             <span class="kp-tab__badge" id="bookingsPendingBadge" hidden>0</span>
           </button>
           <button class="kp-tab" role="tab" data-tab="tjenester"><i data-lucide="sparkles"></i> Tjenester</button>
+          <button class="kp-tab" role="tab" data-tab="kunder"><i data-lucide="users"></i> Kunder</button>
           <button class="kp-tab" role="tab" data-tab="anmeldelser">
             <i data-lucide="star"></i> Anmeldelser
             <span class="kp-tab__badge" id="reviewsUnansweredBadge" hidden>0</span>
           </button>
-          <button class="kp-tab" role="tab" data-tab="analyse"><i data-lucide="bar-chart-3"></i> Analyse</button>
-          <button class="kp-tab" role="tab" data-tab="kunder"><i data-lucide="users"></i> Kunder</button>
-          <button class="kp-tab" role="tab" data-tab="profil"><i data-lucide="store"></i> Salongprofil</button>
           <button class="kp-tab" role="tab" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
-          <a class="kp-tab" href="/"><i data-lucide="home"></i> Til forsiden</a>
         </div>
       </div>
 
@@ -2353,6 +2354,13 @@
     navItems.forEach(function (item) {
       item.addEventListener('click', function () {
         setActiveTab(this.getAttribute('data-tab'));
+      });
+    });
+    // Hero-level shortcut buttons (e.g. "Salongprofil" next to "Se kundevisning")
+    // route through the same tab-switch so the active state stays in sync.
+    document.querySelectorAll('[data-tab-goto]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setActiveTab(this.getAttribute('data-tab-goto'));
       });
     });
 
