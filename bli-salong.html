@@ -7,6 +7,7 @@
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="admin/admin.css" />
+  <link rel="preload" as="image" href="assets/logo-wordmark.svg">
   <style>
     .apply {
       max-width: 760px;
@@ -59,6 +60,23 @@
   </style>
 </head>
 <body>
+
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="index.html">
+        <img src="assets/logo-wordmark.svg" alt="nailed" />
+      </a>
+      <nav class="top-nav__links">
+        <a href="utforsk.html">Utforsk</a>
+        <a href="for-salonger.html">For salonger</a>
+        <a href="last-ned-app.html">Last ned app</a>
+      </nav>
+      <div class="top-nav__actions">
+        <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login.html" class="btn btn-ghost btn-sm">Logg inn</a>
+      </div>
+    </div>
+  </header>
 
   <main class="apply">
     <a class="apply__back" href="/kunde-panel.html"><i data-lucide="arrow-left"></i> Tilbake</a>
@@ -138,6 +156,7 @@
   <script src="/assets/forms.js"></script>
   <script src="/assets/no-places.js"></script>
   <script defer src="/assets/cookie-banner.js"></script>
+  <script defer src="/assets/nav.js"></script>
   <script>
     var statusContainer = document.getElementById('statusContainer');
     var formContainer = document.getElementById('formContainer');

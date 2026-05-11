@@ -6,6 +6,7 @@
   <title>Last ned app — nailed</title>
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="preload" as="image" href="assets/logo-wordmark.svg">
   <style>
     .app-hero {
       padding: 80px 0 0;
@@ -351,11 +352,13 @@
 
   <header class="top-nav" id="topNav">
     <div class="page top-nav__inner">
-      <a class="top-nav__brand" href="index.html"><img src="assets/logo-wordmark.svg" alt="nailed" /></a>
+      <a class="top-nav__brand" href="index.html">
+        <img src="assets/logo-wordmark.svg" alt="nailed" />
+      </a>
       <nav class="top-nav__links">
         <a href="utforsk.html">Utforsk</a>
         <a href="for-salonger.html">For salonger</a>
-        <a href="last-ned-app.html" style="color:var(--rouge-500);">Last ned app</a>
+        <a href="last-ned-app.html">Last ned app</a>
       </nav>
       <div class="top-nav__actions">
         <a href="favoritter.html" class="btn-icon"><i data-lucide="heart"></i></a>
