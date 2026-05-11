@@ -1465,7 +1465,10 @@ p { margin: 0 0 var(--space-4) 0; }
   position: fixed;
   inset: 0;
   background: rgba(20, 15, 10, 0.92);
-  z-index: 1000;
+  /* Above .top-nav (z-index 1100) so the nav links can't be reached behind
+     the dimmed backdrop — otherwise the logout icon sits in the same area
+     as the lightbox X-close button. */
+  z-index: 2000;
   display: grid;
   grid-template-rows: auto 1fr auto;
   padding: 20px;
