@@ -530,6 +530,95 @@
       justify-content: center;
       padding: 24px 0 0;
     }
+
+    /* Mine anmeldelser — list of cream cards (one per review). */
+    .kp-review-card { padding: 22px 24px; }
+    .kp-review-card__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .kp-review-card__salon a {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 17px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .kp-review-card__salon a:hover { color: var(--rouge-500); }
+    .kp-review-card__stars {
+      display: inline-flex;
+      gap: 1px;
+      align-items: center;
+      margin-left: 10px;
+    }
+    .kp-review-card__meta {
+      font-size: 13px;
+      color: var(--fg-muted);
+      margin-bottom: 10px;
+    }
+    .kp-review-card__edited { font-style: italic; margin-left: 6px; }
+    .kp-review-card__body {
+      font-size: 14px;
+      color: var(--ink);
+      line-height: 1.55;
+      margin: 0 0 14px;
+      white-space: pre-line;
+    }
+    .kp-review-card__actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    /* Edit-review modal — overlay + cream card centered. Matches the warm
+       cream palette of the rest of the panel. */
+    .kp-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(27, 18, 24, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 8000;
+      padding: 24px;
+    }
+    .kp-modal-backdrop.is-open { display: flex; }
+    .kp-modal {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 24px;
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .kp-modal__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 20px;
+      margin: 0;
+    }
+    .kp-modal__desc { font-size: 14px; color: var(--fg-muted); margin: 0; }
+    .kp-modal textarea {
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 10px 12px;
+      border: 1px solid var(--stone-300);
+      border-radius: var(--radius-sm);
+      resize: vertical;
+      min-height: 110px;
+      background: var(--cream-100);
+      color: var(--ink);
+    }
+    .kp-modal__count { font-size: 12px; color: var(--fg-muted); text-align: right; margin: -6px 0 0; }
+    .kp-modal__actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -575,6 +664,7 @@
         <button class="kp-tab active" role="tab" data-tab="dashboard"><i data-lucide="home"></i> Oversikt</button>
         <button class="kp-tab" role="tab" data-tab="bookinger"><i data-lucide="calendar-check"></i> Bookinger</button>
         <button class="kp-tab" role="tab" data-tab="favoritter"><i data-lucide="heart"></i> Favoritter</button>
+        <button class="kp-tab" role="tab" data-tab="anmeldelser"><i data-lucide="star"></i> Mine anmeldelser</button>
         <button class="kp-tab" role="tab" data-tab="profil"><i data-lucide="user"></i> Profil</button>
         <button class="kp-tab" role="tab" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
       </div>
@@ -652,6 +742,22 @@
           <h3 class="kp-empty__title">Ingen favoritter ennå</h3>
           <p class="kp-empty__desc">
             Trykk på hjertet på en salong for å lagre den her. <a href="/utforsk.html">Utforsk salonger →</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- MINE ANMELDELSER -->
+      <div class="kp-tab-content" id="tab-anmeldelser">
+        <h2 class="kp-section-title">Mine anmeldelser</h2>
+        <p class="kp-section-sub">Anmeldelser du har skrevet etter fullførte timer.</p>
+
+        <div class="kp-list" id="reviewsList"></div>
+        <div id="reviewsEmpty" class="kp-empty" style="display:none;">
+          <span class="kp-empty__icon"><i data-lucide="star"></i></span>
+          <h3 class="kp-empty__title">Ingen anmeldelser ennå</h3>
+          <p class="kp-empty__desc">
+            Du har ikke skrevet noen anmeldelser ennå. Etter en time kan du anmelde
+            salongen fra Bookinger-fanen.
           </p>
         </div>
       </div>
@@ -836,6 +942,27 @@
     </div>
   </footer>
 
+  <!-- Edit-review modal — used by "Mine anmeldelser" tab. Hidden by default. -->
+  <div class="kp-modal-backdrop" id="reviewEditBackdrop" role="dialog" aria-modal="true" aria-labelledby="reviewEditTitle">
+    <div class="kp-modal">
+      <h3 class="kp-modal__title" id="reviewEditTitle">Rediger anmeldelse</h3>
+      <p class="kp-modal__desc">Endre vurdering eller tekst og lagre.</p>
+      <div class="kp-stars-input" id="reviewEditStars" role="radiogroup" aria-label="Vurdering">
+        <button type="button" data-star="1" aria-label="1 stjerne"><i data-lucide="star"></i></button>
+        <button type="button" data-star="2" aria-label="2 stjerner"><i data-lucide="star"></i></button>
+        <button type="button" data-star="3" aria-label="3 stjerner"><i data-lucide="star"></i></button>
+        <button type="button" data-star="4" aria-label="4 stjerner"><i data-lucide="star"></i></button>
+        <button type="button" data-star="5" aria-label="5 stjerner"><i data-lucide="star"></i></button>
+      </div>
+      <textarea id="reviewEditBody" maxlength="800" placeholder="Hvordan var opplevelsen? (valgfritt)"></textarea>
+      <div class="kp-modal__count"><span id="reviewEditCount">0</span> / 800</div>
+      <div class="kp-modal__actions">
+        <button type="button" class="btn btn-ghost btn-sm" id="reviewEditCancel">Avbryt</button>
+        <button type="button" class="btn btn-primary btn-sm" id="reviewEditSave">Lagre</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="/assets/auth.js"></script>
   <script src="/assets/forms.js"></script>
@@ -856,7 +983,7 @@
     // deep-link to #tab-innstillinger etc. (the salon panel links to
     // /kunde-panel.html#tab-innstillinger from its empty Innstillinger view).
     // ---------------------------------------------------------------------
-    var TABS = ['dashboard', 'bookinger', 'favoritter', 'profil', 'innstillinger'];
+    var TABS = ['dashboard', 'bookinger', 'favoritter', 'anmeldelser', 'profil', 'innstillinger'];
 
     function setActiveTab(name) {
       if (TABS.indexOf(name) < 0) name = 'dashboard';
@@ -1600,6 +1727,193 @@
     }
 
     // ---------------------------------------------------------------------
+    // Mine anmeldelser — list the caller's own reviews. Each card supports
+    // edit (modal with stars + textarea, PATCH /reviews/:id) and delete
+    // (confirm + DELETE /reviews/:id, which soft-hides the row).
+    // ---------------------------------------------------------------------
+    var reviewDateFmt = new Intl.DateTimeFormat('nb-NO', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    });
+    var reviewEditedFmt = new Intl.DateTimeFormat('nb-NO', {
+      day: 'numeric', month: 'long',
+    });
+
+    function reviewStarsHtml(rating) {
+      var n = Math.max(0, Math.min(5, parseInt(rating, 10) || 0));
+      var html = '';
+      for (var i = 0; i < 5; i++) {
+        var fill = i < n ? 'var(--rouge-500)' : 'transparent';
+        html += '<i data-lucide="star" style="width:16px;height:16px;color:var(--rouge-500);fill:' + fill + ';"></i>';
+      }
+      return html;
+    }
+
+    async function loadReviews() {
+      var res = await NailedAuth.api('/api/v1/reviews/mine');
+      var data = await res.json().catch(function () { return {}; });
+      var list = document.getElementById('reviewsList');
+      var empty = document.getElementById('reviewsEmpty');
+      var reviews = (data && data.reviews) || [];
+
+      list.innerHTML = '';
+      if (reviews.length === 0) {
+        list.style.display = 'none';
+        empty.style.display = '';
+        window.lucide && window.lucide.createIcons();
+        return;
+      }
+
+      list.style.display = '';
+      empty.style.display = 'none';
+
+      reviews.forEach(function (r) {
+        var salon = r.salon || {};
+        var booking = r.booking || {};
+        var card = document.createElement('div');
+        card.className = 'kp-card kp-review-card';
+        var created = r.created_at ? reviewDateFmt.format(new Date(r.created_at)) : '';
+        var editedNote = r.edited_at
+          ? '<span class="kp-review-card__edited">(redigert ' + escapeHtml(reviewEditedFmt.format(new Date(r.edited_at))) + ')</span>'
+          : '';
+        var serviceLine = booking.service_name
+          ? '<div class="kp-review-card__meta">' + escapeHtml(booking.service_name) + '</div>'
+          : '';
+        var bodyHtml = r.body
+          ? '<p class="kp-review-card__body">' + escapeHtml(r.body) + '</p>'
+          : '';
+        card.innerHTML =
+          '<div class="kp-review-card__head">' +
+            '<div>' +
+              '<span class="kp-review-card__salon">' +
+                '<a href="/salon.html?slug=' + encodeURIComponent(salon.slug || '') + '">' +
+                  escapeHtml(salon.name || 'Salong') +
+                '</a>' +
+              '</span>' +
+              '<span class="kp-review-card__stars">' + reviewStarsHtml(r.rating) + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="kp-review-card__meta">' +
+            'Skrevet ' + escapeHtml(created) + ' ' + editedNote +
+          '</div>' +
+          serviceLine +
+          bodyHtml +
+          '<div class="kp-review-card__actions">' +
+            '<button class="btn btn-ghost btn-sm" data-edit-review="' + r.id + '">' +
+              '<i data-lucide="pencil"></i> Rediger' +
+            '</button>' +
+            '<button class="btn btn-ghost btn-sm" data-delete-review="' + r.id + '" style="color: var(--rouge-700); border-color: var(--rouge-200);">' +
+              '<i data-lucide="trash-2"></i> Slett' +
+            '</button>' +
+          '</div>';
+        // Stash the row data so the edit modal can pre-fill without refetching.
+        card.dataset.reviewRating = String(r.rating || 0);
+        card.dataset.reviewBody = r.body || '';
+        list.appendChild(card);
+      });
+
+      list.querySelectorAll('button[data-edit-review]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = this.getAttribute('data-edit-review');
+          var card = this.closest('.kp-review-card');
+          openEditReviewModal(id, parseInt(card.dataset.reviewRating, 10) || 0, card.dataset.reviewBody || '');
+        });
+      });
+
+      list.querySelectorAll('button[data-delete-review]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          var id = this.getAttribute('data-delete-review');
+          if (!confirm('Er du sikker på at du vil slette anmeldelsen?')) return;
+          var res = await NailedAuth.api('/api/v1/reviews/' + encodeURIComponent(id), { method: 'DELETE' });
+          if (res && res.ok) {
+            NailedForms.toast('Anmeldelse slettet');
+            loadReviews();
+          } else {
+            var data = await res.json().catch(function () { return {}; });
+            NailedForms.toast((data.error && data.error.message) || 'Kunne ikke slette anmeldelsen', { type: 'error' });
+          }
+        });
+      });
+
+      window.lucide && window.lucide.createIcons();
+    }
+
+    // Edit-review modal — pre-fills the textarea + stars from the card and
+    // PATCHes /reviews/:id on save. The modal element lives at the bottom of
+    // the body so its overlay covers the whole page.
+    var editModalState = { id: null, rating: 0 };
+    function paintEditStars(n) {
+      document.querySelectorAll('#reviewEditStars button[data-star]').forEach(function (b) {
+        var v = parseInt(b.getAttribute('data-star'), 10);
+        b.classList.toggle('active', v <= n);
+      });
+    }
+    function openEditReviewModal(id, rating, body) {
+      editModalState.id = id;
+      editModalState.rating = rating;
+      var ta = document.getElementById('reviewEditBody');
+      ta.value = body || '';
+      document.getElementById('reviewEditCount').textContent = String(ta.value.length);
+      paintEditStars(rating);
+      document.getElementById('reviewEditBackdrop').classList.add('is-open');
+      window.lucide && window.lucide.createIcons();
+    }
+    function closeEditReviewModal() {
+      document.getElementById('reviewEditBackdrop').classList.remove('is-open');
+      editModalState.id = null;
+      editModalState.rating = 0;
+    }
+
+    document.querySelectorAll('#reviewEditStars button[data-star]').forEach(function (b) {
+      var v = parseInt(b.getAttribute('data-star'), 10);
+      b.addEventListener('mouseenter', function () { paintEditStars(v); });
+      b.addEventListener('mouseleave', function () { paintEditStars(editModalState.rating); });
+      b.addEventListener('click', function () {
+        editModalState.rating = v;
+        paintEditStars(v);
+      });
+    });
+
+    document.getElementById('reviewEditBody').addEventListener('input', function () {
+      document.getElementById('reviewEditCount').textContent = String(this.value.length);
+    });
+
+    document.getElementById('reviewEditCancel').addEventListener('click', closeEditReviewModal);
+    document.getElementById('reviewEditBackdrop').addEventListener('click', function (e) {
+      // Click on the backdrop (not the card) closes the modal.
+      if (e.target === this) closeEditReviewModal();
+    });
+
+    document.getElementById('reviewEditSave').addEventListener('click', async function () {
+      var id = editModalState.id;
+      if (!id) return;
+      if (editModalState.rating < 1) {
+        NailedForms.toast('Velg en vurdering (1–5 stjerner).', { type: 'error' });
+        return;
+      }
+      var btn = this;
+      btn.disabled = true;
+      var prev = btn.textContent;
+      btn.textContent = 'Lagrer …';
+      var bodyVal = document.getElementById('reviewEditBody').value.trim();
+      var payload = { rating: editModalState.rating };
+      if (bodyVal) payload.body = bodyVal;
+      var res = await NailedAuth.api('/api/v1/reviews/' + encodeURIComponent(id), {
+        method: 'PATCH',
+        body: payload,
+      });
+      btn.disabled = false;
+      btn.textContent = prev;
+      if (res && res.ok) {
+        closeEditReviewModal();
+        NailedForms.toast('Anmeldelse oppdatert');
+        loadReviews();
+      } else {
+        var data = await res.json().catch(function () { return {}; });
+        NailedForms.toast((data.error && data.error.message) || 'Kunne ikke oppdatere anmeldelsen', { type: 'error' });
+      }
+    });
+
+    // ---------------------------------------------------------------------
     // Profile — load and submit
     // ---------------------------------------------------------------------
     async function loadProfile() {
@@ -1773,6 +2087,7 @@
       loadBookings('upcoming');
       loadWaitlist();
       loadFavorites();
+      loadReviews();
       loadProfile();
       loadSessions();
       window.lucide && window.lucide.createIcons();
