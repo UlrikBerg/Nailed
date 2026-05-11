@@ -124,12 +124,13 @@
     }
     .filter-section.is-collapsed .filter-section__chev { transform: rotate(-90deg); }
     .filter-section__body {
-      overflow: hidden;
       max-height: 1200px;
       transition: max-height 260ms var(--ease-out-soft), opacity 200ms var(--ease-out-soft);
       opacity: 1;
+      overflow: visible;
     }
     .filter-section.is-collapsed .filter-section__body {
+      overflow: hidden;
       max-height: 0;
       opacity: 0;
     }
@@ -1117,8 +1118,17 @@
       var input = document.getElementById('stedSearch');
       var clearBtn = document.getElementById('stedSearchClear');
       if (!input) return;
-      if (window.NailedPlaces && NailedPlaces.attachTypeahead) {
-        NailedPlaces.attachTypeahead(input, { permissive: true });
+      function tryAttach() {
+        if (window.NailedPlaces && NailedPlaces.attachTypeahead) {
+          NailedPlaces.attachTypeahead(input, { permissive: true });
+          return true;
+        }
+        return false;
+      }
+      if (!tryAttach()) {
+        // Script may not have finished — retry on next tick + after load.
+        setTimeout(tryAttach, 0);
+        window.addEventListener('load', tryAttach);
       }
       function applySearchValue() {
         var v = (input.value || '').trim();
