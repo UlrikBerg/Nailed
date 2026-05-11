@@ -6,7 +6,7 @@
   <title>nailed — book deg pen</title>
   <meta name="description" content="nailed er markedsplassen for skjønnhet i Norge. Finn en salong, velg behandling og tid, og book din time på minutter. Negler, vipper, bryn, makeup." />
   <meta name="theme-color" content="#EE3F7E" />
-  <link rel="canonical" href="https://skyblue-cod-739202.hostingersite.com/" />
+  <link rel="canonical" href="https://nailed.no/" />
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="stylesheet" href="styles.css" />
 
@@ -15,15 +15,15 @@
   <meta property="og:site_name" content="nailed" />
   <meta property="og:title" content="nailed — book deg pen" />
   <meta property="og:description" content="Finn salong, velg behandling og tid — book din time på nailed." />
-  <meta property="og:url" content="https://skyblue-cod-739202.hostingersite.com/" />
-  <meta property="og:image" content="https://skyblue-cod-739202.hostingersite.com/assets/sticker-nailed-it.svg" />
+  <meta property="og:url" content="https://nailed.no/" />
+  <meta property="og:image" content="https://nailed.no/assets/sticker-nailed-it.svg" />
   <meta property="og:locale" content="nb_NO" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="nailed — book deg pen" />
   <meta name="twitter:description" content="Finn salong, velg behandling og tid — book din time på nailed." />
-  <meta name="twitter:image" content="https://skyblue-cod-739202.hostingersite.com/assets/sticker-nailed-it.svg" />
+  <meta name="twitter:image" content="https://nailed.no/assets/sticker-nailed-it.svg" />
 
   <!-- Structured data: Organization -->
   <script type="application/ld+json">
@@ -32,8 +32,8 @@
     "@type": "Organization",
     "name": "nailed",
     "legalName": "nailed AS",
-    "url": "https://skyblue-cod-739202.hostingersite.com/",
-    "logo": "https://skyblue-cod-739202.hostingersite.com/assets/logo-wordmark.svg",
+    "url": "https://nailed.no/",
+    "logo": "https://nailed.no/assets/logo-wordmark.svg",
     "areaServed": "NO",
     "description": "Markedsplass for skjønnhetstjenester i Norge — finn salong og book time online."
   }
@@ -84,7 +84,7 @@
             <i data-lucide="map-pin" class="search-bar__field-icon"></i>
             <div class="search-bar__field-text">
               <label class="search-bar__label" for="heroSearchCity">Hvor</label>
-              <input id="heroSearchCity" name="city" placeholder="Søk etter adresse" autocomplete="off" />
+              <input id="heroSearchCity" name="city" placeholder="By eller sted" autocomplete="off" />
             </div>
           </div>
           <button type="submit" class="btn btn-primary search-bar__cta" aria-label="Søk">
@@ -104,23 +104,22 @@
   </section>
 
   <!-- ============================================================
-       Category rail
+       Category rail — links to /utforsk.html?category=<Name>
        ============================================================ -->
   <section style="padding: 24px 0 0;">
     <div class="cat-rail">
-      <button class="chip active"><i data-lucide="sparkles"></i> Alle</button>
-      <button class="chip"><i data-lucide="sparkles"></i> Negler</button>
-      <button class="chip"><i data-lucide="eye"></i> Vipper</button>
-      <button class="chip"><i data-lucide="eye"></i> Bryn</button>
-      <button class="chip"><i data-lucide="palette"></i> Makeup</button>
-      <button class="chip"><i data-lucide="scissors"></i> Hår</button>
-      <button class="chip"><i data-lucide="flower-2"></i> Spa</button>
-      <button class="chip"><i data-lucide="wind"></i> Voksing</button>
+      <a class="chip active" href="/utforsk.html"><i data-lucide="sparkles"></i> Alle</a>
+      <a class="chip" href="/utforsk.html?category=Negler"><i data-lucide="sparkles"></i> Negler</a>
+      <a class="chip" href="/utforsk.html?category=Vipper"><i data-lucide="eye"></i> Vipper</a>
+      <a class="chip" href="/utforsk.html?category=Bryn"><i data-lucide="eye"></i> Bryn</a>
+      <a class="chip" href="/utforsk.html?category=Makeup"><i data-lucide="palette"></i> Makeup</a>
+      <a class="chip" href="/utforsk.html?category=Hud"><i data-lucide="flower-2"></i> Hud</a>
+      <a class="chip" href="/utforsk.html?category=Voksing"><i data-lucide="wind"></i> Voksing</a>
     </div>
   </section>
 
   <!-- ============================================================
-       Salon grid — nearby (live from API)
+       Salon grid — live from API
        ============================================================ -->
   <section id="featuredSection" style="padding: 32px 0 56px; display: none;">
     <div class="page">
@@ -135,113 +134,112 @@
   </section>
 
   <!-- ============================================================
-       Editorial quote band
+       Slik fungerer det (How it works)
        ============================================================ -->
-  <section style="padding: 56px 0;">
+  <section style="padding: 24px 0 56px;">
     <div class="page">
-      <div class="editorial-band">
-        <div class="editorial-band__inner">
-          <div class="editorial-band__quote">
-            "Gå inn med klør, <em>gå ut med kunst.</em>"
-          </div>
-          <div class="editorial-band__attr">— Maja, neglestylist · Studio Lakk</div>
+      <div class="section-head">
+        <div>
+          <h2>Slik fungerer <em>nailed</em></h2>
+        </div>
+      </div>
+      <div class="home-steps">
+        <div class="home-step">
+          <div class="home-step__num">1</div>
+          <div class="home-step__icon"><i data-lucide="search"></i></div>
+          <div class="home-step__title">Finn salong</div>
+          <p class="home-step__body">Søk på behandling eller sted og oppdag salonger nær deg.</p>
+        </div>
+        <div class="home-step">
+          <div class="home-step__num">2</div>
+          <div class="home-step__icon"><i data-lucide="calendar"></i></div>
+          <div class="home-step__title">Velg behandling og tid</div>
+          <p class="home-step__body">Se ledige tider i sanntid og velg den som passer best.</p>
+        </div>
+        <div class="home-step">
+          <div class="home-step__num">3</div>
+          <div class="home-step__icon"><i data-lucide="sparkles"></i></div>
+          <div class="home-step__title">Book og betal i salongen</div>
+          <p class="home-step__body">Få bekreftelse på e-post. Du betaler hos salongen etter behandling.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ============================================================
-       Salon grid — popular
+       Editorial quote band (rotated client-side)
+       ============================================================ -->
+  <section style="padding: 32px 0 56px;">
+    <div class="page">
+      <div class="editorial-band">
+        <div class="editorial-band__inner">
+          <div class="editorial-band__quote" id="editorialQuote">
+            &ldquo;Gå inn med klør, <em>gå ut med kunst.</em>&rdquo;
+          </div>
+          <div class="editorial-band__attr" id="editorialAttr">— Maja, neglestylist · Studio Lakk</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Hvorfor nailed — value props
        ============================================================ -->
   <section style="padding: 0 0 56px;">
     <div class="page">
       <div class="section-head">
         <div>
-          <h2>Folkets favoritter denne uken</h2>
+          <h2>Hvorfor <em>nailed</em></h2>
         </div>
       </div>
-      <div class="grid-3">
+      <div class="home-values">
+        <div class="home-value">
+          <div class="home-value__icon"><i data-lucide="shield-check"></i></div>
+          <div class="home-value__title">Gratis avbestilling</div>
+          <p class="home-value__body">Avbestill opptil 24 timer før, helt gratis.</p>
+        </div>
+        <div class="home-value">
+          <div class="home-value__icon"><i data-lucide="star"></i></div>
+          <div class="home-value__title">Ekte anmeldelser</div>
+          <p class="home-value__body">Bare verifiserte kunder kan anmelde salonger på nailed.</p>
+        </div>
+        <div class="home-value">
+          <div class="home-value__icon"><i data-lucide="map-pin"></i></div>
+          <div class="home-value__title">Norske salonger</div>
+          <p class="home-value__body">Hjelp lokale skjønnhetssalonger vokse — uten provisjon.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        <article class="service-card card" onclick="location.href='salon.html'">
-          <div class="service-card__photo" style="background: linear-gradient(135deg, #DDE3D2 0%, #8DA079 100%);">
-            <button class="service-card__heart" data-fav="studio-glow"><i data-lucide="heart"></i></button>
-          </div>
-          <div class="service-card__body">
-            <div class="service-card__row">
-              <div>
-                <div class="service-card__name">Studio Glow</div>
-                <div class="service-card__meta"><i data-lucide="map-pin"></i>St. Hanshaugen · 2.1 km</div>
-              </div>
-              <div class="service-card__price">
-                <span class="service-card__from">fra</span>1190<span class="service-card__kr"> kr</span>
-              </div>
-            </div>
-            <div class="service-card__row">
-              <div class="service-card__meta">
-                <i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i>
-                5.0 · 92 anmeldelser
-              </div>
-              <div class="service-card__tags">
-                <span class="service-card__tag">Brud</span>
-                <span class="service-card__tag">Makeup</span>
-              </div>
-            </div>
-          </div>
-        </article>
+  <!-- ============================================================
+       Folkets favoritter — live API (top-rated)
+       ============================================================ -->
+  <section id="topRatedSection" style="padding: 0 0 56px; display: none;">
+    <div class="page">
+      <div class="section-head">
+        <div>
+          <h2>Folkets favoritter denne uken</h2>
+        </div>
+        <a class="section-head__link" href="utforsk.html?has_reviews=1&min_rating=4" style="text-decoration:none;">Se alle <i data-lucide="arrow-right"></i></a>
+      </div>
+      <div class="grid-3" id="topRatedGrid"></div>
+    </div>
+  </section>
 
-        <article class="service-card card" onclick="location.href='salon.html'">
-          <div class="service-card__photo" style="background: linear-gradient(135deg, #FFC4D6 0%, #82103D 100%);">
-            <button class="service-card__heart" data-fav="neon-nails"><i data-lucide="heart"></i></button>
-          </div>
-          <div class="service-card__body">
-            <div class="service-card__row">
-              <div>
-                <div class="service-card__name">Neon Nails</div>
-                <div class="service-card__meta"><i data-lucide="map-pin"></i>Tøyen · 2.6 km</div>
-              </div>
-              <div class="service-card__price">
-                <span class="service-card__from">fra</span>750<span class="service-card__kr"> kr</span>
-              </div>
-            </div>
-            <div class="service-card__row">
-              <div class="service-card__meta">
-                <i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i>
-                4.6 · 268 anmeldelser
-              </div>
-              <div class="service-card__tags">
-                <span class="service-card__tag">Art</span>
-                <span class="service-card__tag">Gel</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <article class="service-card card" onclick="location.href='salon.html'">
-          <div class="service-card__photo" style="background: linear-gradient(135deg, #ECDFCB 0%, #C9B79A 100%);">
-            <button class="service-card__heart" data-fav="rosa-atelier"><i data-lucide="heart"></i></button>
-          </div>
-          <div class="service-card__body">
-            <div class="service-card__row">
-              <div>
-                <div class="service-card__name">Rosa Atelier</div>
-                <div class="service-card__meta"><i data-lucide="map-pin"></i>Bislett · 0.9 km</div>
-              </div>
-              <div class="service-card__price">
-                <span class="service-card__from">fra</span>920<span class="service-card__kr"> kr</span>
-              </div>
-            </div>
-            <div class="service-card__row">
-              <div class="service-card__meta">
-                <i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i>
-                4.9 · 401 anmeldelser
-              </div>
-              <div class="service-card__tags">
-                <span class="service-card__tag">Press-on</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
+  <!-- ============================================================
+       For salongeiere CTA
+       ============================================================ -->
+  <section style="padding: 0 0 72px;">
+    <div class="page">
+      <div class="home-owner-cta">
+        <div>
+          <div class="home-owner-cta__title">Driver du en salong? <em>Få nye kunder uten provisjon.</em></div>
+          <p class="home-owner-cta__sub">Opprett profilen din på under 10 minutter. 6 måneder gratis prøveperiode — ingen bindingstid, ingen skjulte kostnader.</p>
+        </div>
+        <div class="home-owner-cta__cta">
+          <a href="bli-salong.html" class="btn btn-primary btn-lg">Kom i gang gratis <i data-lucide="arrow-right"></i></a>
+        </div>
       </div>
     </div>
   </section>
@@ -266,16 +264,10 @@
         <a href="/personvern.html">Personvern</a>
         <a href="/vilkar.html">Bruksvilkår</a>
         <a href="/cookies.html">Cookies</a>
-        <a href="#">FAQ</a>
-        <a href="#">Kontakt oss</a>
-        <a href="#">Om oss</a>
+        <a href="mailto:hei@nailed.no">Kontakt oss</a>
       </div>
       <div class="footer__bottom">
-        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
-        <div class="footer__badges">
-          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> App Store — juni</span>
-          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Google Play — juli</span>
-        </div>
+        <small>&copy; 2026 nailed AS &middot; Made in Oslo</small>
       </div>
     </div>
   </footer>
@@ -336,7 +328,22 @@
       }
     });
 
-    // Featured salons — live from API.
+    // Rotating editorial quote — picked once at page load from a small set.
+    (function () {
+      var quotes = [
+        { q: '&ldquo;Gå inn med klør, <em>gå ut med kunst.</em>&rdquo;', a: '— Maja, neglestylist · Studio Lakk' },
+        { q: '&ldquo;Skjønnhet er <em>en avtale med deg selv.</em>&rdquo;', a: '— nailed-redaksjonen' },
+        { q: '&ldquo;En time hos en god salong, <em>en uke i godt humør.</em>&rdquo;', a: '— nailed-redaksjonen' },
+        { q: '&ldquo;Vi liker små studioer, <em>store detaljer.</em>&rdquo;', a: '— nailed-redaksjonen' }
+      ];
+      var pick = quotes[Math.floor(Math.random() * quotes.length)];
+      var qEl = document.getElementById('editorialQuote');
+      var aEl = document.getElementById('editorialAttr');
+      if (qEl) qEl.innerHTML = pick.q;
+      if (aEl) aEl.textContent = pick.a;
+    })();
+
+    // ----- Salon card rendering (shared between featured + top-rated grids) -----
     var FEATURED_FALLBACK_GRADIENTS = [
       'linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 100%)',
       'linear-gradient(135deg, #F4ECDF 0%, #E8DCC4 100%)',
@@ -354,7 +361,8 @@
       });
     }
 
-    function featuredCard(salon, idx) {
+    function featuredCard(salon, idx, opts) {
+      opts = opts || {};
       var photoStyle;
       if (salon.cover_url) {
         photoStyle = "background-image: url('" + encodeURI(salon.cover_url) + "'); background-size: cover; background-position: center;";
@@ -365,7 +373,22 @@
       var locationLine = salon.city
         ? '<div class="service-card__meta"><i data-lucide="map-pin"></i>' + featuredEscapeHtml(salon.city) + '</div>'
         : '';
-      var featured = idx === 0 ? ' service-card--featured' : '';
+      var featured = (opts.allowFeatured && idx === 0) ? ' service-card--featured' : '';
+
+      // Optional rating row (only used by the top-rated grid).
+      var ratingRow = '';
+      if (opts.showRating && salon.avg_rating != null) {
+        var r = Number(salon.avg_rating).toFixed(1).replace('.', ',');
+        var rc = Number(salon.review_count || 0);
+        var rcLabel = rc + (rc === 1 ? ' anmeldelse' : ' anmeldelser');
+        ratingRow = ''
+          + '<div class="service-card__row">'
+            + '<div class="service-card__meta">'
+              + '<i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i> '
+              + r + ' · ' + rcLabel
+            + '</div>'
+          + '</div>';
+      }
 
       return ''
         + '<article class="service-card card' + featured + '" onclick="location.href=\'salon.html?slug=' + slug + '\'">'
@@ -381,10 +404,12 @@
                 + locationLine
               + '</div>'
             + '</div>'
+            + ratingRow
           + '</div>'
         + '</article>';
     }
 
+    // ----- Featured (general) salon grid -----
     (async function loadFeatured() {
       var section = document.getElementById('featuredSection');
       var grid = document.getElementById('featuredGrid');
@@ -395,17 +420,52 @@
         var data = await res.json();
         var salons = Array.isArray(data.salons) ? data.salons : [];
         if (salons.length === 0) {
-          // Per spec: hide the entire section instead of showing an empty state.
           section.style.display = 'none';
           return;
         }
-        grid.innerHTML = salons.map(featuredCard).join('');
+        grid.innerHTML = salons.map(function (s, i) {
+          return featuredCard(s, i, { allowFeatured: true });
+        }).join('');
         section.style.display = '';
-        // Re-bind hearts/icons on the new cards.
         window.lucide && window.lucide.createIcons();
         if (typeof initFavorites === 'function') initFavorites();
       } catch (err) {
-        // On error, keep section hidden — better than showing broken state.
+        section.style.display = 'none';
+      }
+    })();
+
+    // ----- Top-rated salon grid (replaces fake "Folkets favoritter") -----
+    // API has no sort=rating param yet, so we fetch with the filters and sort
+    // client-side by avg_rating DESC, then review_count DESC.
+    (async function loadTopRated() {
+      var section = document.getElementById('topRatedSection');
+      var grid = document.getElementById('topRatedGrid');
+      if (!section || !grid) return;
+      try {
+        var res = await fetch('/api/v1/salons?limit=24&has_reviews=1&min_rating=4', {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('Status ' + res.status);
+        var data = await res.json();
+        var salons = Array.isArray(data.salons) ? data.salons : [];
+        salons.sort(function (a, b) {
+          var ar = a.avg_rating == null ? 0 : Number(a.avg_rating);
+          var br = b.avg_rating == null ? 0 : Number(b.avg_rating);
+          if (br !== ar) return br - ar;
+          return Number(b.review_count || 0) - Number(a.review_count || 0);
+        });
+        salons = salons.slice(0, 6);
+        if (salons.length === 0) {
+          section.style.display = 'none';
+          return;
+        }
+        grid.innerHTML = salons.map(function (s, i) {
+          return featuredCard(s, i, { showRating: true });
+        }).join('');
+        section.style.display = '';
+        window.lucide && window.lucide.createIcons();
+        if (typeof initFavorites === 'function') initFavorites();
+      } catch (err) {
         section.style.display = 'none';
       }
     })();

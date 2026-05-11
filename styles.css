@@ -1674,3 +1674,64 @@ p { margin: 0 0 var(--space-4) 0; }
 .studio-map__zoom button { width: 32px; height: 32px; border: 0; background: transparent; cursor: pointer; font-family: var(--font-body); font-weight: 700; font-size: 18px; color: var(--ink); }
 .studio-map__zoom button:hover { background: var(--cream-100); }
 .studio-map__zoom button:first-child { border-bottom: 1px solid var(--stone-200); }
+
+/* =========================================================================
+   Homepage-only sections (index.html)
+   Prefix: .home-*   — keep scoped to avoid bleed into other pages.
+   ========================================================================= */
+
+.home-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; padding: 8px 0; }
+@media (max-width: 760px) { .home-steps { grid-template-columns: 1fr; gap: 28px; } }
+.home-step { display: flex; flex-direction: column; gap: 12px; }
+.home-step__num {
+  width: 44px; height: 44px; border-radius: 999px;
+  background: var(--rouge-50); color: var(--rouge-600);
+  font-family: var(--font-display); font-weight: 700; font-size: 18px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--rouge-100);
+}
+.home-step__icon { color: var(--rouge-500); }
+.home-step__icon i { width: 22px; height: 22px; }
+.home-step__title { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: var(--ink); }
+.home-step__body { font-family: var(--font-body); font-size: 15px; color: var(--fg-muted); line-height: 1.55; max-width: 36ch; }
+
+.home-values { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 760px) { .home-values { grid-template-columns: 1fr; } }
+.home-value {
+  background: var(--cream-50);
+  border: 1px solid var(--stone-200);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.home-value__icon {
+  width: 40px; height: 40px; border-radius: 999px;
+  background: var(--rouge-50); color: var(--rouge-600);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.home-value__icon i { width: 18px; height: 18px; }
+.home-value__title { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--ink); }
+.home-value__body { font-family: var(--font-body); font-size: 14px; color: var(--fg-muted); line-height: 1.5; }
+
+.home-owner-cta {
+  background: linear-gradient(135deg, var(--rouge-50) 0%, var(--rouge-100) 100%);
+  border: 1px solid var(--rouge-100);
+  border-radius: var(--radius-2xl);
+  padding: 48px 40px;
+  display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center;
+}
+@media (max-width: 760px) {
+  .home-owner-cta { grid-template-columns: 1fr; padding: 32px 24px; text-align: left; }
+}
+.home-owner-cta__title { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 3vw, 34px); letter-spacing: -0.015em; color: var(--ink); line-height: 1.15; max-width: 22ch; }
+.home-owner-cta__title em { font-style: italic; color: var(--rouge-700); }
+.home-owner-cta__sub { font-family: var(--font-body); font-size: 15px; color: var(--fg-muted); margin-top: 8px; max-width: 52ch; line-height: 1.5; }
+.home-owner-cta__cta { display: inline-flex; }
+
+.home-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--stone-200); border-bottom: 1px solid var(--stone-200); padding: 28px 0; }
+@media (max-width: 560px) { .home-stats { grid-template-columns: 1fr; gap: 16px; padding: 20px 0; } }
+.home-stat { text-align: center; padding: 4px 12px; }
+.home-stat + .home-stat { border-left: 1px solid var(--stone-200); }
+@media (max-width: 560px) { .home-stat + .home-stat { border-left: 0; } }
+.home-stat__num { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 3vw, 36px); color: var(--ink); letter-spacing: -0.02em; }
+.home-stat__label { font-family: var(--font-body); font-size: 13px; color: var(--fg-muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; }
