@@ -8,3 +8,8 @@ screenshots/
 .DS_Store
 uploads/*
 !uploads/.gitkeep
+
+# Agent worktrees + screenshots (local-only)
+.claude/
+salong-panel-redesign.png
+salong-profile-view.png
