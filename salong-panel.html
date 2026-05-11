@@ -1056,6 +1056,39 @@
     .booking-note-btn:hover { background: var(--cream-100); color: var(--rouge-500); }
     .booking-note-btn.has-note { color: var(--rouge-500); }
     .booking-note-btn i { width: 14px; height: 14px; }
+
+    /* Drag-and-drop image upload zone. */
+    .image-drop-zone { position: relative; }
+    .image-drop-zone__overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(190, 75, 95, 0.08);
+      border: 2px dashed var(--rouge-500);
+      border-radius: var(--radius-lg);
+      color: var(--rouge-500); font-weight: 600; font-size: 16px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 150ms ease;
+      z-index: 5;
+    }
+    .image-drop-zone.is-dragging .image-drop-zone__overlay {
+      opacity: 1;
+      animation: image-drop-pulse 1.4s ease-in-out infinite;
+    }
+    .image-drop-zone.is-dragging #gallery,
+    .image-drop-zone.is-dragging #coverPreview {
+      transform: scale(0.98);
+      transition: transform 150ms ease;
+    }
+    #gallery, #coverPreview { transition: transform 150ms ease; }
+    @keyframes image-drop-pulse {
+      0%, 100% { border-color: var(--rouge-500); background: rgba(190, 75, 95, 0.08); }
+      50%      { border-color: var(--rouge-300, #d98a98); background: rgba(190, 75, 95, 0.14); }
+    }
+    .image-drop-hint {
+      display: none;
+      margin-top: 12px; font-size: 12px; color: var(--fg-muted);
+    }
+    .image-drop-hint.is-visible { display: block; }
   </style>
 </head>
 <body>
@@ -1661,7 +1694,7 @@
             </button>
           </div>
 
-          <div class="kp-card" data-edit-section="photos">
+          <div class="kp-card image-drop-zone" id="imageDropZone" data-edit-section="photos">
             <div class="kp-card__head">
               <h3>Bilder</h3>
               <div style="font-size: 13px; color: var(--fg-muted);">Maks 24 bilder, opptil 8 MB hver. JPEG, PNG, WEBP eller HEIC.</div>
@@ -1673,6 +1706,8 @@
             </label>
             <span id="uploadStatus" style="margin-left: 12px; color: var(--fg-muted); font-size: 13px;"></span>
             <div id="gallery" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 20px;"></div>
+            <div class="image-drop-hint" id="imageDropHint">Tips: dra bilder rett inn for å laste opp flere på en gang.</div>
+            <div class="image-drop-zone__overlay" id="imageDropOverlay" aria-hidden="true">Slipp bildene her</div>
           </div>
 
           <div class="kp-card" data-edit-section="bio contact availability">
@@ -2895,6 +2930,8 @@
 
     function renderGallery(s, images) {
       var el = document.getElementById('gallery');
+      var hint = document.getElementById('imageDropHint');
+      if (hint) hint.classList.toggle('is-visible', !images.length);
       if (!images.length) { el.innerHTML = ''; return; }
       el.innerHTML = images.map(function (img) {
         var isCover = s.cover_image_key === img.key;
@@ -2947,6 +2984,7 @@
       }
     }
 
+    var imageUploadInProgress = false;
     async function uploadImages(fileList) {
       var files = Array.from(fileList || []);
       if (!files.length) return;
@@ -2956,6 +2994,7 @@
       var originalLabel = labelText.textContent;
       label.style.pointerEvents = 'none';
       label.style.opacity = '0.6';
+      imageUploadInProgress = true;
 
       var existingCount = (currentImages || []).length;
       var uploaded = 0;
@@ -2989,6 +3028,7 @@
       label.style.pointerEvents = '';
       label.style.opacity = '';
       status.textContent = '';
+      imageUploadInProgress = false;
 
       if (capHit && window.NailedForms) {
         NailedForms.toast('Maks 24 bilder per salong nådd. ' + uploaded + ' bilder ble lastet opp.', { type: 'error' });
@@ -3005,6 +3045,54 @@
       if (!files || !files.length) return;
       uploadImages(files);
     });
+
+    (function wireImageDropZone() {
+      var zone = document.getElementById('imageDropZone');
+      if (!zone) return;
+      var dragDepth = 0;
+
+      function hasFiles(e) {
+        if (!e.dataTransfer || !e.dataTransfer.types) return false;
+        var types = e.dataTransfer.types;
+        for (var i = 0; i < types.length; i++) {
+          if (types[i] === 'Files') return true;
+        }
+        return false;
+      }
+
+      zone.addEventListener('dragenter', function (e) {
+        if (!hasFiles(e)) return;
+        e.preventDefault();
+        dragDepth++;
+        zone.classList.add('is-dragging');
+      });
+      zone.addEventListener('dragover', function (e) {
+        if (!hasFiles(e)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        zone.classList.add('is-dragging');
+      });
+      zone.addEventListener('dragleave', function (e) {
+        if (!hasFiles(e)) return;
+        dragDepth = Math.max(0, dragDepth - 1);
+        if (dragDepth === 0) zone.classList.remove('is-dragging');
+      });
+      zone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dragDepth = 0;
+        zone.classList.remove('is-dragging');
+        if (imageUploadInProgress) return;
+        var dropped = (e.dataTransfer && e.dataTransfer.files) ? e.dataTransfer.files : null;
+        if (!dropped || !dropped.length) return;
+        var images = [];
+        for (var i = 0; i < dropped.length; i++) {
+          var f = dropped[i];
+          if (f && f.type && f.type.indexOf('image/') === 0) images.push(f);
+        }
+        if (!images.length) return;
+        uploadImages(images);
+      });
+    })();
 
     async function loadIncoming() {
       var res = await NailedAuth.api('/api/v1/bookings/incoming');
