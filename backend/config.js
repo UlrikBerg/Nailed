@@ -78,6 +78,24 @@ const config = {
     },
   },
 
+  notify: {
+    email: {
+      apiKey: optional('RESEND_API_KEY', ''),
+      from: optional('RESEND_FROM', 'nailed <hei@nailed.no>'),
+      enabled() {
+        return Boolean(this.apiKey);
+      },
+    },
+    sms: {
+      accountSid: optional('TWILIO_ACCOUNT_SID', ''),
+      authToken: optional('TWILIO_AUTH_TOKEN', ''),
+      from: optional('TWILIO_FROM', ''),
+      enabled() {
+        return Boolean(this.accountSid && this.authToken && this.from);
+      },
+    },
+  },
+
   bootstrapAdminEmails: list('BOOTSTRAP_ADMIN_EMAILS'),
 
   storage: {
@@ -111,6 +129,20 @@ if (!config.db.password) {
     name: 'DB_PASSWORD',
     severity: 'warning',
     hint: 'DB_PASSWORD is empty — DB queries will fail unless your MySQL user has no password.',
+  });
+}
+if (!config.notify.email.enabled()) {
+  issues.push({
+    name: 'notify.email.missing',
+    severity: 'info',
+    hint: 'Set RESEND_API_KEY in hPanel UI to enable booking emails.',
+  });
+}
+if (!config.notify.sms.enabled()) {
+  issues.push({
+    name: 'notify.sms.missing',
+    severity: 'info',
+    hint: 'Set TWILIO_ACCOUNT_SID + TWILIO_AUTH_TOKEN + TWILIO_FROM in hPanel UI to enable booking SMS.',
   });
 }
 

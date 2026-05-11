@@ -4,6 +4,7 @@ const { query, queryOne, tx } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { asyncRoute, HttpError } = require('../lib/util');
 const config = require('../config');
+const notify = require('../lib/notify');
 
 const router = express.Router();
 
@@ -484,6 +485,7 @@ router.post('/', asyncRoute(async (req, res) => {
     }
     return { id: parentId, series_id: parentId, series_total: totalOccurrences };
   });
+  setImmediate(() => { notify.sendBookingCreated(result.id); });
   res.status(201).json(result);
 }));
 
@@ -596,6 +598,7 @@ router.post('/manual', asyncRoute(async (req, res) => {
     guest_name: data.guest_name,
   });
 
+  setImmediate(() => { notify.sendBookingCreated(result.id); });
   res.status(201).json(result);
 }));
 
@@ -721,6 +724,14 @@ router.patch('/:id', asyncRoute(async (req, res) => {
   // and a desired_start that falls inside the now-vacated [start_at, end_at)
   // window. We only promote ONE entry per slot (FIFO by created_at) so two
   // customers don't both race to claim the same opening.
+  // Fire notifications after the row write commits. setImmediate so we don't
+  // block the HTTP response; the notifier swallows its own errors.
+  if (status === 'confirmed') {
+    setImmediate(() => { notify.sendBookingConfirmed(id); });
+  } else if (status === 'cancelled') {
+    setImmediate(() => { notify.sendBookingCancelled(id, cancelledByRole); });
+  }
+
   if (status === 'cancelled' || status === 'no_show') {
     try {
       const candidate = await queryOne(
