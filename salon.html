@@ -2185,7 +2185,13 @@
           }
           return res.json();
         })
-        .then(renderSalon)
+        .then(function (data) {
+          try { renderSalon(data); }
+          catch (e) {
+            console.error('[renderSalon]', e);
+            showFatalEmptyState('Noe gikk galt', 'Kunne ikke laste salongen.\n' + (e && e.message ? e.message : String(e)));
+          }
+        })
         .catch(function(err) {
           // Errors already handled above; swallow.
           if (err && err.message && !/not_found|http_/.test(err.message)) {
