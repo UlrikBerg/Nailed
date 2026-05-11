@@ -81,7 +81,10 @@ const config = {
   notify: {
     email: {
       apiKey: optional('RESEND_API_KEY', ''),
-      from: optional('RESEND_FROM', 'nailed <hei@nailed.no>'),
+      from: optional('RESEND_FROM', 'nailed <noreply@nailed.no>'),
+      // Replies to noreply@ would bounce — point Reply-To at a real inbox so
+      // users can still respond. Override with RESEND_REPLY_TO if needed.
+      replyTo: optional('RESEND_REPLY_TO', 'hei@nailed.no'),
       enabled() {
         return Boolean(this.apiKey);
       },

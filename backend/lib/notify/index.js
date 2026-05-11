@@ -67,17 +67,21 @@ async function log({ bookingId, userId, channel, kind, recipient, providerId, st
 async function loadBookingContext(bookingId) {
   const row = await queryOne(
     `SELECT b.id, b.customer_user_id, b.start_at, b.end_at, b.status, b.price_nok,
-            b.guest_name, b.guest_phone,
+            b.customer_note, b.guest_name, b.guest_phone,
             b.series_id, b.series_position, b.series_total,
-            s.id AS salon_id, s.name AS salon_name,
+            s.id AS salon_id, s.slug AS salon_slug, s.name AS salon_name,
             s.address_line AS salon_address_line,
             s.postal_code  AS salon_postal_code,
             s.city         AS salon_city,
+            s.lat AS salon_lat, s.lng AS salon_lng,
+            s.public_phone_visible,
+            s.cancellation_lead_hours,
             s.booking_confirmation_text,
             s.notify_email_new_booking,
             s.notify_email_cancellation,
             s.notify_sms_new_booking,
             sv.name AS service_name, sv.duration_min,
+            tm.name AS team_member_name,
             cu.id AS customer_id, cu.name AS customer_name, cu.email AS customer_email,
             cu.phone AS customer_phone,
             cu.notify_email_bookings, cu.notify_email_reminders, cu.notify_sms_reminders,
@@ -87,6 +91,7 @@ async function loadBookingContext(bookingId) {
        JOIN salons s   ON s.id  = b.salon_id
        JOIN services sv ON sv.id = b.service_id
        JOIN users o    ON o.id  = s.owner_user_id
+       LEFT JOIN team_members tm ON tm.id = b.team_member_id
        LEFT JOIN users cu ON cu.id = b.customer_user_id
       WHERE b.id = ?`,
     [bookingId]
@@ -114,8 +119,16 @@ async function loadBookingContext(bookingId) {
     },
     salon: {
       id: row.salon_id,
+      slug: row.salon_slug,
       name: row.salon_name,
       address: salonAddress,
+      address_line: row.salon_address_line,
+      postal_code: row.salon_postal_code,
+      city: row.salon_city,
+      lat: row.salon_lat != null ? Number(row.salon_lat) : null,
+      lng: row.salon_lng != null ? Number(row.salon_lng) : null,
+      public_phone_visible: !!row.public_phone_visible,
+      cancellation_lead_hours: Number(row.cancellation_lead_hours) || 0,
       booking_confirmation_text: row.booking_confirmation_text,
       notify_email_new_booking: !!row.notify_email_new_booking,
       notify_email_cancellation: !!row.notify_email_cancellation,
@@ -125,6 +138,8 @@ async function loadBookingContext(bookingId) {
       name: row.service_name,
       duration_min: row.duration_min,
     },
+    team_member: row.team_member_name ? { name: row.team_member_name } : null,
+    customer_note: row.customer_note || null,
     customer: row.customer_id ? {
       id: row.customer_id,
       name: row.customer_name,
@@ -177,7 +192,7 @@ function customerPhone(ctx) {
 let emailDisabledLogged = false;
 let smsDisabledLogged = false;
 
-async function emailSendAndLog({ bookingId, userId, kind, to, subject, html, text }) {
+async function emailSendAndLog({ bookingId, userId, kind, to, subject, html, text, replyTo }) {
   if (!to) {
     await log({ bookingId, userId, channel: 'email', kind, recipient: '', status: 'skipped', error: 'no_recipient' });
     return;
@@ -190,7 +205,7 @@ async function emailSendAndLog({ bookingId, userId, kind, to, subject, html, tex
     await log({ bookingId, userId, channel: 'email', kind, recipient: to, status: 'skipped', error: 'email_disabled' });
     return;
   }
-  const result = await sendEmail({ to, subject, html, text });
+  const result = await sendEmail({ to, subject, html, text, replyTo });
   await log({
     bookingId, userId, channel: 'email', kind, recipient: to,
     providerId: result.id || null,
@@ -240,19 +255,25 @@ async function sendBookingCreated(bookingId) {
     const cName = customerDisplayName(ctx);
     const cPhone = customerPhone(ctx);
 
+    const replyTo = config.notify.email.replyTo;
+
     // -- Customer email (only when there IS a registered customer)
     if (ctx.customer && ctx.customer.notify_email_bookings) {
       const tmpl = T.bookingCreatedCustomer({
         customerName: ctx.customer.name,
-        salonName: ctx.salon.name,
+        salon: ctx.salon,
+        salonPhone: ctx.salon.public_phone_visible ? ctx.owner.phone : null,
         serviceName: ctx.service.name,
+        durationMin: ctx.service.duration_min,
+        teamMemberName: ctx.team_member ? ctx.team_member.name : null,
         startAt: ctx.booking.start_at,
         endAt: ctx.booking.end_at,
         priceNok: ctx.booking.price_nok,
+        customerNote: ctx.customer_note,
         confirmationText: ctx.salon.booking_confirmation_text,
+        cancellationLeadHours: ctx.salon.cancellation_lead_hours,
         occurrences,
         bookingId: ctx.booking.id,
-        salonAddress: ctx.salon.address,
       });
       await emailSendAndLog({
         bookingId: ctx.booking.id,
@@ -262,6 +283,7 @@ async function sendBookingCreated(bookingId) {
         subject: tmpl.subject,
         html: tmpl.html,
         text: tmpl.text,
+        replyTo,
       });
     }
 
@@ -271,9 +293,15 @@ async function sendBookingCreated(bookingId) {
         ownerName: ctx.owner.name,
         salonName: ctx.salon.name,
         serviceName: ctx.service.name,
+        durationMin: ctx.service.duration_min,
+        priceNok: ctx.booking.price_nok,
+        teamMemberName: ctx.team_member ? ctx.team_member.name : null,
         startAt: ctx.booking.start_at,
+        endAt: ctx.booking.end_at,
         customerDisplayName: cName,
         customerPhone: cPhone,
+        customerNote: ctx.customer_note,
+        isGuest: !ctx.customer,
         bookingId: ctx.booking.id,
         occurrences,
       });
@@ -285,6 +313,7 @@ async function sendBookingCreated(bookingId) {
         subject: tmpl.subject,
         html: tmpl.html,
         text: tmpl.text,
+        replyTo,
       });
     }
 
@@ -331,6 +360,7 @@ async function sendBookingConfirmed(bookingId) {
       subject: tmpl.subject,
       html: tmpl.html,
       text: tmpl.text,
+      replyTo: config.notify.email.replyTo,
     });
   } catch (err) {
     console.error('[notify] sendBookingConfirmed failed', err && err.message ? err.message : err);

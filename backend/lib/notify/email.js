@@ -5,7 +5,7 @@ const config = require('../../config');
 
 const ENDPOINT = 'https://api.resend.com/emails';
 
-async function sendEmail({ to, subject, html, text }) {
+async function sendEmail({ to, subject, html, text, replyTo }) {
   if (!config.notify.email.enabled()) {
     return { ok: false, error: 'email_disabled' };
   }
@@ -25,6 +25,7 @@ async function sendEmail({ to, subject, html, text }) {
         subject,
         html: html || undefined,
         text: text || undefined,
+        reply_to: replyTo || undefined,
       }),
     });
     if (!res.ok) {
