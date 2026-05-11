@@ -3253,9 +3253,17 @@
         });
       });
 
-      wireGalleryAddTile();
       window.lucide && window.lucide.createIcons();
     }
+
+    // Delegated click handler — survives every gallery re-render so we never
+    // have to rebind. Triggers the hidden file input.
+    document.addEventListener('click', function (e) {
+      var tile = e.target.closest && e.target.closest('#galleryAddTile');
+      if (!tile) return;
+      var input = document.getElementById('imageUploader');
+      if (input) input.click();
+    });
 
     function wireGalleryAddTile() {
       var addTile = document.getElementById('galleryAddTile');
