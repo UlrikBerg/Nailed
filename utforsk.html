@@ -746,18 +746,6 @@
           </div>
         </div>
 
-        <!-- Rating -->
-        <div class="filter-section">
-          <p class="filter-section__label">Minst rating</p>
-          <div class="rating-stars" id="fRatingStars" role="radiogroup" aria-label="Minst rating">
-            <button type="button" data-r="1" aria-label="1 stjerne"><i data-lucide="star"></i></button>
-            <button type="button" data-r="2" aria-label="2 stjerner"><i data-lucide="star"></i></button>
-            <button type="button" data-r="3" aria-label="3 stjerner"><i data-lucide="star"></i></button>
-            <button type="button" data-r="4" aria-label="4 stjerner"><i data-lucide="star"></i></button>
-            <button type="button" data-r="5" aria-label="5 stjerner"><i data-lucide="star"></i></button>
-          </div>
-        </div>
-
         <!-- Varighet -->
         <div class="filter-section">
           <p class="filter-section__label">Maks varighet</p>
@@ -1656,21 +1644,24 @@
     }
 
     // --- Star selector --------------------------------------------------------
-    document.getElementById('fRatingStars').addEventListener('click', function (e) {
-      var btn = e.target.closest('button[data-r]');
-      if (!btn) return;
-      var v = parseInt(btn.dataset.r, 10);
-      if (fState.min_rating === v) {
-        fState.min_rating = null;
-      } else {
-        fState.min_rating = v;
-      }
-      syncFilterInputs();
-      syncUrl();
-      refreshFilterBtnBadge();
-      renderActiveChips();
-      loadSalons();
-    });
+    var ratingStarsEl = document.getElementById('fRatingStars');
+    if (ratingStarsEl) {
+      ratingStarsEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('button[data-r]');
+        if (!btn) return;
+        var v = parseInt(btn.dataset.r, 10);
+        if (fState.min_rating === v) {
+          fState.min_rating = null;
+        } else {
+          fState.min_rating = v;
+        }
+        syncFilterInputs();
+        syncUrl();
+        refreshFilterBtnBadge();
+        renderActiveChips();
+        loadSalons();
+      });
+    }
 
     // --- Apply / Reset --------------------------------------------------------
     document.getElementById('filterApply').addEventListener('click', function () {
