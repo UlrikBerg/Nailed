@@ -1,12 +1,12 @@
-// Public-page top-nav: replaces the "Logg inn" button with a profile chip +
-// logout when the user is signed in. Role determines the home destination:
-//   user        → /kunde-panel            label: "Min konto"
-//   salon_owner → /salong-panel           label: "Salongpanel"
+// Public-page top-nav: replaces the "Logg inn" button with a compact user pill
+// + dropdown when the user is signed in. Role determines the home destination
+// used for the role label and as the link target on the pill button:
+//   user        → /kunde-panel.html       label: "Min konto"
+//   salon_owner → /salong-panel.html      label: "Salongpanel"
 //   admin       → /admin/                 label: "Admin"
 //
-// Self-contained: depends on /assets/auth.js for NailedAuth. No new CSS
-// classes — uses inline styles for the avatar circle so styles.css stays
-// untouched.
+// Depends on /assets/auth.js for NailedAuth. CSS classes (.user-pill*) live in
+// styles.css and are shared with every page that includes this script.
 
 (function () {
   if (!window.NailedAuth) return;
@@ -16,26 +16,10 @@
     document.addEventListener('DOMContentLoaded', fn);
   }
 
-  function escapeHtml(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
-    });
-  }
-
   function homeForRole(role) {
     if (role === 'admin') return { href: '/admin/', label: 'Admin' };
-    if (role === 'salon_owner') return { href: '/salong-panel', label: 'Salongpanel' };
-    return { href: '/kunde-panel', label: 'Min konto' };
-  }
-
-  function avatarHtml(name) {
-    var initial = (name || '?').trim().charAt(0).toUpperCase() || '?';
-    return (
-      '<span style="display:inline-flex;align-items:center;justify-content:center;' +
-      'width:22px;height:22px;border-radius:999px;background:var(--rouge-500);' +
-      'color:#fff;font-weight:700;font-size:11px;margin-right:8px;flex-shrink:0;">' +
-      escapeHtml(initial) + '</span>'
-    );
+    if (role === 'salon_owner') return { href: '/salong-panel.html', label: 'Salongpanel' };
+    return { href: '/kunde-panel.html', label: 'Min konto' };
   }
 
   function findLoginLink(actions) {
@@ -43,9 +27,120 @@
     var anchors = actions.querySelectorAll('a');
     for (var i = 0; i < anchors.length; i++) {
       var href = anchors[i].getAttribute('href') || '';
-      if (/(^|\/)login(\.html)?(\?|$|#)/.test(href)) return anchors[i];
+      if (/(^|\/)login\.html(\?|$|#)/.test(href)) return anchors[i];
     }
     return null;
+  }
+
+  function buildPill(user, home) {
+    var initial = ((user.name || '?').trim().charAt(0) || '?').toUpperCase();
+
+    var wrap = document.createElement('div');
+    wrap.className = 'user-pill__wrap';
+
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'user-pill';
+    toggle.setAttribute('aria-haspopup', 'menu');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-controls', 'navUserMenu');
+    toggle.title = (user.name || '') + (user.email ? ' · ' + user.email : '');
+
+    var avatar = document.createElement('span');
+    avatar.className = 'user-pill__avatar';
+    avatar.textContent = initial;
+    toggle.appendChild(avatar);
+
+    var text = document.createElement('span');
+    text.className = 'user-pill__text';
+    var nameEl = document.createElement('span');
+    nameEl.className = 'user-pill__name';
+    nameEl.textContent = user.name || '';
+    text.appendChild(nameEl);
+    var roleEl = document.createElement('span');
+    roleEl.className = 'user-pill__role';
+    var roleLabel = document.createElement('span');
+    roleLabel.textContent = home.label;
+    var chev = document.createElement('i');
+    chev.setAttribute('data-lucide', 'chevron-down');
+    roleEl.appendChild(roleLabel);
+    roleEl.appendChild(chev);
+    text.appendChild(roleEl);
+    toggle.appendChild(text);
+
+    var menu = document.createElement('div');
+    menu.className = 'user-pill__menu';
+    menu.id = 'navUserMenu';
+    menu.setAttribute('role', 'menu');
+
+    function menuLink(href, iconName, label) {
+      var a = document.createElement('a');
+      a.className = 'user-pill__menu-item';
+      a.setAttribute('role', 'menuitem');
+      a.href = href;
+      var ic = document.createElement('i');
+      ic.setAttribute('data-lucide', iconName);
+      a.appendChild(ic);
+      a.appendChild(document.createTextNode(' ' + label));
+      return a;
+    }
+
+    menu.appendChild(menuLink('/kunde-panel', 'user-round', 'Min profil'));
+    if (user.role === 'salon_owner') {
+      menu.appendChild(menuLink('/salong-panel', 'store', 'Salongprofil'));
+    }
+    menu.appendChild(menuLink('/kunde-panel#tab-bookinger', 'calendar', 'Mine bookinger'));
+    menu.appendChild(menuLink('/favoritter', 'heart', 'Mine favoritter'));
+
+    var divider = document.createElement('div');
+    divider.className = 'user-pill__menu-divider';
+    divider.setAttribute('role', 'separator');
+    menu.appendChild(divider);
+
+    var logoutBtn = document.createElement('button');
+    logoutBtn.type = 'button';
+    logoutBtn.className = 'user-pill__menu-item';
+    logoutBtn.setAttribute('role', 'menuitem');
+    var logoutIcon = document.createElement('i');
+    logoutIcon.setAttribute('data-lucide', 'log-out');
+    logoutBtn.appendChild(logoutIcon);
+    logoutBtn.appendChild(document.createTextNode(' Logg ut'));
+    menu.appendChild(logoutBtn);
+
+    wrap.appendChild(toggle);
+    wrap.appendChild(menu);
+
+    function openMenu() {
+      menu.classList.add('is-open');
+      toggle.setAttribute('aria-expanded', 'true');
+    }
+    function closeMenu() {
+      menu.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    toggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (menu.classList.contains('is-open')) closeMenu(); else openMenu();
+    });
+    document.addEventListener('click', function (e) {
+      if (!menu.classList.contains('is-open')) return;
+      if (menu.contains(e.target) || toggle.contains(e.target)) return;
+      closeMenu();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+        closeMenu();
+        toggle.focus();
+      }
+    });
+    logoutBtn.addEventListener('click', async function () {
+      closeMenu();
+      try { await NailedAuth.logout(); } catch (_) {}
+      window.location.replace('/');
+    });
+
+    return wrap;
   }
 
   async function render() {
@@ -64,33 +159,13 @@
     var user = data.user || {};
     var home = homeForRole(user.role);
 
-    // Build the profile chip + logout pair.
-    var chip = document.createElement('a');
-    chip.href = home.href;
-    chip.className = 'btn btn-ghost btn-sm';
-    chip.style.display = 'inline-flex';
-    chip.style.alignItems = 'center';
-    chip.title = (user.name || '') + (user.email ? ' · ' + user.email : '');
-    chip.innerHTML = avatarHtml(user.name) + escapeHtml(home.label);
-
-    var logout = document.createElement('button');
-    logout.type = 'button';
-    logout.className = 'btn-icon';
-    logout.title = 'Logg ut';
-    logout.style.marginLeft = '4px';
-    logout.innerHTML = '<i data-lucide="log-out"></i>';
-    logout.addEventListener('click', async function () {
-      await NailedAuth.logout();
-      window.location.replace('/');
-    });
+    var pill = buildPill(user, home);
 
     var loginLink = findLoginLink(actions);
     if (loginLink) {
-      loginLink.parentNode.replaceChild(chip, loginLink);
-      chip.parentNode.insertBefore(logout, chip.nextSibling);
+      loginLink.parentNode.replaceChild(pill, loginLink);
     } else {
-      actions.appendChild(chip);
-      actions.appendChild(logout);
+      actions.appendChild(pill);
     }
 
     if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();

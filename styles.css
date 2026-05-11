@@ -1753,3 +1753,77 @@ p { margin: 0 0 var(--space-4) 0; }
 @media (max-width: 560px) { .home-stat + .home-stat { border-left: 0; } }
 .home-stat__num { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 3vw, 36px); color: var(--ink); letter-spacing: -0.02em; }
 .home-stat__label { font-family: var(--font-body); font-size: 13px; color: var(--fg-muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; }
+
+/* =========================================================================
+   Top-nav user pill — compact "K Role v" chip with a dropdown menu.
+   Rendered by assets/nav.js on every public page when the user is signed in.
+   ========================================================================= */
+.user-pill__wrap { position: relative; }
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 5px;
+  background: var(--cream-50);
+  border: 1px solid var(--stone-200);
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out-soft);
+}
+.user-pill:hover { border-color: var(--stone-400); }
+.user-pill[aria-expanded="true"] { border-color: var(--stone-400); }
+.user-pill__avatar {
+  width: 22px; height: 22px;
+  border-radius: var(--radius-pill);
+  background: var(--rouge-500); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 11px;
+}
+.user-pill__text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.user-pill__name { display: none; }
+.user-pill__role { font-size: 13px; color: var(--ink); display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
+.user-pill__role i { width: 14px; height: 14px; }
+.user-pill__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+  background: var(--cream-50);
+  border: 1px solid var(--stone-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 6px;
+  z-index: 50;
+  display: none;
+}
+.user-pill__menu.is-open { display: block; }
+.user-pill__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: left;
+}
+.user-pill__menu-item:hover,
+.user-pill__menu-item:focus-visible { background: var(--cream-100); outline: none; }
+.user-pill__menu-item i { width: 16px; height: 16px; color: var(--fg-muted); }
+.user-pill__menu-divider { height: 1px; background: var(--stone-200); margin: 6px 4px; }
