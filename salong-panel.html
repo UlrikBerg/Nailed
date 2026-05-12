@@ -3436,16 +3436,29 @@
       var fd = new FormData();
       fd.append('file', file);
       var token = NailedAuth.getAccess();
-      var res = await fetch('/api/v1/salons/' + salon.id + '/images', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + token },
-        body: fd,
-      });
+      console.log('[upload] POST /api/v1/salons/' + salon.id + '/images — file:', file.name, file.type, file.size, 'token?', !!token);
+      var res;
+      try {
+        res = await fetch('/api/v1/salons/' + salon.id + '/images', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token },
+          body: fd,
+        });
+      } catch (err) {
+        console.error('[upload] fetch threw:', err);
+        throw new Error('Nettverksfeil: ' + err.message);
+      }
+      console.log('[upload] response status:', res.status);
       if (!res.ok) {
-        var data = await res.json().catch(function () { return {}; });
-        var msg = (data.error && data.error.message) || 'Opplasting feilet.';
+        var bodyText = await res.text().catch(function () { return ''; });
+        console.error('[upload] error body:', bodyText);
+        var data = {};
+        try { data = JSON.parse(bodyText); } catch (_) {}
+        var msg = (data.error && data.error.message) || ('Opplasting feilet (HTTP ' + res.status + ').');
         throw new Error(msg);
       }
+      var ok = await res.json().catch(function () { return null; });
+      console.log('[upload] success:', ok);
     }
 
     var imageUploadInProgress = false;
