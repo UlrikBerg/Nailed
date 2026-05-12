@@ -431,6 +431,7 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
             slot_interval_min, org_number,
             subscription_status, subscription_price_nok,
             trial_ends_at, subscription_started_at, subscription_cancelled_at,
+            suspension_reason, suspended_at,
             status
        FROM salons WHERE owner_user_id = ? AND status != 'deleted'
        ORDER BY created_at ASC LIMIT 1`,

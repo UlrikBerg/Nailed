@@ -433,6 +433,12 @@ ALTER TABLE salons
 ALTER TABLE salons
   ADD COLUMN IF NOT EXISTS slot_interval_min TINYINT NOT NULL DEFAULT 60;
 
+-- Suspendering: grunn satt av admin når status flippes til 'suspended'.
+-- Brukes i e-postvarselet OG vises som banner i salong-panelet.
+ALTER TABLE salons
+  ADD COLUMN IF NOT EXISTS suspension_reason TEXT DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS suspended_at DATETIME DEFAULT NULL;
+
 -- Org-nr (norsk 9-siffer organisasjonsnummer). Vises på offentlig
 -- salongprofil + brukes til fakturering når abonnementet aktiveres.
 ALTER TABLE salons

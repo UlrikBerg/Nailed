@@ -15,6 +15,52 @@
 
     .kp-page { padding: 48px 0 96px; }
 
+    /* Suspendert-banner øverst i salongpanelet. */
+    .suspend-banner {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      background: var(--rouge-50);
+      border: 1px solid var(--rouge-300);
+      border-radius: var(--radius-lg);
+      padding: 22px 26px;
+      margin-bottom: 28px;
+    }
+    .suspend-banner__icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: var(--rouge-500);
+      color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .suspend-banner__icon i { width: 22px; height: 22px; }
+    .suspend-banner__body { flex: 1; min-width: 0; }
+    .suspend-banner__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--rouge-700);
+      margin: 0 0 4px;
+    }
+    .suspend-banner__sub { margin: 0; font-size: 14px; color: var(--ink); line-height: 1.5; }
+    .suspend-banner__reason {
+      margin: 12px 0 0;
+      padding: 12px 14px;
+      background: #fff;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--ink);
+    }
+    .suspend-banner__reason::before {
+      content: 'Grunn: ';
+      font-weight: 700;
+      color: var(--rouge-700);
+    }
+    .suspend-banner__contact { margin: 12px 0 0; font-size: 13px; color: var(--fg-muted); }
+    .suspend-banner__contact a { color: var(--rouge-500); font-weight: 600; }
+
     /* Hero greeting + tiny profile chip */
     .kp-hero {
       display: flex;
@@ -1846,6 +1892,17 @@
   <section class="kp-page">
     <div class="page">
 
+      <!-- Suspendert-banner — synlig kun når salon.status === 'suspended' -->
+      <div class="suspend-banner" id="suspendBanner" hidden>
+        <div class="suspend-banner__icon"><i data-lucide="alert-triangle"></i></div>
+        <div class="suspend-banner__body">
+          <div class="suspend-banner__title">Salongen din er suspendert</div>
+          <p class="suspend-banner__sub" id="suspendBannerSub">Salongen vises ikke offentlig og kan ikke ta imot nye bookinger.</p>
+          <p class="suspend-banner__reason" id="suspendBannerReason" hidden></p>
+          <p class="suspend-banner__contact">Spørsmål? Skriv til <a href="mailto:hei@nailed.no">hei@nailed.no</a>.</p>
+        </div>
+      </div>
+
       <!-- Greeting hero -->
       <div class="kp-hero">
         <div>
@@ -3176,6 +3233,7 @@
       renderGallery(salon, currentImages);
       renderProfileView(salon, currentImages);
       renderSubscriptionCard(salon);
+      renderSuspendBanner(salon);
       renderHoursView();
       renderTeamView();
       renderAmenitiesView();
@@ -3671,6 +3729,26 @@
       }
       NailedForms.toast('Fasiliteter lagret');
       await loadSalon();
+    }
+
+    function renderSuspendBanner(s) {
+      var banner = document.getElementById('suspendBanner');
+      var reasonEl = document.getElementById('suspendBannerReason');
+      if (!banner) return;
+      if (s.status === 'suspended') {
+        banner.hidden = false;
+        if (reasonEl) {
+          if (s.suspension_reason && s.suspension_reason.trim()) {
+            reasonEl.textContent = s.suspension_reason;
+            reasonEl.hidden = false;
+          } else {
+            reasonEl.hidden = true;
+          }
+        }
+        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      } else {
+        banner.hidden = true;
+      }
     }
 
     function renderSubscriptionCard(s) {

@@ -153,7 +153,10 @@ router.post('/salons/:id/suspend', asyncRoute(async (req, res) => {
   const schema = z.object({ reason: z.string().trim().max(2000).optional() });
   const { reason } = schema.parse(req.body || {});
 
-  await query(`UPDATE salons SET status = 'suspended' WHERE id = ?`, [id]);
+  await query(
+    `UPDATE salons SET status = 'suspended', suspended_at = CURRENT_TIMESTAMP, suspension_reason = ? WHERE id = ?`,
+    [reason || null, id]
+  );
   await audit(req.user.id, 'salon.suspend', 'salon', id, { reason: reason || null });
 
   // Varsle salong-eier via e-post.
@@ -214,7 +217,10 @@ function escapeHtml(s) {
 router.post('/salons/:id/activate', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
-  await query(`UPDATE salons SET status = 'active' WHERE id = ?`, [id]);
+  await query(
+    `UPDATE salons SET status = 'active', suspended_at = NULL, suspension_reason = NULL WHERE id = ?`,
+    [id]
+  );
   await audit(req.user.id, 'salon.activate', 'salon', id);
   res.json({ ok: true });
 }));

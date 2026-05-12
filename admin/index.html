@@ -1796,6 +1796,7 @@
       var act = btn.getAttribute('data-act');
       var name = btn.getAttribute('data-name') || 'denne salongen';
 
+      var suspendReason = null;
       if (act === 'suspend') {
         var ok = await showConfirm({
           title: 'Suspender ' + name + '?',
@@ -1804,6 +1805,10 @@
           okClass: 'btn-danger',
         });
         if (!ok) return;
+        // Grunn vises i e-posten + i banneret salong-eier ser i panelet.
+        // La feltet stå tomt for å hoppe over.
+        suspendReason = prompt('Grunn til suspendering (vises til eieren i e-post + panel). La feltet stå tomt for å hoppe over:') || null;
+        if (suspendReason != null) suspendReason = suspendReason.trim() || null;
       } else if (act === 'delete') {
         var ok2 = await showConfirm({
           title: 'Slett ' + name + '?',
@@ -1817,7 +1822,9 @@
       btn.disabled = true;
       try {
         var url = '/api/v1/admin/salons/' + id + (act === 'delete' ? '' : '/' + act);
-        var res = await NailedAuth.api(url, { method: act === 'delete' ? 'DELETE' : 'POST' });
+        var fetchOpts = { method: act === 'delete' ? 'DELETE' : 'POST' };
+        if (act === 'suspend' && suspendReason) fetchOpts.body = { reason: suspendReason };
+        var res = await NailedAuth.api(url, fetchOpts);
         if (!res.ok) throw new Error('salon ' + act + ' ' + res.status);
         showToast(
           act === 'suspend' ? 'Salong suspendert' :
