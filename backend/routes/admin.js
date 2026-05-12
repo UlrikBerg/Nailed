@@ -245,7 +245,7 @@ router.post('/salon-applications/:id/approve', asyncRoute(async (req, res) => {
          (owner_user_id, slug, name, city, address_line, postal_code, lat, lng,
           instagram_url, tiktok_url, facebook_url, website_url,
           subscription_status, trial_ends_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'trial', DATE_ADD(NOW(), INTERVAL 30 DAY))`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'trial', DATE_ADD(NOW(), INTERVAL 3 MONTH))`,
       [
         app.applicant_user_id, slug, app.salon_name, app.city,
         app.address_line, app.postal_code,

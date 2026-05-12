@@ -428,6 +428,16 @@ ALTER TABLE salons
   ADD COLUMN IF NOT EXISTS subscription_started_at DATETIME DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS subscription_cancelled_at DATETIME DEFAULT NULL;
 
+-- Slot-intervall: hvor ofte timer kan starte (15/30/60 min). Salongen velger
+-- selv i Innstillinger. Default 60 (matcher gammel oppførsel).
+ALTER TABLE salons
+  ADD COLUMN IF NOT EXISTS slot_interval_min TINYINT NOT NULL DEFAULT 60;
+
+-- Org-nr (norsk 9-siffer organisasjonsnummer). Vises på offentlig
+-- salongprofil + brukes til fakturering når abonnementet aktiveres.
+ALTER TABLE salons
+  ADD COLUMN IF NOT EXISTS org_number VARCHAR(20) DEFAULT NULL;
+
 -- Per-date closures (vacation, holidays, …). One row per closed date.
 CREATE TABLE IF NOT EXISTS salon_closures (
   id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

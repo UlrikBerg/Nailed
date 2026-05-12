@@ -1144,11 +1144,12 @@
         if (o != null && c != null) { openMin = o; closeMin = c; }
       }
 
-      // Snap to whole-hour grid steps and require start >= openMin AND
-      // start + duration <= closeMin. (Existing behavior renders on whole-
-      // hour boundaries; we preserve that step size.)
-      var startGridMin = Math.ceil(openMin / 60) * 60;
-      for (var m = startGridMin; m + dur <= closeMin; m += 60) {
+      // Slot-intervall styres av salongen i Innstillinger (15/30/60). Default
+      // 60 hvis ikke satt — bevarer gammel oppførsel.
+      var step = (currentSalon && Number(currentSalon.slot_interval_min)) || 60;
+      if (![15, 30, 60].includes(step)) step = 60;
+      var startGridMin = Math.ceil(openMin / step) * step;
+      for (var m = startGridMin; m + dur <= closeMin; m += step) {
         var h = Math.floor(m / 60);
         var mm = m % 60;
         var hh = h < 10 ? '0' + h : '' + h;
@@ -1870,7 +1871,12 @@
       var pcCity = [s.postal_code, s.city].filter(Boolean).map(escapeHtml).join(' ');
       if (pcCity) parts.push(pcCity);
       if (parts.length) {
-        addrEl.innerHTML = '<i data-lucide="map-pin" style="width:14px; height:14px; vertical-align:-2px;"></i> ' + parts.join(', ');
+        var orgFragment = s.org_number
+          ? '<span style="display:inline-block;margin-left:10px;font-size:12px;color:var(--fg-muted);">Org.nr ' + escapeHtml(s.org_number) + '</span>'
+          : '';
+        addrEl.innerHTML = '<i data-lucide="map-pin" style="width:14px; height:14px; vertical-align:-2px;"></i> ' + parts.join(', ') + orgFragment;
+      } else if (s.org_number) {
+        addrEl.innerHTML = '<span style="font-size:13px;color:var(--fg-muted);">Org.nr ' + escapeHtml(s.org_number) + '</span>';
       } else {
         addrEl.style.display = 'none';
       }

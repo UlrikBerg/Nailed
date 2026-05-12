@@ -258,6 +258,7 @@ router.get('/:slug', asyncRoute(async (req, res) => {
             notify_email_new_booking, notify_email_cancellation,
             notify_email_daily_summary, notify_sms_new_booking,
             booking_confirmation_text, lunch_break_start, lunch_break_end,
+            slot_interval_min, org_number,
             status
        FROM salons WHERE slug = ? LIMIT 1`,
     [req.params.slug]
@@ -412,6 +413,7 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
             notify_email_daily_summary, notify_sms_new_booking,
             booking_confirmation_text, lunch_break_start, lunch_break_end,
             onboarding_skipped,
+            slot_interval_min, org_number,
             subscription_status, subscription_price_nok,
             trial_ends_at, subscription_started_at, subscription_cancelled_at,
             status
@@ -545,6 +547,10 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
     booking_confirmation_text: z.string().trim().max(1000).nullable().optional(),
     lunch_break_start: timeStr.nullable().optional(),
     lunch_break_end: timeStr.nullable().optional(),
+    slot_interval_min: z.number().int().refine(v => [15, 30, 60].includes(v), {
+      message: 'Slot-intervall må være 15, 30 eller 60 minutter.',
+    }).optional(),
+    org_number: z.string().trim().max(20).nullable().optional(),
   });
   const patch = schema.parse(req.body);
 

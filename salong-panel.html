@@ -1274,6 +1274,57 @@
     .sub-card__statusPill--active { background: #dcfce7; color: #166534; }
     .sub-card__statusPill--past_due { background: #fee2e2; color: #b91c1c; }
     .sub-card__statusPill--cancelled { background: var(--stone-100); color: var(--fg-muted); }
+    .sub-card__trialBar {
+      margin-top: 14px;
+      background: var(--stone-100);
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .sub-card__trialBar__fill {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      background: linear-gradient(90deg, var(--rouge-500), var(--rouge-300));
+      border-radius: 999px;
+      transition: width 200ms ease;
+    }
+    .sub-card__trialBar__label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--fg-muted);
+      margin-top: 6px;
+    }
+
+    /* Booking-intervall radio-piller */
+    .slot-interval-pills {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .slot-pill {
+      cursor: pointer;
+      padding: 12px 18px;
+      border: 1px solid var(--stone-200);
+      border-radius: 12px;
+      background: var(--cream-50);
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-width: 140px;
+      transition: all 120ms ease;
+    }
+    .slot-pill:hover { border-color: var(--rouge-300); }
+    .slot-pill input { position: absolute; opacity: 0; pointer-events: none; }
+    .slot-pill span { font-weight: 600; font-size: 14px; color: var(--ink); }
+    .slot-pill small { font-size: 12px; color: var(--fg-muted); }
+    .slot-pill:has(input:checked) {
+      background: var(--rouge-50);
+      border-color: var(--rouge-500);
+    }
+    .slot-pill:has(input:checked) span { color: var(--rouge-500); }
 
     /* Bookings status-filter pills */
     .kp-bookings-filter {
@@ -2569,7 +2620,15 @@
               <span class="sub-card__priceUnit">kr/mnd</span>
             </div>
           </div>
+          <div id="subTrialBar" hidden>
+            <div class="sub-card__trialBar"><div class="sub-card__trialBar__fill" id="subTrialFill" style="width:0%"></div></div>
+            <div class="sub-card__trialBar__label">
+              <span id="subTrialDaysLeft">—</span>
+              <span id="subTrialEndDate">—</span>
+            </div>
+          </div>
           <ul class="sub-card__list">
+            <li><i data-lucide="check"></i> 3 måneder gratis prøveperiode</li>
             <li><i data-lucide="check"></i> Ubegrenset bookinger og kunder</li>
             <li><i data-lucide="check"></i> Egen salongprofil + bilder</li>
             <li><i data-lucide="check"></i> E-postvarslinger til deg og kundene</li>
@@ -2661,14 +2720,53 @@
           <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
             Tekst som vises kunden i bookingbekreftelsen (f.eks. parkering, hvor inngangen er, hva man bør ta med).
           </p>
-          <form id="confirmationTextForm" style="display:grid; gap:16px; max-width:560px;">
-            <label class="form-field" style="display:block;">
-              <span class="form-label">Melding til kunden</span>
-              <textarea class="form-input" name="booking_confirmation_text" rows="4" maxlength="1000" placeholder="F.eks. Inngangen er på baksiden, parkering finnes i Storgata 12 …"></textarea>
-              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">Maks 1000 tegn. La feltet være tomt for å skjule meldingen.</span>
-            </label>
+          <form id="confirmationTextForm" style="display:flex; flex-direction:column; gap:12px; max-width:640px;">
+            <span class="form-label">Melding til kunden</span>
+            <textarea class="form-input" name="booking_confirmation_text" rows="5" maxlength="1000"
+                      style="width:100%; box-sizing:border-box; resize:vertical;"
+                      placeholder="F.eks. Inngangen er på baksiden, parkering finnes i Storgata 12 …"></textarea>
+            <span class="form-help" style="color: var(--fg-muted); font-size:13px;">Maks 1000 tegn. La feltet være tomt for å skjule meldingen.</span>
             <div>
               <button class="btn btn-primary" type="submit">Lagre melding</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Booking-intervall -->
+        <div class="kp-card">
+          <h2 style="margin:0 0 4px 0; font-size:18px; font-family: var(--font-display);">Booking-intervall</h2>
+          <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
+            Hvor ofte kan timer starte? Påvirker hvilke tider kundene ser på salongsiden.
+          </p>
+          <form id="slotIntervalForm" style="display:flex; flex-direction:column; gap:12px; max-width:560px;">
+            <div class="slot-interval-pills" id="slotIntervalPills">
+              <label class="slot-pill"><input type="radio" name="slot_interval_min" value="15"> <span>Hvert kvarter</span><small>15 min</small></label>
+              <label class="slot-pill"><input type="radio" name="slot_interval_min" value="30"> <span>Hver halvtime</span><small>30 min</small></label>
+              <label class="slot-pill"><input type="radio" name="slot_interval_min" value="60"> <span>Hver hele time</span><small>60 min</small></label>
+            </div>
+            <div>
+              <button class="btn btn-primary" type="submit">Lagre intervall</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Organisasjonsnummer -->
+        <div class="kp-card">
+          <h2 style="margin:0 0 4px 0; font-size:18px; font-family: var(--font-display);">Organisasjonsnummer</h2>
+          <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
+            Vises på salongprofilen din og brukes til fakturering av abonnementet.
+          </p>
+          <form id="orgNumberForm" style="display:flex; flex-direction:column; gap:12px; max-width:560px;">
+            <label class="form-field" style="display:block;">
+              <span class="form-label">Org.nr</span>
+              <input class="form-input" type="text" name="org_number" inputmode="numeric" maxlength="20"
+                     placeholder="9 sifre — f.eks. 912 345 678" style="width:100%; box-sizing:border-box;" />
+              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:13px; margin-top:4px;">
+                Lar stå tomt hvis du er privatperson. Endrer ikke fakturaadressen automatisk — kontakt nailed for å oppdatere.
+              </span>
+            </label>
+            <div>
+              <button class="btn btn-primary" type="submit">Lagre org.nr</button>
             </div>
           </form>
         </div>
@@ -3053,6 +3151,18 @@
           salon.lunch_break_start ? String(salon.lunch_break_start).slice(0, 5) : '';
         lunchForm.querySelector('input[name=lunch_break_end]').value =
           salon.lunch_break_end ? String(salon.lunch_break_end).slice(0, 5) : '';
+      }
+      // Booking-intervall (15/30/60)
+      var slotForm = document.getElementById('slotIntervalForm');
+      if (slotForm) {
+        var cur = salon.slot_interval_min || 60;
+        var pick = slotForm.querySelector('input[name=slot_interval_min][value="' + cur + '"]');
+        if (pick) pick.checked = true;
+      }
+      // Org.nr
+      var orgForm = document.getElementById('orgNumberForm');
+      if (orgForm) {
+        orgForm.querySelector('input[name=org_number]').value = salon.org_number || '';
       }
       // Stengte dager
       renderClosuresList();
@@ -3575,18 +3685,40 @@
         return '<span class="sub-card__statusPill sub-card__statusPill--' + cls + '">' + label + '</span>';
       };
 
+      // Skjul trial-bar som default — vises kun for status='trial'.
+      var barWrap = document.getElementById('subTrialBar');
+      if (barWrap) barWrap.hidden = true;
+
       if (status === 'trial') {
         var daysLeft = null;
+        var totalDays = 90; // 3 mnd
         if (s.trial_ends_at) {
-          var ms = new Date(s.trial_ends_at).getTime() - Date.now();
-          daysLeft = Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+          var endMs = new Date(s.trial_ends_at).getTime();
+          var msLeft = endMs - Date.now();
+          daysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
         }
         var msg = daysLeft != null
           ? (daysLeft > 0
-              ? 'Gratis prøveperiode — ' + daysLeft + ' dager igjen. Faktureres ' + price + ' kr/mnd etterpå.'
+              ? '3 måneder gratis prøveperiode — ' + daysLeft + ' dager igjen. Faktureres ' + price + ' kr/mnd etterpå.'
               : 'Prøveperioden er over. Velg betaling for å fortsette.')
-          : 'Gratis prøveperiode. Faktureres ' + price + ' kr/mnd etterpå.';
+          : '3 måneder gratis prøveperiode. Faktureres ' + price + ' kr/mnd etterpå.';
         statusEl.innerHTML = pill('trial', 'Prøveperiode') + msg;
+
+        // Trial-bar — fyller fra venstre mot høyre etter hvor mange dager
+        // som er brukt opp av prøveperioden.
+        if (barWrap && daysLeft != null) {
+          barWrap.hidden = false;
+          var used = Math.max(0, totalDays - daysLeft);
+          var pct = Math.min(100, Math.round((used / totalDays) * 100));
+          var fillEl = document.getElementById('subTrialFill');
+          if (fillEl) fillEl.style.width = pct + '%';
+          var leftEl = document.getElementById('subTrialDaysLeft');
+          if (leftEl) leftEl.textContent = daysLeft + ' dager igjen';
+          var endEl = document.getElementById('subTrialEndDate');
+          if (endEl && s.trial_ends_at) {
+            endEl.textContent = 'Slutter ' + new Date(s.trial_ends_at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' });
+          }
+        }
       } else if (status === 'active') {
         var since = s.subscription_started_at
           ? ' siden ' + new Date(s.subscription_started_at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -5489,6 +5621,39 @@
       var res = await NailedAuth.api('/api/v1/salons/' + salon.id, { method: 'PATCH', body: body });
       if (res.ok) {
         NailedForms.toast('Melding lagret');
+        await loadSalon();
+      } else {
+        var data = await res.json().catch(function () { return {}; });
+        NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre', { type: 'error' });
+      }
+    });
+
+    // ---- Booking-intervall ----
+    document.getElementById('slotIntervalForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var sel = this.querySelector('input[name=slot_interval_min]:checked');
+      if (!sel) return;
+      var val = parseInt(sel.value, 10);
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id, {
+        method: 'PATCH', body: { slot_interval_min: val },
+      });
+      if (res.ok) {
+        NailedForms.toast('Booking-intervall lagret');
+        await loadSalon();
+      } else {
+        var data = await res.json().catch(function () { return {}; });
+        NailedForms.toast((data.error && data.error.message) || 'Kunne ikke lagre', { type: 'error' });
+      }
+    });
+
+    // ---- Org-nr ----
+    document.getElementById('orgNumberForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var raw = (this.querySelector('input[name=org_number]').value || '').trim();
+      var body = { org_number: raw === '' ? null : raw };
+      var res = await NailedAuth.api('/api/v1/salons/' + salon.id, { method: 'PATCH', body: body });
+      if (res.ok) {
+        NailedForms.toast('Org.nr lagret');
         await loadSalon();
       } else {
         var data = await res.json().catch(function () { return {}; });
