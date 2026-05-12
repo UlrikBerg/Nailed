@@ -841,9 +841,10 @@ p { margin: 0 0 var(--space-4) 0; }
 .salon-detail__title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 56px;
+  font-size: clamp(34px, 6vw, 56px);
   letter-spacing: -0.025em;
   margin: 0 0 8px;
+  line-height: 1.05;
 }
 .salon-detail__sub { color: var(--fg-muted); font-size: 16px; margin: 0 0 24px; }
 .salon-detail__sub i { vertical-align: -3px; }
@@ -2314,4 +2315,50 @@ p { margin: 0 0 var(--space-4) 0; }
   }
 
   /* Bottom-nav-items har allerede min-height 56 — sjekket */
+}
+
+/* =========================================================================
+   Mobil booking-flow (salon.html)
+   Bumper tap-targets og rydder padding for tomme-vennlig booking.
+   ========================================================================= */
+
+@media (max-width: 720px) {
+  .booking-panel {
+    padding: 20px;
+    border-radius: var(--radius-lg);
+  }
+  .booking-panel__header h3 { font-size: 18px; }
+
+  /* Service-kort: full bredde, romslig */
+  .service-list__item { padding: 14px 16px; min-height: 56px; }
+  .service-list__name { font-size: 15px; }
+
+  /* Dag-velger: 5 kort × romslig høyde */
+  .day-pick { padding: 10px 4px; min-height: 52px; }
+  .day-pick__num { font-size: 16px; }
+  .day-pick__dow { font-size: 10px; }
+  .day-carousel { gap: 8px; }
+  .day-carousel__nav {
+    flex: 0 0 44px;
+    min-height: 52px;
+  }
+  .day-carousel__nav i { width: 18px; height: 18px; }
+
+  /* Slot-grid: 4 cols på vanlig mobil, 3 cols på svært smale skjermer */
+  .slots {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .slot {
+    min-height: 44px;
+    font-size: 14px;
+    padding: 0 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .slots { grid-template-columns: repeat(3, 1fr); }
 }
