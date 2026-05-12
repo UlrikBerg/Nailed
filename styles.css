@@ -1948,7 +1948,12 @@ p { margin: 0 0 var(--space-4) 0; }
   font-weight: 400;
   color: var(--rouge-700);
 }
+/* Tre-linjes-skulptur: «Bygget for» er medium, «norske salonger»
+   (italic rouge) er hovedfokus i full størrelse, «og kundene deres»
+   er minst — gir en descending visuell hierarki. */
 .home-promise__line { display: block; }
+.home-promise__title .home-promise__line:first-child { font-size: 0.78em; }
+.home-promise__title .home-promise__line:last-child { font-size: 0.62em; }
 .home-promise__list {
   list-style: none;
   margin: 0;
