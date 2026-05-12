@@ -143,38 +143,76 @@
     return wrap;
   }
 
-  async function render() {
-    var actions = document.querySelector('.top-nav__actions');
-    if (!actions) return;
+  var USER_CACHE_KEY = 'nailed.user';
+  function getCachedUser() {
+    try {
+      var raw = localStorage.getItem(USER_CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) { return null; }
+  }
+  function setCachedUser(user) {
+    try { localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user)); } catch (_) {}
+  }
+  function clearCachedUser() {
+    try { localStorage.removeItem(USER_CACHE_KEY); } catch (_) {}
+  }
 
-    if (!NailedAuth.isLoggedIn()) return; // Anon — leave default "Logg inn" alone.
-
-    var res = await NailedAuth.api('/api/v1/me');
-    if (!res.ok) {
-      // Token invalid or revoked — clear and let default UI show.
-      NailedAuth.clearTokens();
-      return;
-    }
-    var data = await res.json();
-    var user = data.user || {};
+  function mountPill(actions, user) {
     var home = homeForRole(user.role);
-
     var pill = buildPill(user, home);
-
     var loginLink = findLoginLink(actions);
     if (loginLink) {
       loginLink.parentNode.replaceChild(pill, loginLink);
     } else {
-      actions.appendChild(pill);
+      var existing = actions.querySelector('.user-pill__wrap');
+      if (existing) existing.parentNode.replaceChild(pill, existing);
+      else actions.appendChild(pill);
     }
-
     if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
   }
 
-  ready(function () {
-    render().catch(function (err) {
-      // Don't break the page if anything goes wrong here.
+  function pillsEqual(a, b) {
+    if (!a || !b) return false;
+    return a.name === b.name && a.email === b.email && a.role === b.role;
+  }
+
+  function render() {
+    var actions = document.querySelector('.top-nav__actions');
+    if (!actions) return;
+
+    if (!NailedAuth.isLoggedIn()) {
+      clearCachedUser();
+      return; // Anon — leave default "Logg inn" alone.
+    }
+
+    // Synchronously mount pill from cache BEFORE first paint completes so
+    // the header looks identical from one page to the next — no flash from
+    // "Logg inn" to user-pill mens /api/v1/me-kallet pågår.
+    var cached = getCachedUser();
+    if (cached) mountPill(actions, cached);
+
+    // Background refresh: validate token + pick up name/email changes. If the
+    // server says we're unauthorized, clear and let default UI show on next nav.
+    NailedAuth.api('/api/v1/me').then(function (res) {
+      if (!res.ok) {
+        NailedAuth.clearTokens();
+        clearCachedUser();
+        // Don't yank the pill mid-session — next page load shows Logg inn.
+        return;
+      }
+      return res.json().then(function (data) {
+        var user = data.user || {};
+        if (pillsEqual(user, cached)) {
+          setCachedUser(user);
+          return;
+        }
+        setCachedUser(user);
+        mountPill(actions, user);
+      });
+    }).catch(function (err) {
       console.warn('[nav]', err);
     });
-  });
+  }
+
+  ready(render);
 })();
