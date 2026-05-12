@@ -60,19 +60,22 @@
   // inert script element triggers the browser's execution path.
   // For src scripts: avoid re-loading shared assets that already exist via
   // their src (auth.js, lucide etc) by skipping when a script with the same
-  // resolved URL is already in the document.
+  // resolved URL is already in the document AT THE TIME execScripts is called
+  // (not after — the new scripts have just been inserted into DOM by the
+  // content swap, so we need to take the snapshot once and exclude them).
   function execScripts(scope) {
+    var newScripts = Array.prototype.slice.call(scope.querySelectorAll('script'));
+    var newSet = new Set(newScripts);
     var loaded = {};
     document.querySelectorAll('script[src]').forEach(function (s) {
+      if (newSet.has(s)) return; // skip the newly-inserted ones
       loaded[s.src] = true;
     });
-    var scripts = Array.prototype.slice.call(scope.querySelectorAll('script'));
-    scripts.forEach(function (old) {
+    newScripts.forEach(function (old) {
       var src = old.getAttribute('src');
       if (src) {
         var resolved = new URL(src, location.href).href;
         if (loaded[resolved]) {
-          // Already loaded by the parent page (or prior nav); skip re-fetch.
           old.parentNode.removeChild(old);
           return;
         }
