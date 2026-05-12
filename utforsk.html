@@ -512,11 +512,13 @@
       .utforsk-results .service-card {
         flex-direction: row;
         align-items: stretch;
+        /* Fast høyde gjør at alle kortene blir like uavhengig av antall
+           chips, og at bilde-aspect ikke dikterer kort-størrelsen. */
+        height: 360px;
       }
       .utforsk-results .service-card__photo {
         flex: 0 0 280px;
         aspect-ratio: auto;
-        min-height: 240px;
       }
       .utforsk-results .service-card__body {
         flex: 1;
@@ -532,13 +534,14 @@
       padding: 22px 26px 18px;
       position: relative;
     }
-    /* Bottom-gruppen: behandlere → kategorier → pris. Stor margin-top
-       gir tydelig pusterom mellom rating og chips. */
+    /* Bottom-gruppen: behandlere → kategorier → pris. margin-top:auto
+       klistrer dem til bunnen siden card har fixed height (360px).
+       Større gap mellom chip-radene gir mer pusterom. */
     .sc2-bottom {
-      margin-top: 56px;
+      margin-top: auto;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 14px;
     }
     /* Hjerteknappen ligger nå INNE i info-kolonnen, øverst til høyre. */
     .utforsk-results .sc2-body { position: relative; }
