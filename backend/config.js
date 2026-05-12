@@ -81,7 +81,17 @@ const config = {
   notify: {
     email: {
       apiKey: optional('RESEND_API_KEY', ''),
-      from: optional('RESEND_FROM', 'Nailed <noreply@nailed.no>'),
+      // Always render From with a "Nailed <addr>" display name. Without a
+      // display name, Gmail shows the local-part of the address (e.g. "hei")
+      // as the sender name in the inbox list. If RESEND_FROM is set to a bare
+      // address like 'hei@nailed.no', we wrap it with the brand name here so
+      // the header is well-formed regardless of how ops configured the env.
+      from: (function () {
+        const raw = optional('RESEND_FROM', 'Nailed <noreply@nailed.no>');
+        // If already in "Name <addr>" form, keep as-is. Otherwise wrap a bare
+        // address with the brand name.
+        return /<[^>]+>/.test(raw) ? raw : `Nailed <${raw}>`;
+      })(),
       // Replies to noreply@ would bounce — point Reply-To at a real inbox so
       // users can still respond. Override with RESEND_REPLY_TO if needed.
       replyTo: optional('RESEND_REPLY_TO', 'hei@nailed.no'),
