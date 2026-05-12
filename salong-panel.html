@@ -3433,10 +3433,16 @@
     var MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
     async function uploadOneImage(file) {
+      if (!salon || !salon.id) {
+        throw new Error('Salong-ID mangler. Last siden på nytt.');
+      }
       var fd = new FormData();
       fd.append('file', file);
       var token = NailedAuth.getAccess();
-      console.log('[upload] POST /api/v1/salons/' + salon.id + '/images — file:', file.name, file.type, file.size, 'token?', !!token);
+      if (!token) {
+        throw new Error('Du er ikke logget inn. Logg inn og prøv igjen.');
+      }
+      console.log('[upload] POST /api/v1/salons/' + salon.id + '/images — file:', file.name, file.type, file.size);
       var res;
       try {
         res = await fetch('/api/v1/salons/' + salon.id + '/images', {
@@ -3451,10 +3457,10 @@
       console.log('[upload] response status:', res.status);
       if (!res.ok) {
         var bodyText = await res.text().catch(function () { return ''; });
-        console.error('[upload] error body:', bodyText);
+        console.error('[upload] HTTP ' + res.status + ' body:', bodyText);
         var data = {};
         try { data = JSON.parse(bodyText); } catch (_) {}
-        var msg = (data.error && data.error.message) || ('Opplasting feilet (HTTP ' + res.status + ').');
+        var msg = (data.error && data.error.message) || ('HTTP ' + res.status + ': ' + (bodyText || 'tom respons'));
         throw new Error(msg);
       }
       var ok = await res.json().catch(function () { return null; });
@@ -3517,11 +3523,16 @@
     }
 
     document.getElementById('imageUploader').addEventListener('change', function () {
-      var files = this.files;
+      var input = this;
+      var files = input.files;
       console.log('[upload] change event — files:', files && files.length);
-      this.value = '';
       if (!files || !files.length) return;
-      uploadImages(files);
+      // Snapshot the FileList into a plain Array BEFORE we reset the input —
+      // setting input.value = '' empties the live FileList reference, so any
+      // later access to `files` returns 0 items. Reset only after handing the
+      // array to uploadImages.
+      var snapshot = Array.from(files);
+      uploadImages(snapshot).finally(function () { input.value = ''; });
     });
 
     (function wireImageDropZone() {
