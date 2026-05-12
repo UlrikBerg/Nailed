@@ -88,10 +88,12 @@
     }
 
     menu.appendChild(menuLink('/kunde-panel', 'user-round', 'Min profil'));
-    if (user.role === 'salon_owner') {
-      menu.appendChild(menuLink('/salong-panel', 'store', 'Salongprofil'));
+    if (user.role === 'salon_owner' || user.role === 'admin') {
+      menu.appendChild(menuLink('/salong-panel', 'store', 'Salongpanel'));
     }
-    menu.appendChild(menuLink('/kunde-panel#tab-bookinger', 'calendar', 'Mine bookinger'));
+    if (user.role === 'admin') {
+      menu.appendChild(menuLink('/admin/', 'shield', 'Adminpanel'));
+    }
     menu.appendChild(menuLink('/favoritter', 'heart', 'Mine favoritter'));
 
     var divider = document.createElement('div');
