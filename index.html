@@ -9,6 +9,70 @@
   <link rel="canonical" href="https://nailed.no/" />
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* sc2-* salongkort på forsiden — speiler stilen fra utforsk, men med
+       vertikal layout (bilde over, body under). */
+    .featured-card-grid .service-card { display: flex; flex-direction: column; }
+    .featured-card-grid .service-card__photo { aspect-ratio: 16/10; }
+    .sc2-body--vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 16px 18px 16px;
+      position: relative;
+    }
+    .sc2-body--vertical .sc2-status {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 600; width: fit-content;
+    }
+    .sc2-body--vertical .sc2-status--open { background: #dcfce7; color: #166534; }
+    .sc2-body--vertical .sc2-status--closed { background: var(--stone-100); color: var(--fg-muted); }
+    .sc2-body--vertical .sc2-status__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .sc2-body--vertical .sc2-name {
+      font-family: var(--font-display); font-weight: 700;
+      font-size: 19px; letter-spacing: -0.01em; color: var(--ink);
+      line-height: 1.2; margin-top: 4px;
+    }
+    .sc2-body--vertical .sc2-meta {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      font-size: 12px; color: var(--fg-muted);
+    }
+    .sc2-body--vertical .sc2-meta__item { display: inline-flex; align-items: center; gap: 4px; }
+    .sc2-body--vertical .sc2-meta__item i { width: 13px; height: 13px; }
+    .sc2-body--vertical .sc2-meta__sub { color: var(--stone-400); font-weight: 500; }
+    .sc2-body--vertical .sc2-bottom {
+      margin-top: 10px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .sc2-body--vertical .sc2-team {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--fg-muted);
+    }
+    .sc2-body--vertical .sc2-team i { width: 13px; height: 13px; flex-shrink: 0; }
+    .sc2-body--vertical .sc2-team span { color: var(--ink); font-weight: 500; }
+    .sc2-body--vertical .sc2-footer {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    }
+    .sc2-body--vertical .sc2-cats { flex: 1; min-width: 0; display: flex; gap: 5px; flex-wrap: wrap; }
+    .sc2-body--vertical .sc2-cat {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 9px; border-radius: 999px;
+      background: var(--rouge-50); color: var(--rouge-500);
+    }
+    .sc2-body--vertical .sc2-price {
+      flex-shrink: 0;
+      display: inline-flex; align-items: baseline; gap: 3px;
+      background: var(--cream-100);
+      padding: 6px 12px; border-radius: 10px;
+    }
+    .sc2-body--vertical .sc2-price__from { font-size: 11px; color: var(--fg-muted); font-weight: 500; }
+    .sc2-body--vertical .sc2-price__amount {
+      font-family: var(--font-display); font-weight: 700;
+      font-size: 18px; color: var(--ink); line-height: 1;
+    }
+    .sc2-body--vertical .sc2-price__unit { font-size: 11px; color: var(--fg-muted); font-weight: 500; }
+  </style>
   <link rel="preload" as="image" href="assets/logo-wordmark.svg?v=6">
 
   <!-- Open Graph -->
@@ -395,24 +459,54 @@
         photoStyle = 'background: ' + FEATURED_FALLBACK_GRADIENTS[idx % FEATURED_FALLBACK_GRADIENTS.length] + ';';
       }
       var slug = encodeURIComponent(salon.slug || '');
-      var locationLine = salon.city
-        ? '<div class="service-card__meta"><i data-lucide="map-pin"></i>' + featuredEscapeHtml(salon.city) + '</div>'
-        : '';
       var featured = (opts.allowFeatured && idx === 0) ? ' service-card--featured' : '';
 
-      // Optional rating row (only used by the top-rated grid).
-      var ratingRow = '';
-      if (opts.showRating && salon.avg_rating != null) {
-        var r = Number(salon.avg_rating).toFixed(1).replace('.', ',');
-        var rc = Number(salon.review_count || 0);
-        var rcLabel = rc + (rc === 1 ? ' anmeldelse' : ' anmeldelser');
-        ratingRow = ''
-          + '<div class="service-card__row">'
-            + '<div class="service-card__meta">'
-              + '<i data-lucide="star" style="color: var(--rouge-500); fill: var(--rouge-500);"></i> '
-              + r + ' · ' + rcLabel
-            + '</div>'
-          + '</div>';
+      // Status pill — samme som utforsk: i info-arealet, ikke på bildet.
+      var statusPill;
+      if (salon.is_open_now === true) {
+        statusPill = '<span class="sc2-status sc2-status--open"><span class="sc2-status__dot"></span>Åpent nå</span>';
+      } else if (salon.reopens_today) {
+        statusPill = '<span class="sc2-status sc2-status--closed"><span class="sc2-status__dot"></span>Stengt · Åpner ' + featuredEscapeHtml(salon.reopens_today) + '</span>';
+      } else {
+        statusPill = '<span class="sc2-status sc2-status--closed"><span class="sc2-status__dot"></span>Stengt nå</span>';
+      }
+
+      var locationLine = salon.city
+        ? '<span class="sc2-meta__item"><i data-lucide="map-pin"></i>' + featuredEscapeHtml(salon.city) + '</span>'
+        : '';
+
+      var ratingLine = '';
+      if (salon.avg_rating != null && salon.review_count > 0) {
+        ratingLine = '<span class="sc2-meta__item"><i data-lucide="star"></i>'
+          + featuredEscapeHtml(Number(salon.avg_rating).toFixed(1))
+          + ' <span class="sc2-meta__sub">(' + salon.review_count + ')</span></span>';
+      }
+
+      // Maks 2 kategorier på forsidekortene siden de er smalere.
+      var catsHtml = '';
+      if (Array.isArray(salon.top_categories) && salon.top_categories.length) {
+        catsHtml = '<div class="sc2-cats">' +
+          salon.top_categories.slice(0, 2).map(function (c) {
+            return '<span class="sc2-cat">' + featuredEscapeHtml(c) + '</span>';
+          }).join('') +
+        '</div>';
+      }
+
+      // Maks 2 team-medlemmer (smalt kort).
+      var teamHtml = '';
+      if (Array.isArray(salon.top_team) && salon.top_team.length) {
+        teamHtml = '<div class="sc2-team"><i data-lucide="users"></i>' +
+          '<span>' + featuredEscapeHtml(salon.top_team.slice(0, 2).join(', ')) + '</span>' +
+        '</div>';
+      }
+
+      var priceHtml = '';
+      if (salon.min_price != null) {
+        priceHtml = '<div class="sc2-price">'
+          + '<span class="sc2-price__from">Fra</span>'
+          + '<span class="sc2-price__amount">' + salon.min_price + '</span>'
+          + '<span class="sc2-price__unit">kr</span>'
+        + '</div>';
       }
 
       return ''
@@ -422,14 +516,17 @@
               + '<i data-lucide="heart"></i>'
             + '</button>'
           + '</div>'
-          + '<div class="service-card__body">'
-            + '<div class="service-card__row">'
-              + '<div>'
-                + '<div class="service-card__name">' + featuredEscapeHtml(salon.name || 'Salong') + '</div>'
-                + locationLine
+          + '<div class="service-card__body sc2-body sc2-body--vertical">'
+            + statusPill
+            + '<div class="sc2-name">' + featuredEscapeHtml(salon.name || 'Salong') + '</div>'
+            + '<div class="sc2-meta">' + locationLine + ratingLine + '</div>'
+            + '<div class="sc2-bottom">'
+              + teamHtml
+              + '<div class="sc2-footer">'
+                + catsHtml
+                + priceHtml
               + '</div>'
             + '</div>'
-            + ratingRow
           + '</div>'
         + '</article>';
     }
