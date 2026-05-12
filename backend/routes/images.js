@@ -23,7 +23,7 @@ const router = express.Router({ mergeParams: true });
 // før vi laster opp til R2, så lagrings-/båndbredde-kostnaden er liten selv
 // for store rå-bilder fra moderne iPhones.
 const MAX_BYTES = 25 * 1024 * 1024;
-const MAX_IMAGES_PER_SALON = 24;
+const MAX_IMAGES_PER_SALON = 50;
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']);
 
 const upload = multer({

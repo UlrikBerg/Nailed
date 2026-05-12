@@ -2516,7 +2516,7 @@
             <div class="kp-card__head" style="margin-bottom: 6px;">
               <h3>Bilder</h3>
             </div>
-            <p class="gallery-hint">Maks 24 bilder, opptil 25 MB hver. JPEG, PNG, WEBP eller HEIC.</p>
+            <p class="gallery-hint">Maks 50 bilder, opptil 25 MB hver. JPEG, PNG, WEBP eller HEIC.</p>
             <input type="file" id="imageUploader" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;" />
             <div id="gallery" class="gallery-grid"></div>
             <span id="uploadStatus" class="gallery-status" aria-live="polite"></span>
@@ -4159,7 +4159,7 @@
       });
     }
 
-    var MAX_IMAGES_PER_SALON = 24;
+    var MAX_IMAGES_PER_SALON = 50;
     var MAX_IMAGE_BYTES = 25 * 1024 * 1024;
 
     async function uploadOneImage(file) {
@@ -4266,7 +4266,7 @@
       imageUploadInProgress = false;
 
       if (capHit && window.NailedForms) {
-        NailedForms.toast('Maks 24 bilder per salong nådd. ' + uploaded + ' bilder ble lastet opp.', { type: 'error' });
+        NailedForms.toast('Maks 50 bilder per salong nådd. ' + uploaded + ' bilder ble lastet opp.', { type: 'error' });
       } else if (uploaded > 0 && window.NailedForms) {
         NailedForms.toast(uploaded + (uploaded === 1 ? ' bilde lastet opp.' : ' bilder lastet opp.'));
       }
