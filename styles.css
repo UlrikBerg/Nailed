@@ -332,6 +332,13 @@ p { margin: 0 0 var(--space-4) 0; }
    Top navigation
    ========================================================================= */
 
+/* Cross-document View Transitions: gjør top-nav-en oppleves som persistent
+   mellom sider på Chrome/Safari (Firefox faller tilbake til vanlig navigasjon).
+   navigation: auto trigger overgangen på alle same-origin-navigasjoner; navnet
+   `top-nav` matcher header på source- og destination-side så browseren morpher
+   den isteden for å crossfade hele dokumentet. */
+@view-transition { navigation: auto; }
+
 .top-nav {
   position: sticky;
   top: 0;
@@ -340,6 +347,14 @@ p { margin: 0 0 var(--space-4) 0; }
      the user scrolls past it. */
   z-index: 1100;
   transition: all var(--dur-base) var(--ease-out-soft);
+  view-transition-name: top-nav;
+}
+
+/* Headeren skal ikke fade — den persistes som identitet på tvers av sider. */
+::view-transition-old(top-nav),
+::view-transition-new(top-nav) {
+  animation: none;
+  mix-blend-mode: normal;
 }
 .top-nav.scrolled {
   background: rgba(251, 246, 238, 0.85);
