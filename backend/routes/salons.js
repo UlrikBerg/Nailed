@@ -412,6 +412,8 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
             notify_email_daily_summary, notify_sms_new_booking,
             booking_confirmation_text, lunch_break_start, lunch_break_end,
             onboarding_skipped,
+            subscription_status, subscription_price_nok,
+            trial_ends_at, subscription_started_at, subscription_cancelled_at,
             status
        FROM salons WHERE owner_user_id = ? AND status != 'deleted'
        ORDER BY created_at ASC LIMIT 1`,

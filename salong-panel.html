@@ -1210,6 +1210,71 @@
       min-height: 80px;
     }
 
+    /* Abonnement-kortet i Innstillinger */
+    .sub-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .sub-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--rouge-500), var(--rouge-300) 60%, var(--rouge-100));
+    }
+    .sub-card__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 18px;
+      padding-top: 4px;
+    }
+    .sub-card__title { margin: 0 0 6px; font-family: var(--font-display); font-weight: 600; font-size: 22px; color: var(--ink); }
+    .sub-card__sub { margin: 0; font-size: 14px; color: var(--fg-muted); }
+    .sub-card__price {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      background: var(--rouge-50);
+      border: 1px solid var(--rouge-100);
+      padding: 10px 16px;
+      border-radius: 12px;
+      flex-shrink: 0;
+    }
+    .sub-card__priceValue { font-family: var(--font-display); font-weight: 700; font-size: 28px; color: var(--rouge-500); line-height: 1; }
+    .sub-card__priceUnit { font-size: 13px; color: var(--rouge-500); font-weight: 600; }
+    .sub-card__list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .sub-card__list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .sub-card__list li i { width: 16px; height: 16px; color: var(--rouge-500); flex-shrink: 0; }
+    .sub-card__note { margin: 0; font-size: 13px; color: var(--fg-muted); font-style: italic; }
+    .sub-card__statusPill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+    .sub-card__statusPill--trial { background: var(--rouge-50); color: var(--rouge-500); }
+    .sub-card__statusPill--active { background: #dcfce7; color: #166534; }
+    .sub-card__statusPill--past_due { background: #fee2e2; color: #b91c1c; }
+    .sub-card__statusPill--cancelled { background: var(--stone-100); color: var(--fg-muted); }
+
     /* Bookings status-filter pills */
     .kp-bookings-filter {
       display: flex;
@@ -2489,8 +2554,29 @@
         <div class="kp-section">
           <div>
             <h2 class="kp-section__title">Innstillinger</h2>
-            <p class="kp-section__sub">Booking-regler, varslinger og kalender.</p>
+            <p class="kp-section__sub">Abonnement, booking-regler og varslinger.</p>
           </div>
+        </div>
+
+        <div class="kp-card sub-card" id="subscriptionCard">
+          <div class="sub-card__head">
+            <div>
+              <h2 class="sub-card__title">Abonnement</h2>
+              <p class="sub-card__sub" id="subStatusText">Laster …</p>
+            </div>
+            <div class="sub-card__price">
+              <span class="sub-card__priceValue" id="subPriceValue">—</span>
+              <span class="sub-card__priceUnit">kr/mnd</span>
+            </div>
+          </div>
+          <ul class="sub-card__list">
+            <li><i data-lucide="check"></i> Ubegrenset bookinger og kunder</li>
+            <li><i data-lucide="check"></i> Egen salongprofil + bilder</li>
+            <li><i data-lucide="check"></i> E-postvarslinger til deg og kundene</li>
+            <li><i data-lucide="check"></i> Chat med kundene direkte i appen</li>
+            <li><i data-lucide="check"></i> Ingen bindingstid — si opp når du vil</li>
+          </ul>
+          <p class="sub-card__note">SMS-påminnelser kommer senere som tilleggspakke.</p>
         </div>
 
         <div class="kp-card">
@@ -2979,6 +3065,7 @@
       }
       renderGallery(salon, currentImages);
       renderProfileView(salon, currentImages);
+      renderSubscriptionCard(salon);
       renderHoursView();
       renderTeamView();
       renderAmenitiesView();
@@ -3474,6 +3561,44 @@
       }
       NailedForms.toast('Fasiliteter lagret');
       await loadSalon();
+    }
+
+    function renderSubscriptionCard(s) {
+      var statusEl = document.getElementById('subStatusText');
+      var priceEl = document.getElementById('subPriceValue');
+      if (!statusEl || !priceEl) return;
+      var price = s.subscription_price_nok != null ? s.subscription_price_nok : 149;
+      priceEl.textContent = price.toLocaleString('no-NO');
+
+      var status = s.subscription_status || 'trial';
+      var pill = function (cls, label) {
+        return '<span class="sub-card__statusPill sub-card__statusPill--' + cls + '">' + label + '</span>';
+      };
+
+      if (status === 'trial') {
+        var daysLeft = null;
+        if (s.trial_ends_at) {
+          var ms = new Date(s.trial_ends_at).getTime() - Date.now();
+          daysLeft = Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+        }
+        var msg = daysLeft != null
+          ? (daysLeft > 0
+              ? 'Gratis prøveperiode — ' + daysLeft + ' dager igjen. Faktureres ' + price + ' kr/mnd etterpå.'
+              : 'Prøveperioden er over. Velg betaling for å fortsette.')
+          : 'Gratis prøveperiode. Faktureres ' + price + ' kr/mnd etterpå.';
+        statusEl.innerHTML = pill('trial', 'Prøveperiode') + msg;
+      } else if (status === 'active') {
+        var since = s.subscription_started_at
+          ? ' siden ' + new Date(s.subscription_started_at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })
+          : '';
+        statusEl.innerHTML = pill('active', 'Aktiv') + 'Du betaler ' + price + ' kr/mnd' + since + '.';
+      } else if (status === 'past_due') {
+        statusEl.innerHTML = pill('past_due', 'Forfalt') + 'Betalingen mislyktes — oppdater betalingsmetoden for å unngå at salongen skjules.';
+      } else if (status === 'cancelled') {
+        statusEl.innerHTML = pill('cancelled', 'Oppsagt') + 'Abonnementet er sagt opp. Du kan starte det igjen når som helst.';
+      } else {
+        statusEl.innerHTML = price + ' kr/mnd. Ingen bindingstid.';
+      }
     }
 
     function renderProfileView(s, images) {
