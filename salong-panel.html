@@ -3103,6 +3103,31 @@
         return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
       });
     }
+
+    // Animert telling fra 0 til target over ~600 ms. Brukes på KPI-fliser.
+    // opts.format = 'nok' → tusenskillet + «kr»-suffix.
+    function animateCount(el, target, opts) {
+      if (!el) return;
+      target = Number(target) || 0;
+      opts = opts || {};
+      function render(value) {
+        if (opts.format === 'nok') {
+          el.innerHTML = Math.round(value).toLocaleString('no-NO') + ' <span class="kpi__unit">kr</span>';
+        } else {
+          el.textContent = String(Math.round(value));
+        }
+      }
+      if (target === 0) { render(0); return; }
+      var start = performance.now();
+      var duration = 600;
+      function step(now) {
+        var t = Math.min((now - start) / duration, 1);
+        var eased = 1 - (1 - t) * (1 - t);
+        render(target * eased);
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
     function fmt(iso) {
       var d = new Date(iso);
       return d.toLocaleDateString('no-NO', { day: '2-digit', month: 'short' }) + ' · ' +
@@ -4540,10 +4565,10 @@
         if (b.status === 'pending') pendingCount++;
         if (b.status === 'completed' && s >= monthStart) { completedMonth++; revenueMonth += b.price_nok; }
       });
-      document.getElementById('kpiToday').textContent = todayCount;
-      document.getElementById('kpiPending').textContent = pendingCount;
-      document.getElementById('kpiCompletedMonth').textContent = completedMonth;
-      document.getElementById('kpiRevenue').innerHTML = revenueMonth.toLocaleString('no-NO') + ' <span class="kpi__unit">kr</span>';
+      animateCount(document.getElementById('kpiToday'), todayCount);
+      animateCount(document.getElementById('kpiPending'), pendingCount);
+      animateCount(document.getElementById('kpiCompletedMonth'), completedMonth);
+      animateCount(document.getElementById('kpiRevenue'), revenueMonth, { format: 'nok' });
 
       // Lagre bookings for kalender-rendering så prev/next-knappene kan
       // re-rendere uten å fetche på nytt.
