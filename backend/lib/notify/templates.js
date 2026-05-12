@@ -124,12 +124,11 @@ ${pre}
 </html>`;
 }
 
-// "Hero" — the headline + status pill at the top of the card.
-function heroHtml({ title, accent }) {
-  const pill = accent
-    ? `<div style="display:inline-block;background:${C.rouge50};color:${C.rouge700};font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:5px 11px;border-radius:999px;margin-bottom:14px;">${escapeHtml(accent)}</div>`
-    : '';
-  return `${pill}<h1 style="margin:0 0 18px 0;font-family:Georgia,'Times New Roman',serif;font-weight:600;font-size:28px;line-height:1.18;color:${C.ink};">${escapeHtml(title)}</h1>`;
+// "Hero" — bare overskriften. Tidligere lå en rouge-pill (overtittel som
+// «Online», «Bekreftet», «Avlyst av salongen» osv) over h1, men det støyet
+// mer enn det opplyste. Fjernet 2026-05-12.
+function heroHtml({ title }) {
+  return `<h1 style="margin:0 0 18px 0;font-family:Georgia,'Times New Roman',serif;font-weight:600;font-size:28px;line-height:1.18;color:${C.ink};">${escapeHtml(title)}</h1>`;
 }
 
 // "When" — the prominent rouge-tinted date/time block.
