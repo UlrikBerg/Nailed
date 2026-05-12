@@ -512,11 +512,10 @@
       .utforsk-results .service-card {
         flex-direction: row;
         align-items: stretch;
-        /* Fast høyde gjør at alle kortene blir like uavhengig av antall
-           chips. 290px gir plass til at margin-top:auto faktisk skubber
-           bottom-gruppen ned mot bunnen (med 22px padding-bottom + 8px
-           gap mellom price og kant-edge). */
-        height: 290px;
+        /* Fast høyde 320px gir auto-margin nok plass til å pushe
+           bottom-gruppen tydelig ned. 22px padding-bottom holder
+           pris-pillen unna kortets bunn-edge. */
+        height: 320px;
       }
       .utforsk-results .service-card__photo {
         flex: 0 0 280px;
