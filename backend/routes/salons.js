@@ -200,6 +200,7 @@ router.get('/', asyncRoute(async (req, res) => {
   // a single IN-query and then folded into the rows.
   const ids = rows.map(r => r.id);
   const topCatsBy = new Map();
+  const topTeamBy = new Map();
   if (ids.length) {
     const placeholders = ids.map(() => '?').join(',');
     const catRows = await query(
@@ -216,6 +217,19 @@ router.get('/', asyncRoute(async (req, res) => {
     for (const r of catRows) {
       if (!topCatsBy.has(r.salon_id)) topCatsBy.set(r.salon_id, []);
       const list = topCatsBy.get(r.salon_id);
+      if (list.length < 3) list.push(r.name);
+    }
+    // top_team: aktive team-medlemmer (max 3 navn) pr salong.
+    const teamRows = await query(
+      `SELECT salon_id, name
+         FROM team_members
+        WHERE salon_id IN (${placeholders}) AND active = 1
+        ORDER BY salon_id ASC, position ASC, id ASC`,
+      ids
+    );
+    for (const r of teamRows) {
+      if (!topTeamBy.has(r.salon_id)) topTeamBy.set(r.salon_id, []);
+      const list = topTeamBy.get(r.salon_id);
       if (list.length < 3) list.push(r.name);
     }
   }
@@ -242,6 +256,7 @@ router.get('/', asyncRoute(async (req, res) => {
       r.reopens_today = String(r.reopens_today);
     }
     r.top_categories = topCatsBy.get(r.id) || [];
+    r.top_team = topTeamBy.get(r.id) || [];
     return r;
   });
   res.json({ salons: out, limit, offset });

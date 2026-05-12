@@ -514,17 +514,105 @@
         align-items: stretch;
       }
       .utforsk-results .service-card__photo {
-        flex: 0 0 320px;
+        flex: 0 0 280px;
         aspect-ratio: auto;
-        min-height: 220px;
+        min-height: 240px;
       }
       .utforsk-results .service-card__body {
         flex: 1;
-        padding: 22px 26px;
-        justify-content: center;
       }
-      .utforsk-results .service-card__name { font-size: 22px; }
     }
+    /* Nytt salongkort-layout (sc2). Status-pill går inn i info-kolonnen,
+       pris dyttes ned i høyre hjørne, team og kategorier rendres som chips. */
+    .utforsk-results .sc2-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 22px 26px 18px;
+      position: relative;
+    }
+    .sc2-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      width: fit-content;
+    }
+    .sc2-status--open { background: #dcfce7; color: #166534; }
+    .sc2-status--closed { background: var(--stone-100); color: var(--fg-muted); }
+    .sc2-status__dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .sc2-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 24px;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      line-height: 1.15;
+    }
+    .sc2-meta {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+    .sc2-meta__item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .sc2-meta__item i { width: 14px; height: 14px; }
+    .sc2-meta__sub { color: var(--stone-400); font-weight: 500; }
+    .sc2-cats {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+    .sc2-cat {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--rouge-50);
+      color: var(--rouge-500);
+    }
+    .sc2-team {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+    .sc2-team i { width: 14px; height: 14px; flex-shrink: 0; }
+    .sc2-team span { color: var(--ink); font-weight: 500; }
+    .sc2-footer {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+      margin-top: auto;
+      padding-top: 8px;
+    }
+    .sc2-price {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      background: var(--cream-100);
+      padding: 8px 14px;
+      border-radius: 12px;
+    }
+    .sc2-price__from { font-size: 12px; color: var(--fg-muted); font-weight: 500; }
+    .sc2-price__amount {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 22px;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .sc2-price__unit { font-size: 12px; color: var(--fg-muted); font-weight: 500; }
     .utforsk-results-state {
       grid-column: 1 / -1;
       padding: 48px 16px;
@@ -1339,45 +1427,51 @@
         : '';
 
       var slug = encodeURIComponent(salon.slug || '');
-      var locationLine = '';
-      if (salon.city) {
-        locationLine = '<div class="service-card__meta"><i data-lucide="map-pin"></i>' + escapeHtml(salon.city) + '</div>';
+
+      // Status-pill — vises nå i info-arealet, ikke på bildet.
+      var statusPill;
+      if (salon.is_open_now === true) {
+        statusPill = '<span class="sc2-status sc2-status--open"><span class="sc2-status__dot"></span>Åpent nå</span>';
+      } else if (salon.reopens_today) {
+        statusPill = '<span class="sc2-status sc2-status--closed"><span class="sc2-status__dot"></span>Stengt · Åpner ' + escapeHtml(salon.reopens_today) + '</span>';
+      } else {
+        statusPill = '<span class="sc2-status sc2-status--closed"><span class="sc2-status__dot"></span>Stengt nå</span>';
       }
 
-      var openPill = '';
-      if (salon.is_open_now === true) {
-        openPill = '<span class="card-pill card-pill--open"><span class="card-pill__dot"></span>Åpent nå</span>';
-      } else if (salon.reopens_today) {
-        openPill = '<span class="card-pill card-pill--closed">'
-          + '<span class="card-pill__dot"></span>Stengt'
-          + '<span class="card-pill__sep">·</span>'
-          + '<span class="card-pill__sub">Åpner ' + escapeHtml(salon.reopens_today) + '</span>'
-          + '</span>';
-      } else {
-        openPill = '<span class="card-pill card-pill--closed"><span class="card-pill__dot"></span>Stengt nå</span>';
-      }
+      var locationLine = salon.city
+        ? '<span class="sc2-meta__item"><i data-lucide="map-pin"></i>' + escapeHtml(salon.city) + '</span>'
+        : '';
 
       var ratingLine = '';
       if (salon.avg_rating != null && salon.review_count > 0) {
-        ratingLine = '<div class="service-card__rating">'
-          + '<i data-lucide="star"></i>'
+        ratingLine = '<span class="sc2-meta__item"><i data-lucide="star"></i>'
           + escapeHtml(salon.avg_rating.toFixed ? salon.avg_rating.toFixed(1) : String(salon.avg_rating))
-          + '<span class="service-card__rating-count">(' + salon.review_count + ')</span>'
-          + '</div>';
+          + ' <span class="sc2-meta__sub">(' + salon.review_count + ')</span></span>';
       }
 
-      var priceLine = '';
-      if (salon.min_price != null) {
-        priceLine = '<span class="service-card__price">'
-          + '<span class="service-card__from">Fra</span>'
-          + salon.min_price
-          + '<span class="service-card__kr"> kr</span>'
-          + '</span>';
-      }
-
-      var catChip = '';
+      var catsHtml = '';
       if (Array.isArray(salon.top_categories) && salon.top_categories.length) {
-        catChip = '<span class="service-card__catchip">' + escapeHtml(salon.top_categories[0]) + '</span>';
+        catsHtml = '<div class="sc2-cats">' +
+          salon.top_categories.map(function (c) {
+            return '<span class="sc2-cat">' + escapeHtml(c) + '</span>';
+          }).join('') +
+        '</div>';
+      }
+
+      var teamHtml = '';
+      if (Array.isArray(salon.top_team) && salon.top_team.length) {
+        teamHtml = '<div class="sc2-team"><i data-lucide="users"></i>' +
+          '<span>' + escapeHtml(salon.top_team.join(', ')) + '</span>' +
+        '</div>';
+      }
+
+      var priceHtml = '';
+      if (salon.min_price != null) {
+        priceHtml = '<div class="sc2-price">'
+          + '<span class="sc2-price__from">Fra</span>'
+          + '<span class="sc2-price__amount">' + salon.min_price + '</span>'
+          + '<span class="sc2-price__unit">kr</span>'
+        + '</div>';
       }
 
       return ''
@@ -1391,21 +1485,17 @@
           + 'data-slot="" '
           + 'onclick="(window.NailedSpaNav?window.NailedSpaNav.navigate:function(h){location.href=h;})(\'salon?slug=' + slug + '\')">'
           + '<div class="service-card__photo" style="' + photoStyle + '">'
-            + openPill
             + '<button class="' + heartClass + '" data-fav="' + escapeHtml(salon.slug || '') + '" data-salon-id="' + salon.id + '" aria-pressed="' + (isFav ? 'true' : 'false') + '">'
               + '<i data-lucide="heart" style="' + heartFillStyle + '"></i>'
             + '</button>'
           + '</div>'
-          + '<div class="service-card__body">'
-            + '<div class="service-card__row">'
-              + '<div class="service-card__info">'
-                + '<div class="service-card__name">' + escapeHtml(salon.name || 'Salong') + '</div>'
-                + locationLine
-                + ratingLine
-              + '</div>'
-              + priceLine
-            + '</div>'
-            + (catChip ? '<div>' + catChip + '</div>' : '')
+          + '<div class="service-card__body sc2-body">'
+            + statusPill
+            + '<div class="sc2-name">' + escapeHtml(salon.name || 'Salong') + '</div>'
+            + '<div class="sc2-meta">' + locationLine + ratingLine + '</div>'
+            + catsHtml
+            + teamHtml
+            + '<div class="sc2-footer">' + priceHtml + '</div>'
           + '</div>'
         + '</article>';
     }
