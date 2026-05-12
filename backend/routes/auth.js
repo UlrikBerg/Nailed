@@ -78,8 +78,12 @@ router.get('/:provider/callback', oauthCallbackLimiter, asyncRoute(async (req, r
     throw new HttpError(400, 'missing_email', 'Innlogging ga ikke e-postadresse.');
   }
 
-  // Find-or-create user, link identity.
-  const user = await tx(async (conn) => {
+  // Find-or-create user, link identity. Throws email_already_used hvis en
+  // annen provider er knyttet til samme e-post — fanges nedenfor og
+  // redirecter til login med tydelig melding.
+  let user;
+  try {
+    user = await tx(async (conn) => {
     // 1. Identity already linked?
     const [identityRows] = await conn.execute(
       `SELECT u.id, u.email, u.name, u.role, u.suspended_at
@@ -98,7 +102,21 @@ router.get('/:provider/callback', oauthCallbackLimiter, asyncRoute(async (req, r
 
     let userRow;
     if (byEmailRows[0]) {
-      userRow = byEmailRows[0];
+      // KRITISK: vi auto-linker IKKE et nytt provider-identity til en
+      // eksisterende konto basert på e-post alene. Det er en kjent OAuth
+      // account-takeover-vektor — angriper kan registrere en konto hos
+      // den andre provideren med offerets e-post og overta kontoen ved
+      // første innlogging. Krev at brukeren først logger inn med den
+      // opprinnelige provideren og kobler til den nye via innstillinger.
+      const [existingProviders] = await conn.execute(
+        `SELECT DISTINCT provider FROM auth_identities WHERE user_id = ?`,
+        [byEmailRows[0].id]
+      );
+      const providerList = existingProviders.map(r => r.provider).join(',');
+      const err = new HttpError(409, 'email_already_used',
+        'Denne e-posten er allerede registrert. Logg inn med den opprinnelige metoden.');
+      err.existingProviders = providerList;
+      throw err;
     } else {
       // 3. Create new user. Apply bootstrap-admin if email matches.
       const isBootstrapAdmin = config.bootstrapAdminEmails.includes(profile.email.toLowerCase());
@@ -143,7 +161,15 @@ router.get('/:provider/callback', oauthCallbackLimiter, asyncRoute(async (req, r
     );
 
     return userRow;
-  });
+    });
+  } catch (e) {
+    if (e && e.code === 'email_already_used') {
+      const q = new URLSearchParams({ error: 'email_already_used' });
+      if (e.existingProviders) q.set('provider', e.existingProviders);
+      return res.redirect('/login?' + q.toString());
+    }
+    throw e;
+  }
 
   if (user.suspended_at) {
     return res.redirect('/login.html?error=account_suspended');

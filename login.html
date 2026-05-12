@@ -254,11 +254,24 @@
     var next = qs.get('next');
 
     if (error) {
+      var PROVIDER_LABELS = { google: 'Google', vipps: 'Vipps' };
+      var emailUsedMsg;
+      if (error === 'email_already_used') {
+        var providers = (qs.get('provider') || '').split(',').filter(Boolean)
+          .map(function (p) { return PROVIDER_LABELS[p] || p; });
+        if (providers.length) {
+          emailUsedMsg = 'Denne e-posten er allerede registrert via ' + providers.join(' og ') +
+            '. Logg inn med den metoden — du kan koble til andre innloggings­metoder fra kontoinnstillingene etterpå.';
+        } else {
+          emailUsedMsg = 'Denne e-posten er allerede registrert med en annen innloggingsmetode. Logg inn med den opprinnelige metoden.';
+        }
+      }
       var msg = ({
         account_suspended: 'Kontoen din er suspendert. Kontakt support@nailed.no.',
         provider_disabled: 'Denne innloggingsmetoden er ikke tilgjengelig akkurat nå.',
         missing_token:     'Innlogging feilet. Prøv igjen.',
         access_denied:     'Du avbrøt innloggingen.',
+        email_already_used: emailUsedMsg,
       })[error] || 'Innlogging feilet (' + error + '). Prøv igjen.';
       var banner = document.getElementById('errorBanner');
       banner.textContent = msg;
