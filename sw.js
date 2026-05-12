@@ -8,7 +8,7 @@
 //
 // Cache-versjon bumpes når vi vil tvinge ny precache (bumpes ved deploy).
 
-var CACHE_VERSION = 'nailed-v16';
+var CACHE_VERSION = 'nailed-v17';
 var SHELL = [
   '/',
   '/utforsk',
@@ -70,7 +70,25 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  // Statiske assets: cache-first, oppdater i bakgrunnen.
+  // CSS og JS-assets endrer ofte ved deploy — network-first så bruker
+  // alltid får fersk versjon når nettet er tilgjengelig. Cache er kun
+  // fallback ved offline. Bilder og ikoner bruker fortsatt cache-first.
+  var isLiveAsset = url.pathname === '/styles.css' ||
+                    (url.pathname.startsWith('/assets/') && /\.(?:js|css)$/i.test(url.pathname));
+  if (isLiveAsset) {
+    event.respondWith(
+      fetch(req).then(function (res) {
+        if (res && res.status === 200 && res.type === 'basic') {
+          var copy = res.clone();
+          caches.open(CACHE_VERSION).then(function (c) { c.put(req, copy); }).catch(function () {});
+        }
+        return res;
+      }).catch(function () { return caches.match(req); })
+    );
+    return;
+  }
+
+  // Andre statiske assets (bilder, ikoner, fonts): cache-first, oppdater i bakgrunnen.
   event.respondWith(
     caches.match(req).then(function (cached) {
       var fetchPromise = fetch(req).then(function (res) {
