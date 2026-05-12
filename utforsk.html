@@ -34,7 +34,44 @@
   <style>
     /* Hero — kept tight so the two-column body lands above the fold. */
     .utforsk-hero { padding: 28px 0 8px; }
+    .utforsk-hero__inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     .utforsk-hero__title { font-size: clamp(28px, 4.5vw, 48px); margin: 0; }
+    /* Filter-knappen i hero — kun synlig på mobil. På desktop ligger filtrene
+       i sidebar-en til venstre. */
+    .utforsk-hero__filter-btn {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-pill);
+      padding: 10px 18px;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--ink);
+      cursor: pointer;
+      min-height: 40px;
+      transition: border-color var(--dur-fast);
+    }
+    .utforsk-hero__filter-btn:hover { border-color: var(--stone-400); }
+    .utforsk-hero__filter-btn i { width: 16px; height: 16px; }
+    .utforsk-hero__filter-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: var(--rouge-500);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    @media (max-width: 1024px) {
+      .utforsk-hero__filter-btn { display: inline-flex; }
+    }
 
     /* =========================================================================
        Two-column layout — Finn.no-style sidebar + results
@@ -815,10 +852,15 @@
     </div>
   </header>
 
-  <!-- Hero title -->
+  <!-- Hero title — Filter-knapp vises kun på mobil via CSS (på desktop ligger
+       den i sidebar-en). -->
   <section class="utforsk-hero">
-    <div class="page">
+    <div class="page utforsk-hero__inner">
       <h1 class="utforsk-hero__title">Utforsk <em>Norge</em></h1>
+      <button class="utforsk-hero__filter-btn" id="filterBtnHero" type="button" aria-expanded="false" aria-controls="filterSidebar">
+        <i data-lucide="sliders-horizontal"></i> Filter
+        <span class="utforsk-hero__filter-count" id="filterBtnCountHero" hidden>0</span>
+      </button>
     </div>
   </section>
 
@@ -970,26 +1012,9 @@
     <!-- Main column -->
     <div class="utforsk-main">
 
-      <!-- Mobile bar (only visible <1024px) -->
-      <div class="mobile-filter-bar">
-        <button class="mobile-filter-bar__btn" id="filterBtn" type="button" aria-expanded="false" aria-controls="filterSidebar">
-          <i data-lucide="sliders-horizontal"></i> Filter
-        </button>
-        <div class="utforsk-main__head-right">
-          <i data-lucide="arrow-up-down"></i>
-          <select id="sortSelectMobile" aria-label="Sortér">
-            <option value="relevant">Mest relevant</option>
-            <option value="next">Neste ledige</option>
-            <option value="price">Lavest pris</option>
-            <option value="rating">Best vurdert</option>
-          </select>
-        </div>
-      </div>
-
       <div class="utforsk-main__head">
         <span class="utforsk-main__head-count" id="resultsHeadCount">Laster salonger…</span>
         <div class="utforsk-main__head-right">
-          <i data-lucide="arrow-up-down"></i>
           Sortér
           <select id="sortSelect">
             <option value="relevant">Mest relevant</option>
@@ -1171,9 +1196,16 @@
     }
     function refreshFilterBtnBadge() {
       var badge = document.getElementById('filterBtnCount');
+      var heroBadge = document.getElementById('filterBtnCountHero');
       var n = countAdvanced();
-      if (n > 0) { badge.textContent = String(n); badge.style.display = 'inline-flex'; }
-      else { badge.style.display = 'none'; }
+      if (badge) {
+        if (n > 0) { badge.textContent = String(n); badge.style.display = 'inline-flex'; }
+        else { badge.style.display = 'none'; }
+      }
+      if (heroBadge) {
+        if (n > 0) { heroBadge.textContent = String(n); heroBadge.hidden = false; }
+        else { heroBadge.hidden = true; }
+      }
       var resetBtn = document.getElementById('filterReset');
       if (resetBtn) resetBtn.disabled = (n === 0);
       var starsBox = document.getElementById('fRatingStars');
@@ -2000,7 +2032,10 @@
     });
 
     // --- Mobile drawer wiring -------------------------------------------------
-    var filterBtn = document.getElementById('filterBtn');
+    // Filter-knappen er nå i hero-en (filterBtnHero), ikke i den fjernede
+    // mobile-filter-baren. Beholder filterBtn-variabelen så øvrig kode kan
+    // bruke samme referanse.
+    var filterBtn = document.getElementById('filterBtnHero');
     var filterSidebar = document.getElementById('filterSidebar');
     var filterBackdrop = document.getElementById('filterBackdrop');
     var filterClose = document.getElementById('filterClose');
@@ -2008,13 +2043,13 @@
     function openDrawer() {
       filterSidebar.classList.add('is-open');
       filterBackdrop.classList.add('is-open');
-      filterBtn.setAttribute('aria-expanded', 'true');
+      if (filterBtn) filterBtn.setAttribute('aria-expanded', 'true');
       document.body.style.overflow = 'hidden';
     }
     function closeDrawer() {
       filterSidebar.classList.remove('is-open');
       filterBackdrop.classList.remove('is-open');
-      filterBtn.setAttribute('aria-expanded', 'false');
+      if (filterBtn) filterBtn.setAttribute('aria-expanded', 'false');
       document.body.style.overflow = '';
     }
     if (filterBtn) filterBtn.addEventListener('click', openDrawer);
@@ -2022,7 +2057,7 @@
     if (filterBackdrop) filterBackdrop.addEventListener('click', closeDrawer);
 
     // --- Sortering ------------------------------------------------------------
-    var sortMobile = document.getElementById('sortSelectMobile');
+    // Kun én sort-dropdown nå (mobile-filter-baren ble fjernet).
     var sortDesktop = document.getElementById('sortSelect');
     async function applySort() {
       if (!ALL_SALONS.length) return;
@@ -2033,12 +2068,6 @@
       renderResults();
     }
     if (sortDesktop) sortDesktop.addEventListener('change', applySort);
-    if (sortMobile && sortDesktop) {
-      sortMobile.addEventListener('change', function () {
-        sortDesktop.value = sortMobile.value;
-        applySort();
-      });
-    }
     // Be om posisjon i bakgrunn ved sidelast så «Mest relevant» (default)
     // får full effekt med en gang dataene er lastet.
     requestGeo().then(function () { if (ALL_SALONS.length) renderResults(); });
