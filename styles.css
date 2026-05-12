@@ -2382,3 +2382,32 @@ p { margin: 0 0 var(--space-4) 0; }
   /* Når tastaturet er åpent skal ikke body-padding kompensere for bottom-nav. */
   body.has-kb.has-bottom-nav { padding-bottom: 0; }
 }
+
+/* =========================================================================
+   Skeleton loading placeholder for salongkort.
+   Aktiveres ved å sette .service-card--skeleton på .service-card.
+   ========================================================================= */
+
+.service-card--skeleton {
+  pointer-events: none;
+}
+.service-card--skeleton .service-card__photo {
+  background: linear-gradient(110deg, var(--stone-100) 8%, var(--cream-100) 18%, var(--stone-100) 33%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.6s ease-in-out infinite;
+}
+.service-card--skeleton .sk-bar {
+  background: linear-gradient(110deg, var(--stone-100) 8%, var(--cream-100) 18%, var(--stone-100) 33%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.6s ease-in-out infinite;
+  border-radius: 6px;
+  height: 12px;
+}
+.service-card--skeleton .sk-bar--pill { width: 60px; height: 22px; border-radius: 999px; margin-bottom: 8px; }
+.service-card--skeleton .sk-bar--title { width: 70%; height: 18px; margin-bottom: 10px; }
+.service-card--skeleton .sk-bar--meta  { width: 55%; height: 12px; }
+
+@keyframes sk-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}

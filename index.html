@@ -469,6 +469,20 @@
       var section = document.getElementById('featuredSection');
       var grid = document.getElementById('featuredGrid');
       if (!section || !grid) return;
+      // Skeleton-kort mens API laster.
+      var sk = '';
+      for (var i = 0; i < 6; i++) {
+        sk += '<article class="service-card service-card--skeleton">'
+            +   '<div class="service-card__photo"></div>'
+            +   '<div class="service-card__body sc2-body sc2-body--vertical">'
+            +     '<div class="sk-bar sk-bar--pill"></div>'
+            +     '<div class="sk-bar sk-bar--title"></div>'
+            +     '<div class="sk-bar sk-bar--meta"></div>'
+            +   '</div>'
+            + '</article>';
+      }
+      grid.innerHTML = sk;
+      section.style.display = '';
       try {
         var data = await fetchSalonsWithRetry('/api/v1/salons?limit=8');
         var salons = Array.isArray(data.salons) ? data.salons : [];

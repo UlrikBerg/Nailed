@@ -1699,6 +1699,29 @@
       }
     }
 
+    // Skeleton-kort vises mens fetch pågår. Render 6 stk + skjul «Laster…»-
+    // teksten — bedre opplevelse enn tom skjerm med liten tekst.
+    function renderSkeleton(n) {
+      var grid = document.getElementById('resultsGrid');
+      if (!grid) return;
+      var state = document.getElementById('resultsState');
+      if (state) state.style.display = 'none';
+      // Fjern eksisterende kort først
+      grid.querySelectorAll('.service-card').forEach(function (c) { c.remove(); });
+      var html = '';
+      for (var i = 0; i < n; i++) {
+        html += '<article class="service-card service-card--skeleton">'
+              +   '<div class="service-card__photo"></div>'
+              +   '<div class="service-card__body sc2-body">'
+              +     '<div class="sk-bar sk-bar--pill"></div>'
+              +     '<div class="sk-bar sk-bar--title"></div>'
+              +     '<div class="sk-bar sk-bar--meta"></div>'
+              +   '</div>'
+              + '</article>';
+      }
+      grid.insertAdjacentHTML('beforeend', html);
+    }
+
     function fylkeLabelForHead() {
       if (currentFylke === 'all') return 'Norge';
       if (currentCity) return currentCity;
@@ -1747,7 +1770,7 @@
     }
 
     async function loadSalons() {
-      setState('Laster salonger…');
+      renderSkeleton(6);
       var qs = ['limit=24'];
       if (currentQ) qs.push('q=' + encodeURIComponent(currentQ));
       if (currentCity) qs.push('city=' + encodeURIComponent(currentCity));
