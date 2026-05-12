@@ -18,6 +18,7 @@ const salonApplicationRoutes = require('./routes/salon-applications');
 const reviewRoutes = require('./routes/reviews');
 const salonAnalyticsRoutes = require('./routes/salon-analytics');
 const adminRoutes = require('./routes/admin');
+const chatRoutes = require('./routes/chat');
 const seoRoutes = require('./routes/seo');
 
 function buildApp() {
@@ -186,6 +187,7 @@ function buildApp() {
   // /reviews/:id) so it's mounted at the API root instead of a single prefix.
   app.use('/api/v1', reviewRoutes);
   app.use('/api/v1/admin', adminRoutes);
+  app.use('/api/v1/chat', chatRoutes);
 
   // 404 for unknown /api/v1/* — let static handler reply for everything else.
   app.use('/api/v1', notFound);

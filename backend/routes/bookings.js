@@ -5,6 +5,7 @@ const { requireAuth } = require('../middleware/auth');
 const { asyncRoute, HttpError } = require('../lib/util');
 const config = require('../config');
 const notify = require('../lib/notify');
+const { ensureThread } = require('./chat');
 
 const router = express.Router();
 
@@ -486,6 +487,11 @@ router.post('/', asyncRoute(async (req, res) => {
     return { id: parentId, series_id: parentId, series_total: totalOccurrences };
   });
   setImmediate(() => { notify.sendBookingCreated(result.id); });
+  // Auto-opprett chat-tråd så kunden kan melde salongen om denne bookingen.
+  // Idempotent — ensureThread returnerer eksisterende ID hvis paret allerede har en.
+  ensureThread(req.user.id, data.salon_id).catch(function (err) {
+    console.warn('[chat] ensureThread failed', err && err.message);
+  });
   res.status(201).json(result);
 }));
 

@@ -12,7 +12,25 @@ router.use(requireAuth);
 // felter relevante for brukerens rolle: salon for salon_owner/admin med
 // salonger, admin for admin-rolle.
 router.get('/actions', asyncRoute(async (req, res) => {
-  const out = { salon: 0, admin: 0 };
+  const out = { salon: 0, admin: 0, messages: 0 };
+
+  // Uleste chat-tråder for brukeren (uavhengig av rolle). En tråd teller som
+  // 1 uavhengig av antall meldinger, så badge'n samsvarer med listen i
+  // Meldinger-fanen.
+  const msgRow = await queryOne(
+    `SELECT COUNT(*) AS n FROM chat_threads t
+       JOIN salons s ON s.id = t.salon_id
+      WHERE t.last_message_at IS NOT NULL
+        AND (
+          (t.customer_user_id = ?
+            AND (t.customer_last_read IS NULL OR t.last_message_at > t.customer_last_read))
+          OR
+          (s.owner_user_id = ?
+            AND (t.salon_last_read IS NULL OR t.last_message_at > t.salon_last_read))
+        )`,
+    [req.user.id, req.user.id]
+  );
+  out.messages = msgRow.n;
 
   // Salon-eier sin "Salongpanel"-badge er sum av: pending bookings + ubesvarte
   // anmeldelser, på tvers av alle salonger brukeren eier. Speiler de to

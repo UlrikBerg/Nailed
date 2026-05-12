@@ -676,3 +676,41 @@ CREATE TABLE IF NOT EXISTS review_reports (
   CONSTRAINT fk_rr_reporter FOREIGN KEY (reporter_user_id) REFERENCES users(id)   ON DELETE CASCADE,
   CONSTRAINT fk_rr_resolver FOREIGN KEY (resolved_by_user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- chat_threads
+-- En tråd per (kunde × salong). Opprettes når kunden gjør sin første booking
+-- mot salongen. Begge parter kan sende meldinger så lenge tråden eksisterer.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS chat_threads (
+  id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  customer_user_id   BIGINT UNSIGNED NOT NULL,
+  salon_id           BIGINT UNSIGNED NOT NULL,
+  created_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_message_at    DATETIME DEFAULT NULL,
+  customer_last_read DATETIME DEFAULT NULL,
+  salon_last_read    DATETIME DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_thread (customer_user_id, salon_id),
+  KEY idx_salon (salon_id, last_message_at),
+  CONSTRAINT fk_ct_customer FOREIGN KEY (customer_user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ct_salon    FOREIGN KEY (salon_id)         REFERENCES salons(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- chat_messages
+-- Append-only. sender_role redundant for raske queries — settes basert på om
+-- sender er kunden i tråden eller salon-eier.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  thread_id       BIGINT UNSIGNED NOT NULL,
+  sender_user_id  BIGINT UNSIGNED NOT NULL,
+  sender_role     ENUM('customer','salon') NOT NULL,
+  body            TEXT NOT NULL,
+  sent_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_thread (thread_id, sent_at),
+  CONSTRAINT fk_cm_thread FOREIGN KEY (thread_id)      REFERENCES chat_threads(id) ON DELETE CASCADE,
+  CONSTRAINT fk_cm_sender FOREIGN KEY (sender_user_id) REFERENCES users(id)        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
