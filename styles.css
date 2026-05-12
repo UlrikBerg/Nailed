@@ -1955,6 +1955,7 @@ p { margin: 0 0 var(--space-4) 0; }
   font-weight: 400;
   color: var(--rouge-700);
 }
+.home-promise__line { display: block; }
 .home-promise__list {
   list-style: none;
   margin: 0;
