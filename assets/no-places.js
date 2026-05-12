@@ -606,6 +606,10 @@
 
     function positionDropdown() {
       var r = input.getBoundingClientRect();
+      // Hvis input-en sitter i hero-search-baren, bruk barens bredde slik at
+      // dropdownen ikke blir smalere enn baren (mobil-stack-issue).
+      var container = input.closest('.search-bar');
+      var leftRect = container ? container.getBoundingClientRect() : r;
       var vh = window.innerHeight || document.documentElement.clientHeight;
       var gap = 4;
       var spaceBelow = vh - r.bottom - 8;
@@ -622,8 +626,8 @@
         dropdown.style.top = (r.bottom + gap) + 'px';
         dropdown.style.maxHeight = h2 + 'px';
       }
-      dropdown.style.left = r.left + 'px';
-      dropdown.style.width = r.width + 'px';
+      dropdown.style.left = leftRect.left + 'px';
+      dropdown.style.width = leftRect.width + 'px';
     }
 
     function onReflow() {
