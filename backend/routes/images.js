@@ -19,7 +19,10 @@ const storage = require('../storage');
 
 const router = express.Router({ mergeParams: true });
 
-const MAX_BYTES = 8 * 1024 * 1024; // 8 MB raw upload
+// 25 MB rå-upload — sharp komprimerer ned til webp q=82 (typisk 100-500 KB)
+// før vi laster opp til R2, så lagrings-/båndbredde-kostnaden er liten selv
+// for store rå-bilder fra moderne iPhones.
+const MAX_BYTES = 25 * 1024 * 1024;
 const MAX_IMAGES_PER_SALON = 24;
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']);
 

@@ -150,10 +150,66 @@ router.get('/salons', asyncRoute(async (req, res) => {
 router.post('/salons/:id/suspend', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const schema = z.object({ reason: z.string().trim().max(2000).optional() });
+  const { reason } = schema.parse(req.body || {});
+
   await query(`UPDATE salons SET status = 'suspended' WHERE id = ?`, [id]);
-  await audit(req.user.id, 'salon.suspend', 'salon', id);
+  await audit(req.user.id, 'salon.suspend', 'salon', id, { reason: reason || null });
+
+  // Varsle salong-eier via e-post.
+  setImmediate(function () {
+    notifySalonSuspended(id, reason).catch(function (err) {
+      console.warn('[suspend] notify failed', err && err.message);
+    });
+  });
+
   res.json({ ok: true });
 }));
+
+async function notifySalonSuspended(salonId, reason) {
+  const row = await queryOne(
+    `SELECT s.name AS salon_name, u.id AS user_id, u.email, u.name AS owner_name
+       FROM salons s JOIN users u ON u.id = s.owner_user_id
+      WHERE s.id = ? LIMIT 1`,
+    [salonId]
+  );
+  if (!row || !row.email) return;
+
+  const hi = row.owner_name ? `Hei ${row.owner_name},` : 'Hei,';
+  const reasonBlock = reason
+    ? `<p style="margin:0 0 16px 0;font-family:sans-serif;font-size:14px;line-height:1.55;color:#1B1218;background:#fff;border:1px solid #e3dcd5;border-radius:10px;padding:14px;"><strong>Grunn:</strong> ${escapeHtml(reason)}</p>`
+    : '';
+  const subject = `Salongen din «${row.salon_name}» er suspendert`;
+  const html =
+    '<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;padding:28px;background:#FBF6EE;color:#1B1218;">' +
+      `<h1 style="font-size:24px;font-weight:600;margin:0 0 12px;">Salongen din er suspendert</h1>` +
+      `<p style="font-family:sans-serif;font-size:14px;line-height:1.55;color:#7a6f68;margin:0 0 18px;">${hi} salongen «${escapeHtml(row.salon_name)}» er nå suspendert av nailed. Den vises ikke lenger offentlig, og kundene kan ikke booke nye timer hos deg før den er aktivert igjen.</p>` +
+      reasonBlock +
+      `<p style="font-family:sans-serif;font-size:14px;line-height:1.55;color:#7a6f68;margin:0 0 18px;">Eksisterende bookinger forblir lagret. Hvis du har spørsmål eller mener dette er en feil, svar på denne e-posten eller skriv til hei@nailed.no.</p>` +
+    '</div>';
+  const text = `${hi}\n\nSalongen «${row.salon_name}» er suspendert av nailed. Den vises ikke offentlig og kundene kan ikke booke nye timer.\n\n` +
+    (reason ? `Grunn: ${reason}\n\n` : '') +
+    `Spørsmål? Svar på denne e-posten eller skriv til hei@nailed.no.`;
+
+  const r = await sendEmail({ to: row.email, subject, html, text });
+  await query(
+    `INSERT INTO notification_log (user_id, channel, kind, recipient, provider_id, status, error)
+     VALUES (?, 'email', 'salon.suspended', ?, ?, ?, ?)`,
+    [
+      row.user_id,
+      row.email,
+      r.id || null,
+      r.ok ? 'sent' : 'failed',
+      r.ok ? null : (r.error || 'unknown'),
+    ]
+  );
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+  });
+}
 
 router.post('/salons/:id/activate', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);

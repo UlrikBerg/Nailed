@@ -2459,7 +2459,7 @@
             <div class="kp-card__head" style="margin-bottom: 6px;">
               <h3>Bilder</h3>
             </div>
-            <p class="gallery-hint">Maks 24 bilder, opptil 8 MB hver. JPEG, PNG, WEBP eller HEIC.</p>
+            <p class="gallery-hint">Maks 24 bilder, opptil 25 MB hver. JPEG, PNG, WEBP eller HEIC.</p>
             <input type="file" id="imageUploader" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;" />
             <div id="gallery" class="gallery-grid"></div>
             <span id="uploadStatus" class="gallery-status" aria-live="polite"></span>
@@ -4082,7 +4082,7 @@
     }
 
     var MAX_IMAGES_PER_SALON = 24;
-    var MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+    var MAX_IMAGE_BYTES = 25 * 1024 * 1024;
 
     async function uploadOneImage(file) {
       if (!salon || !salon.id) {
@@ -4168,7 +4168,7 @@
           break;
         }
         if (file.size > MAX_IMAGE_BYTES) {
-          if (window.NailedForms) NailedForms.toast(file.name + ' er for stort (maks 8 MB).', { type: 'error' });
+          if (window.NailedForms) NailedForms.toast(file.name + ' er for stort (maks 25 MB).', { type: 'error' });
           skippedTooLarge++;
           continue;
         }
