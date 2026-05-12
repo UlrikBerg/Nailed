@@ -1210,6 +1210,39 @@
       min-height: 80px;
     }
 
+    /* Bookings status-filter pills */
+    .kp-bookings-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin: -4px 0 16px;
+    }
+    .kp-bookings-filter__label {
+      font-size: 13px;
+      color: var(--fg-muted);
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    .kp-bookings-filter__chip {
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      color: var(--fg-muted);
+      cursor: pointer;
+      transition: all 120ms ease;
+    }
+    .kp-bookings-filter__chip:hover { border-color: var(--rouge-300); color: var(--ink); }
+    .kp-bookings-filter__chip.is-active {
+      background: var(--ink);
+      color: var(--cream-50);
+      border-color: var(--ink);
+    }
+
     /* Inline reschedule widget — rendered as a colspan row below the booking. */
     .sp-resched-form {
       padding: 16px;
@@ -1679,7 +1712,7 @@
   <header class="top-nav" id="topNav">
     <div class="page top-nav__inner">
       <a class="top-nav__brand" href="/">
-        <img src="assets/logo-wordmark.svg?v=3" alt="nailed" />
+        <img src="assets/logo-wordmark.svg?v=4" alt="nailed" />
       </a>
       <nav class="top-nav__links">
         <a href="utforsk">Utforsk</a>
@@ -1831,6 +1864,15 @@
           <div class="kp-section__actions">
             <button class="btn btn-primary" id="newManualBookingBtn"><i data-lucide="plus"></i> Ny manuell booking</button>
           </div>
+        </div>
+
+        <div class="kp-bookings-filter" id="bookingsStatusFilter" role="group" aria-label="Filtrer på status">
+          <span class="kp-bookings-filter__label">Vis:</span>
+          <button type="button" class="kp-bookings-filter__chip is-active" data-status="pending">Avventer</button>
+          <button type="button" class="kp-bookings-filter__chip is-active" data-status="confirmed">Bekreftet</button>
+          <button type="button" class="kp-bookings-filter__chip is-active" data-status="completed">Fullført</button>
+          <button type="button" class="kp-bookings-filter__chip is-active" data-status="cancelled">Kansellert</button>
+          <button type="button" class="kp-bookings-filter__chip is-active" data-status="no_show">No-show</button>
         </div>
 
         <div class="kp-card">
@@ -2656,7 +2698,7 @@
   <footer class="footer">
     <div class="page footer__inner">
       <div class="footer__top">
-        <img src="assets/logo-wordmark.svg?v=3" alt="nailed" class="footer__brand" />
+        <img src="assets/logo-wordmark.svg?v=4" alt="nailed" class="footer__brand" />
         <div class="footer__socials">
           <a class="footer__social" href="#" aria-label="Instagram"><i data-lucide="instagram"></i></a>
           <a class="footer__social" href="#" aria-label="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.17a8.16 8.16 0 004.76 1.51v-3.45a4.85 4.85 0 01-1-.54z"/></svg></a>
@@ -3942,6 +3984,25 @@
       });
     })();
 
+    // Cache av siste innkommende-bookinger så status-filter chip-klikk
+    // kan re-rendere tabellen uten ny API-fetch.
+    var lastIncomingBookings = [];
+    (function wireBookingsStatusFilter() {
+      var bar = document.getElementById('bookingsStatusFilter');
+      if (!bar) return;
+      bar.addEventListener('click', function (e) {
+        var chip = e.target.closest('.kp-bookings-filter__chip');
+        if (!chip) return;
+        chip.classList.toggle('is-active');
+        // loadIncoming() leser filteret og re-rendrer med samme data.
+        if (typeof loadIncoming === 'function' && lastIncomingBookings.length) {
+          // Trigger en re-render uten ny fetch: emuler hva loadIncoming
+          // gjør ved å gjenkalle den (den re-fetcher, men det er billig).
+          loadIncoming();
+        }
+      });
+    })();
+
     // Dashboard-kalender: månedsvisning med stylist-farger per booking.
     var dashCalBookings = [];
     var dashCalMonth = new Date();
@@ -4148,11 +4209,22 @@
         }
       }
 
+      // Stash for re-render uten ekstra fetch når status-filteret endres.
+      lastIncomingBookings = bookings;
+      // Filtrer ut statuser brukeren har klikket av.
+      var activeStatuses = new Set();
+      document.querySelectorAll('#bookingsStatusFilter .kp-bookings-filter__chip.is-active').forEach(function (c) {
+        activeStatuses.add(c.getAttribute('data-status'));
+      });
+      var filtered = activeStatuses.size
+        ? bookings.filter(function (b) { return activeStatuses.has(b.status); })
+        : bookings;
+
       var tbody = document.querySelector('#incomingTable tbody');
       tbody.innerHTML = '';
-      document.getElementById('incomingEmpty').style.display = bookings.length === 0 ? 'block' : 'none';
-      document.getElementById('incomingTable').style.display = bookings.length === 0 ? 'none' : '';
-      bookings.forEach(function (b) {
+      document.getElementById('incomingEmpty').style.display = filtered.length === 0 ? 'block' : 'none';
+      document.getElementById('incomingTable').style.display = filtered.length === 0 ? 'none' : '';
+      filtered.forEach(function (b) {
         var actions = '';
         if (b.status === 'pending') {
           actions += '<button class="btn btn-success btn-sm" data-action="confirmed" data-id="' + b.id + '">Bekreft</button> ';
