@@ -1291,6 +1291,27 @@
     .gallery-tile--add:hover { background: var(--rouge-100, #f5d8de); border-color: var(--rouge-500); }
     .gallery-tile--add i { width: 28px; height: 28px; }
     .gallery-tile--add span { font-size: 13px; font-weight: 600; }
+    .gallery-tile--add.is-uploading {
+      cursor: progress;
+      background: var(--rouge-100, #f5d8de);
+      border-style: solid;
+      border-color: var(--rouge-500);
+    }
+    .gallery-tile--add.is-uploading .gallery-tile__addDefault { display: none; }
+    .gallery-tile__spinner {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 3px solid rgba(190, 75, 95, 0.25);
+      border-top-color: var(--rouge-500);
+      animation: gallery-spin 0.7s linear infinite;
+    }
+    .gallery-tile--empty .gallery-tile__spinner { width: 44px; height: 44px; border-width: 4px; }
+    .gallery-tile__progress {
+      font-size: 13px; font-weight: 600;
+      color: var(--rouge-500);
+    }
+    .gallery-tile--empty .gallery-tile__progress { font-size: 16px; }
+    @keyframes gallery-spin { to { transform: rotate(360deg); } }
     .gallery-tile--empty {
       grid-column: 1 / -1;
       grid-row: auto;
@@ -3343,9 +3364,11 @@
       if (!imgs.length) {
         el.innerHTML =
           '<button type="button" class="gallery-tile gallery-tile--add gallery-tile--empty" id="galleryAddTile" aria-label="Last opp bilder">' +
-            '<i data-lucide="image-plus"></i>' +
-            '<span class="gallery-tile__emptyTitle">Last opp dine første bilder</span>' +
-            '<span class="gallery-tile__emptySub">Dra bilder hit, eller klikk for å velge</span>' +
+            '<span class="gallery-tile__addDefault" style="display:flex;flex-direction:column;align-items:center;gap:10px;">' +
+              '<i data-lucide="image-plus"></i>' +
+              '<span class="gallery-tile__emptyTitle">Last opp dine første bilder</span>' +
+              '<span class="gallery-tile__emptySub">Dra bilder hit, eller klikk for å velge</span>' +
+            '</span>' +
           '</button>';
         window.lucide && window.lucide.createIcons();
         return;
@@ -3386,8 +3409,10 @@
       if (imgs.length < MAX_IMAGES_PER_SALON) {
         html +=
           '<button type="button" class="gallery-tile gallery-tile--add" id="galleryAddTile" aria-label="Legg til bilde">' +
-            '<i data-lucide="plus"></i>' +
-            '<span>Legg til bilde</span>' +
+            '<span class="gallery-tile__addDefault" style="display:flex;flex-direction:column;align-items:center;gap:8px;">' +
+              '<i data-lucide="plus"></i>' +
+              '<span>Legg til bilde</span>' +
+            '</span>' +
           '</button>';
       }
 
@@ -3468,15 +3493,39 @@
     }
 
     var imageUploadInProgress = false;
+    function setAddTileUploading(addTile, current, total) {
+      if (!addTile) return;
+      addTile.classList.add('is-uploading');
+      addTile.disabled = true;
+      addTile.setAttribute('aria-busy', 'true');
+      var existing = addTile.querySelector('.gallery-tile__uploadState');
+      var label = 'Laster opp ' + current + ' av ' + total + '…';
+      if (existing) {
+        var prog = existing.querySelector('.gallery-tile__progress');
+        if (prog) prog.textContent = label;
+        return;
+      }
+      var state = document.createElement('span');
+      state.className = 'gallery-tile__uploadState';
+      state.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:10px;';
+      state.innerHTML =
+        '<span class="gallery-tile__spinner" aria-hidden="true"></span>' +
+        '<span class="gallery-tile__progress">' + label + '</span>';
+      addTile.appendChild(state);
+    }
+    function clearAddTileUploading(addTile) {
+      if (!addTile) return;
+      addTile.classList.remove('is-uploading');
+      addTile.disabled = false;
+      addTile.removeAttribute('aria-busy');
+      var state = addTile.querySelector('.gallery-tile__uploadState');
+      if (state) state.remove();
+    }
     async function uploadImages(fileList) {
       var files = Array.from(fileList || []);
       if (!files.length) return;
       var status = document.getElementById('uploadStatus');
       var addTile = document.getElementById('galleryAddTile');
-      if (addTile) {
-        addTile.style.pointerEvents = 'none';
-        addTile.style.opacity = '0.6';
-      }
       imageUploadInProgress = true;
 
       var existingCount = (currentImages || []).length;
@@ -3496,6 +3545,7 @@
           skippedTooLarge++;
           continue;
         }
+        setAddTileUploading(addTile, i + 1, files.length);
         if (status) status.textContent = 'Laster opp bilde ' + (i + 1) + ' av ' + files.length + '…';
         try {
           await uploadOneImage(file);
@@ -3507,10 +3557,7 @@
       }
 
       if (status) status.textContent = '';
-      if (addTile) {
-        addTile.style.pointerEvents = '';
-        addTile.style.opacity = '';
-      }
+      clearAddTileUploading(addTile);
       imageUploadInProgress = false;
 
       if (capHit && window.NailedForms) {
