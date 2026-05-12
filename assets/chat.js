@@ -100,9 +100,17 @@
 
     function avatarHtml(name, imgUrl) {
       // Hvis vi har et bilde (f.eks. salongens cover), bruk det. Ellers
-      // initialer på cream-bakgrunn.
-      var style = imgUrl ? 'background-image:url(\'' + encodeURI(imgUrl) + '\')' : '';
-      var text = imgUrl ? '' : escapeHtml(initialsOf(name));
+      // navn-deterministisk gradient med initialer (via NailedAvatar).
+      var style, text;
+      if (imgUrl) {
+        style = 'background-image:url(\'' + encodeURI(imgUrl) + '\')';
+        text = '';
+      } else {
+        var grad = (window.NailedAvatar && window.NailedAvatar.gradientFor(name))
+          || 'var(--cream-200, #ece4d8)';
+        style = 'background:' + grad + ';color:#fff';
+        text = escapeHtml(initialsOf(name));
+      }
       return '<span class="nc-row__avatar" style="' + style + '">' + text + '</span>';
     }
 
@@ -150,9 +158,14 @@
         // Tråd-avataren: bruk salon-cover når motparten ER salongen (dvs.
         // viewer er kunden). For salon-eier vises kundens initialer.
         var imgUrl = t.role === 'customer' ? t.salon_cover_url : null;
-        var avatar = imgUrl
-          ? '<span class="nc-thread__avatar" style="background-image:url(\'' + encodeURI(imgUrl) + '\');background-size:cover;background-position:center;"></span>'
-          : '<span class="nc-thread__avatar">' + escapeHtml(initialsOf(name)) + '</span>';
+        var avatar;
+        if (imgUrl) {
+          avatar = '<span class="nc-thread__avatar" style="background-image:url(\'' + encodeURI(imgUrl) + '\');background-size:cover;background-position:center;"></span>';
+        } else {
+          var grad = (window.NailedAvatar && window.NailedAvatar.gradientFor(name)) || '';
+          var style = grad ? 'background:' + grad + ';color:#fff;' : '';
+          avatar = '<span class="nc-thread__avatar" style="' + style + '">' + escapeHtml(initialsOf(name)) + '</span>';
+        }
         return '<div class="nc-thread' + (t.id === activeId ? ' is-active' : '') + '" data-id="' + t.id + '">' +
           avatar +
           '<div class="nc-thread__main">' +
