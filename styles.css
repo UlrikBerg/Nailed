@@ -1894,6 +1894,9 @@ p { margin: 0 0 var(--space-4) 0; }
   align-items: center;
   justify-content: center;
 }
+/* [hidden] overrider display:inline-flex via attributtselektor — uten
+   denne ble badge'n vist som en rød prikk selv om JS satte hidden=true. */
+.user-pill__menu-badge[hidden] { display: none; }
 .user-pill__alertDot {
   position: absolute;
   top: -4px;
