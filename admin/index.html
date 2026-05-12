@@ -681,7 +681,7 @@
       <!-- Horizontal pill tab strip -->
       <div class="ap-tabs" id="apTabs" role="tablist">
         <button class="ap-tab active" role="tab" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-        <button class="ap-tab" role="tab" data-tab="salonger"><i data-lucide="store"></i> Salonger <span class="ap-tab__count" id="navSalongerCount">0</span></button>
+        <button class="ap-tab" role="tab" data-tab="salonger"><i data-lucide="store"></i> Salonger</button>
         <button class="ap-tab" role="tab" data-tab="brukere"><i data-lucide="users"></i> Brukere</button>
         <button class="ap-tab" role="tab" data-tab="bookinger"><i data-lucide="calendar-check"></i> Bookinger</button>
         <button class="ap-tab" role="tab" data-tab="rapporter"><i data-lucide="bar-chart-3"></i> Rapporter</button>
@@ -1643,11 +1643,14 @@
         document.getElementById('kpiOpenBookings').textContent = formatNumber(data.open_bookings);
         document.getElementById('kpiPendingApps').textContent = formatNumber(data.pending_applications);
 
-        // Tab badges.
-        var sb = document.getElementById('navSalongerCount');
-        if (sb) sb.textContent = data.salons;
+        // Tab badges — kun handlinger som faktisk venter. Moderering teller
+        // pending salon-applications. Salonger-fanen viser kun aktive salonger
+        // (ingen badge — totalt antall er ikke en handling).
         var mb = document.getElementById('navModereringCount');
-        if (mb) mb.textContent = data.pending_applications;
+        if (mb) {
+          mb.textContent = data.pending_applications;
+          mb.style.display = data.pending_applications > 0 ? '' : 'none';
+        }
       } catch (err) {
         console.error('[admin] dashboard failed', err);
         ['kpiSalons','kpiUsers','kpiTodaysBookings','kpiOpenBookings','kpiPendingApps'].forEach(function (id) {
@@ -2021,7 +2024,11 @@
         var data = await res.json();
         renderModerering(data.applications || []);
         var badge = document.getElementById('navModereringCount');
-        if (badge) badge.textContent = (data.applications || []).length;
+        if (badge) {
+          var n = (data.applications || []).length;
+          badge.textContent = n;
+          badge.style.display = n > 0 ? '' : 'none';
+        }
       } catch (err) {
         console.error('[admin] applications failed', err);
         container.innerHTML = '<div class="td-muted">Kunne ikke laste søknader.</div>';
@@ -2158,7 +2165,11 @@
         var data = await res.json();
         renderAnmeldelser(data.reports || []);
         var badge = document.getElementById('navAnmeldelserCount');
-        if (badge) badge.textContent = (data.reports || []).length;
+        if (badge) {
+          var n = (data.reports || []).length;
+          badge.textContent = n;
+          badge.style.display = n > 0 ? '' : 'none';
+        }
       } catch (err) {
         console.error('[admin] review-reports failed', err);
         container.innerHTML = '<div class="td-muted">Kunne ikke laste rapporter.</div>';
