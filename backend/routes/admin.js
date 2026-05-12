@@ -666,6 +666,17 @@ router.get('/analytics/summary', asyncRoute(async (req, res) => {
   // hardcoded whitelist). No bound parameters needed for the period itself.
   const periodParams = [];
 
+  // Notifications sent in period (status='sent', split by channel). Når
+  // days=null (Alt) faller filteret bort så vi får totalsummer over alle tider.
+  const notifFilter = days != null ? `AND created_at >= (NOW() - INTERVAL ${days} DAY)` : '';
+  const notifRow = await queryOne(
+    `SELECT
+        SUM(channel = 'email' AND status = 'sent') AS emails_sent,
+        SUM(channel = 'sms'   AND status = 'sent') AS sms_sent
+       FROM notification_log
+      WHERE 1 = 1 ${notifFilter}`
+  );
+
   const totalRevenueRow = await queryOne(
     `SELECT COALESCE(SUM(b.price_nok), 0) AS revenue, COUNT(*) AS bookings
        FROM bookings b WHERE b.status IN ('confirmed','completed') ${periodFilter}`,
@@ -730,6 +741,8 @@ router.get('/analytics/summary', asyncRoute(async (req, res) => {
       active_salons: Number(activeSalonsRow.n) || 0,
       total_salons: Number(totalSalonsRow.n) || 0,
       avg_bookings_per_salon: Number(perSalonRow?.v) || 0,
+      emails_sent: Number(notifRow.emails_sent) || 0,
+      sms_sent: Number(notifRow.sms_sent) || 0,
     },
     top_salons: topSalons.map((s) => ({
       id: s.id, name: s.name, slug: s.slug, city: s.city,

@@ -666,16 +666,6 @@
           <h1 class="ap-hero__title">Hei, <em id="adminGreetingName">Ulrik</em>!</h1>
           <p class="ap-hero__sub">Plattformoversikt for nailed.no</p>
         </div>
-        <div class="ap-hero__user">
-          <span class="ap-hero__avatar" id="adminAvatar">U</span>
-          <span class="ap-hero__userText">
-            <span class="ap-hero__userName" id="adminName">Laster …</span>
-            <span class="ap-hero__userEmail" id="adminRole"></span>
-          </span>
-          <button class="ap-hero__logout" id="logoutBtn" type="button" title="Logg ut">
-            <i data-lucide="log-out"></i>
-          </button>
-        </div>
       </div>
 
       <!-- Horizontal pill tab strip -->
@@ -891,6 +881,16 @@
             <span class="ap-tile__label">Totalt bookinger</span>
             <span class="ap-tile__value" id="rapKpiTotalBookings">--</span>
             <span class="ap-tile__sub">bekreftet + fullført</span>
+          </div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Utsendte e-poster</span>
+            <span class="ap-tile__value" id="rapKpiEmails">--</span>
+            <span class="ap-tile__sub">i valgt periode</span>
+          </div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Utsendte SMS-er</span>
+            <span class="ap-tile__value" id="rapKpiSms">--</span>
+            <span class="ap-tile__sub">i valgt periode</span>
           </div>
         </div>
 
@@ -1597,25 +1597,10 @@
       currentUser = await NailedAuth.requireAuth('admin');
       if (!currentUser) return;
 
-      // Hero greeting.
+      // Hero greeting. (User-pill + logout handled av nav.js på top-nav.)
       var greetEl = document.getElementById('adminGreetingName');
-      var nameEl = document.getElementById('adminName');
-      var roleEl = document.getElementById('adminRole');
-      var avatarEl = document.getElementById('adminAvatar');
       var firstName = (currentUser.name || '').split(/\s+/)[0] || 'admin';
       if (greetEl) greetEl.textContent = firstName;
-      if (nameEl) nameEl.textContent = currentUser.name || currentUser.email || 'Admin';
-      if (roleEl) roleEl.textContent = currentUser.email || '';
-      if (avatarEl) avatarEl.textContent = (firstName.charAt(0) || 'A').toUpperCase();
-
-      // Logout.
-      var logoutBtn = document.getElementById('logoutBtn');
-      if (logoutBtn) {
-        logoutBtn.addEventListener('click', async function () {
-          try { await NailedAuth.logout(); } catch (_) {}
-          window.location.replace('/');
-        });
-      }
 
       // Initial loads.
       loadDashboard();
@@ -2345,6 +2330,8 @@
         document.getElementById('rapKpiPerSalon').textContent =
           k.avg_bookings_per_salon ? Number(k.avg_bookings_per_salon).toFixed(1).replace('.', ',') : '0';
         document.getElementById('rapKpiTotalBookings').textContent = formatNumber(k.total_bookings);
+        document.getElementById('rapKpiEmails').textContent = formatNumber(k.emails_sent || 0);
+        document.getElementById('rapKpiSms').textContent = formatNumber(k.sms_sent || 0);
 
         // Bookings per week.
         var weeks = (data.bookings_per_week || []).map(function (r) { return { label: 'Uke ' + String(r.yearweek).slice(-2), count: r.count }; });
