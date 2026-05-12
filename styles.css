@@ -2449,3 +2449,43 @@ p { margin: 0 0 var(--space-4) 0; }
   0%   { background-position: 100% 0; }
   100% { background-position: -100% 0; }
 }
+
+/* =========================================================================
+   Hero-search mobil: stack feltene vertikalt og full-bredde CTA.
+   Desktop beholder horisontal pill-form. Standard pill med horisontal layout
+   er for trang på iPhone — feltene blir 130 px hver med teksten kuttet.
+   ========================================================================= */
+
+@media (max-width: 720px) {
+  .search-bar {
+    flex-direction: column;
+    border-radius: var(--radius-xl);
+    padding: 4px;
+    align-items: stretch;
+  }
+  .search-bar__field {
+    padding: 12px 16px;
+    border-radius: var(--radius-lg);
+    gap: 12px;
+  }
+  .search-bar__divider {
+    width: auto;
+    height: 1px;
+    margin: 0 14px;
+  }
+  .search-bar__cta {
+    width: 100%;
+    height: 52px;
+    border-radius: var(--radius-lg);
+    margin-top: 4px;
+    gap: 8px;
+  }
+  /* Vis «Søk»-label ved siden av ikonet på mobil — uten den blir knappen anonym */
+  .search-bar__cta::after {
+    content: "Søk";
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 16px;
+    color: inherit;
+  }
+}
