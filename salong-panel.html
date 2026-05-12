@@ -4069,7 +4069,7 @@
           '<button type="button" class="gallery-tile__btn gallery-tile__btn--danger" data-delete="' + img.id + '" title="Slett bilde" aria-label="Slett bilde"><i data-lucide="trash-2"></i></button>';
         return (
           '<div class="' + tileCls + '">' +
-            '<img src="' + escapeHtml(img.url) + '" alt="" />' +
+            '<img src="' + escapeHtml(img.url) + '" alt="" loading="lazy" decoding="async" />' +
             badge +
             '<div class="gallery-tile__overlay">' + setCoverBtn + deleteBtn + '</div>' +
           '</div>'

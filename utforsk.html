@@ -1415,11 +1415,13 @@
       var fylke = fylkeForCity(salon.city);
       var fylkeAttr = fylke || '';
       var cityAttr = salon.city || '';
-      var photoStyle;
+      var photoStyle, photoInner;
       if (salon.cover_url) {
-        photoStyle = "background-image: url('" + encodeURI(salon.cover_url) + "'); background-size: cover; background-position: center;";
+        photoStyle = '';
+        photoInner = '<img class="service-card__cover" src="' + encodeURI(salon.cover_url) + '" alt="" loading="lazy" decoding="async">';
       } else {
         photoStyle = 'background: ' + gradientFor(salon.id) + ';';
+        photoInner = '';
       }
 
       var loggedInForFav = window.NailedAuth && NailedAuth.isLoggedIn();
@@ -1489,7 +1491,7 @@
           + 'data-reviews="' + (salon.review_count || 0) + '" '
           + 'data-slot="" '
           + 'onclick="(window.NailedSpaNav?window.NailedSpaNav.navigate:function(h){location.href=h;})(\'salon?slug=' + slug + '\')">'
-          + '<div class="service-card__photo" style="' + photoStyle + '"></div>'
+          + '<div class="service-card__photo" style="' + photoStyle + '">' + photoInner + '</div>'
           + '<div class="service-card__body sc2-body">'
             + '<button class="' + heartClass + '" data-fav="' + escapeHtml(salon.slug || '') + '" data-salon-id="' + salon.id + '" aria-pressed="' + (isFav ? 'true' : 'false') + '">'
               + '<i data-lucide="heart" style="' + heartFillStyle + '"></i>'

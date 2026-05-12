@@ -354,11 +354,16 @@
 
     function featuredCard(salon, idx, opts) {
       opts = opts || {};
-      var photoStyle;
+      var photoStyle, photoInner;
       if (salon.cover_url) {
-        photoStyle = "background-image: url('" + encodeURI(salon.cover_url) + "'); background-size: cover; background-position: center;";
+        photoStyle = '';
+        // De første 2 kortene på forsiden er sannsynligvis above-the-fold —
+        // last dem eagerly for LCP. Resten lazy.
+        var loadAttr = idx < 2 ? 'eager' : 'lazy';
+        photoInner = '<img class="service-card__cover" src="' + encodeURI(salon.cover_url) + '" alt="" loading="' + loadAttr + '" decoding="async">';
       } else {
         photoStyle = 'background: ' + FEATURED_FALLBACK_GRADIENTS[idx % FEATURED_FALLBACK_GRADIENTS.length] + ';';
+        photoInner = '';
       }
       var slug = encodeURIComponent(salon.slug || '');
       var featured = (opts.allowFeatured && idx === 0) ? ' service-card--featured' : '';
@@ -414,6 +419,7 @@
       return ''
         + '<article class="service-card card' + featured + '" onclick="(window.NailedSpaNav?window.NailedSpaNav.navigate:function(h){location.href=h;})(\'salon?slug=' + slug + '\')">'
           + '<div class="service-card__photo" style="' + photoStyle + '">'
+            + photoInner
             + '<button class="service-card__heart" data-fav="' + featuredEscapeHtml(salon.slug || '') + '" data-salon-id="' + salon.id + '">'
               + '<i data-lucide="heart"></i>'
             + '</button>'

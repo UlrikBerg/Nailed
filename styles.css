@@ -615,6 +615,15 @@ p { margin: 0 0 var(--space-4) 0; }
 .service-card__photo {
   aspect-ratio: 16/10;
   position: relative;
+  overflow: hidden;
+}
+.service-card__cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .service-card--featured .service-card__photo {
   background: linear-gradient(135deg, #FFE0E9 0%, #EE3F7E 60%, #82103D 100%);
