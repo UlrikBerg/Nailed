@@ -247,73 +247,13 @@
   </section>
 
   <!-- ============================================================
-       Folkets favoritter — live API (top-rated)
-       ============================================================ -->
-  <section id="topRatedSection" style="padding: 0 0 64px; display: none;">
-    <div class="page">
-      <div class="section-head">
-        <div>
-          <h2>Folkets favoritter <em>denne uken</em></h2>
-        </div>
-        <a class="section-head__link" href="utforsk?has_reviews=1&min_rating=4" style="text-decoration:none;">Se alle <i data-lucide="arrow-right"></i></a>
-      </div>
-      <div class="grid-3" id="topRatedGrid"></div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       Populære byer — quick-filter chips to /utforsk.html?city=X
-       ============================================================ -->
-  <section style="padding: 0 0 72px;">
-    <div class="page">
-      <div class="home-cities">
-        <div class="home-cities__head">
-          <div class="eyebrow">Bla etter sted</div>
-          <h2 class="home-cities__title">Salonger i <em>din by</em></h2>
-        </div>
-        <div class="home-cities__chips">
-          <a class="home-city-chip" href="/utforsk.html?city=Oslo">
-            <span class="home-city-chip__name">Oslo</span>
-            <i data-lucide="arrow-up-right"></i>
-          </a>
-          <a class="home-city-chip" href="/utforsk.html?city=Bergen">
-            <span class="home-city-chip__name">Bergen</span>
-            <i data-lucide="arrow-up-right"></i>
-          </a>
-          <a class="home-city-chip" href="/utforsk.html?city=Trondheim">
-            <span class="home-city-chip__name">Trondheim</span>
-            <i data-lucide="arrow-up-right"></i>
-          </a>
-          <a class="home-city-chip" href="/utforsk.html?city=Stavanger">
-            <span class="home-city-chip__name">Stavanger</span>
-            <i data-lucide="arrow-up-right"></i>
-          </a>
-          <a class="home-city-chip" href="/utforsk.html?city=Tromsø">
-            <span class="home-city-chip__name">Tromsø</span>
-            <i data-lucide="arrow-up-right"></i>
-          </a>
-          <a class="home-city-chip" href="/utforsk.html?city=Kristiansand">
-            <span class="home-city-chip__name">Kristiansand</span>
-            <i data-lucide="arrow-up-right"></i>
-          </a>
-          <a class="home-city-chip home-city-chip--all" href="/utforsk.html">
-            <span class="home-city-chip__name">Se alle</span>
-            <i data-lucide="arrow-right"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       Pre-footer mini-CTA — "Klar til å booke?"
+       Pre-footer mini-CTA
        ============================================================ -->
   <section style="padding: 0 0 72px;">
     <div class="page">
       <div class="home-prefooter">
         <div class="home-prefooter__text">
-          <div class="home-prefooter__kicker">Klar til å booke?</div>
-          <div class="home-prefooter__title">Finn en salong, og <em>book på et minutt.</em></div>
+          <div class="home-prefooter__title">Bla gjennom salonger og <em>finn din favoritt.</em></div>
         </div>
         <a href="/utforsk.html" class="btn btn-primary btn-lg home-prefooter__cta">
           Utforsk salonger <i data-lucide="arrow-right"></i>
@@ -548,37 +488,6 @@
       }
     })();
 
-    // ----- Top-rated salon grid (replaces fake "Folkets favoritter") -----
-    // API has no sort=rating param yet, so we fetch with the filters and sort
-    // client-side by avg_rating DESC, then review_count DESC.
-    (async function loadTopRated() {
-      var section = document.getElementById('topRatedSection');
-      var grid = document.getElementById('topRatedGrid');
-      if (!section || !grid) return;
-      try {
-        var data = await fetchSalonsWithRetry('/api/v1/salons?limit=24&has_reviews=1&min_rating=4');
-        var salons = Array.isArray(data.salons) ? data.salons : [];
-        salons.sort(function (a, b) {
-          var ar = a.avg_rating == null ? 0 : Number(a.avg_rating);
-          var br = b.avg_rating == null ? 0 : Number(b.avg_rating);
-          if (br !== ar) return br - ar;
-          return Number(b.review_count || 0) - Number(a.review_count || 0);
-        });
-        salons = salons.slice(0, 6);
-        if (salons.length === 0) {
-          section.style.display = 'none';
-          return;
-        }
-        grid.innerHTML = salons.map(function (s, i) {
-          return featuredCard(s, i, { showRating: true });
-        }).join('');
-        section.style.display = '';
-        window.lucide && window.lucide.createIcons();
-        if (typeof initFavorites === 'function') initFavorites();
-      } catch (err) {
-        section.style.display = 'none';
-      }
-    })();
   </script>
 </body>
 </html>
