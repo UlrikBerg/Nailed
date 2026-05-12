@@ -1408,12 +1408,41 @@
         + '</article>';
     }
 
+    function sortedSalons() {
+      // Sortering skjer client-side på ALL_SALONS. Original-array forblir
+      // urørt så filterResults kan operere på samme rekkefølge serveren ga.
+      var list = ALL_SALONS.slice();
+      var mode = (document.getElementById('sortSelect') || {}).value || 'next';
+      function num(v, fallback) { return (v == null || isNaN(v)) ? fallback : Number(v); }
+      if (mode === 'price') {
+        list.sort(function (a, b) {
+          return num(a.min_price, Infinity) - num(b.min_price, Infinity);
+        });
+      } else if (mode === 'rating') {
+        list.sort(function (a, b) {
+          return num(b.avg_rating, -1) - num(a.avg_rating, -1);
+        });
+      } else {
+        // next: åpne nå først, så de som åpner senere i dag (etter reopens_today),
+        // resten beholder API-rekkefølge (created_at desc).
+        list.sort(function (a, b) {
+          var aOpen = a.is_open_now ? 0 : 1;
+          var bOpen = b.is_open_now ? 0 : 1;
+          if (aOpen !== bOpen) return aOpen - bOpen;
+          var aR = a.reopens_today || 'ZZ';
+          var bR = b.reopens_today || 'ZZ';
+          return aR.localeCompare(bR);
+        });
+      }
+      return list;
+    }
+
     function renderResults() {
       var grid = document.getElementById('resultsGrid');
       var oldCards = grid.querySelectorAll('.service-card');
       oldCards.forEach(function (c) { c.parentNode.removeChild(c); });
 
-      var html = ALL_SALONS.map(buildCard).join('');
+      var html = sortedSalons().map(buildCard).join('');
       var stateEl = document.getElementById('resultsState');
       stateEl.insertAdjacentHTML('beforebegin', html);
       lucide.createIcons();
@@ -1774,13 +1803,18 @@
     if (filterClose) filterClose.addEventListener('click', closeDrawer);
     if (filterBackdrop) filterBackdrop.addEventListener('click', closeDrawer);
 
-    // --- Mobile sort mirror ---------------------------------------------------
+    // --- Sortering ------------------------------------------------------------
     var sortMobile = document.getElementById('sortSelectMobile');
     var sortDesktop = document.getElementById('sortSelect');
+    function applySort() {
+      if (!ALL_SALONS.length) return;
+      renderResults();
+    }
+    if (sortDesktop) sortDesktop.addEventListener('change', applySort);
     if (sortMobile && sortDesktop) {
       sortMobile.addEventListener('change', function () {
         sortDesktop.value = sortMobile.value;
-        sortDesktop.dispatchEvent(new Event('change'));
+        applySort();
       });
     }
 
