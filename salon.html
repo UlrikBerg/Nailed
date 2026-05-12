@@ -1281,39 +1281,72 @@
       });
     }
 
-    function restorePendingBooking() {
+    async function restorePendingBooking() {
       var raw;
       try { raw = sessionStorage.getItem('nailed.pendingBooking'); } catch (e) { return; }
       if (!raw) return;
-      try {
-        var pending = JSON.parse(raw);
-        if (!pending || pending.slug !== slug) return;
+      var pending;
+      try { pending = JSON.parse(raw); } catch (_) {
         sessionStorage.removeItem('nailed.pendingBooking');
+        return;
+      }
+      if (!pending || pending.slug !== slug) return;
+      sessionStorage.removeItem('nailed.pendingBooking');
 
-        var matching = renderedServices.find(function(s) { return s.id === pending.serviceId; });
-        if (matching) selectService(matching);
+      var matching = renderedServices.find(function(s) { return s.id === pending.serviceId; });
+      if (matching) selectService(matching);
 
-        // Re-select the stylist if the saved intent had one. Click the chip
-        // so the active state, selectedStylistId, and availability all sync.
-        if (pending.stylistId != null) {
-          var chip = document.querySelector('.stylist-chip[data-stylist="' + pending.stylistId + '"]');
-          if (chip) chip.click();
+      if (pending.stylistId != null) {
+        var chip = document.querySelector('.stylist-chip[data-stylist="' + pending.stylistId + '"]');
+        if (chip) chip.click();
+      }
+
+      var dateIso = (pending.dateTime || '').slice(0, 10);
+      var dayBtn = document.querySelector('.day-pick[data-iso="' + dateIso + '"]');
+      if (dayBtn) {
+        var page = dayBtn.closest('.day-carousel__page');
+        var allPages = Array.from(document.querySelectorAll('.day-carousel__page'));
+        var pageIdx = allPages.indexOf(page);
+        if (pageIdx > -1) { dayPageIdx = pageIdx; applyDayPage(); }
+        dayBtn.click();
+      }
+      var slotBtn = document.querySelector('.slot[data-iso="' + pending.dateTime + '"]');
+      if (slotBtn) slotBtn.click();
+
+      // Auto-submit hvis brukeren er logget inn nå (de kom hit etter å ha
+      // logget inn underveis i booking-flyten — skal ikke måtte klikke
+      // Bekreft igjen). Krever at currentSalon, selectedService og
+      // selectedDateTime alle er satt.
+      if (!window.NailedAuth || !NailedAuth.isLoggedIn()) return;
+      if (!currentSalon || !matching) return;
+      cta.disabled = true;
+      var prev = cta.textContent;
+      cta.textContent = 'Sender booking …';
+      try {
+        var res = await NailedAuth.api('/api/v1/bookings', {
+          method: 'POST',
+          body: {
+            salon_id: currentSalon.id,
+            service_id: pending.serviceId,
+            start_at: pending.dateTime,
+            team_member_id: pending.stylistId,
+          },
+        });
+        if (!res.ok) {
+          var data = await res.json().catch(function () { return {}; });
+          cta.disabled = false;
+          cta.textContent = prev;
+          if (data && data.error && data.error.code === 'slot_taken') showWaitlistOffer();
+          if (window.NailedForms) NailedForms.toast((data.error && data.error.message) || 'Kunne ikke booke', { type: 'error' });
+          return;
         }
-
-        var dateIso = (pending.dateTime || '').slice(0, 10);
-        var dayBtn = document.querySelector('.day-pick[data-iso="' + dateIso + '"]');
-        if (dayBtn) {
-          // Slide the carousel to the page that contains this day.
-          var page = dayBtn.closest('.day-carousel__page');
-          var allPages = Array.from(document.querySelectorAll('.day-carousel__page'));
-          var pageIdx = allPages.indexOf(page);
-          if (pageIdx > -1) { dayPageIdx = pageIdx; applyDayPage(); }
-          dayBtn.click();
-        }
-
-        var slotBtn = document.querySelector('.slot[data-iso="' + pending.dateTime + '"]');
-        if (slotBtn) slotBtn.click();
-      } catch (e) { /* ignore corrupt state */ }
+        var json = await res.json();
+        location.href = '/confirmation?id=' + encodeURIComponent(json.id);
+      } catch (err) {
+        cta.disabled = false;
+        cta.textContent = prev;
+        if (window.NailedForms) NailedForms.toast('Kunne ikke booke. Prøv igjen.', { type: 'error' });
+      }
     }
 
     // ---- 2 + 3 + 4 + 5. Fetch and render ----
