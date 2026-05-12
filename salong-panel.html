@@ -545,6 +545,28 @@
       border-radius: 4px;
       margin-top: 2px;
     }
+    .kp-cal__today {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--rouge-500);
+      pointer-events: none;
+    }
+    .kp-cal__today--center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 4px 10px;
+      background: var(--rouge-100);
+      border-radius: 999px;
+    }
+    .kp-cal__today--corner {
+      position: absolute;
+      bottom: 6px; right: 8px;
+      font-size: 10px;
+    }
     .kp-cal__cell--other .kp-cal__chips,
     .kp-cal__cell--other .kp-cal__more { display: none; }
 
@@ -3979,8 +4001,9 @@
       }
       for (var d = 1; d <= daysInMonth; d++) {
         var iso = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+        var isToday = (iso === todayIso);
         var classes = ['kp-cal__cell'];
-        if (iso === todayIso) classes.push('kp-cal__cell--today');
+        if (isToday) classes.push('kp-cal__cell--today');
         var items = byDay[iso] || [];
         if (items.length) classes.push('kp-cal__cell--hasBookings');
         var chipsHtml = '';
@@ -3998,10 +4021,19 @@
         var moreHtml = items.length > 3
           ? '<span class="kp-cal__more">+ ' + (items.length - 3) + ' til</span>'
           : '';
+        // «I dag»-merke: sentrert i tomme dager, nede-til-høyre når det er
+        // bookinger så det ikke kolliderer med chipsene.
+        var todayMark = '';
+        if (isToday) {
+          todayMark = items.length === 0
+            ? '<span class="kp-cal__today kp-cal__today--center">I dag</span>'
+            : '<span class="kp-cal__today kp-cal__today--corner">I dag</span>';
+        }
         html += '<div class="' + classes.join(' ') + '" data-iso="' + iso + '">' +
           '<span class="kp-cal__num">' + d + '</span>' +
           '<div class="kp-cal__chips">' + chipsHtml + '</div>' +
           moreHtml +
+          todayMark +
           '</div>';
       }
       var totalCells = offset + daysInMonth;
