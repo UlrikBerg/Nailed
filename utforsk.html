@@ -860,6 +860,7 @@
         <div class="utforsk-main__head-right">
           <i data-lucide="arrow-up-down"></i>
           <select id="sortSelectMobile" aria-label="Sortér">
+            <option value="relevant">Mest relevant</option>
             <option value="next">Neste ledige</option>
             <option value="price">Lavest pris</option>
             <option value="rating">Best vurdert</option>
@@ -873,6 +874,7 @@
           <i data-lucide="arrow-up-down"></i>
           Sortér
           <select id="sortSelect">
+            <option value="relevant">Mest relevant</option>
             <option value="next">Neste ledige time</option>
             <option value="price">Lavest pris</option>
             <option value="rating">Best vurdert</option>
@@ -1408,11 +1410,49 @@
         + '</article>';
     }
 
+    // Brukerens posisjon — fylles inn ved første «Mest relevant»-sortering.
+    // Cached i sessionStorage 1 time så vi ikke ber om geo ved hver render.
+    var userGeo = null;
+    function loadCachedGeo() {
+      try {
+        var raw = sessionStorage.getItem('nailed.geo');
+        if (!raw) return null;
+        var g = JSON.parse(raw);
+        if (!g || (Date.now() - g.at) > 60 * 60 * 1000) return null;
+        return { lat: g.lat, lng: g.lng };
+      } catch (_) { return null; }
+    }
+    function saveGeo(lat, lng) {
+      try { sessionStorage.setItem('nailed.geo', JSON.stringify({ lat: lat, lng: lng, at: Date.now() })); } catch (_) {}
+    }
+    function requestGeo() {
+      if (userGeo) return Promise.resolve(userGeo);
+      var cached = loadCachedGeo();
+      if (cached) { userGeo = cached; return Promise.resolve(cached); }
+      if (!navigator.geolocation) return Promise.resolve(null);
+      return new Promise(function (resolve) {
+        navigator.geolocation.getCurrentPosition(function (pos) {
+          userGeo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          saveGeo(userGeo.lat, userGeo.lng);
+          resolve(userGeo);
+        }, function () { resolve(null); }, { timeout: 4000, maximumAge: 60 * 60 * 1000 });
+      });
+    }
+    function haversineKm(a, b) {
+      var R = 6371;
+      var dLat = (b.lat - a.lat) * Math.PI / 180;
+      var dLng = (b.lng - a.lng) * Math.PI / 180;
+      var lat1 = a.lat * Math.PI / 180;
+      var lat2 = b.lat * Math.PI / 180;
+      var x = Math.sin(dLat / 2) ** 2 + Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+      return 2 * R * Math.asin(Math.sqrt(x));
+    }
+
     function sortedSalons() {
       // Sortering skjer client-side på ALL_SALONS. Original-array forblir
       // urørt så filterResults kan operere på samme rekkefølge serveren ga.
       var list = ALL_SALONS.slice();
-      var mode = (document.getElementById('sortSelect') || {}).value || 'next';
+      var mode = (document.getElementById('sortSelect') || {}).value || 'relevant';
       function num(v, fallback) { return (v == null || isNaN(v)) ? fallback : Number(v); }
       if (mode === 'price') {
         list.sort(function (a, b) {
@@ -1422,9 +1462,7 @@
         list.sort(function (a, b) {
           return num(b.avg_rating, -1) - num(a.avg_rating, -1);
         });
-      } else {
-        // next: åpne nå først, så de som åpner senere i dag (etter reopens_today),
-        // resten beholder API-rekkefølge (created_at desc).
+      } else if (mode === 'next') {
         list.sort(function (a, b) {
           var aOpen = a.is_open_now ? 0 : 1;
           var bOpen = b.is_open_now ? 0 : 1;
@@ -1433,6 +1471,24 @@
           var bR = b.reopens_today || 'ZZ';
           return aR.localeCompare(bR);
         });
+      } else {
+        // relevant: hvis vi har brukerens posisjon, filtrér til ≤30km og
+        // sorter etter rating synkende. Uten geo: kun rating-sortering
+        // (alle salonger vises).
+        if (userGeo) {
+          var near = [], far = [];
+          list.forEach(function (s) {
+            if (s.lat == null || s.lng == null) { far.push(s); return; }
+            var km = haversineKm(userGeo, { lat: s.lat, lng: s.lng });
+            s._distanceKm = km;
+            if (km <= 30) near.push(s); else far.push(s);
+          });
+          near.sort(function (a, b) { return num(b.avg_rating, -1) - num(a.avg_rating, -1); });
+          far.sort(function (a, b) { return num(b.avg_rating, -1) - num(a.avg_rating, -1); });
+          list = near.concat(far);
+        } else {
+          list.sort(function (a, b) { return num(b.avg_rating, -1) - num(a.avg_rating, -1); });
+        }
       }
       return list;
     }
@@ -1806,8 +1862,12 @@
     // --- Sortering ------------------------------------------------------------
     var sortMobile = document.getElementById('sortSelectMobile');
     var sortDesktop = document.getElementById('sortSelect');
-    function applySort() {
+    async function applySort() {
       if (!ALL_SALONS.length) return;
+      var mode = (sortDesktop && sortDesktop.value) || 'relevant';
+      if (mode === 'relevant' && !userGeo) {
+        await requestGeo();
+      }
       renderResults();
     }
     if (sortDesktop) sortDesktop.addEventListener('change', applySort);
@@ -1817,6 +1877,9 @@
         applySort();
       });
     }
+    // Be om posisjon i bakgrunn ved sidelast så «Mest relevant» (default)
+    // får full effekt med en gang dataene er lastet.
+    requestGeo().then(function () { if (ALL_SALONS.length) renderResults(); });
 
     // --- Initial application of URL-derived state ----------------------------
     (function applyInitialFylkePill() {

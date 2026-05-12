@@ -172,6 +172,7 @@ router.get('/', asyncRoute(async (req, res) => {
   const rows = await query(
     `SELECT DISTINCT
             s.id, s.slug, s.name, s.city, s.bio, s.instagram_url, s.cover_image_key, s.created_at,
+            s.lat, s.lng,
             (SELECT MIN(price_nok) FROM services WHERE salon_id = s.id AND active = 1) AS min_price,
             (SELECT MIN(duration_min) FROM services WHERE salon_id = s.id AND active = 1) AS min_duration,
             (SELECT AVG(rating) FROM reviews WHERE salon_id = s.id AND hidden_at IS NULL) AS avg_rating,
@@ -223,6 +224,10 @@ router.get('/', asyncRoute(async (req, res) => {
   // fields. avg_rating gets rounded to 1 decimal; nulls stay nulls.
   const out = rows.map(({ created_at, ...rest }) => {
     const r = withCoverUrl(rest);
+    // lat/lng kommer fra MySQL som DECIMAL → strings; cast til number for
+    // klient-side avstandsberegning. Null hvis ikke geocodet.
+    r.lat = r.lat != null ? Number(r.lat) : null;
+    r.lng = r.lng != null ? Number(r.lng) : null;
     r.min_price = r.min_price != null ? Number(r.min_price) : null;
     r.min_duration = r.min_duration != null ? Number(r.min_duration) : null;
     r.avg_rating = r.avg_rating != null
