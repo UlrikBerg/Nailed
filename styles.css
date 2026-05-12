@@ -2190,3 +2190,88 @@ p { margin: 0 0 var(--space-4) 0; }
   color: var(--rouge-300);
 }
 .home-prefooter__cta { flex-shrink: 0; }
+
+/* =========================================================================
+   Bottom navigation (mobil < 720px)
+   Auto-injisert av /assets/bottom-nav.js på offentlige sider.
+   Sider med .has-bottom-nav skjuler top-nav-lenker så kun logoen vises på mobil.
+   ========================================================================= */
+
+.bottom-nav {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1200;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: saturate(150%) blur(12px);
+    -webkit-backdrop-filter: saturate(150%) blur(12px);
+    border-top: 1px solid var(--stone-200);
+    padding-bottom: env(safe-area-inset-bottom);
+    justify-content: space-around;
+  }
+  .bottom-nav__item {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px 10px;
+    color: var(--stone-500);
+    text-decoration: none;
+    font-family: var(--font-body);
+    min-height: 56px;
+    transition: color var(--dur-fast);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bottom-nav__item--active { color: var(--rouge-500); }
+  .bottom-nav__icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+  }
+  .bottom-nav__icon svg { width: 22px; height: 22px; }
+  .bottom-nav__label {
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1;
+  }
+  .bottom-nav__badge {
+    position: absolute;
+    top: -3px;
+    right: -6px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: var(--rouge-500);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+  .bottom-nav__badge[hidden] { display: none; }
+
+  /* Skjul top-nav-lenker og høyresidens actions på mobil — kun logoen synlig.
+     Footer-knappen «Logg inn» og hjerte-favoritter flytter inn i bottom-nav. */
+  .has-bottom-nav .top-nav__links,
+  .has-bottom-nav .top-nav__actions { display: none; }
+
+  /* Plass for bottom-nav-en så footer/innhold ikke ligger under den.
+     56px nav + safe-area bunn. */
+  .has-bottom-nav { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
+}
