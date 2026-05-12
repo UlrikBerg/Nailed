@@ -1021,7 +1021,21 @@ p { margin: 0 0 var(--space-4) 0; }
 .confirm__sticker {
   width: 220px;
   margin: 0 auto 32px;
-  animation: spin 12s linear infinite;
+  animation: spin 12s linear infinite, confirm-pop 700ms cubic-bezier(.34, 1.56, .64, 1) both;
+}
+@keyframes confirm-pop {
+  0%   { opacity: 0; transform: scale(0.5) rotate(-90deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes confirm-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confirm__sticker,
+  .confirm__title,
+  .confirm__sub,
+  .confirm__layout { animation: none !important; }
 }
 .confirm__title {
   font-family: var(--font-display);
@@ -1029,6 +1043,7 @@ p { margin: 0 0 var(--space-4) 0; }
   font-size: 64px;
   letter-spacing: -0.025em;
   margin: 0;
+  animation: confirm-fade-up 500ms cubic-bezier(.22,.61,.36,1) 200ms both;
 }
 .confirm__title em {
   font-family: var(--font-editorial);
@@ -1041,6 +1056,7 @@ p { margin: 0 0 var(--space-4) 0; }
   color: var(--fg-muted);
   margin: 12px auto 32px;
   max-width: 50ch;
+  animation: confirm-fade-up 500ms cubic-bezier(.22,.61,.36,1) 350ms both;
 }
 .confirm__card {
   max-width: 600px;
@@ -1756,6 +1772,7 @@ p { margin: 0 0 var(--space-4) 0; }
   max-width: 920px;
   margin: 0 auto;
   text-align: left;
+  animation: confirm-fade-up 600ms cubic-bezier(.22,.61,.36,1) 500ms both;
 }
 @media (max-width: 820px) { .confirm__layout { grid-template-columns: 1fr; } }
 .confirm__card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
