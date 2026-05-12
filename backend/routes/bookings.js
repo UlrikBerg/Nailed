@@ -891,10 +891,11 @@ router.patch('/:id/reschedule', asyncRoute(async (req, res) => {
   if (!booking) throw new HttpError(404, 'not_found', 'Booking finnes ikke.');
 
   const isCustomer = booking.customer_user_id === req.user.id;
-  const isOwner = booking.owner_user_id === req.user.id;
   const isAdmin = req.user.role === 'admin';
-  if (!isCustomer && !isOwner && !isAdmin) {
-    throw new HttpError(403, 'forbidden', 'Du har ikke tilgang til denne bookingen.');
+  // Salongeier kan IKKE flytte timer — kun kunden eller admin. Salongen kan
+  // avbestille i stedet, så kunden velger ny tid selv.
+  if (!isCustomer && !isAdmin) {
+    throw new HttpError(403, 'forbidden', 'Bare kunden kan flytte denne bookingen.');
   }
   if (booking.status !== 'pending' && booking.status !== 'confirmed') {
     throw new HttpError(409, 'invalid_state',

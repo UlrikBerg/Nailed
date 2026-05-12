@@ -4123,12 +4123,10 @@
         var actions = '';
         if (b.status === 'pending') {
           actions += '<button class="btn btn-success btn-sm" data-action="confirmed" data-id="' + b.id + '">Bekreft</button> ';
-          actions += '<button class="btn btn-ghost btn-sm" data-action="cancelled" data-id="' + b.id + '">Avvis</button> ';
-          actions += '<button class="btn btn-ghost btn-sm" data-resched="' + b.id + '">Flytt</button>';
+          actions += '<button class="btn btn-ghost btn-sm" data-action="cancelled" data-id="' + b.id + '">Avvis</button>';
         } else if (b.status === 'confirmed') {
           actions += '<button class="btn btn-success btn-sm" data-action="completed" data-id="' + b.id + '">Marker fullført</button> ';
           actions += '<button class="btn btn-ghost btn-sm" data-action="no_show" data-id="' + b.id + '">No-show</button> ';
-          actions += '<button class="btn btn-ghost btn-sm" data-resched="' + b.id + '">Flytt</button> ';
           actions += '<button class="btn btn-ghost btn-sm" data-action="cancelled" data-id="' + b.id + '">Avbestill</button>';
         }
         // Seed the per-user notes cache so the icon picks up has_note state
