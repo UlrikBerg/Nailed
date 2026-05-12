@@ -1306,7 +1306,7 @@ p { margin: 0 0 var(--space-4) 0; }
 .utforsk-map-wrap { position: sticky; top: 240px; }
 .utforsk-map {
   position: relative;
-  height: calc(100vh - 280px);
+  height: calc(100dvh - 280px);
   min-height: 540px;
   max-height: 760px;
   border-radius: var(--radius-lg);
@@ -1658,7 +1658,7 @@ p { margin: 0 0 var(--space-4) 0; }
    Vipps auth
    ========================================================================= */
 
-.vipps-auth { min-height: 100vh; padding: 48px 20px; display: grid; place-items: start center; background: linear-gradient(180deg, var(--cream-100) 0%, var(--cream-50) 100%); }
+.vipps-auth { min-height: 100dvh; padding: 48px 20px; display: grid; place-items: start center; background: linear-gradient(180deg, var(--cream-100) 0%, var(--cream-50) 100%); }
 .vipps-auth__shell { width: 100%; max-width: 460px; background: var(--cream-50); border: 1px solid var(--stone-200); border-radius: var(--radius-xl); padding: 32px; position: relative; box-shadow: 0 24px 60px rgba(40, 30, 20, 0.08); }
 .vipps-auth__close { position: absolute; top: 18px; right: 18px; width: 36px; height: 36px; border-radius: var(--radius-pill); border: 1px solid var(--stone-200); background: var(--cream-50); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .vipps-auth__close i { width: 16px; height: 16px; }
