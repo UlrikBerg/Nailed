@@ -75,7 +75,7 @@
     menu.id = 'navUserMenu';
     menu.setAttribute('role', 'menu');
 
-    function menuLink(href, iconName, label) {
+    function menuLink(href, iconName, label, badgeKey) {
       var a = document.createElement('a');
       a.className = 'user-pill__menu-item';
       a.setAttribute('role', 'menuitem');
@@ -84,15 +84,22 @@
       ic.setAttribute('data-lucide', iconName);
       a.appendChild(ic);
       a.appendChild(document.createTextNode(' ' + label));
+      if (badgeKey) {
+        var b = document.createElement('span');
+        b.className = 'user-pill__menu-badge';
+        b.dataset.badge = badgeKey;
+        b.hidden = true;
+        a.appendChild(b);
+      }
       return a;
     }
 
     menu.appendChild(menuLink('/kunde-panel', 'user-round', 'Min profil'));
     if (user.role === 'salon_owner' || user.role === 'admin') {
-      menu.appendChild(menuLink('/salong-panel', 'store', 'Salongpanel'));
+      menu.appendChild(menuLink('/salong-panel', 'store', 'Salongpanel', 'salon'));
     }
     if (user.role === 'admin') {
-      menu.appendChild(menuLink('/admin/', 'shield', 'Adminpanel'));
+      menu.appendChild(menuLink('/admin/', 'shield', 'Adminpanel', 'admin'));
     }
     menu.appendChild(menuLink('/favoritter', 'heart', 'Mine favoritter'));
 
@@ -180,6 +187,53 @@
     return a.name === b.name && a.email === b.email && a.role === b.role;
   }
 
+  var ACTIONS_CACHE_KEY = 'nailed.actions';
+  function getCachedActions() {
+    try {
+      var raw = localStorage.getItem(ACTIONS_CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) { return null; }
+  }
+  function setCachedActions(a) {
+    try { localStorage.setItem(ACTIONS_CACHE_KEY, JSON.stringify(a)); } catch (_) {}
+  }
+  function applyActionBadges(counts) {
+    if (!counts) return;
+    document.querySelectorAll('.user-pill__menu-badge').forEach(function (el) {
+      var key = el.dataset.badge;
+      var n = counts[key] || 0;
+      if (n > 0) {
+        el.textContent = String(n);
+        el.hidden = false;
+        // Vis et lite hint på selve pill-knappen så bruker ser noe trenger
+        // oppmerksomhet uten å åpne dropdown'en. Total = sum av alle.
+        var total = (counts.salon || 0) + (counts.admin || 0);
+        var toggle = el.closest('.user-pill__wrap');
+        if (toggle) {
+          var dot = toggle.querySelector('.user-pill__alertDot');
+          if (!dot) {
+            dot = document.createElement('span');
+            dot.className = 'user-pill__alertDot';
+            dot.title = total + ' handlinger venter';
+            (toggle.querySelector('.user-pill') || toggle).appendChild(dot);
+          }
+          dot.textContent = total > 9 ? '9+' : String(total);
+        }
+      } else {
+        el.hidden = true;
+      }
+    });
+  }
+  function refreshActions() {
+    return NailedAuth.api('/api/v1/me/actions').then(function (res) {
+      if (!res.ok) return;
+      return res.json().then(function (data) {
+        setCachedActions(data);
+        applyActionBadges(data);
+      });
+    }).catch(function () { /* ignore */ });
+  }
+
   function render() {
     var actions = document.querySelector('.top-nav__actions');
     if (!actions) return;
@@ -193,7 +247,10 @@
     // the header looks identical from one page to the next — no flash from
     // "Logg inn" to user-pill mens /api/v1/me-kallet pågår.
     var cached = getCachedUser();
-    if (cached) mountPill(actions, cached);
+    if (cached) {
+      mountPill(actions, cached);
+      applyActionBadges(getCachedActions());
+    }
 
     // Background refresh: validate token + pick up name/email changes. If the
     // server says we're unauthorized, clear and let default UI show on next nav.
@@ -212,10 +269,15 @@
         }
         setCachedUser(user);
         mountPill(actions, user);
+        applyActionBadges(getCachedActions());
       });
     }).catch(function (err) {
       console.warn('[nav]', err);
     });
+
+    // Always refresh action counts in background — works even if pill came
+    // from cache (which is the common case for SPA navs).
+    refreshActions();
   }
 
   ready(render);

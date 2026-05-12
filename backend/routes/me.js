@@ -8,6 +8,37 @@ const router = express.Router();
 
 router.use(requireAuth);
 
+// GET /me/actions — pending-action counts for nav badges. Returnerer kun
+// felter relevante for brukerens rolle: salon for salon_owner/admin med
+// salonger, admin for admin-rolle.
+router.get('/actions', asyncRoute(async (req, res) => {
+  const out = { salon: 0, admin: 0 };
+
+  // Salon-eier sin "Salongpanel"-badge teller pending bookings på alle
+  // salonger brukeren eier (admin tar med deres egne salonger også).
+  if (req.user.role === 'salon_owner' || req.user.role === 'admin') {
+    const row = await queryOne(
+      `SELECT COUNT(*) AS n
+         FROM bookings b
+         JOIN salons s ON s.id = b.salon_id
+        WHERE s.owner_user_id = ? AND b.status = 'pending'`,
+      [req.user.id]
+    );
+    out.salon = row.n;
+  }
+
+  // Admin-badge: pending salon-applications + pending review-reports.
+  if (req.user.role === 'admin') {
+    const [apps, reports] = await Promise.all([
+      queryOne(`SELECT COUNT(*) AS n FROM salon_applications WHERE status = 'pending'`),
+      queryOne(`SELECT COUNT(*) AS n FROM review_reports WHERE status = 'pending'`),
+    ]);
+    out.admin = apps.n + reports.n;
+  }
+
+  res.json(out);
+}));
+
 // GET /me — current user profile
 router.get('/', asyncRoute(async (req, res) => {
   const user = await queryOne(
