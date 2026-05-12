@@ -272,9 +272,20 @@
       color: var(--rouge-500);
       line-height: 0;
     }
-    .kp-stars-input button i { width: 22px; height: 22px; fill: transparent; transition: fill var(--dur-fast); }
+    /* Lucide bytter <i data-lucide="star"> ut med <svg> ved createIcons(),
+       så selektorene må treffe begge — ellers slår ikke .active inn etter
+       at ikonene er rendret. */
+    .kp-stars-input button i,
+    .kp-stars-input button svg {
+      width: 22px; height: 22px;
+      fill: transparent;
+      stroke: var(--rouge-500);
+      transition: fill var(--dur-fast);
+    }
     .kp-stars-input button.active i,
-    .kp-stars-input button.hover i { fill: var(--rouge-500); }
+    .kp-stars-input button.active svg,
+    .kp-stars-input button.hover i,
+    .kp-stars-input button.hover svg { fill: var(--rouge-500); }
     .kp-review-form textarea {
       font-family: var(--font-body);
       font-size: 14px;
