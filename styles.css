@@ -1922,6 +1922,82 @@ p { margin: 0 0 var(--space-4) 0; }
    Layout: two columns on desktop (lede + list), single column on mobile.
    ========================================================================= */
 
+/* Ny full-bredde feature-grid. Erstatter den tidligere to-kolonne-
+   layouten med editorial title + liste. */
+.home-why {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+.home-why__head { text-align: center; max-width: 640px; margin: 0 auto; }
+.home-why__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 14px 0 0;
+}
+.home-why__title em {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--rouge-700);
+}
+.home-why__grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+@media (max-width: 880px) {
+  .home-why__grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .home-why__grid { grid-template-columns: 1fr; }
+}
+.home-why__card {
+  background: var(--cream-50);
+  border: 1px solid var(--stone-200);
+  border-radius: var(--radius-lg);
+  padding: 28px 26px;
+  transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+.home-why__card:hover {
+  border-color: var(--rouge-200);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(238, 63, 126, 0.08);
+}
+.home-why__icon {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  background: var(--rouge-50);
+  color: var(--rouge-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+.home-why__icon i { width: 22px; height: 22px; }
+.home-why__h {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.home-why__p {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--fg-muted);
+  margin: 0;
+}
+
 .home-promise {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
