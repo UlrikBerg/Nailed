@@ -29,10 +29,17 @@
       '@media (max-width: 720px) { .nc-head__back { display: inline-flex; } }',
       '.nc-head__title { font-weight: 600; font-size: 15px; color: var(--ink); margin: 0; }',
       '.nc-body { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 10px; }',
-      '.nc-msg { max-width: 70%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45; word-wrap: break-word; }',
-      '.nc-msg--mine { align-self: flex-end; background: var(--rouge-500); color: #fff; border-bottom-right-radius: 4px; }',
-      '.nc-msg--theirs { align-self: flex-start; background: var(--cream-100); color: var(--ink); border-bottom-left-radius: 4px; }',
+      '.nc-row { display: flex; gap: 8px; align-items: flex-end; max-width: 80%; }',
+      '.nc-row--mine { align-self: flex-end; flex-direction: row-reverse; }',
+      '.nc-row--theirs { align-self: flex-start; }',
+      '.nc-row__avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--cream-200, #ece4d8); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; background-size: cover; background-position: center; }',
+      '.nc-row--mine .nc-row__avatar { background: var(--rouge-100); color: var(--rouge-700); }',
+      '.nc-msg { padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45; word-wrap: break-word; }',
+      '.nc-row--mine .nc-msg { background: var(--rouge-500); color: #fff; border-bottom-right-radius: 4px; }',
+      '.nc-row--theirs .nc-msg { background: var(--cream-100); color: var(--ink); border-bottom-left-radius: 4px; }',
       '.nc-msg__time { font-size: 10px; opacity: 0.7; margin-top: 4px; display: block; }',
+      '.nc-readmark { font-size: 10px; color: var(--fg-muted); align-self: flex-end; margin: 2px 38px 4px 0; }',
+      '.nc-row--theirs + .nc-readmark { display: none; }',
       '.nc-form { padding: 12px; border-top: 1px solid var(--stone-200); display: flex; gap: 8px; }',
       '.nc-form textarea { flex: 1; resize: none; padding: 10px 12px; border: 1px solid var(--stone-300); border-radius: 10px; font-family: inherit; font-size: 14px; min-height: 44px; max-height: 120px; }',
       '.nc-form button { background: var(--rouge-500); color: #fff; border: 0; border-radius: 10px; padding: 0 18px; cursor: pointer; font-weight: 600; }',
@@ -91,6 +98,46 @@
       return t.role === 'customer' ? (t.salon_name || 'Salong') : (t.customer_name || t.customer_email || 'Kunde');
     }
 
+    function avatarHtml(name, imgUrl) {
+      // Hvis vi har et bilde (f.eks. salongens cover), bruk det. Ellers
+      // initialer på cream-bakgrunn.
+      var style = imgUrl ? 'background-image:url(\'' + encodeURI(imgUrl) + '\')' : '';
+      var text = imgUrl ? '' : escapeHtml(initialsOf(name));
+      return '<span class="nc-row__avatar" style="' + style + '">' + text + '</span>';
+    }
+
+    function buildMessagesHtml(data) {
+      var msgs = data.messages || [];
+      if (!msgs.length) {
+        return '<div style="text-align:center;color:var(--fg-muted);padding:24px;font-size:13px;">Ingen meldinger ennå. Si hei!</div>';
+      }
+      var role = data.thread.role;
+      var customerName = data.thread.customer_name || 'Du';
+      var salonName = data.thread.salon_name || 'Salongen';
+      var salonCover = data.thread.salon_cover_url || null;
+      var lastMineIdx = -1;
+      for (var i = msgs.length - 1; i >= 0; i--) {
+        if (msgs[i].sender_role === role) { lastMineIdx = i; break; }
+      }
+      return msgs.map(function (m, idx) {
+        var mine = m.sender_role === role;
+        var name = m.sender_role === 'customer' ? customerName : salonName;
+        var imgUrl = m.sender_role === 'salon' ? salonCover : null;
+        var avatar = avatarHtml(name, imgUrl);
+        var readMark = '';
+        if (mine && idx === lastMineIdx && m.read) {
+          readMark = '<div class="nc-readmark">Lest</div>';
+        }
+        return '<div class="nc-row nc-row--' + (mine ? 'mine' : 'theirs') + '">' +
+            avatar +
+            '<div class="nc-msg">' +
+              escapeHtml(m.body).replace(/\n/g, '<br>') +
+              '<span class="nc-msg__time">' + escapeHtml(fmtTime(m.sent_at)) + '</span>' +
+            '</div>' +
+          '</div>' + readMark;
+      }).join('');
+    }
+
     function renderList() {
       if (!threads.length) {
         listEl.innerHTML = '<div class="nc-list__empty">Ingen samtaler enda. Lag en booking for å starte en chat med salongen.</div>';
@@ -100,8 +147,14 @@
         var name = getRoleLabel(t);
         var preview = t.last_message_preview || (t.last_message_at ? '' : 'Si hei!');
         var time = fmtTime(t.last_message_at);
+        // Tråd-avataren: bruk salon-cover når motparten ER salongen (dvs.
+        // viewer er kunden). For salon-eier vises kundens initialer.
+        var imgUrl = t.role === 'customer' ? t.salon_cover_url : null;
+        var avatar = imgUrl
+          ? '<span class="nc-thread__avatar" style="background-image:url(\'' + encodeURI(imgUrl) + '\');background-size:cover;background-position:center;"></span>'
+          : '<span class="nc-thread__avatar">' + escapeHtml(initialsOf(name)) + '</span>';
         return '<div class="nc-thread' + (t.id === activeId ? ' is-active' : '') + '" data-id="' + t.id + '">' +
-          '<span class="nc-thread__avatar">' + escapeHtml(initialsOf(name)) + '</span>' +
+          avatar +
           '<div class="nc-thread__main">' +
             '<div class="nc-thread__name">' + escapeHtml(name) + '</div>' +
             '<div class="nc-thread__preview">' + escapeHtml(preview) + '</div>' +
@@ -179,19 +232,8 @@
             return;
           }
           var data = await res.json();
-          var msgs = data.messages || [];
-          if (!msgs.length) {
-            bodyEl.innerHTML = '<div style="text-align:center;color:var(--fg-muted);padding:24px;font-size:13px;">Ingen meldinger ennå. Si hei!</div>';
-          } else {
-            bodyEl.innerHTML = msgs.map(function (m) {
-              var mine = m.sender_role === data.thread.role;
-              return '<div class="nc-msg ' + (mine ? 'nc-msg--mine' : 'nc-msg--theirs') + '">' +
-                escapeHtml(m.body).replace(/\n/g, '<br>') +
-                '<span class="nc-msg__time">' + escapeHtml(fmtTime(m.sent_at)) + '</span>' +
-              '</div>';
-            }).join('');
-            bodyEl.scrollTop = bodyEl.scrollHeight;
-          }
+          bodyEl.innerHTML = buildMessagesHtml(data);
+          bodyEl.scrollTop = bodyEl.scrollHeight;
           // Marker tråd som lest i state
           var t = threads.find(function (t) { return t.id === id; });
           if (t) t.unread = false;
@@ -234,26 +276,14 @@
     var pollHandle = setInterval(function () {
       refreshThreads();
       if (activeId) {
-        // Force-reload av aktiv tråd så nye meldinger fra motparten dukker opp.
         var bodyEl = paneEl.querySelector('#ncBody');
         if (bodyEl) {
           NailedAuth.api('/api/v1/chat/threads/' + activeId + '/messages').then(function (r) {
             return r.ok ? r.json() : null;
           }).then(function (data) {
             if (!data) return;
-            var t = threads.find(function (t) { return t.id === activeId; });
-            var role = (t && t.role) || (data.thread && data.thread.role);
-            var msgs = data.messages || [];
             var atBottom = bodyEl.scrollTop + bodyEl.clientHeight >= bodyEl.scrollHeight - 30;
-            bodyEl.innerHTML = msgs.length
-              ? msgs.map(function (m) {
-                  var mine = m.sender_role === role;
-                  return '<div class="nc-msg ' + (mine ? 'nc-msg--mine' : 'nc-msg--theirs') + '">' +
-                    escapeHtml(m.body).replace(/\n/g, '<br>') +
-                    '<span class="nc-msg__time">' + escapeHtml(fmtTime(m.sent_at)) + '</span>' +
-                  '</div>';
-                }).join('')
-              : '<div style="text-align:center;color:var(--fg-muted);padding:24px;font-size:13px;">Ingen meldinger ennå. Si hei!</div>';
+            bodyEl.innerHTML = buildMessagesHtml(data);
             if (atBottom) bodyEl.scrollTop = bodyEl.scrollHeight;
           }).catch(function () {});
         }

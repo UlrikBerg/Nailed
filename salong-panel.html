@@ -2465,6 +2465,21 @@
         badgeEl: document.getElementById('messagesUnreadBadge'),
       });
     }
+    function refreshMessagesBadge() {
+      if (!window.NailedAuth || !NailedAuth.isLoggedIn()) return;
+      NailedAuth.api('/api/v1/me/actions').then(function (r) {
+        return r.ok ? r.json() : null;
+      }).then(function (d) {
+        if (!d) return;
+        var el = document.getElementById('messagesUnreadBadge');
+        if (!el) return;
+        var n = d.messages || 0;
+        if (n > 0) { el.textContent = String(n); el.hidden = false; }
+        else { el.hidden = true; }
+      }).catch(function () {});
+    }
+    refreshMessagesBadge();
+    setInterval(refreshMessagesBadge, 30000);
     navItems.forEach(function (item) {
       item.addEventListener('click', function () {
         setActiveTab(this.getAttribute('data-tab'));

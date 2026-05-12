@@ -210,7 +210,7 @@
       }
     });
     // Alert-dot på selve pillen — total handlinger på tvers av roller.
-    var total = (counts.salon || 0) + (counts.admin || 0);
+    var total = (counts.salon || 0) + (counts.admin || 0) + (counts.messages || 0);
     var wrap = document.querySelector('.user-pill__wrap');
     if (!wrap) return;
     var dot = wrap.querySelector('.user-pill__alertDot');

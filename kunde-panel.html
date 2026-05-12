@@ -995,6 +995,23 @@
         badgeEl: document.getElementById('msgUnreadBadge'),
       });
     }
+    // Tab-badge oppdateres med en gang så du ser ulest-tellingen før du
+    // åpner Meldinger-fanen. Pollser hver 30. sek på panel-siden.
+    function refreshMessagesBadge() {
+      if (!window.NailedAuth || !NailedAuth.isLoggedIn()) return;
+      NailedAuth.api('/api/v1/me/actions').then(function (r) {
+        return r.ok ? r.json() : null;
+      }).then(function (d) {
+        if (!d) return;
+        var el = document.getElementById('msgUnreadBadge');
+        if (!el) return;
+        var n = d.messages || 0;
+        if (n > 0) { el.textContent = String(n); el.hidden = false; }
+        else { el.hidden = true; }
+      }).catch(function () {});
+    }
+    refreshMessagesBadge();
+    setInterval(refreshMessagesBadge, 30000);
 
     function setActiveTab(name) {
       if (TABS.indexOf(name) < 0) name = 'dashboard';

@@ -15,6 +15,8 @@ const router = express.Router();
 router.use(requireAuth);
 
 // Returner { thread, role } hvis brukeren har tilgang, ellers throw.
+const storage = require('../storage');
+
 async function loadThreadForUser(threadId, userId) {
   const t = await queryOne(
     `SELECT t.id, t.customer_user_id, t.salon_id, t.created_at, t.last_message_at,
@@ -28,6 +30,9 @@ async function loadThreadForUser(threadId, userId) {
       WHERE t.id = ? LIMIT 1`,
     [threadId]
   );
+  if (t) {
+    t.salon_cover_url = t.cover_image_key ? storage.publicUrl(t.cover_image_key) : null;
+  }
   if (!t) throw new HttpError(404, 'not_found', 'Tråden finnes ikke.');
   let role = null;
   if (t.customer_user_id === userId) role = 'customer';
@@ -64,6 +69,7 @@ router.get('/threads', asyncRoute(async (req, res) => {
     `SELECT t.id, t.customer_user_id, t.salon_id, t.created_at, t.last_message_at,
             t.customer_last_read, t.salon_last_read,
             s.owner_user_id, s.name AS salon_name, s.slug AS salon_slug,
+            s.cover_image_key,
             c.name AS customer_name, c.email AS customer_email,
             (SELECT SUBSTRING(body, 1, 140) FROM chat_messages
               WHERE thread_id = t.id ORDER BY sent_at DESC LIMIT 1) AS last_message_preview
@@ -77,7 +83,13 @@ router.get('/threads', asyncRoute(async (req, res) => {
   );
   const shaped = rows.map(r => {
     const role = r.customer_user_id === userId ? 'customer' : 'salon';
-    return { ...shapeThread(r, role), last_message_preview: r.last_message_preview, role };
+    const salonCover = r.cover_image_key ? storage.publicUrl(r.cover_image_key) : null;
+    return {
+      ...shapeThread({ ...r, salon_cover_url: salonCover }, role),
+      salon_cover_url: salonCover,
+      last_message_preview: r.last_message_preview,
+      role,
+    };
   });
   res.json({ threads: shaped });
 }));
@@ -102,15 +114,20 @@ router.get('/threads/:id/messages', asyncRoute(async (req, res) => {
     [threadId]
   );
 
+  // Lest-indikator: hver melding bærer `read` = true hvis den andre siden
+  // har lest tråden ETTER at meldingen ble sendt.
+  const otherLastRead = role === 'customer' ? thread.salon_last_read : thread.customer_last_read;
   res.json({
     thread: {
       id: thread.id,
       salon_id: thread.salon_id,
       salon_name: thread.salon_name,
       salon_slug: thread.salon_slug,
+      salon_cover_url: thread.salon_cover_url,
       customer_id: thread.customer_user_id,
       customer_name: thread.customer_name,
       role,
+      other_last_read: otherLastRead,
     },
     messages: msgs.map(m => ({
       id: m.id,
@@ -118,6 +135,8 @@ router.get('/threads/:id/messages', asyncRoute(async (req, res) => {
       sender_role: m.sender_role,
       body: m.body,
       sent_at: m.sent_at,
+      read: m.sender_role === role && otherLastRead != null
+        && new Date(otherLastRead) >= new Date(m.sent_at),
     })),
   });
 }));
