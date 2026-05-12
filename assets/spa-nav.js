@@ -116,6 +116,7 @@
     if (navigating) return;
     opts = opts || {};
     navigating = true;
+    window.dispatchEvent(new CustomEvent('spa:loading', { detail: { url: href } }));
     try {
       saveScroll(location.pathname + location.search);
 
