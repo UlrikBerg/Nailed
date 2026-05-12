@@ -1936,11 +1936,18 @@ p { margin: 0 0 var(--space-4) 0; }
 .home-promise__title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(28px, 3.4vw, 44px);
+  font-size: clamp(28px, 3vw, 40px);
   line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--ink);
-  margin: 12px 0 0;
+  margin: 0;
+}
+.home-promise__intro {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--fg-muted);
+  margin: 16px 0 0;
 }
 .home-promise__title em {
   font-family: var(--font-editorial);
