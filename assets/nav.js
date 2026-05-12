@@ -205,24 +205,26 @@
       if (n > 0) {
         el.textContent = String(n);
         el.hidden = false;
-        // Vis et lite hint på selve pill-knappen så bruker ser noe trenger
-        // oppmerksomhet uten å åpne dropdown'en. Total = sum av alle.
-        var total = (counts.salon || 0) + (counts.admin || 0);
-        var toggle = el.closest('.user-pill__wrap');
-        if (toggle) {
-          var dot = toggle.querySelector('.user-pill__alertDot');
-          if (!dot) {
-            dot = document.createElement('span');
-            dot.className = 'user-pill__alertDot';
-            dot.title = total + ' handlinger venter';
-            (toggle.querySelector('.user-pill') || toggle).appendChild(dot);
-          }
-          dot.textContent = total > 9 ? '9+' : String(total);
-        }
       } else {
         el.hidden = true;
       }
     });
+    // Alert-dot på selve pillen — total handlinger på tvers av roller.
+    var total = (counts.salon || 0) + (counts.admin || 0);
+    var wrap = document.querySelector('.user-pill__wrap');
+    if (!wrap) return;
+    var dot = wrap.querySelector('.user-pill__alertDot');
+    if (total > 0) {
+      if (!dot) {
+        dot = document.createElement('span');
+        dot.className = 'user-pill__alertDot';
+        (wrap.querySelector('.user-pill') || wrap).appendChild(dot);
+      }
+      dot.title = total + ' handlinger venter';
+      dot.textContent = total > 9 ? '9+' : String(total);
+    } else if (dot) {
+      dot.remove();
+    }
   }
   function refreshActions() {
     return NailedAuth.api('/api/v1/me/actions').then(function (res) {

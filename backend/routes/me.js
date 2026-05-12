@@ -28,10 +28,26 @@ router.get('/actions', asyncRoute(async (req, res) => {
   }
 
   // Admin-badge: pending salon-applications + pending review-reports.
+  // JOINs speiler admin-fanenes egne queries (Moderering + Anmeldelser) så
+  // tellingen i nav-dropdown samsvarer med det admin faktisk ser når de
+  // klikker inn. Uten JOINs ville foreldreløse rader (slettet bruker,
+  // skjult anmeldelse) bidra til badge'n men være usynlige i panelet.
   if (req.user.role === 'admin') {
     const [apps, reports] = await Promise.all([
-      queryOne(`SELECT COUNT(*) AS n FROM salon_applications WHERE status = 'pending'`),
-      queryOne(`SELECT COUNT(*) AS n FROM review_reports WHERE status = 'pending'`),
+      queryOne(
+        `SELECT COUNT(*) AS n
+           FROM salon_applications a
+           JOIN users u ON u.id = a.applicant_user_id
+          WHERE a.status = 'pending'`
+      ),
+      queryOne(
+        `SELECT COUNT(*) AS n
+           FROM review_reports rr
+           JOIN reviews r       ON r.id = rr.review_id
+           JOIN salons  s       ON s.id = r.salon_id
+           JOIN users   reporter ON reporter.id = rr.reporter_user_id
+          WHERE rr.status = 'pending'`
+      ),
     ]);
     out.admin = apps.n + reports.n;
   }
