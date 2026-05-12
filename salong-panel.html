@@ -3797,17 +3797,35 @@
     // the closest ancestor matching #galleryAddTile and trigger the file input.
     // Programmatic .click() from inside a user-gesture click handler is
     // explicitly allowed across modern Safari/Chrome/Firefox.
-    document.addEventListener('click', function (e) {
-      var tile = e.target.closest && e.target.closest('#galleryAddTile');
-      if (!tile) return;
-      var input = document.getElementById('imageUploader');
-      if (!input) {
-        console.error('[upload] imageUploader input not found in DOM');
-        return;
-      }
-      console.log('[upload] opening file picker');
-      input.click();
-    });
+    if (!window.__nailedUploadClick) {
+      window.__nailedUploadClick = true;
+      document.addEventListener('click', function (e) {
+        var tile = e.target.closest && e.target.closest('#galleryAddTile');
+        if (!tile) return;
+        console.log('[upload] tile clicked — currentEditSection:', currentEditSection,
+          'tile inDOM:', document.body.contains(tile),
+          'disabled:', tile.disabled, 'is-uploading:', tile.classList.contains('is-uploading'));
+        var input = document.getElementById('imageUploader');
+        if (!input) {
+          console.error('[upload] imageUploader input not found in DOM');
+          return;
+        }
+        console.log('[upload] input found — inDOM:', document.body.contains(input),
+          'disabled:', input.disabled, 'parent:', input.parentElement && input.parentElement.id);
+        // Hvis tile er disabled (state hengt igjen fra forrige opplasting) eller
+        // is-uploading, opphev så bruker kan klikke igjen.
+        if (tile.disabled) { tile.disabled = false; }
+        tile.classList.remove('is-uploading');
+        var stuckState = tile.querySelector('.gallery-tile__uploadState');
+        if (stuckState) stuckState.remove();
+        try {
+          input.click();
+          console.log('[upload] input.click() called');
+        } catch (err) {
+          console.error('[upload] input.click() threw:', err);
+        }
+      });
+    }
 
     var MAX_IMAGES_PER_SALON = 24;
     var MAX_IMAGE_BYTES = 8 * 1024 * 1024;
