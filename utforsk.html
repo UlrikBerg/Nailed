@@ -512,11 +512,12 @@
       .utforsk-results .service-card {
         flex-direction: row;
         align-items: stretch;
+        min-height: 320px;
       }
       .utforsk-results .service-card__photo {
         flex: 0 0 280px;
         aspect-ratio: auto;
-        min-height: 240px;
+        min-height: 320px;
       }
       .utforsk-results .service-card__body {
         flex: 1;
@@ -540,8 +541,14 @@
       flex-direction: column;
       gap: 10px;
     }
-    /* Hjerteknappen flyttes til topp-VENSTRE i utforsk-kortet. */
-    .utforsk-results .service-card__heart { right: auto; left: 12px; }
+    /* Hjerteknappen ligger nå INNE i info-kolonnen, øverst til høyre. */
+    .utforsk-results .sc2-body { position: relative; }
+    .utforsk-results .service-card__heart {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      left: auto;
+    }
     .sc2-status {
       display: inline-flex;
       align-items: center;
@@ -1493,12 +1500,11 @@
           + 'data-reviews="' + (salon.review_count || 0) + '" '
           + 'data-slot="" '
           + 'onclick="(window.NailedSpaNav?window.NailedSpaNav.navigate:function(h){location.href=h;})(\'salon?slug=' + slug + '\')">'
-          + '<div class="service-card__photo" style="' + photoStyle + '">'
+          + '<div class="service-card__photo" style="' + photoStyle + '"></div>'
+          + '<div class="service-card__body sc2-body">'
             + '<button class="' + heartClass + '" data-fav="' + escapeHtml(salon.slug || '') + '" data-salon-id="' + salon.id + '" aria-pressed="' + (isFav ? 'true' : 'false') + '">'
               + '<i data-lucide="heart" style="' + heartFillStyle + '"></i>'
             + '</button>'
-          + '</div>'
-          + '<div class="service-card__body sc2-body">'
             + statusPill
             + '<div class="sc2-name">' + escapeHtml(salon.name || 'Salong') + '</div>'
             + '<div class="sc2-meta">' + locationLine + ratingLine + '</div>'
