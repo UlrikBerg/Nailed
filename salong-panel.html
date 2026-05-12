@@ -2006,7 +2006,7 @@
               <h3>Bilder</h3>
             </div>
             <p class="gallery-hint">Maks 24 bilder, opptil 8 MB hver. JPEG, PNG, WEBP eller HEIC.</p>
-            <input type="file" id="imageUploader" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple style="display:none;" />
+            <input type="file" id="imageUploader" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;" />
             <div id="gallery" class="gallery-grid"></div>
             <span id="uploadStatus" class="gallery-status" aria-live="polite"></span>
             <div class="image-drop-hint" id="imageDropHint">Tips: dra bilder rett inn for å laste opp flere på en gang.</div>
@@ -3342,7 +3342,7 @@
 
       if (!imgs.length) {
         el.innerHTML =
-          '<label for="imageUploader" class="gallery-tile gallery-tile--add gallery-tile--empty" id="galleryAddTile" role="button" tabindex="0" aria-label="Last opp bilder">' +
+          '<label for="imageUploader" class="gallery-tile gallery-tile--add gallery-tile--empty" id="galleryAddTile" tabindex="0" aria-label="Last opp bilder">' +
             '<i data-lucide="image-plus"></i>' +
             '<span class="gallery-tile__emptyTitle">Last opp dine første bilder</span>' +
             '<span class="gallery-tile__emptySub">Dra bilder hit, eller klikk for å velge</span>' +
@@ -3385,7 +3385,7 @@
 
       if (imgs.length < MAX_IMAGES_PER_SALON) {
         html +=
-          '<label for="imageUploader" class="gallery-tile gallery-tile--add" id="galleryAddTile" role="button" tabindex="0" aria-label="Legg til bilde">' +
+          '<label for="imageUploader" class="gallery-tile gallery-tile--add" id="galleryAddTile" tabindex="0" aria-label="Legg til bilde">' +
             '<i data-lucide="plus"></i>' +
             '<span>Legg til bilde</span>' +
           '</label>';
