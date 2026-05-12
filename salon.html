@@ -535,20 +535,27 @@
           </div>
         </div>
 
-        <!-- Separate Åpningstider card under the booking panel -->
-        <div id="hoursPanelSection" class="booking-panel booking-panel--side" style="display:none;">
-          <div class="booking-panel__header" style="margin-bottom: 12px;">
+        <!-- Separate Åpningstider card under the booking panel.
+             Accordion på mobil: default lukket. På desktop alltid åpen via CSS. -->
+        <div id="hoursPanelSection" class="booking-panel booking-panel--side acc" style="display:none;">
+          <button type="button" class="acc__head booking-panel__header" aria-expanded="false">
             <h3>Åpningstider</h3>
+            <i data-lucide="chevron-down" class="acc__chev"></i>
+          </button>
+          <div class="acc__body">
+            <div class="profile-hours profile-hours--compact" id="hoursPanelList"></div>
           </div>
-          <div class="profile-hours profile-hours--compact" id="hoursPanelList"></div>
         </div>
 
         <!-- Separate Team card under the hours card -->
-        <div id="teamPanelSection" class="booking-panel booking-panel--side" style="display:none;">
-          <div class="booking-panel__header" style="margin-bottom: 12px;">
+        <div id="teamPanelSection" class="booking-panel booking-panel--side acc" style="display:none;">
+          <button type="button" class="acc__head booking-panel__header" aria-expanded="false">
             <h3>Team</h3>
+            <i data-lucide="chevron-down" class="acc__chev"></i>
+          </button>
+          <div class="acc__body">
+            <div class="profile-team" id="teamPanelList"></div>
           </div>
-          <div class="profile-team" id="teamPanelList"></div>
         </div>
 
         </div>
@@ -2121,6 +2128,19 @@
     // First-paint icons + favorites init for the static shell.
     lucide.createIcons();
     if (typeof initFavorites === 'function') initFavorites();
+
+    // Accordion-toggle for .acc-elementer på mobil (Åpningstider, Team).
+    // Default lukket — klikk på header åpner. På desktop er body alltid synlig
+    // (CSS-regel), så toggle-funksjonen gjør ingenting visuelt der.
+    document.querySelectorAll('.acc .acc__head').forEach(function (head) {
+      head.addEventListener('click', function () {
+        var card = head.closest('.acc');
+        if (!card) return;
+        var nowOpen = !card.classList.contains('is-open');
+        card.classList.toggle('is-open', nowOpen);
+        head.setAttribute('aria-expanded', nowOpen ? 'true' : 'false');
+      });
+    });
 
     // Mobil-reorder: flytt booking-panelet rett etter amenity-chipsene på mobil.
     // På desktop sitter det i høyre kolonne (grid). På mobil ville det landet

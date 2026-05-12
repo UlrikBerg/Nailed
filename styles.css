@@ -846,7 +846,13 @@ p { margin: 0 0 var(--space-4) 0; }
   gap: 48px;
   align-items: flex-start;
 }
-@media (max-width: 900px) { .salon-detail__grid { grid-template-columns: 1fr; } }
+@media (max-width: 900px) {
+  /* minmax(0, 1fr) i stedet for 1fr — uten dette lar grid-en barna utvide
+     seg utover container-bredden hvis noe inni har min-content > tilgjengelig.
+     Day-carousel-tracket pusher ellers hele grid-en til 1370 px. */
+  .salon-detail__grid { grid-template-columns: minmax(0, 1fr); }
+  .salon-detail__grid > * { min-width: 0; }
+}
 .salon-detail__title {
   font-family: var(--font-display);
   font-weight: 700;
@@ -2690,3 +2696,57 @@ html {
   animation: heart-pulse 420ms cubic-bezier(.22,.61,.36,1);
 }
 
+
+/* =========================================================================
+   Accordion for salongside (Åpningstider, Team) — default lukket på mobil,
+   alltid åpen på desktop. Klikkbar header med chevron som roterer.
+   ========================================================================= */
+
+.acc__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+}
+.acc__head h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+}
+.acc__chev {
+  width: 18px;
+  height: 18px;
+  color: var(--fg-muted);
+  transition: transform 220ms cubic-bezier(.22,.61,.36,1);
+}
+.acc.is-open .acc__chev { transform: rotate(180deg); }
+
+@media (max-width: 900px) {
+  /* Default lukket — bare header synlig */
+  .acc__body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 280ms cubic-bezier(.22,.61,.36,1);
+    overflow: hidden;
+  }
+  .acc__body > * { min-height: 0; }
+  .acc.is-open .acc__body { grid-template-rows: 1fr; }
+  /* Litt mer luft mellom header og body når åpnet */
+  .acc.is-open .acc__body > * { padding-top: 12px; }
+}
+
+@media (min-width: 901px) {
+  /* På desktop er accordion alltid åpen; header er ikke klikkbar */
+  .acc__head { cursor: default; }
+  .acc__head h3 { font-size: 20px; }
+  .acc__chev { display: none; }
+  .acc__body > * { padding-top: 12px; }
+}
