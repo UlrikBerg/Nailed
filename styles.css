@@ -370,9 +370,16 @@ p { margin: 0 0 var(--space-4) 0; }
   max-width: 1200px;
   margin: 0 auto;
   gap: 24px;
+  transition: padding 220ms ease;
 }
+.top-nav.scrolled .top-nav__inner { padding: 8px 24px; }
 .top-nav__brand { cursor: pointer; }
-.top-nav__brand img { height: 32px; }
+.top-nav__brand img {
+  height: 32px;
+  transition: height 220ms ease;
+  transform-origin: left center;
+}
+.top-nav.scrolled .top-nav__brand img { height: 22px; }
 .top-nav__links { display: flex; gap: 28px; }
 .top-nav__links a {
   font-family: var(--font-body);

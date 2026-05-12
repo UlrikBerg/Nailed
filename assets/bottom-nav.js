@@ -33,7 +33,12 @@
     return HIDE_ON.indexOf(page) === -1;
   }
 
-  // Bottom-nav items. href bestemmer destination, "match" bestemmer aktiv state.
+  function isLoggedIn() {
+    return !!(window.NailedAuth && window.NailedAuth.isLoggedIn && window.NailedAuth.isLoggedIn());
+  }
+
+  // Bottom-nav items. requiresAuth gjør at item bare vises for innloggede brukere
+  // — gjelder Bookinger og Meldinger, som er meningsløse uten konto.
   var ITEMS = [
     {
       key: 'utforsk',
@@ -51,22 +56,35 @@
       key: 'bookinger',
       label: 'Bookinger',
       href: '/kunde-panel#tab-bookinger',
+      requiresAuth: true,
       svg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>',
     },
     {
       key: 'meldinger',
       label: 'Meldinger',
       href: '/kunde-panel#tab-meldinger',
+      requiresAuth: true,
       svg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>',
-      badge: 'msgUnreadBadge', // refer to in-page badge if present
     },
     {
       key: 'profil',
       label: 'Profil',
+      // Når innlogget → kunde-panel profil-tab. Når utlogget → login.
       href: '/kunde-panel#tab-profil',
       svg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
     },
   ];
+
+  function visibleItems() {
+    var loggedIn = isLoggedIn();
+    return ITEMS.filter(function (it) { return !it.requiresAuth || loggedIn; }).map(function (it) {
+      // Profil → /login når utlogget (mer direkte enn å gå via kunde-panel's requireAuth-redirect)
+      if (it.key === 'profil' && !loggedIn) {
+        return Object.assign({}, it, { href: '/login', label: 'Logg inn' });
+      }
+      return it;
+    });
+  }
 
   function activeKey() {
     var page = currentPage();
@@ -86,7 +104,7 @@
 
   function html() {
     var active = activeKey();
-    var items = ITEMS.map(function (item) {
+    var items = visibleItems().map(function (item) {
       var cls = 'bottom-nav__item' + (item.key === active ? ' bottom-nav__item--active' : '');
       var badge = '';
       if (item.key === 'meldinger') {
@@ -154,5 +172,9 @@
   window.addEventListener('spa:navigated', function () {
     render();
     observeBadge();
+  });
+  // Re-render hvis innloggingsstatus endres i en annen fane (logout/login).
+  window.addEventListener('storage', function (e) {
+    if (e.key === 'nailed.accessToken') render();
   });
 })();
