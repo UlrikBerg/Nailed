@@ -650,9 +650,14 @@ router.get('/:id', asyncRoute(async (req, res) => {
 //   pending   → confirmed | cancelled
 //   confirmed → completed | cancelled | no_show
 //   completed | cancelled | no_show — terminal
+// Innenfor UNDO_COMPLETED_WINDOW_MIN minutter etter at en booking ble markert
+// fullført, kan salongeier ombestemme seg (typisk misclick) og angre tilbake
+// til 'confirmed'. Etter vinduet er fullført-status terminal.
+const UNDO_COMPLETED_WINDOW_MIN = 60;
 const ALLOWED_TRANSITIONS = {
   pending:   new Set(['confirmed', 'cancelled']),
   confirmed: new Set(['completed', 'cancelled', 'no_show']),
+  completed: new Set(['confirmed']),
 };
 router.patch('/:id', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
@@ -664,7 +669,7 @@ router.patch('/:id', asyncRoute(async (req, res) => {
 
   const booking = await queryOne(
     `SELECT b.id, b.customer_user_id, b.status, b.start_at, b.end_at,
-            b.salon_id,
+            b.salon_id, b.completed_at,
             s.owner_user_id, s.cancellation_lead_hours
        FROM bookings b JOIN salons s ON s.id = b.salon_id
       WHERE b.id = ?`,
@@ -703,12 +708,25 @@ router.patch('/:id', asyncRoute(async (req, res) => {
       `Kan ikke endre booking fra "${booking.status}" til "${status}".`);
   }
 
+  // Angre fullført: kun innenfor et kort vindu etter completed_at, og kun
+  // for owner/admin (validert over via «bare salongen kan endre»-blokken).
+  if (booking.status === 'completed' && status === 'confirmed') {
+    const completedAt = booking.completed_at ? new Date(booking.completed_at) : null;
+    const minutesSince = completedAt ? (Date.now() - completedAt.getTime()) / 60000 : Infinity;
+    if (minutesSince > UNDO_COMPLETED_WINDOW_MIN) {
+      throw new HttpError(409, 'undo_window_expired',
+        `Det er for sent å angre fullført (vindu: ${UNDO_COMPLETED_WINDOW_MIN} min).`);
+    }
+  }
+
   const cancelledByRole = status === 'cancelled'
     ? (isAdmin ? 'admin' : (isOwner ? 'salon' : 'customer'))
     : null;
 
   const completedAt = status === 'completed' ? new Date() : null;
   const cancelledAt = status === 'cancelled' ? new Date() : null;
+  // Angre fullført → null ut completed_at så analyser ikke teller den.
+  const isUndoComplete = booking.status === 'completed' && status === 'confirmed';
 
   // Conditional UPDATE: only if status is still what we just read. If a
   // concurrent request beat us to it, affectedRows is 0 and we 409.
@@ -717,9 +735,11 @@ router.patch('/:id', asyncRoute(async (req, res) => {
         SET status = ?,
             cancelled_at  = COALESCE(?, cancelled_at),
             cancelled_by_role = COALESCE(?, cancelled_by_role),
-            completed_at  = COALESCE(?, completed_at)
+            completed_at  = ${isUndoComplete ? 'NULL' : 'COALESCE(?, completed_at)'}
       WHERE id = ? AND status = ?`,
-    [status, cancelledAt, cancelledByRole, completedAt, id, booking.status]
+    isUndoComplete
+      ? [status, cancelledAt, cancelledByRole, id, booking.status]
+      : [status, cancelledAt, cancelledByRole, completedAt, id, booking.status]
   );
   if (!result.affectedRows) {
     throw new HttpError(409, 'conflict', 'Booking ble endret av en annen prosess. Last på nytt.');
