@@ -2403,9 +2403,8 @@ p { margin: 0 0 var(--space-4) 0; }
   .service-list__item { padding: 14px 16px; min-height: 56px; }
   .service-list__name { font-size: 15px; }
 
-  /* Dag-velger som horisontal scroll-carousel: skjul nav-arrows, native
-     swipe gjennom dagene. JS-pagineringens transform overstyres så native
-     scroll ikke kjemper med transform. */
+  /* Dag-velger: flat ut sidene til én lang scrollbar rad så bruker ser ~5
+     dager med en «peek» av neste. Skjul nav-arrows. */
   .day-carousel { gap: 0; }
   .day-carousel__nav { display: none; }
   .day-carousel__viewport {
@@ -2413,23 +2412,36 @@ p { margin: 0 0 var(--space-4) 0; }
     overflow-y: hidden;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
+    scroll-snap-type: x proximity;
+    /* Fade-out på høyre kant så det er tydelig at det er mer å scrolle til */
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
   }
   .day-carousel__viewport::-webkit-scrollbar { display: none; }
   .day-carousel__track {
     transform: none !important;
     transition: none;
+    display: flex;
+    gap: 8px;
   }
-  .day-carousel__page { scroll-snap-align: start; }
+  /* Hver side blir en bred grid; gi pages auto-bredde så de flyter i scroll. */
+  .day-carousel__page {
+    flex: 0 0 auto;
+    width: max-content;
+    scroll-snap-align: start;
+  }
+  .day-carousel__page > .day-pick { width: 60px; }
   .day-pick {
     padding: 10px 6px;
     min-height: 60px;
     border-radius: 12px;
+    scroll-snap-align: start;
   }
   .day-pick__num { font-size: 18px; }
   .day-pick__dow { font-size: 11px; }
 
-  /* Slot-velger som horisontal carousel — én rad slots, swipe for å se mer. */
+  /* Slot-velger som horisontal carousel — én rad slots, swipe for å se mer.
+     Fade-out på høyre kant så det er tydelig at den scroller. */
   .slots {
     display: flex;
     flex-wrap: nowrap;
@@ -2440,19 +2452,36 @@ p { margin: 0 0 var(--space-4) 0; }
     gap: 8px;
     padding-bottom: 4px;
     grid-template-columns: none;
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
   }
   .slots::-webkit-scrollbar { display: none; }
   .slot {
     flex: 0 0 auto;
-    min-width: 86px;
+    min-width: 78px;
     min-height: 44px;
     font-size: 14px;
     padding: 0 12px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--ink); /* eksplisitt så vi matcher desktop */
+    color: var(--ink); /* match desktop */
   }
+
+  /* Velg behandler — også carousel på mobil. */
+  .stylist-picker {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    margin-top: 12px;
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+  }
+  .stylist-picker::-webkit-scrollbar { display: none; }
+  .stylist-chip { flex-shrink: 0; min-height: 36px; }
 }
 
 /* =========================================================================
@@ -2748,8 +2777,23 @@ html {
   height: 18px;
   color: var(--fg-muted);
   transition: transform 220ms cubic-bezier(.22,.61,.36,1);
+  flex-shrink: 0;
 }
 .acc.is-open .acc__chev { transform: rotate(180deg); }
+/* Når accordion er lukket på mobil: kompakt pill-card med subtil background
+   og border-radius som fremhever klikkbarheten. */
+@media (max-width: 900px) {
+  .acc:not(.is-open) {
+    background: var(--cream-50);
+    padding: 14px 18px;
+    border: 1px solid var(--stone-200);
+    border-radius: var(--radius-lg);
+    box-shadow: none;
+  }
+  .acc:not(.is-open) .acc__head h3 { font-size: 16px; }
+  .acc:not(.is-open) .acc__chev { width: 16px; height: 16px; color: var(--rouge-500); }
+  .acc.is-open { padding: 18px 18px 4px; }
+}
 
 @media (max-width: 900px) {
   /* Default lukket — bare header synlig */

@@ -424,7 +424,6 @@
           <p class="salon-detail__sub"></p>
           <p class="salon-detail__addr"></p>
           <p class="salon-detail__about"></p>
-          <div class="salon-detail__chips" id="amenitiesChips" style="display:none;"></div>
 
           <!-- Åpningstider — kept in DOM so renderHours() doesn't crash, but
                hidden because the canonical hours card lives on the right side. -->
@@ -476,6 +475,10 @@
               <div class="profile-team" id="teamPanelList"></div>
             </div>
           </div>
+
+          <!-- Amenities (Tilgjengelig, Vipps, Wifi osv.) — flyttet hit fra
+               toppen så bookingflyten ikke konkurrerer om plass. -->
+          <div class="salon-detail__chips" id="amenitiesChips" style="display:none; margin-top: 28px;"></div>
 
           <!-- Map (OpenStreetMap via Leaflet) — only shown when the API returns
                lat/lng for this salon. Populated by initSalonMap() below. -->
@@ -2152,14 +2155,14 @@
       });
     });
 
-    // Mobil-reorder: flytt booking-panelet rett etter amenity-chipsene på mobil.
+    // Mobil-reorder: flytt booking-panelet rett etter about-teksten på mobil.
     // På desktop sitter det i høyre kolonne (grid). På mobil ville det landet
     // helt nederst — etter 30 services + map + anmeldelser. Vi flytter det opp.
     (function () {
       var grid = document.querySelector('.salon-detail__grid');
       var rightCol = document.querySelector('.salon-detail__right');
       var leftCol = grid && grid.firstElementChild;
-      var anchor = document.getElementById('amenitiesChips');
+      var anchor = document.querySelector('.salon-detail__about');
       if (!grid || !rightCol || !leftCol || !anchor) return;
 
       // Placeholder så vi kan flytte tilbake til original-posisjon i grid-en.
