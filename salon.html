@@ -899,7 +899,7 @@
                     '<div class="service-list__price">' + escapeHtml(String(price)) + ' kr</div>' +
                   '</div>' +
                  '</div>';
-      serviceList.insertAdjacentHTML('afterbegin', html);
+      serviceList.insertAdjacentHTML('beforeend', html);
 
       // På mobil: scroll til toppen av bookingpanelet, ikke til ad-hoc-card-en
       // selv. Det gir brukeren en naturlig start på bookingflyten uten å
