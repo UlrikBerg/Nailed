@@ -3027,11 +3027,27 @@
     }
     refreshMessagesBadge();
     setInterval(refreshMessagesBadge, 30000);
+    // Hash-routing: /salong-panel#tab-bookinger åpner bookinger-tab.
+    // Bottom-nav (mobil) bruker dette for å deep-linke til riktig fane.
+    var VALID_TABS = ['dashboard','analyse','bookinger','tjenester','kunder','anmeldelser','meldinger','innstillinger'];
+    function tabFromHash() {
+      var h = (window.location.hash || '').replace(/^#tab-/, '');
+      return VALID_TABS.indexOf(h) !== -1 ? h : 'dashboard';
+    }
     navItems.forEach(function (item) {
       item.addEventListener('click', function () {
-        setActiveTab(this.getAttribute('data-tab'));
+        var tab = this.getAttribute('data-tab');
+        if (window.location.hash !== '#tab-' + tab) {
+          window.location.hash = 'tab-' + tab;
+        }
+        setActiveTab(tab);
       });
     });
+    window.addEventListener('hashchange', function () {
+      setActiveTab(tabFromHash());
+    });
+    // Anvend tab fra URL ved første last
+    setTimeout(function () { setActiveTab(tabFromHash()); }, 0);
     // Hero-level shortcut buttons (e.g. "Salongprofil" next to "Se kundevisning")
     // route through the same tab-switch so the active state stays in sync.
     document.querySelectorAll('[data-tab-goto]').forEach(function (btn) {
