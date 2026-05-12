@@ -138,6 +138,24 @@
       color: var(--rouge-500);
       font-weight: 600;
     }
+    /* Mobil: stylist-picker som horisontal carousel med fade-edge. Inline-style
+       trumfer regelen i styles.css siden den lastes etter linken — derfor må
+       mobil-overstyringen også ligge her. */
+    @media (max-width: 720px) {
+      .stylist-picker {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        margin-top: 12px;
+        mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+      }
+      .stylist-picker::-webkit-scrollbar { display: none; }
+      .stylist-chip { flex-shrink: 0; min-height: 36px; }
+    }
 
     /* Ad-hoc "Valgt behandling" card — rendered at the bottom of the popular
        list when the user picks a non-popular service. Visually offset with a
