@@ -1477,6 +1477,10 @@
             <i data-lucide="star"></i> Anmeldelser
             <span class="kp-tab__badge" id="reviewsUnansweredBadge" hidden>0</span>
           </button>
+          <button class="kp-tab" role="tab" data-tab="meldinger">
+            <i data-lucide="message-circle"></i> Meldinger
+            <span class="kp-tab__badge" id="messagesUnreadBadge" hidden>0</span>
+          </button>
           <button class="kp-tab" role="tab" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
         </div>
       </div>
@@ -2146,6 +2150,17 @@
         </div>
       </div>
 
+      <!-- MELDINGER -->
+      <div class="tab-content" id="tab-meldinger">
+        <div class="kp-section">
+          <div>
+            <h2 class="kp-section__title">Meldinger</h2>
+            <p class="kp-section__sub">Chat med kundene som har booket time hos deg.</p>
+          </div>
+        </div>
+        <div id="meldingerRoot"></div>
+      </div>
+
       <!-- INNSTILLINGER -->
       <div class="tab-content" id="tab-innstillinger">
         <div class="kp-section">
@@ -2395,6 +2410,7 @@
   <script src="/assets/amenities.js"></script>
   <script src="/assets/no-places.js"></script>
   <script defer src="/assets/nav.js"></script>
+  <script defer src="/assets/chat.js"></script>
   <script defer src="/assets/spa-nav.js"></script>
 
   <script>
@@ -2437,6 +2453,17 @@
       if (tab === 'anmeldelser' && typeof loadOwnerReviews === 'function') loadOwnerReviews();
       if (tab === 'analyse' && typeof loadAnalytics === 'function') loadAnalytics();
       if (tab === 'kunder' && typeof loadCustomers === 'function') loadCustomers();
+      if (tab === 'meldinger') ensureChatMounted();
+    }
+
+    var chatInstance = null;
+    function ensureChatMounted() {
+      if (chatInstance) return chatInstance.refresh();
+      if (!window.NailedChat) return;
+      chatInstance = window.NailedChat.mount({
+        root: document.getElementById('meldingerRoot'),
+        badgeEl: document.getElementById('messagesUnreadBadge'),
+      });
     }
     navItems.forEach(function (item) {
       item.addEventListener('click', function () {

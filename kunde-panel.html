@@ -65,6 +65,14 @@
       transition: all var(--dur-fast) var(--ease-out-soft);
     }
     .kp-tab i { width: 14px; height: 14px; }
+    .kp-tab__badge {
+      min-width: 20px; padding: 0 7px; height: 18px;
+      border-radius: 999px;
+      background: var(--rouge-500); color: #fff;
+      font-size: 11px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-left: 4px;
+    }
     .kp-tab:hover { border-color: var(--stone-400); }
     .kp-tab.active {
       background: var(--ink);
@@ -650,6 +658,7 @@
         <button class="kp-tab active" role="tab" data-tab="dashboard"><i data-lucide="home"></i> Oversikt</button>
         <button class="kp-tab" role="tab" data-tab="profil"><i data-lucide="user"></i> Profil</button>
         <button class="kp-tab" role="tab" data-tab="bookinger"><i data-lucide="calendar-check"></i> Bookinger</button>
+        <button class="kp-tab" role="tab" data-tab="meldinger"><i data-lucide="message-circle"></i> Meldinger <span class="kp-tab__badge" id="msgUnreadBadge" hidden>0</span></button>
         <button class="kp-tab" role="tab" data-tab="favoritter"><i data-lucide="heart"></i> Favoritter</button>
         <button class="kp-tab" role="tab" data-tab="anmeldelser"><i data-lucide="star"></i> Mine anmeldelser</button>
         <button class="kp-tab" role="tab" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
@@ -715,6 +724,13 @@
           <p class="kp-section-sub">Tider du venter på skal bli ledige.</p>
           <div class="kp-list" id="waitlistList"></div>
         </div>
+      </div>
+
+      <!-- MELDINGER -->
+      <div class="kp-tab-content" id="tab-meldinger">
+        <h2 class="kp-section-title">Meldinger</h2>
+        <p class="kp-section-sub">Snakk med salongene du har booket time hos.</p>
+        <div id="meldingerRoot"></div>
       </div>
 
       <!-- FAVORITTER -->
@@ -951,6 +967,7 @@
   <script src="/assets/auth.js"></script>
   <script src="/assets/forms.js"></script>
   <script defer src="/assets/nav.js"></script>
+  <script defer src="/assets/chat.js"></script>
   <script defer src="/assets/spa-nav.js"></script>
   <script>
     // ---------------------------------------------------------------------
@@ -968,7 +985,16 @@
     // deep-link to #tab-innstillinger etc. (the salon panel links to
     // /kunde-panel.html#tab-innstillinger from its empty Innstillinger view).
     // ---------------------------------------------------------------------
-    var TABS = ['dashboard', 'bookinger', 'favoritter', 'anmeldelser', 'profil', 'innstillinger'];
+    var TABS = ['dashboard', 'bookinger', 'meldinger', 'favoritter', 'anmeldelser', 'profil', 'innstillinger'];
+    var chatInstance = null;
+    function ensureChatMounted() {
+      if (chatInstance) return chatInstance.refresh();
+      if (!window.NailedChat) return;
+      chatInstance = window.NailedChat.mount({
+        root: document.getElementById('meldingerRoot'),
+        badgeEl: document.getElementById('msgUnreadBadge'),
+      });
+    }
 
     function setActiveTab(name) {
       if (TABS.indexOf(name) < 0) name = 'dashboard';
@@ -978,6 +1004,7 @@
       document.querySelectorAll('.kp-tab-content').forEach(function (c) {
         c.classList.toggle('active', c.id === 'tab-' + name);
       });
+      if (name === 'meldinger') ensureChatMounted();
       // Scroll the active tab pill into view in narrow viewports.
       var activeBtn = document.querySelector('.kp-tab.active');
       if (activeBtn && activeBtn.scrollIntoView) {
