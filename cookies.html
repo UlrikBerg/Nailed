@@ -36,63 +36,77 @@
   <section style="padding: 48px 0 64px;">
     <div class="page" style="max-width: 800px;">
 
-      <!-- Draft warning banner -->
-      <div style="background: var(--warning-50); border: 1px solid var(--warning-500); padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 32px; color: var(--ink); font-size: 14px;">
-        <strong>Utkast</strong> — denne teksten må gjennomgås av jurist før lansering.
-      </div>
-
       <span class="eyebrow">Cookies</span>
       <h1 style="margin: 8px 0 24px; font-size: clamp(36px, 5vw, 56px);">Informasjonskapsler</h1>
       <p style="color: var(--fg-muted); font-size: 16px;">
-        Slik bruker <strong>nailed AS</strong> cookies og lokal lagring i nettleseren din.
+        Slik bruker <strong>Neglet AS</strong> (nailed) cookies og lokal lagring i
+        nettleseren din.
       </p>
 
       <hr style="border: 0; border-top: 1px solid var(--stone-200); margin: 32px 0;" />
 
       <h2 style="font-size: 24px; margin-bottom: 12px;">1. Hva er informasjonskapsler?</h2>
       <p>
-        Informasjonskapsler (cookies) og tilsvarende teknologier som <em>localStorage</em>
-        og <em>sessionStorage</em> er små datafiler som lagres i nettleseren din når du
-        besøker en nettside. De lar oss huske valgene dine og holde deg innlogget.
+        Informasjonskapsler (cookies) er små datafiler som en nettside lagrer i nettleseren
+        din. <em>localStorage</em> er en lignende teknologi som lagrer data i nettleseren,
+        men sendes ikke automatisk med hver forespørsel slik en cookie gjør. Bruken av
+        begge er regulert av <strong>ekomloven § 2-7b</strong> og GDPR.
       </p>
       <p>
-        Bruken er regulert av <strong>ekomloven § 2-7b</strong> og GDPR. Vi setter kun
-        strengt nødvendige kapsler uten samtykke. Andre kapsler krever ditt aktive samtykke
-        gjennom samtykke-banneret nederst på siden.
+        Vi setter bare strengt nødvendige kapsler uten samtykke. Andre lagringer som
+        krever samtykke, vil først aktiveres når du har valgt det i samtykke-banneret.
       </p>
 
       <h2 style="font-size: 24px; margin: 32px 0 12px;">2. Hva vi bruker</h2>
 
-      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.1 Strengt nødvendige</h3>
+      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.1 Cookie</h3>
       <p>
-        Disse er nødvendige for at plattformen skal fungere, og settes uten samtykke:
+        Vi setter én førsteparts-cookie på domenet nailed.no:
       </p>
       <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
         <li style="margin-bottom: 8px;">
-          <code>nailed.accessToken</code> (localStorage) — holder deg innlogget i opptil 30 dager.
-        </li>
-        <li style="margin-bottom: 8px;">
-          <code>nailed.refreshToken</code> (localStorage) — fornyer din økt automatisk uten ny innlogging.
-        </li>
-        <li style="margin-bottom: 8px;">
-          <code>nailed.role</code> (localStorage) — husker om du er kunde, salongeier eller administrator
-          så vi viser riktig grensesnitt.
+          <code>nailed.visitor</code> — en tilfeldig generert besøks-ID (UUID v4) som
+          brukes til å telle sidevisninger på vårt eget domene. Cookien er
+          førsteparts, deles ikke med tredjeparter, varer i 2 år og har
+          <code>SameSite=Lax</code>. Vi bruker ingen analyse-tjenester som Google
+          Analytics eller Meta Pixel.
         </li>
       </ul>
 
-      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.2 Funksjonelle</h3>
+      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.2 localStorage (innlogging)</h3>
+      <p>
+        Innloggings-tokens lagres i nettleserens <em>localStorage</em>, ikke som cookies.
+        De er likevel underlagt samme krav til samtykke når de er nødvendige for
+        tjenesten du bruker:
+      </p>
       <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
         <li style="margin-bottom: 8px;">
-          <code>nailed.cookieConsent</code> (localStorage) — husker hva du har valgt i samtykke-banneret,
-          slik at vi ikke spør på nytt før samtykket utløper.
+          <code>nailed.accessToken</code> — kortvarig token (ca. 15 minutter) som
+          identifiserer deg overfor backend ved hver forespørsel.
+        </li>
+        <li style="margin-bottom: 8px;">
+          <code>nailed.refreshToken</code> — lengre token (opp til 30 dager) som lar oss
+          fornye access-tokenet uten å spørre om ny innlogging.
+        </li>
+        <li style="margin-bottom: 8px;">
+          <code>nailed.role</code> — husker om du er kunde, salongeier eller
+          administrator, slik at vi viser riktig grensesnitt.
         </li>
       </ul>
 
-      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.3 Analyse og markedsføring</h3>
+      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.3 localStorage (samtykke)</h3>
+      <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
+        <li style="margin-bottom: 8px;">
+          <code>nailed.cookieConsent</code> — husker hva du har valgt i samtykke-banneret,
+          slik at vi ikke spør på nytt før samtykket utløper (etter 12 måneder).
+        </li>
+      </ul>
+
+      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.4 Analyse og markedsføring</h3>
       <p>
-        Vi bruker <strong>ingen</strong> analyse- eller markedsføringskapsler i dag. Hvis vi
-        senere innfører dette (for eksempel statistikk-verktøy eller målrettet markedsføring),
-        vil de kreve aktivt samtykke gjennom banneret før de aktiveres.
+        Vi bruker <strong>ingen</strong> analyse- eller markedsføringskapsler — verken
+        førsteparts eller tredjeparts. Hvis vi senere innfører dette, vil det kreve aktivt
+        samtykke gjennom banneret før det aktiveres.
       </p>
 
       <h2 style="font-size: 24px; margin: 32px 0 12px;">3. Hvordan trekke samtykke</h2>
@@ -100,30 +114,31 @@
         Du kan når som helst endre eller trekke samtykket ditt:
       </p>
       <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
-        <li style="margin-bottom: 4px;">Slette nailed-cookies og localStorage i nettleseren din. Banneret vil da dukke opp på neste besøk.</li>
+        <li style="margin-bottom: 4px;">Slette nailed-cookies og data fra localStorage for nailed.no i nettleseren din. Banneret vil da dukke opp ved neste besøk.</li>
         <li style="margin-bottom: 4px;">Bruke nettleserens innstillinger for å blokkere kapsler fra dette nettstedet.</li>
-        <li style="margin-bottom: 4px;">Logge ut fra <a href="kunde-panel" style="color: var(--rouge-500);">kontoen din</a> for å fjerne sesjon-tokens.</li>
+        <li style="margin-bottom: 4px;">Logge ut fra <a href="kunde-panel" style="color: var(--rouge-500);">kontoen din</a> for å fjerne innloggings-tokens.</li>
       </ul>
       <p>
-        Merk: hvis du blokkerer strengt nødvendige kapsler, vil ikke innlogging og booking
-        fungere som tiltenkt.
+        Merk: hvis du blokkerer alle nødvendige kapsler og localStorage, vil ikke
+        innlogging og booking fungere som tiltenkt.
       </p>
 
       <h2 style="font-size: 24px; margin: 32px 0 12px;">4. Lagringstid for samtykke</h2>
       <p>
-        Samtykket ditt lagres i 12 måneder. Etter det vil banneret vises på nytt slik at du
-        får anledning til å bekrefte eller endre valget.
+        Samtykket ditt lagres i 12 måneder. Etter det vil banneret vises på nytt slik at
+        du får anledning til å bekrefte eller endre valget.
       </p>
 
       <h2 style="font-size: 24px; margin: 32px 0 12px;">5. Mer informasjon</h2>
       <p>
         Se <a href="/personvern" style="color: var(--rouge-500);">personvernerklæringen</a>
-        for full informasjon om hvordan vi behandler personopplysninger. Spørsmål kan rettes
-        til <a href="mailto:personvern@nailed.no" style="color: var(--rouge-500);">personvern@nailed.no</a>.
+        for full informasjon om hvordan vi behandler personopplysninger. Spørsmål kan
+        rettes til
+        <a href="mailto:hei@nailed.no" style="color: var(--rouge-500);">hei@nailed.no</a>.
       </p>
 
       <p style="color: var(--fg-muted); font-size: 14px; margin-top: 32px;">
-        Sist oppdatert: <strong>2026-05-10</strong>.
+        Sist oppdatert: <strong>2026-05-12</strong>.
       </p>
 
     </div>
@@ -154,7 +169,7 @@
         <a href="#">Om oss</a>
       </div>
       <div class="footer__bottom">
-        <small>&copy; 2026 nailed AS &middot; Made in Oslo</small>
+        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
         <div class="footer__badges">
           <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> App Store — juni</span>
           <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Google Play — juli</span>

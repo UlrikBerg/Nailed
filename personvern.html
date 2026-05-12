@@ -36,144 +36,171 @@
   <section style="padding: 48px 0 64px;">
     <div class="page" style="max-width: 800px;">
 
-      <!-- Draft warning banner -->
-      <div style="background: var(--warning-50); border: 1px solid var(--warning-500); padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 32px; color: var(--ink); font-size: 14px;">
-        <strong>Utkast</strong> — denne teksten må gjennomgås av jurist før lansering.
-      </div>
-
       <span class="eyebrow">Personvern</span>
       <h1 style="margin: 8px 0 24px; font-size: clamp(36px, 5vw, 56px);">Personvernerklæring</h1>
-      <p style="color: var(--fg-muted); font-size: 16px;">Hvordan <strong>nailed AS</strong> behandler dine personopplysninger når du bruker plattformen.</p>
+      <p style="color: var(--fg-muted); font-size: 16px;">Hvordan <strong>Neglet AS</strong> (nailed) behandler personopplysningene dine når du bruker plattformen.</p>
 
       <hr style="border: 0; border-top: 1px solid var(--stone-200); margin: 32px 0;" />
 
       <h2 style="font-size: 24px; margin-bottom: 12px;">1. Behandlingsansvarlig</h2>
       <p>
-        Behandlingsansvarlig for personopplysninger som samles inn gjennom nailed-plattformen er
-        <strong>nailed AS</strong>. Spørsmål om personvern kan rettes til
-        <a href="mailto:personvern@nailed.no" style="color: var(--rouge-500);">personvern@nailed.no</a>.
+        Behandlingsansvarlig for personopplysninger som samles inn gjennom nailed er
+        <strong>Neglet AS</strong>, Oslo. Henvendelser om personvern sendes til
+        <a href="mailto:hei@nailed.no" style="color: var(--rouge-500);">hei@nailed.no</a>.
       </p>
 
       <h2 style="font-size: 24px; margin: 32px 0 12px;">2. Hvilke data vi samler inn</h2>
 
-      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.1 Fra Vipps eller Google ved innlogging</h3>
+      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.1 Fra Google ved innlogging</h3>
       <p>
-        Når du logger inn via Vipps eller Google, mottar vi følgende opplysninger fra dem:
+        Innlogging skjer via Google. Vi mottar:
       </p>
       <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
         <li style="margin-bottom: 4px;">Navn</li>
         <li style="margin-bottom: 4px;">E-postadresse</li>
-        <li style="margin-bottom: 4px;">Telefonnummer (ved Vipps)</li>
-        <li style="margin-bottom: 4px;">Fødselsår</li>
-        <li style="margin-bottom: 4px;">Adresse</li>
+        <li style="margin-bottom: 4px;">Profilbilde (hvis du har det på Google-kontoen)</li>
       </ul>
-
-      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.2 Brukergenerert</h3>
-      <p>
-        Opplysninger du selv legger inn eller skaper ved å bruke plattformen:
+      <p style="color: var(--fg-muted); font-size: 14px;">
+        Innlogging med Vipps er under utvikling og vil bli lagt til i en senere versjon.
+        Når det er på plass, oppdaterer vi denne erklæringen før funksjonen aktiveres.
       </p>
+
+      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.2 Det du selv legger inn</h3>
       <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
-        <li style="margin-bottom: 4px;">Profilendringer (navn, bilde, preferanser)</li>
+        <li style="margin-bottom: 4px;">Profilinformasjon du redigerer (navn, bilde, preferanser)</li>
         <li style="margin-bottom: 4px;">Bookinger og bookinghistorikk</li>
         <li style="margin-bottom: 4px;">Favoritter (lagrede salonger)</li>
-        <li style="margin-bottom: 4px;">Anmeldelser og vurderinger du publiserer</li>
+        <li style="margin-bottom: 4px;">Anmeldelser du publiserer (etter fullført booking)</li>
+        <li style="margin-bottom: 4px;">Chat-meldinger mellom deg og salongen</li>
       </ul>
 
-      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.3 Teknisk</h3>
+      <h3 style="font-size: 18px; margin: 20px 0 8px;">2.3 Teknisk informasjon</h3>
       <p>
-        For sikkerhet og driftsmessige formål logger vi:
+        For sikkerhet, drift og enkel pageview-statistikk lagrer vi:
       </p>
       <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
-        <li style="margin-bottom: 4px;">IP-adresse på enheter du bruker for innlogging</li>
-        <li style="margin-bottom: 4px;">User agent (nettleser- og enhetsinformasjon)</li>
+        <li style="margin-bottom: 4px;">IP-adresse ved innlogging og sensitive handlinger</li>
+        <li style="margin-bottom: 4px;">Nettleser- og enhetsinformasjon (user agent)</li>
+        <li style="margin-bottom: 4px;">En anonym besøks-ID (UUID) i en førsteparts-cookie kalt <code>nailed.visitor</code>, brukt for å telle sidevisninger på vårt eget domene. Se <a href="/cookies" style="color: var(--rouge-500);">cookie-erklæringen</a>.</li>
       </ul>
+      <p style="color: var(--fg-muted); font-size: 14px;">
+        Vi bruker ikke Google Analytics, Meta Pixel eller andre tredjeparts-sporings­verktøy.
+      </p>
 
       <h2 style="font-size: 24px; margin: 32px 0 12px;">3. Hvorfor vi behandler dem</h2>
-      <p>
-        Vi behandler personopplysninger på to hovedgrunnlag:
-      </p>
       <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
         <li style="margin-bottom: 8px;">
-          <strong>Avtalegrunnlag (GDPR art. 6 nr. 1 b)</strong> — for å levere booking-tjenesten du
-          har bedt om: opprette og vedlikeholde konto, formidle bookinger til salongen,
-          sende bekreftelser og påminnelser, samt håndtere kundestøtte.
+          <strong>Avtalegrunnlag (GDPR art. 6 nr. 1 b):</strong> for å levere
+          booking-tjenesten — opprette og vedlikeholde konto, formidle bookinger til
+          salongen, sende e-postbekreftelser ved booking, avbestilling og chat-varsler,
+          samt håndtere kundestøtte.
         </li>
         <li style="margin-bottom: 8px;">
-          <strong>Samtykke (GDPR art. 6 nr. 1 a)</strong> — for markedsføring, nyhetsbrev og
-          ikke-strengt-nødvendige cookies. Du kan trekke samtykket når som helst.
+          <strong>Berettiget interesse (GDPR art. 6 nr. 1 f):</strong> for å sikre
+          plattformen mot misbruk (audit-logg og IP-logging ved innlogging) og for å telle
+          sidevisninger på vårt eget domene for å forstå hvilke sider som brukes mest.
+        </li>
+        <li style="margin-bottom: 8px;">
+          <strong>Rettslig forpliktelse (GDPR art. 6 nr. 1 c):</strong> bokføringsloven
+          krever oppbevaring av visse opplysninger knyttet til abonnementsfakturering.
         </li>
       </ul>
 
       <h2 style="font-size: 24px; margin: 32px 0 12px;">4. Lagringstid</h2>
       <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
         <li style="margin-bottom: 8px;">
-          <strong>Booking-historikk:</strong> 5 år, jf. bokføringsloven § 13.
+          <strong>Konto og profil:</strong> så lenge du har en aktiv konto.
         </li>
         <li style="margin-bottom: 8px;">
-          <strong>Sesjon- og refresh-tokens:</strong> opp til 30 dager (utløper automatisk).
+          <strong>Booking-historikk og fakturagrunnlag:</strong> 5 år, jf.
+          bokføringsloven § 13.
+        </li>
+        <li style="margin-bottom: 8px;">
+          <strong>Chat-meldinger:</strong> så lenge bookingen er aktiv, og deretter
+          slettet innen 12 måneder.
+        </li>
+        <li style="margin-bottom: 8px;">
+          <strong>Refresh-tokens (innlogging):</strong> opp til 30 dager (utløper
+          automatisk).
         </li>
         <li style="margin-bottom: 8px;">
           <strong>Audit-logg (sikkerhetshendelser, innlogginger):</strong> 5 år.
         </li>
         <li style="margin-bottom: 8px;">
-          <strong>Slettede brukere:</strong> profil og personopplysninger skrubbes umiddelbart
-          ved sletting, men en anonymisert oppføring beholdes i 5 år av hensyn til revisjon
-          og lovkrav til regnskap.
+          <strong>Besøks-cookie (<code>nailed.visitor</code>):</strong> 2 år, eller til
+          du sletter den i nettleseren.
+        </li>
+        <li style="margin-bottom: 8px;">
+          <strong>Slettet konto:</strong> profil og personopplysninger skrubbes
+          umiddelbart, men en anonymisert oppføring kan beholdes i inntil 5 år av hensyn
+          til regnskaps- og bokføringskrav.
         </li>
       </ul>
 
       <h2 style="font-size: 24px; margin: 32px 0 12px;">5. Dine rettigheter</h2>
       <p>
-        Etter personvernforordningen (GDPR) artikkel 15–20 har du rett til:
+        Etter personvernforordningen (GDPR) artikkel 15–22 har du rett til:
       </p>
       <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
-        <li style="margin-bottom: 4px;"><strong>Innsyn</strong> — å få vite hvilke opplysninger vi har om deg.</li>
+        <li style="margin-bottom: 4px;"><strong>Innsyn</strong> — å få vite hvilke opplysninger vi har om deg, og få en kopi.</li>
         <li style="margin-bottom: 4px;"><strong>Retting</strong> — å få korrigert feil eller utdaterte opplysninger.</li>
-        <li style="margin-bottom: 4px;"><strong>Sletting</strong> — å få slettet opplysninger (innenfor lovens rammer).</li>
-        <li style="margin-bottom: 4px;"><strong>Dataportabilitet</strong> — å få utlevert dine data i et maskinlesbart format.</li>
+        <li style="margin-bottom: 4px;"><strong>Sletting</strong> — å få slettet kontoen og opplysningene dine (innenfor lovens rammer, f.eks. bokføringsloven).</li>
+        <li style="margin-bottom: 4px;"><strong>Dataportabilitet</strong> — å få utlevert dine data i et strukturert, maskinlesbart format.</li>
         <li style="margin-bottom: 4px;"><strong>Begrensning og innsigelse</strong> — å begrense eller motsette deg behandling.</li>
         <li style="margin-bottom: 4px;"><strong>Trekke samtykke</strong> — der behandlingen er basert på samtykke.</li>
       </ul>
       <p>
-        Du utøver disse rettighetene fra <a href="kunde-panel" style="color: var(--rouge-500);">kontosiden</a>
-        eller ved å sende e-post til
-        <a href="mailto:personvern@nailed.no" style="color: var(--rouge-500);">personvern@nailed.no</a>.
-        Du har også rett til å klage til <a href="https://www.datatilsynet.no" style="color: var(--rouge-500);" target="_blank" rel="noopener">Datatilsynet</a>.
+        Du kan utøve rettighetene dine fra
+        <a href="kunde-panel" style="color: var(--rouge-500);">kontosiden</a> eller ved å
+        sende e-post til
+        <a href="mailto:hei@nailed.no" style="color: var(--rouge-500);">hei@nailed.no</a>.
+        Vi svarer normalt innen 30 dager. Du kan også klage til
+        <a href="https://www.datatilsynet.no" style="color: var(--rouge-500);" target="_blank" rel="noopener">Datatilsynet</a>.
       </p>
 
       <h2 style="font-size: 24px; margin: 32px 0 12px;">6. Mottakere og databehandlere</h2>
       <p>
-        Vi deler personopplysninger med følgende databehandlere som leverer tjenester til oss:
+        Vi deler personopplysninger med følgende databehandlere som leverer tjenester
+        til oss:
       </p>
       <ul style="padding-left: 20px; margin: 0 0 16px; list-style: disc;">
-        <li style="margin-bottom: 4px;"><strong>Vipps AS</strong> — innlogging (Vipps Login).</li>
-        <li style="margin-bottom: 4px;"><strong>Google LLC</strong> — innlogging via OIDC.</li>
-        <li style="margin-bottom: 4px;"><strong>Hostinger International Ltd.</strong> — hosting og databasedrift.</li>
-        <li style="margin-bottom: 4px;"><strong>Cloudflare, Inc. (R2)</strong> — fillagring (kommer i en senere fase).</li>
+        <li style="margin-bottom: 4px;"><strong>Google LLC</strong> — innlogging via OAuth/OIDC.</li>
+        <li style="margin-bottom: 4px;"><strong>Hostinger International Ltd.</strong> — hosting av nettside, applikasjon og MySQL-database. Servere i EU.</li>
+        <li style="margin-bottom: 4px;"><strong>Cloudflare, Inc.</strong> — fillagring (R2) for bilder lastet opp av salonger.</li>
+        <li style="margin-bottom: 4px;"><strong>Resend (Resend, Inc.)</strong> — utsendelse av transaksjonelle e-poster (booking-bekreftelse, avbestilling, chat-varsel).</li>
       </ul>
       <p>
-        I tillegg deles bookinginformasjon med den salongen du booker hos, slik at salongen kan
-        utføre tjenesten. Salongen er selv behandlingsansvarlig for hvordan de håndterer dine
-        opplysninger etter at bookingen er gjennomført.
+        I tillegg deles bookinginformasjon (navn, tjeneste, tidspunkt og chat) med den
+        salongen du booker hos, slik at salongen kan utføre tjenesten. Salongen er selv
+        behandlingsansvarlig for hvordan de håndterer dine opplysninger etter at
+        bookingen er gjennomført.
       </p>
 
       <h2 style="font-size: 24px; margin: 32px 0 12px;">7. Internasjonal overføring</h2>
       <p>
-        Google er en USA-basert databehandler. Overføring til USA skjer på grunnlag av
-        EU-kommisjonens standard kontraktsklausuler (SCC) og supplerende sikkerhetstiltak.
-        Resten av databehandlerne leverer tjenester innenfor EU/EØS.
+        Google, Cloudflare og Resend er amerikansk-eide selskaper, men leverer tjenester
+        med dataplassering i EU. Der overføring til USA likevel kan forekomme, skjer det
+        på grunnlag av EU-kommisjonens standard kontraktsklausuler (SCC) og supplerende
+        sikkerhetstiltak. Hostinger drifter databasen vår på servere i EU.
       </p>
 
-      <h2 style="font-size: 24px; margin: 32px 0 12px;">8. Endringer</h2>
+      <h2 style="font-size: 24px; margin: 32px 0 12px;">8. Sikkerhet</h2>
+      <p>
+        Vi bruker kryptert tilkobling (HTTPS) for all trafikk, lagrer passord-relaterte
+        nøkler hashet, og begrenser tilgang til personopplysninger til personer som
+        trenger det for å drifte tjenesten. Vi logger sensitive handlinger slik at vi kan
+        spore eventuelle sikkerhetshendelser.
+      </p>
+
+      <h2 style="font-size: 24px; margin: 32px 0 12px;">9. Endringer</h2>
       <p>
         Vi kan oppdatere denne erklæringen for å reflektere endringer i tjenesten eller
         regelverket. Vesentlige endringer varsles på e-post eller ved tydelig melding på
         plattformen før de trer i kraft.
       </p>
 
-      <h2 style="font-size: 24px; margin: 32px 0 12px;">9. Sist oppdatert</h2>
-      <p>
-        Sist oppdatert: <strong>2026-05-10</strong>.
+      <p style="color: var(--fg-muted); font-size: 14px; margin-top: 32px;">
+        Sist oppdatert: <strong>2026-05-12</strong>.
       </p>
 
     </div>
@@ -204,7 +231,7 @@
         <a href="#">Om oss</a>
       </div>
       <div class="footer__bottom">
-        <small>&copy; 2026 nailed AS &middot; Made in Oslo</small>
+        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
         <div class="footer__badges">
           <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> App Store — juni</span>
           <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Google Play — juli</span>
