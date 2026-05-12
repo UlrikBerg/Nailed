@@ -14,17 +14,29 @@ router.use(requireAuth);
 router.get('/actions', asyncRoute(async (req, res) => {
   const out = { salon: 0, admin: 0 };
 
-  // Salon-eier sin "Salongpanel"-badge teller pending bookings på alle
-  // salonger brukeren eier (admin tar med deres egne salonger også).
+  // Salon-eier sin "Salongpanel"-badge er sum av: pending bookings + ubesvarte
+  // anmeldelser, på tvers av alle salonger brukeren eier. Speiler de to
+  // badge-tellerne inne i salong-panel (Bookinger + Anmeldelser-fanene).
   if (req.user.role === 'salon_owner' || req.user.role === 'admin') {
-    const row = await queryOne(
-      `SELECT COUNT(*) AS n
-         FROM bookings b
-         JOIN salons s ON s.id = b.salon_id
-        WHERE s.owner_user_id = ? AND b.status = 'pending'`,
-      [req.user.id]
-    );
-    out.salon = row.n;
+    const [pendingBookings, unansweredReviews] = await Promise.all([
+      queryOne(
+        `SELECT COUNT(*) AS n
+           FROM bookings b
+           JOIN salons s ON s.id = b.salon_id
+          WHERE s.owner_user_id = ? AND b.status = 'pending'`,
+        [req.user.id]
+      ),
+      queryOne(
+        `SELECT COUNT(*) AS n
+           FROM reviews r
+           JOIN salons s ON s.id = r.salon_id
+          WHERE s.owner_user_id = ?
+            AND r.hidden_at IS NULL
+            AND r.owner_reply IS NULL`,
+        [req.user.id]
+      ),
+    ]);
+    out.salon = pendingBookings.n + unansweredReviews.n;
   }
 
   // Admin-badge: pending salon-applications + pending review-reports.
