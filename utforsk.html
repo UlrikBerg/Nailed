@@ -512,12 +512,11 @@
       .utforsk-results .service-card {
         flex-direction: row;
         align-items: stretch;
-        min-height: 320px;
       }
       .utforsk-results .service-card__photo {
         flex: 0 0 280px;
         aspect-ratio: auto;
-        min-height: 320px;
+        min-height: 240px;
       }
       .utforsk-results .service-card__body {
         flex: 1;
@@ -533,10 +532,10 @@
       padding: 22px 26px 18px;
       position: relative;
     }
-    /* Bottom-gruppen: kategorier → behandlere → pris. Får margin-top:auto
-       så de klistres mot bunnen og åpner pusterom mot meta-raden over. */
+    /* Bottom-gruppen: kategorier → behandlere → pris. Fast margin-top
+       gir pusterom mellom rating og chips uten å vokse hele kortet. */
     .sc2-bottom {
-      margin-top: auto;
+      margin-top: 24px;
       display: flex;
       flex-direction: column;
       gap: 10px;
