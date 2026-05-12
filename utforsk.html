@@ -535,9 +535,9 @@
       position: relative;
     }
     /* Bottom-gruppen pines absolutt mot bunnen av sc2-body istedenfor å
-       presse kortet større. Det gir oss frihet til å plassere chips
-       hvor vi vil uten å påvirke total kort-størrelse. */
-    .sc2-bottom {
+       presse kortet større. Scope'et til utforsk så vi ikke leaker
+       absolute-positioning til forsidens vertikale kort. */
+    .utforsk-results .sc2-bottom {
       position: absolute;
       left: 26px;
       right: 26px;
