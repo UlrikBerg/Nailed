@@ -393,6 +393,111 @@
     }
     @media (max-width: 1100px) { .kp-summary { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 600px)  { .kp-summary { grid-template-columns: 1fr; } }
+
+    /* Kalender — månedsvisning på dashboard. */
+    .kp-cal {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 28px;
+    }
+    .kp-cal__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .kp-cal__title { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 18px; color: var(--ink); }
+    .kp-cal__nav { display: inline-flex; align-items: center; gap: 8px; }
+    .kp-cal__navBtn {
+      width: 32px; height: 32px;
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      border-radius: 999px;
+      cursor: pointer;
+      color: var(--ink);
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .kp-cal__navBtn:hover { background: var(--cream-100); border-color: var(--stone-400); }
+    .kp-cal__navBtn i { width: 16px; height: 16px; }
+    .kp-cal__monthLabel { font-weight: 600; font-size: 14px; text-transform: capitalize; min-width: 130px; text-align: center; }
+    .kp-cal__weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      font-size: 11px;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+      padding: 0 0 8px;
+    }
+    .kp-cal__weekdays span { text-align: center; }
+    .kp-cal__grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .kp-cal__cell {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      min-height: 48px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: var(--cream-100);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 120ms ease, border-color 120ms ease;
+      padding: 6px 4px;
+    }
+    .kp-cal__cell:hover { background: var(--cream-200, #ece4d8); }
+    .kp-cal__cell--other { color: var(--stone-400); background: transparent; cursor: default; }
+    .kp-cal__cell--other:hover { background: transparent; }
+    .kp-cal__cell--today { border-color: var(--rouge-500); font-weight: 700; }
+    .kp-cal__cell--selected { background: var(--rouge-500); color: #fff; }
+    .kp-cal__cell--selected:hover { background: var(--rouge-500); }
+    .kp-cal__count {
+      margin-top: 2px;
+      font-size: 10px;
+      color: var(--rouge-500);
+      font-weight: 700;
+    }
+    .kp-cal__cell--selected .kp-cal__count { color: #fff; }
+    .kp-cal__cell--other .kp-cal__count { display: none; }
+    .kp-cal__day {
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--stone-200);
+    }
+    .kp-cal__dayTitle {
+      margin: 0 0 12px;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 16px;
+      text-transform: capitalize;
+    }
+    .kp-cal__dayList { display: flex; flex-direction: column; gap: 8px; }
+    .kp-cal__dayItem {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--cream-100);
+      border-radius: 10px;
+      font-size: 14px;
+      gap: 12px;
+    }
+    .kp-cal__dayTime { font-weight: 600; min-width: 64px; }
+    .kp-cal__dayCustomer { color: var(--ink); flex: 1; }
+    .kp-cal__dayStatus { font-size: 12px; color: var(--fg-muted); white-space: nowrap; }
+    .kp-cal__dayEmpty { color: var(--fg-muted); font-size: 13px; font-style: italic; padding: 8px 0; }
     .kp-tile {
       background: var(--cream-50);
       border: 1px solid var(--stone-200);
@@ -1537,6 +1642,27 @@
             <span class="kp-tile__icon kp-tile__icon--ink"><i data-lucide="banknote"></i></span>
             <span class="kp-tile__label">Omsetning denne måneden</span>
             <span class="kp-tile__value" id="kpiRevenue">0 <span class="kp-tile__unit">kr</span></span>
+          </div>
+        </div>
+
+        <!-- Kalender — månedsvisning av bookinger. Klikk en dag for å se
+             timene den dagen. -->
+        <div class="kp-cal" id="dashCal">
+          <div class="kp-cal__head">
+            <h3 class="kp-cal__title">Kalender</h3>
+            <div class="kp-cal__nav">
+              <button type="button" class="kp-cal__navBtn" id="dashCalPrev" aria-label="Forrige måned"><i data-lucide="chevron-left"></i></button>
+              <span class="kp-cal__monthLabel" id="dashCalMonthLabel">—</span>
+              <button type="button" class="kp-cal__navBtn" id="dashCalNext" aria-label="Neste måned"><i data-lucide="chevron-right"></i></button>
+            </div>
+          </div>
+          <div class="kp-cal__weekdays">
+            <span>Man</span><span>Tir</span><span>Ons</span><span>Tor</span><span>Fre</span><span>Lør</span><span>Søn</span>
+          </div>
+          <div class="kp-cal__grid" id="dashCalGrid"></div>
+          <div class="kp-cal__day" id="dashCalDay" hidden>
+            <h4 class="kp-cal__dayTitle" id="dashCalDayTitle">—</h4>
+            <div class="kp-cal__dayList" id="dashCalDayList"></div>
           </div>
         </div>
       </div>
@@ -3662,6 +3788,121 @@
       });
     })();
 
+    // Dashboard-kalender: månedsvisning med klikk-for-å-se-dagen.
+    var dashCalBookings = [];
+    var dashCalMonth = new Date();
+    dashCalMonth.setDate(1);
+    dashCalMonth.setHours(0, 0, 0, 0);
+    var dashCalSelectedIso = null;
+    var STATUS_LABELS = { pending: 'Avventer', confirmed: 'Bekreftet', completed: 'Fullført', cancelled: 'Avlyst', no_show: 'No-show' };
+
+    function isoDate(d) {
+      var m = String(d.getMonth() + 1).padStart(2, '0');
+      var day = String(d.getDate()).padStart(2, '0');
+      return d.getFullYear() + '-' + m + '-' + day;
+    }
+    function renderDashCal() {
+      var label = document.getElementById('dashCalMonthLabel');
+      var grid = document.getElementById('dashCalGrid');
+      if (!label || !grid) return;
+      var year = dashCalMonth.getFullYear();
+      var month = dashCalMonth.getMonth();
+      label.textContent = dashCalMonth.toLocaleString('nb-NO', { month: 'long', year: 'numeric' });
+
+      // Bygg ISO-key → liste over bookinger den dagen.
+      var byDay = {};
+      dashCalBookings.forEach(function (b) {
+        if (b.status === 'cancelled') return; // ikke vis avlyste i kalenderen
+        var d = new Date(b.start_at);
+        var key = isoDate(d);
+        (byDay[key] = byDay[key] || []).push(b);
+      });
+
+      var firstOfMonth = new Date(year, month, 1);
+      // ISO weekday: Mon=1 … Sun=7. JS getDay: Sun=0 … Sat=6.
+      var jsDow = firstOfMonth.getDay();
+      var offset = (jsDow === 0 ? 6 : jsDow - 1); // antall celler før dag 1
+      var daysInMonth = new Date(year, month + 1, 0).getDate();
+      var todayIso = isoDate(new Date());
+
+      var html = '';
+      // Forrige måneds slutt
+      var prevDays = new Date(year, month, 0).getDate();
+      for (var i = offset; i > 0; i--) {
+        html += '<div class="kp-cal__cell kp-cal__cell--other">' + (prevDays - i + 1) + '</div>';
+      }
+      // Denne måneden
+      for (var d = 1; d <= daysInMonth; d++) {
+        var iso = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+        var classes = ['kp-cal__cell'];
+        if (iso === todayIso) classes.push('kp-cal__cell--today');
+        if (iso === dashCalSelectedIso) classes.push('kp-cal__cell--selected');
+        var count = (byDay[iso] || []).length;
+        html += '<div class="' + classes.join(' ') + '" data-iso="' + iso + '">' +
+          '<span>' + d + '</span>' +
+          (count > 0 ? '<span class="kp-cal__count">' + count + '</span>' : '') +
+          '</div>';
+      }
+      // Resten av siste rad
+      var totalCells = offset + daysInMonth;
+      var tail = (7 - (totalCells % 7)) % 7;
+      for (var k = 1; k <= tail; k++) {
+        html += '<div class="kp-cal__cell kp-cal__cell--other">' + k + '</div>';
+      }
+      grid.innerHTML = html;
+
+      grid.querySelectorAll('.kp-cal__cell[data-iso]').forEach(function (cell) {
+        cell.addEventListener('click', function () {
+          var iso = cell.getAttribute('data-iso');
+          dashCalSelectedIso = (dashCalSelectedIso === iso) ? null : iso;
+          renderDashCal();
+          renderDashCalDay(byDay);
+        });
+      });
+      renderDashCalDay(byDay);
+    }
+    function renderDashCalDay(byDay) {
+      var wrap = document.getElementById('dashCalDay');
+      var title = document.getElementById('dashCalDayTitle');
+      var list = document.getElementById('dashCalDayList');
+      if (!wrap || !title || !list) return;
+      if (!dashCalSelectedIso) { wrap.hidden = true; return; }
+      wrap.hidden = false;
+      var d = new Date(dashCalSelectedIso + 'T00:00:00');
+      title.textContent = d.toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' });
+      var items = (byDay[dashCalSelectedIso] || []).slice().sort(function (a, b) {
+        return new Date(a.start_at) - new Date(b.start_at);
+      });
+      if (!items.length) {
+        list.innerHTML = '<div class="kp-cal__dayEmpty">Ingen bookinger denne dagen.</div>';
+        return;
+      }
+      list.innerHTML = items.map(function (b) {
+        var start = new Date(b.start_at);
+        var time = start.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' });
+        var who = b.customer_name || b.guest_name || 'Kunde';
+        return '<div class="kp-cal__dayItem">' +
+          '<span class="kp-cal__dayTime">' + time + '</span>' +
+          '<span class="kp-cal__dayCustomer">' + escapeHtml(who) + ' · ' + escapeHtml(b.service_name || '') + '</span>' +
+          '<span class="kp-cal__dayStatus">' + (STATUS_LABELS[b.status] || b.status) + '</span>' +
+        '</div>';
+      }).join('');
+    }
+    (function wireDashCalNav() {
+      var prev = document.getElementById('dashCalPrev');
+      var next = document.getElementById('dashCalNext');
+      if (prev) prev.addEventListener('click', function () {
+        dashCalMonth = new Date(dashCalMonth.getFullYear(), dashCalMonth.getMonth() - 1, 1);
+        dashCalSelectedIso = null;
+        renderDashCal();
+      });
+      if (next) next.addEventListener('click', function () {
+        dashCalMonth = new Date(dashCalMonth.getFullYear(), dashCalMonth.getMonth() + 1, 1);
+        dashCalSelectedIso = null;
+        renderDashCal();
+      });
+    })();
+
     async function loadIncoming() {
       var res = await NailedAuth.api('/api/v1/bookings/incoming');
       var data = await res.json();
@@ -3682,6 +3923,11 @@
       document.getElementById('kpiPending').textContent = pendingCount;
       document.getElementById('kpiCompletedMonth').textContent = completedMonth;
       document.getElementById('kpiRevenue').innerHTML = revenueMonth.toLocaleString('no-NO') + ' <span class="kpi__unit">kr</span>';
+
+      // Lagre bookings for kalender-rendering så prev/next-knappene kan
+      // re-rendere uten å fetche på nytt.
+      dashCalBookings = bookings;
+      renderDashCal();
 
       // Tab badge: show count of pending bookings on the Bookinger pill.
       var navBadge = document.getElementById('bookingsPendingBadge');
