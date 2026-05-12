@@ -2567,3 +2567,28 @@ p { margin: 0 0 var(--space-4) 0; }
 
 /* Når tastatur er åpent, gjem install-banner. */
 body.has-kb .install-banner { display: none; }
+
+/* =========================================================================
+   Global fokus-ring i brand-farger. Erstatter default-blå nettleser-outline
+   for keyboard-navigasjon. :focus-visible matcher kun ved tastatur (ikke
+   musklikk), så musbrukere ser ingen ring.
+   ========================================================================= */
+
+:focus-visible {
+  outline: 2px solid var(--rouge-400, #EC5A92);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* Inputs har egne border-styles ved focus — fjern outline-offset for å unngå
+   doble ringer på små elementer. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline-offset: 0;
+}
+/* Knapper med pill-form trenger større border-radius på ringen. */
+.btn:focus-visible,
+.btn-icon:focus-visible,
+.bottom-nav__item:focus-visible {
+  border-radius: 999px;
+}
