@@ -1903,9 +1903,21 @@
       galleryEl.setAttribute('data-count', String(visible));
       var galleryHtml = '';
       for (var gi = 0; gi < visible; gi++) {
-        galleryHtml += '<button type="button" class="salon-gallery__tile" data-idx="' + gi + '" ' +
-          'style="background-image:url(\'' + encodeURI(images[gi].url) + '\');" ' +
-          'aria-label="Bilde ' + (gi + 1) + '"></button>';
+        var im = images[gi];
+        var srcset = '';
+        if (im.url_400) {
+          srcset = ' srcset="' + encodeURI(im.url_400) + ' 400w, '
+                              + encodeURI(im.url_800) + ' 800w, '
+                              + encodeURI(im.url_1600) + ' 1600w"'
+                 + ' sizes="(max-width: 720px) 100vw, 50vw"';
+        }
+        // Første tile er above-the-fold (eager), resten lazy.
+        var loadAttr = gi === 0 ? 'eager' : 'lazy';
+        galleryHtml += '<button type="button" class="salon-gallery__tile" data-idx="' + gi + '" '
+                    +   'aria-label="Bilde ' + (gi + 1) + '">'
+                    +   '<img src="' + encodeURI(im.url) + '"' + srcset
+                    +   ' loading="' + loadAttr + '" decoding="async" alt="">'
+                    + '</button>';
       }
       if (images.length > 1) {
         galleryHtml += '<button type="button" class="salon-gallery__show-all" id="showAllPhotos">' +
