@@ -1095,7 +1095,23 @@
     var ALL_SALONS = [];
     var FAV_SET = new Set();
 
+    // Filter-persistens: URL er kilden, men hvis URL er bar (bruker klikket
+     // «Utforsk» i top-nav etter å ha filtrert) faller vi tilbake til siste
+     // valgte filtre fra sessionStorage. Slik mister man ikke filtervalg ved
+     // tilbake-navigering.
     var initialParams = new URLSearchParams(window.location.search);
+    if (initialParams.toString() === '') {
+      try {
+        var saved = sessionStorage.getItem('nailed.utforsk.filters');
+        if (saved) {
+          var savedParams = new URLSearchParams(saved);
+          if (savedParams.toString() !== '') {
+            initialParams = savedParams;
+            history.replaceState(null, '', window.location.pathname + '?' + saved);
+          }
+        }
+      } catch (_) {}
+    }
     var currentQ = (initialParams.get('q') || '').trim();
     var initialCityParam = (initialParams.get('city') || '').trim();
     if (initialCityParam) {
@@ -1130,8 +1146,12 @@
       if (fState.min_rating != null) parts.push('min_rating=' + fState.min_rating);
       if (fState.open_now) parts.push('open_now=1');
       if (fState.has_reviews) parts.push('has_reviews=1');
-      var newUrl = window.location.pathname + (parts.length ? '?' + parts.join('&') : '');
+      var qs = parts.join('&');
+      var newUrl = window.location.pathname + (parts.length ? '?' + qs : '');
       try { history.replaceState(null, '', newUrl); } catch (_) {}
+      // Husk filtre i sessionStorage så «Tilbake til utforsk» fra salongsiden
+      // gjenoppretter dem hvis brukeren havner på bar URL.
+      try { sessionStorage.setItem('nailed.utforsk.filters', qs); } catch (_) {}
     }
 
     function countAdvanced() {
