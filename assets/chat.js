@@ -262,6 +262,11 @@
           sendBtn.disabled = false;
         }
       });
+      // Mobil: scroll til siste melding når tastaturet åpner seg.
+      // Liten delay så iOS rekker å resize viewport først.
+      inputEl.addEventListener('focus', function () {
+        setTimeout(function () { bodyEl.scrollTop = bodyEl.scrollHeight; }, 300);
+      });
       inputEl.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();

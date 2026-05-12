@@ -2371,3 +2371,14 @@ p { margin: 0 0 var(--space-4) 0; }
 @media (max-width: 380px) {
   .slots { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* =========================================================================
+   Mobil-tastatur: skjul bottom-nav når tastatur er åpent, så sticky UI
+   ikke dekker input. CSS-variabel --kb-inset settes av /assets/keyboard-inset.js
+   ========================================================================= */
+
+@media (max-width: 720px) {
+  body.has-kb .bottom-nav { display: none; }
+  /* Når tastaturet er åpent skal ikke body-padding kompensere for bottom-nav. */
+  body.has-kb.has-bottom-nav { padding-bottom: 0; }
+}
