@@ -435,14 +435,29 @@
     }
 
     // ----- Featured (general) salon grid -----
+    async function fetchSalonsWithRetry(url) {
+      for (var attempt = 0; attempt < 3; attempt++) {
+        try {
+          var res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+          if (res.ok) return await res.json();
+          if (res.status >= 500 && attempt < 2) {
+            await new Promise(function (r) { return setTimeout(r, 400 * (attempt + 1)); });
+            continue;
+          }
+          throw new Error('Status ' + res.status);
+        } catch (err) {
+          if (attempt === 2) throw err;
+          await new Promise(function (r) { return setTimeout(r, 400 * (attempt + 1)); });
+        }
+      }
+    }
+
     (async function loadFeatured() {
       var section = document.getElementById('featuredSection');
       var grid = document.getElementById('featuredGrid');
       if (!section || !grid) return;
       try {
-        var res = await fetch('/api/v1/salons?limit=8', { headers: { 'Accept': 'application/json' } });
-        if (!res.ok) throw new Error('Status ' + res.status);
-        var data = await res.json();
+        var data = await fetchSalonsWithRetry('/api/v1/salons?limit=8');
         var salons = Array.isArray(data.salons) ? data.salons : [];
         if (salons.length === 0) {
           section.style.display = 'none';
@@ -455,6 +470,7 @@
         window.lucide && window.lucide.createIcons();
         if (typeof initFavorites === 'function') initFavorites();
       } catch (err) {
+        console.warn('[loadFeatured]', err);
         section.style.display = 'none';
       }
     })();
@@ -467,11 +483,7 @@
       var grid = document.getElementById('topRatedGrid');
       if (!section || !grid) return;
       try {
-        var res = await fetch('/api/v1/salons?limit=24&has_reviews=1&min_rating=4', {
-          headers: { 'Accept': 'application/json' }
-        });
-        if (!res.ok) throw new Error('Status ' + res.status);
-        var data = await res.json();
+        var data = await fetchSalonsWithRetry('/api/v1/salons?limit=24&has_reviews=1&min_rating=4');
         var salons = Array.isArray(data.salons) ? data.salons : [];
         salons.sort(function (a, b) {
           var ar = a.avg_rating == null ? 0 : Number(a.avg_rating);
