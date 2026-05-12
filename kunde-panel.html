@@ -130,6 +130,43 @@
     /* Dashboard summary tiles — soft warm tiles, not KPI dashboard chips */
     .kp-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 28px; }
     @media (max-width: 760px) { .kp-summary { grid-template-columns: 1fr; } }
+
+    .kp-welcome {
+      text-align: center;
+      padding: 48px 24px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-xl);
+      margin-bottom: 28px;
+    }
+    .kp-welcome__wave {
+      display: inline-block;
+      font-size: 48px;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+    .kp-welcome__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(28px, 4vw, 36px);
+      letter-spacing: -0.02em;
+      margin: 0 0 12px;
+      color: var(--ink);
+    }
+    .kp-welcome__title em {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rouge-500);
+    }
+    .kp-welcome__desc {
+      font-size: 16px;
+      color: var(--fg-muted);
+      max-width: 42ch;
+      margin: 0 auto 24px;
+      line-height: 1.5;
+    }
+    .kp-welcome .btn i { width: 16px; height: 16px; margin-left: 4px; }
     .kp-tile {
       background: var(--cream-50);
       border: 1px solid var(--stone-200);
@@ -674,7 +711,20 @@
 
       <!-- DASHBOARD -->
       <div class="kp-tab-content active" id="tab-dashboard">
-        <div class="kp-summary">
+        <!-- Velkomstkort: vises kun for helt nye brukere (0 bookinger, 0 favoritter,
+             0 fullførte). loadDashboard() veksler mellom dette og .kp-summary. -->
+        <div class="kp-welcome" id="dashboardWelcome" style="display:none;">
+          <span class="kp-welcome__wave" aria-hidden="true">👋</span>
+          <h2 class="kp-welcome__title">Velkommen til <em>nailed.</em></h2>
+          <p class="kp-welcome__desc">
+            Du er klar til å booke din første time. Finn salongen som passer deg.
+          </p>
+          <a class="btn btn-primary btn-lg" href="/utforsk">
+            Utforsk salonger <i data-lucide="arrow-right"></i>
+          </a>
+        </div>
+
+        <div class="kp-summary" id="dashboardSummary">
           <div class="kp-tile">
             <span class="kp-tile__icon"><i data-lucide="calendar-check"></i></span>
             <span class="kp-tile__label">Neste booking</span>
@@ -1131,6 +1181,15 @@
       }
       document.getElementById('kpiCompleted').textContent = completed.length;
       document.getElementById('kpiFavorites').textContent = favs.length;
+
+      // Velkomstkort vs. KPI-fliser: vis velkomst kun til helt nye brukere.
+      var isBrandNew = !next && completed.length === 0 && favs.length === 0;
+      var welcome = document.getElementById('dashboardWelcome');
+      var summary = document.getElementById('dashboardSummary');
+      if (welcome && summary) {
+        welcome.style.display = isBrandNew ? '' : 'none';
+        summary.style.display = isBrandNew ? 'none' : '';
+      }
 
       var appData = (await appRes.json()).application;
       var statusEl = document.getElementById('becomeSalonStatus');
