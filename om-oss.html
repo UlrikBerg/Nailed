@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Om oss — nailed</title>
+  <meta name="description" content="Nailed er en norsk markedsplass for skjønnhet. Ingen provisjon, lokale salonger, bygget i Norge." />
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preload" as="image" href="assets/logo-wordmark.svg?v=6">
+  <style>
+    /* Om oss — minimal, scoped */
+    .om-hero {
+      padding: 96px 0 72px;
+      text-align: center;
+    }
+    .om-hero__eyebrow {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--rouge-500);
+      margin-bottom: 16px;
+    }
+    .om-hero__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(40px, 7vw, 72px);
+      letter-spacing: -0.03em;
+      line-height: 1.06;
+      margin: 0 auto;
+      color: var(--ink);
+      max-width: 14ch;
+    }
+    .om-hero__title em {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rouge-500);
+    }
+
+    .om-section { padding: 64px 0; }
+    .om-section--cream { background: var(--cream-50); }
+
+    .om-prose {
+      max-width: 60ch;
+      margin: 0 auto;
+    }
+    .om-prose__lead {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-size: clamp(22px, 2.4vw, 28px);
+      line-height: 1.4;
+      color: var(--ink);
+      margin: 0 0 32px;
+      text-align: center;
+    }
+    .om-prose p {
+      font-size: 17px;
+      line-height: 1.7;
+      color: var(--stone-700);
+      margin: 0 0 20px;
+    }
+    .om-prose p:last-child { margin-bottom: 0; }
+
+    .om-rule {
+      display: block;
+      width: 48px;
+      height: 2px;
+      background: var(--rouge-500);
+      margin: 0 auto 32px;
+      border: 0;
+    }
+
+    .om-values-head {
+      text-align: center;
+      max-width: 540px;
+      margin: 0 auto 48px;
+    }
+    .om-values-head__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(28px, 4vw, 40px);
+      letter-spacing: -0.02em;
+      margin: 0 0 12px;
+    }
+    .om-values-head__sub {
+      font-size: 16px;
+      color: var(--fg-muted);
+      margin: 0;
+    }
+
+    .om-values {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+    @media (max-width: 980px) { .om-values { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .om-values { grid-template-columns: 1fr; } }
+
+    .om-value {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+    }
+    .om-value__num {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-size: 22px;
+      color: var(--rouge-500);
+      margin-bottom: 12px;
+    }
+    .om-value__title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+      margin: 0 0 8px;
+      color: var(--ink);
+    }
+    .om-value__desc {
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--fg-muted);
+      margin: 0;
+    }
+
+    .om-signature {
+      text-align: center;
+      padding: 16px 0 8px;
+    }
+    .om-signature__from {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-size: 17px;
+      color: var(--stone-500);
+      margin: 32px 0 0;
+    }
+
+    .om-cta {
+      text-align: center;
+      padding: 96px 0;
+    }
+    .om-cta__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(28px, 4vw, 44px);
+      letter-spacing: -0.02em;
+      margin: 0 0 24px;
+      max-width: 18ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .om-cta__title em {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rouge-500);
+    }
+    .om-cta__actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="/">
+        <img src="assets/logo-wordmark.svg?v=6" alt="nailed" />
+      </a>
+      <nav class="top-nav__links">
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
+      </nav>
+      <div class="top-nav__actions">
+        <a href="favoritter" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login" class="btn btn-ghost btn-sm">Logg inn</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="om-hero">
+    <div class="page">
+      <div class="om-hero__eyebrow">Om oss</div>
+      <h1 class="om-hero__title">Bygget for <em>håndverket.</em></h1>
+    </div>
+  </section>
+
+  <!-- Story -->
+  <section class="om-section">
+    <div class="page">
+      <div class="om-prose">
+        <hr class="om-rule" />
+        <p class="om-prose__lead">Vi tror norske salonger fortjener bedre verktøy — og kundene fortjener enklere booking.</p>
+        <p>Nailed er en liten plattform startet i Oslo. Vi er ikke en kjede, og vi er ikke en agentur som tar prosenter av timene dine. Vi er folk som bryr oss om en bransje vi mener har manglet en moderne, norsk plattform.</p>
+        <p>Salonger betaler en fast månedspris hos oss. Det er det. Pengene fra hver booking går rett til behandleren som gjorde jobben. Slik mener vi det bør være.</p>
+        <p>Vi er nye. Vi bygger fortsatt. Men vi bygger med omhu — fordi en god salongprofil, en pålitelig kalender og en kundereise uten friksjon faktisk betyr noe for menneskene som lever av dette.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Values -->
+  <section class="om-section om-section--cream">
+    <div class="page">
+      <div class="om-values-head">
+        <h2 class="om-values-head__title">Det vi holder på.</h2>
+        <p class="om-values-head__sub">Fire prinsipper. Vi avviker ikke.</p>
+      </div>
+      <div class="om-values">
+        <div class="om-value">
+          <div class="om-value__num">01</div>
+          <h3 class="om-value__title">Ingen provisjon</h3>
+          <p class="om-value__desc">Salongen beholder hver krone fra hver booking. Vi tjener på en fast månedspris — ikke på arbeidet deres.</p>
+        </div>
+        <div class="om-value">
+          <div class="om-value__num">02</div>
+          <h3 class="om-value__title">Lokalt. Ikke kjeder.</h3>
+          <p class="om-value__desc">Vi løfter selvstendige salonger og frilansere. Det er der håndverket og personligheten finnes.</p>
+        </div>
+        <div class="om-value">
+          <div class="om-value__num">03</div>
+          <h3 class="om-value__title">Ekte anmeldelser</h3>
+          <p class="om-value__desc">Bare verifiserte kunder kan anmelde. Ingen falske stjerner, ingen kjøpte ord.</p>
+        </div>
+        <div class="om-value">
+          <div class="om-value__num">04</div>
+          <h3 class="om-value__title">Bygget i Norge</h3>
+          <p class="om-value__desc">Laget i Oslo, for norske salonger og norske kunder. Norsk språk, norske priser, norsk støtte.</p>
+        </div>
+      </div>
+      <p class="om-signature__from">— Teamet bak nailed</p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="om-cta">
+    <div class="page">
+      <h2 class="om-cta__title">Vil du være med?</h2>
+      <p style="font-size:17px; color:var(--fg-muted); margin:0; max-width:46ch; margin-left:auto; margin-right:auto;">Finn en salong i nærheten — eller legg til din egen.</p>
+      <div class="om-cta__actions">
+        <a href="utforsk" class="btn btn-primary btn-lg">Utforsk salonger</a>
+        <a href="for-salonger" class="btn btn-ghost btn-lg">Bli salong</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="page footer__inner">
+      <div class="footer__top">
+        <img src="assets/logo-wordmark.svg?v=6" alt="nailed" class="footer__brand" />
+        <div class="footer__socials">
+          <a class="footer__social" href="#" aria-label="Instagram"><i data-lucide="instagram"></i></a>
+          <a class="footer__social" href="#" aria-label="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.17a8.16 8.16 0 004.76 1.51v-3.45a4.85 4.85 0 01-1-.54z"/></svg></a>
+          <a class="footer__social" href="#" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.408.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.324V1.325C24 .593 23.407 0 22.675 0z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer__links">
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
+        <a href="/personvern">Personvern</a>
+        <a href="/vilkar">Bruksvilkår</a>
+        <a href="/cookies">Cookies</a>
+        <a href="#">FAQ</a>
+        <a href="#">Kontakt oss</a>
+        <a href="om-oss">Om oss</a>
+      </div>
+      <div class="footer__bottom">
+        <small>&copy; 2026 Neglet AS &middot; Made in Oslo</small>
+        <div class="footer__badges">
+          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> App Store — juni</span>
+          <span class="footer__badge"><i data-lucide="smartphone" style="width:12px;height:12px;"></i> Google Play — juli</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script defer src="/assets/cookie-banner.js"></script>
+  <script src="/assets/auth.js"></script>
+  <script defer src="/assets/nav.js"></script>
+  <script>
+    lucide.createIcons();
+    var nav = document.getElementById('topNav');
+    window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 30); });
+  </script>
+</body>
+</html>
