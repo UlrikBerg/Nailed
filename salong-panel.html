@@ -571,23 +571,53 @@
 
     /* Profil — visningsmodus (matcher /partner/profil.html) */
     .profile-hero {
+      position: relative;
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr;
-      grid-template-rows: 1fr 1fr;
       gap: 6px;
-      aspect-ratio: 16/6;
       border-radius: var(--radius-lg);
       overflow: hidden;
       margin-bottom: 20px;
-      position: relative;
+      aspect-ratio: 16/7;
+      background: var(--cream-100);
     }
+    .profile-hero[data-count="0"] {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .profile-hero[data-count="1"] { grid-template-columns: 1fr; }
+    .profile-hero[data-count="2"] { grid-template-columns: 1fr 1fr; }
+    .profile-hero[data-count="3"] {
+      grid-template-columns: 2fr 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+    .profile-hero[data-count="3"] .profile-hero__tile:nth-child(1) { grid-row: 1 / 3; }
+    .profile-hero[data-count="4"],
+    .profile-hero[data-count="5"] {
+      grid-template-columns: 2fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+    .profile-hero[data-count="4"] .profile-hero__tile:nth-child(1),
+    .profile-hero[data-count="5"] .profile-hero__tile:nth-child(1) { grid-row: 1 / 3; }
     .profile-hero__tile {
       border: 0;
       padding: 0;
-      cursor: default;
-      background: var(--cream-100);
+      cursor: pointer;
+      background-color: var(--cream-200, #ece4d8);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: filter 120ms ease;
     }
-    .profile-hero__tile--main { grid-column: 1 / 3; grid-row: 1 / 3; }
+    .profile-hero__tile:hover { filter: brightness(0.94); }
+    @media (max-width: 720px) {
+      .profile-hero {
+        aspect-ratio: 4/3;
+        grid-template-columns: 1fr !important;
+        grid-template-rows: none !important;
+      }
+      .profile-hero .profile-hero__tile:nth-child(n+2) { display: none; }
+    }
     .profile-hero__edit {
       position: absolute; top: 12px; right: 12px; z-index: 2;
       width: 36px; height: 36px; padding: 0;
@@ -1891,6 +1921,9 @@
               <div class="profile-header__meta" id="phMeta"></div>
             </div>
             <div class="profile-header__actions">
+              <a id="phPreviewLinkTop" class="btn btn-ghost btn-sm" href="#" target="_blank" rel="noopener">
+                <i data-lucide="external-link"></i> Se kundevisning
+              </a>
               <button id="editProfileBtn" type="button" class="btn btn-primary btn-sm">
                 <i data-lucide="pencil"></i> Rediger profil
               </button>
@@ -1913,50 +1946,7 @@
           </div>
 
           <div class="profile-grid">
-            <!-- LEFT -->
-            <div style="display:flex; flex-direction:column; gap:20px;">
-
-              <div class="profile-card">
-                <div class="profile-card__head">
-                  <h3 class="profile-card__title">Om salongen</h3>
-                  <button class="btn btn-ghost btn-sm" data-edit="bio"><i data-lucide="pencil"></i> Rediger</button>
-                </div>
-                <p class="profile-about" id="phBio">—</p>
-                <div class="profile-chips" id="phSocialChips"></div>
-              </div>
-
-              <div class="profile-card">
-                <div class="profile-card__head">
-                  <h3 class="profile-card__title">Hva tilbys</h3>
-                  <button class="btn btn-ghost btn-sm" data-edit="amenities"><i data-lucide="pencil"></i> Rediger</button>
-                </div>
-                <div class="profile-chips" id="phAmenities"></div>
-                <div id="phAmenitiesEmpty" class="profile-about profile-about--empty" style="display:none;">
-                  Ingen valgt — klikk Rediger for å markere fasiliteter.
-                </div>
-              </div>
-
-              <div class="profile-card">
-                <div class="profile-card__head">
-                  <h3 class="profile-card__title">Team</h3>
-                  <button class="btn btn-ghost btn-sm" data-edit="team"><i data-lucide="plus"></i> Legg til</button>
-                </div>
-                <div class="profile-team" id="phTeam"></div>
-                <div id="phTeamEmpty" class="profile-team__empty" style="display:none;">
-                  Ingen team-medlemmer enda.
-                </div>
-              </div>
-
-              <div class="profile-card">
-                <div class="profile-card__head">
-                  <h3 class="profile-card__title">Kontaktinformasjon</h3>
-                  <button class="btn btn-ghost btn-sm" data-edit="contact"><i data-lucide="pencil"></i> Rediger</button>
-                </div>
-                <div class="profile-contact" id="phContact"></div>
-              </div>
-            </div>
-
-            <!-- RIGHT -->
+            <!-- LEFT — primært innhold -->
             <div style="display:flex; flex-direction:column; gap:20px;">
 
               <div class="profile-card">
@@ -1972,18 +1962,35 @@
 
               <div class="profile-card">
                 <div class="profile-card__head">
-                  <h3 class="profile-card__title">Åpningstider</h3>
-                  <button class="btn btn-ghost btn-sm" data-edit="hours"><i data-lucide="pencil"></i> Rediger</button>
+                  <h3 class="profile-card__title">Om salongen</h3>
+                  <button class="btn btn-ghost btn-sm" data-edit="bio"><i data-lucide="pencil"></i> Rediger</button>
                 </div>
-                <div class="profile-hours" id="phHours"></div>
+                <p class="profile-about" id="phBio">—</p>
+                <div class="profile-chips" id="phSocialChips"></div>
               </div>
 
               <div class="profile-card">
                 <div class="profile-card__head">
-                  <h3 class="profile-card__title">Tilgjengelighet</h3>
-                  <button class="btn btn-ghost btn-sm" data-edit="availability"><i data-lucide="pencil"></i> Rediger</button>
+                  <h3 class="profile-card__title">Team</h3>
+                  <button class="btn btn-ghost btn-sm" data-edit="team"><i data-lucide="plus"></i> Legg til</button>
                 </div>
-                <div class="profile-contact">
+                <div class="profile-team" id="phTeam"></div>
+                <div id="phTeamEmpty" class="profile-team__empty" style="display:none;">
+                  Ingen team-medlemmer enda.
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT — sekundær info -->
+            <div style="display:flex; flex-direction:column; gap:20px;">
+
+              <div class="profile-card">
+                <div class="profile-card__head">
+                  <h3 class="profile-card__title">Kontakt &amp; tilgjengelighet</h3>
+                  <button class="btn btn-ghost btn-sm" data-edit="contact"><i data-lucide="pencil"></i> Rediger</button>
+                </div>
+                <div class="profile-contact" id="phContact"></div>
+                <div class="profile-contact" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--stone-200);">
                   <div class="profile-contact__row">
                     <i data-lucide="check-circle"></i>
                     <span id="phAcceptsBookings">—</span>
@@ -1997,11 +2004,20 @@
 
               <div class="profile-card">
                 <div class="profile-card__head">
-                  <h3 class="profile-card__title">Kundevisning</h3>
+                  <h3 class="profile-card__title">Åpningstider</h3>
+                  <button class="btn btn-ghost btn-sm" data-edit="hours"><i data-lucide="pencil"></i> Rediger</button>
                 </div>
-                <div class="profile-preview">
-                  <span>Se hvordan profilen din ser ut for kunder</span>
-                  <a id="phPreviewLink" href="#" target="_blank">Åpne <i data-lucide="external-link"></i></a>
+                <div class="profile-hours" id="phHours"></div>
+              </div>
+
+              <div class="profile-card">
+                <div class="profile-card__head">
+                  <h3 class="profile-card__title">Hva tilbys</h3>
+                  <button class="btn btn-ghost btn-sm" data-edit="amenities"><i data-lucide="pencil"></i> Rediger</button>
+                </div>
+                <div class="profile-chips" id="phAmenities"></div>
+                <div id="phAmenitiesEmpty" class="profile-about profile-about--empty" style="display:none;">
+                  Ingen valgt — klikk Rediger for å markere fasiliteter.
                 </div>
               </div>
             </div>
@@ -3125,8 +3141,11 @@
     }
 
     function renderProfileView(s, images) {
-      // Hero gallery: up to 5 images, tile classes match /partner/.
+      // Hero: én tom .profile-hero som JS rendrer N tiles inn i basert på
+      // antall bilder (0/1/2/3/4-5). data-count styrer grid-layouten.
       var hero = document.getElementById('profileHero');
+      var visible = Math.min(images.length, 5);
+      hero.setAttribute('data-count', String(visible));
       var editBtn = '<button class="profile-hero__edit" type="button" data-edit="photos" aria-label="Rediger bilder" title="Rediger bilder"><i data-lucide="pencil"></i></button>';
       if (!images.length) {
         hero.innerHTML =
@@ -3136,19 +3155,17 @@
           '</div>' + editBtn;
       } else {
         var tiles = '';
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < visible; i++) {
           var img = images[i];
-          var modCls = i === 0 ? ' profile-hero__tile--main' : '';
-          var bg = img
-            ? 'background:url(' + encodeURI(img.url) + ') center/cover no-repeat;'
-            : 'background:var(--cream-100);';
-          tiles += '<button class="profile-hero__tile' + modCls + '" type="button" style="' + bg + '"></button>';
+          tiles += '<button class="profile-hero__tile" type="button" data-edit="photos" ' +
+            'style="background-image:url(\'' + encodeURI(img.url) + '\');" ' +
+            'aria-label="Rediger bilde ' + (i + 1) + '"></button>';
         }
         hero.innerHTML = tiles + editBtn;
       }
-      // Re-attach the click handler since the button is freshly rendered.
-      var freshEdit = hero.querySelector('[data-edit="photos"]');
-      if (freshEdit) freshEdit.addEventListener('click', function () { setProfileMode('edit', 'photos'); });
+      hero.querySelectorAll('[data-edit="photos"]').forEach(function (el) {
+        el.addEventListener('click', function () { setProfileMode('edit', 'photos'); });
+      });
 
       // Header
       document.getElementById('phName').textContent = s.name || '';
@@ -3161,7 +3178,7 @@
       else bits.push('<span style="color:var(--danger-500)"><i data-lucide="x-circle"></i>Tar ikke imot bookinger</span>');
       meta.innerHTML = bits.join('');
       var publicHref = '/salon?slug=' + encodeURIComponent(s.slug);
-      var phPreview = document.getElementById('phPreviewLink');
+      var phPreview = document.getElementById('phPreviewLinkTop');
       if (phPreview) phPreview.href = publicHref;
 
       // Bio
