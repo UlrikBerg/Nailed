@@ -469,13 +469,14 @@ router.get('/bookings', asyncRoute(async (req, res) => {
 // upgrade this when address structure improves.
 
 const PERIODS = {
-  '1d':  { days: 1   },
-  '7d':  { days: 7   },
-  '30d': { days: 30  },
-  '90d': { days: 90  },
-  '6m':  { days: 183 },
-  '12m': { days: 365 },
-  'all': { days: null },
+  'today':     { days: null, sql: (col) => `AND ${col} >= CURDATE()` },
+  'yesterday': { days: null, sql: (col) => `AND ${col} >= CURDATE() - INTERVAL 1 DAY AND ${col} < CURDATE()` },
+  '7d':        { days: 7,   sql: (col) => `AND ${col} >= NOW() - INTERVAL 7 DAY` },
+  '30d':       { days: 30,  sql: (col) => `AND ${col} >= NOW() - INTERVAL 30 DAY` },
+  '90d':       { days: 90,  sql: (col) => `AND ${col} >= NOW() - INTERVAL 90 DAY` },
+  '6m':        { days: 183, sql: (col) => `AND ${col} >= NOW() - INTERVAL 183 DAY` },
+  '12m':       { days: 365, sql: (col) => `AND ${col} >= NOW() - INTERVAL 365 DAY` },
+  'all':       { days: null, sql: () => '' },
 };
 
 function parsePeriod(p) {
@@ -501,8 +502,9 @@ function bucketAges(rows) {
 }
 
 router.get('/analytics/bookings', asyncRoute(async (req, res) => {
-  const { days } = parsePeriod((req.query.period || '30d').toString());
-  const periodFilter = days != null ? `AND b.start_at >= (NOW() - INTERVAL ${days} DAY)` : '';
+  const period = parsePeriod((req.query.period || '30d').toString());
+  const days = period.days;
+  const periodFilter = period.sql('b.start_at');
   // Period filter is inlined directly in SQL strings (days comes from a
   // hardcoded whitelist). No bound parameters needed for the period itself.
   const periodParams = [];
@@ -520,15 +522,17 @@ router.get('/analytics/bookings', asyncRoute(async (req, res) => {
   );
 
   // First-time customers in period: customers whose FIRST EVER booking falls
-  // inside the window. (If period=all this naturally equals unique_customers.)
-  let firstTime = { n: 0 };
-  if (days != null) {
+  // inside the window. period.sql('t.first_at') gir tom streng for «all»,
+  // som naturlig matcher unique_customers.
+  let firstTime;
+  const firstFilter = period.sql('t.first_at');
+  if (firstFilter) {
     firstTime = await queryOne(
       `SELECT COUNT(*) AS n FROM (
          SELECT customer_user_id, MIN(created_at) AS first_at
            FROM bookings
           GROUP BY customer_user_id
-       ) t WHERE t.first_at >= (NOW() - INTERVAL ${days} DAY)`
+       ) t WHERE 1 = 1 ${firstFilter}`
     );
   } else {
     firstTime = { n: kpiRow.unique_customers };
@@ -609,8 +613,9 @@ router.get('/analytics/bookings', asyncRoute(async (req, res) => {
 }));
 
 router.get('/analytics/users', asyncRoute(async (req, res) => {
-  const { days } = parsePeriod((req.query.period || '30d').toString());
-  const periodFilter = days != null ? `AND u.created_at >= (NOW() - INTERVAL ${days} DAY)` : '';
+  const period = parsePeriod((req.query.period || '30d').toString());
+  const days = period.days;
+  const periodFilter = period.sql('u.created_at');
   // Period filter is inlined directly in SQL strings (days comes from a
   // hardcoded whitelist). No bound parameters needed for the period itself.
   const periodParams = [];
@@ -723,21 +728,29 @@ router.get('/analytics/users', asyncRoute(async (req, res) => {
 }));
 
 router.get('/analytics/summary', asyncRoute(async (req, res) => {
-  const { days } = parsePeriod((req.query.period || '30d').toString());
-  const periodFilter = days != null ? `AND b.start_at >= (NOW() - INTERVAL ${days} DAY)` : '';
+  const period = parsePeriod((req.query.period || '30d').toString());
+  const days = period.days;
+  const periodFilter = period.sql('b.start_at');
   // Period filter is inlined directly in SQL strings (days comes from a
   // hardcoded whitelist). No bound parameters needed for the period itself.
   const periodParams = [];
 
   // Notifications sent in period (status='sent', split by channel). Når
   // days=null (Alt) faller filteret bort så vi får totalsummer over alle tider.
-  const notifFilter = days != null ? `AND created_at >= (NOW() - INTERVAL ${days} DAY)` : '';
+  const notifFilter = period.sql('created_at');
   const notifRow = await queryOne(
     `SELECT
         SUM(channel = 'email' AND status = 'sent') AS emails_sent,
         SUM(channel = 'sms'   AND status = 'sent') AS sms_sent
        FROM notification_log
       WHERE 1 = 1 ${notifFilter}`
+  );
+
+  // Sidevisninger og unike besøkende i perioden.
+  const pvFilter = period.sql('created_at');
+  const pvRow = await queryOne(
+    `SELECT COUNT(*) AS views, COUNT(DISTINCT visitor_id) AS visitors
+       FROM page_views WHERE 1 = 1 ${pvFilter}`
   );
 
   const totalRevenueRow = await queryOne(
@@ -762,7 +775,7 @@ router.get('/analytics/summary', asyncRoute(async (req, res) => {
     `SELECT s.id, s.name, s.slug, s.city,
             COUNT(b.id) AS bookings,
             COALESCE(SUM(b.price_nok), 0) AS revenue
-       FROM salons s LEFT JOIN bookings b ON b.salon_id = s.id ${days != null ? `AND b.start_at >= (NOW() - INTERVAL ${days} DAY)` : ''}
+       FROM salons s LEFT JOIN bookings b ON b.salon_id = s.id ${period.sql('b.start_at')}
       WHERE s.status != 'deleted'
       GROUP BY s.id, s.name, s.slug, s.city
       ORDER BY bookings DESC, revenue DESC
@@ -806,6 +819,8 @@ router.get('/analytics/summary', asyncRoute(async (req, res) => {
       avg_bookings_per_salon: Number(perSalonRow?.v) || 0,
       emails_sent: Number(notifRow.emails_sent) || 0,
       sms_sent: Number(notifRow.sms_sent) || 0,
+      page_views: Number(pvRow.views) || 0,
+      unique_visitors: Number(pvRow.visitors) || 0,
     },
     top_salons: topSalons.map((s) => ({
       id: s.id, name: s.name, slug: s.slug, city: s.city,

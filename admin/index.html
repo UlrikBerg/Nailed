@@ -853,6 +853,8 @@
         </div>
 
         <div class="ap-period" id="rapPeriod">
+          <button class="period-btn" data-period="today">I dag</button>
+          <button class="period-btn" data-period="yesterday">I går</button>
           <button class="period-btn" data-period="7d">7 dager</button>
           <button class="period-btn active" data-period="30d">30 dager</button>
           <button class="period-btn" data-period="90d">90 dager</button>
@@ -890,6 +892,16 @@
           <div class="ap-tile">
             <span class="ap-tile__label">Utsendte SMS-er</span>
             <span class="ap-tile__value" id="rapKpiSms">--</span>
+            <span class="ap-tile__sub">i valgt periode</span>
+          </div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Sidevisninger</span>
+            <span class="ap-tile__value" id="rapKpiPageViews">--</span>
+            <span class="ap-tile__sub" id="rapKpiPageViewsSub">i valgt periode</span>
+          </div>
+          <div class="ap-tile">
+            <span class="ap-tile__label">Unike besøkende</span>
+            <span class="ap-tile__value" id="rapKpiVisitors">--</span>
             <span class="ap-tile__sub">i valgt periode</span>
           </div>
         </div>
@@ -2339,6 +2351,8 @@
         document.getElementById('rapKpiTotalBookings').textContent = formatNumber(k.total_bookings);
         document.getElementById('rapKpiEmails').textContent = formatNumber(k.emails_sent || 0);
         document.getElementById('rapKpiSms').textContent = formatNumber(k.sms_sent || 0);
+        document.getElementById('rapKpiPageViews').textContent = formatNumber(k.page_views || 0);
+        document.getElementById('rapKpiVisitors').textContent = formatNumber(k.unique_visitors || 0);
 
         // Bookings per week.
         var weeks = (data.bookings_per_week || []).map(function (r) { return { label: 'Uke ' + String(r.yearweek).slice(-2), count: r.count }; });

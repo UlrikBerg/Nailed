@@ -439,6 +439,26 @@ ALTER TABLE salons
   ADD COLUMN IF NOT EXISTS suspension_reason TEXT DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS suspended_at DATETIME DEFAULT NULL;
 
+-- -----------------------------------------------------------------------------
+-- page_views
+-- Lett oppe-log av sidevisninger for admin-rapporter. visitor_id er en
+-- random UUID i klient-cookie (nailed.visitor) — gir oss «unike besøkende»
+-- uten å lagre IP/PII direkte.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS page_views (
+  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  visitor_id  VARCHAR(64) NOT NULL,
+  user_id     BIGINT UNSIGNED DEFAULT NULL,
+  path        VARCHAR(255) NOT NULL,
+  referrer    VARCHAR(255) DEFAULT NULL,
+  user_agent  VARCHAR(255) DEFAULT NULL,
+  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_visitor_time (visitor_id, created_at),
+  KEY idx_time (created_at),
+  KEY idx_path_time (path, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Org-nr (norsk 9-siffer organisasjonsnummer). Vises på offentlig
 -- salongprofil + brukes til fakturering når abonnementet aktiveres.
 ALTER TABLE salons

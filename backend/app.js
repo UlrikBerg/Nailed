@@ -19,6 +19,7 @@ const reviewRoutes = require('./routes/reviews');
 const salonAnalyticsRoutes = require('./routes/salon-analytics');
 const adminRoutes = require('./routes/admin');
 const chatRoutes = require('./routes/chat');
+const trackRoutes = require('./routes/track');
 const seoRoutes = require('./routes/seo');
 
 function buildApp() {
@@ -188,6 +189,7 @@ function buildApp() {
   app.use('/api/v1', reviewRoutes);
   app.use('/api/v1/admin', adminRoutes);
   app.use('/api/v1/chat', chatRoutes);
+  app.use('/api/v1/track', trackRoutes);
 
   // 404 for unknown /api/v1/* — let static handler reply for everything else.
   app.use('/api/v1', notFound);
