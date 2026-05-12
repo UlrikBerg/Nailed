@@ -1,0 +1,47 @@
+{
+  "name": "Nailed",
+  "short_name": "Nailed",
+  "description": "Norges markedsplass for skjønnhet. Finn salong, book direkte.",
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF6EE",
+  "theme_color": "#FBF6EE",
+  "lang": "no",
+  "categories": ["lifestyle", "shopping", "beauty"],
+  "icons": [
+    {
+      "src": "/assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/logo-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Utforsk salonger",
+      "short_name": "Utforsk",
+      "url": "/utforsk",
+      "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mine bookinger",
+      "short_name": "Bookinger",
+      "url": "/kunde-panel#tab-bookinger",
+      "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
