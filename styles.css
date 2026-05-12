@@ -2762,13 +2762,25 @@ html {
   .salon-back-link { padding: 8px 0 8px; font-size: 13px; }
   .salon-share-btn { min-height: 32px; padding: 6px 12px; font-size: 13px; }
 
-  /* Amenity-chips: kompakte tags, 2 kolonner pakke seg tett, ikke touch-targets. */
-  .salon-detail__chips .chip {
-    padding: 5px 10px;
-    font-size: 12px;
-    min-height: 28px;
-    gap: 5px;
+  /* Amenity-chips: horisontal carousel på mobil — full-bleed til viewport-
+     kantene så scroll-følelsen er naturlig. Skjul scrollbar. */
+  .salon-detail__chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    margin: 16px -24px 0;
+    padding: 0 24px 4px;
   }
-  .salon-detail__chips .chip i { width: 13px; height: 13px; }
-  .salon-detail__chips { gap: 6px; margin: 16px 0; }
+  .salon-detail__chips::-webkit-scrollbar { display: none; }
+  .salon-detail__chips .chip {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    font-size: 12px;
+    min-height: 30px;
+    gap: 6px;
+  }
+  .salon-detail__chips .chip i { width: 14px; height: 14px; }
 }

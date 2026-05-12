@@ -878,19 +878,16 @@
         });
         return;
       }
-      // De-activate all rows; we'll mark the selected one below.
+      // De-aktiver alle rader; marker eventuell populær-rad som valgt.
       serviceList.querySelectorAll('.service-list__item').forEach(function (i) {
         i.classList.remove('active');
       });
       var existing = serviceList.querySelector('.service-list__item[data-id="' + svc.id + '"]:not([data-adhoc])');
-      if (existing) {
-        // Selecting a popular service: drop the ad-hoc card if any.
-        clearAdhocCard();
-        existing.classList.add('active');
-        return;
-      }
-      // Non-popular service: rebuild the ad-hoc card at the BOTTOM. Wrap i
-      // en labelled section så det visuelt skiller seg fra populær-listen.
+      if (existing) existing.classList.add('active');
+
+      // ALLTID vis «Valgt behandling»-card-en — også når brukeren velger en
+      // populær behandling. Insett ØVERST i service-list så bookingflyten
+      // starter med en tydelig «dette har du valgt»-summary.
       clearAdhocCard();
       var name = escapeHtml(svc.name || '');
       var dur = (svc.duration_min != null) ? escapeHtml(String(svc.duration_min)) + ' min' : '';
@@ -902,14 +899,17 @@
                     '<div class="service-list__price">' + escapeHtml(String(price)) + ' kr</div>' +
                   '</div>' +
                  '</div>';
-      serviceList.insertAdjacentHTML('beforeend', html);
-      // Scroll til den nye «Valgt behandling»-card-en på mobil — bookingpanelet
-      // sitter da øverst og brukeren ser umiddelbart at valget er registrert.
+      serviceList.insertAdjacentHTML('afterbegin', html);
+
+      // På mobil: scroll til toppen av bookingpanelet, ikke til ad-hoc-card-en
+      // selv. Det gir brukeren en naturlig start på bookingflyten uten å
+      // overshoote, og kompenserer for sticky top-nav (~70 px).
       if (window.matchMedia('(max-width: 900px)').matches) {
-        var newCard = serviceList.querySelector('.service-list__adhoc');
-        if (newCard) {
+        var panel = document.querySelector('.booking-panel');
+        if (panel) {
           setTimeout(function () {
-            newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            var top = panel.getBoundingClientRect().top + window.scrollY - 70;
+            window.scrollTo({ top: top, behavior: 'smooth' });
           }, 50);
         }
       }
