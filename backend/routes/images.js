@@ -16,6 +16,7 @@ const { query, queryOne, tx } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { asyncRoute, HttpError, randomBase64Url } = require('../lib/util');
 const storage = require('../storage');
+const { VARIANT_SIZES, hasVariants, variantKey, variantUrls } = require('../lib/image-variants');
 
 const router = express.Router({ mergeParams: true });
 
@@ -62,22 +63,40 @@ router.post('/:id/images', requireAuth, upload.single('file'), asyncRoute(async 
     throw new HttpError(409, 'too_many_images', `Maks ${MAX_IMAGES_PER_SALON} bilder per salong.`);
   }
 
-  // Process image: auto-rotate, cap dimensions, convert to webp.
-  let processed;
-  let metadata;
+  // Process image: auto-rotate, cap til 2400 px, konverter til webp.
+  // Generer i tillegg responsive varianter (400/800/1600 px) som lagres ved
+  // siden av — frontend bruker srcset for å hente riktig størrelse på mobil.
+  let processed, metadata, variantBuffers;
   try {
-    const pipeline = sharp(req.file.buffer)
-      .rotate()
+    const rotated = await sharp(req.file.buffer).rotate().toBuffer();
+    const pipeline = sharp(rotated)
       .resize({ width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true })
       .webp({ quality: 82 });
     processed = await pipeline.toBuffer();
     metadata = await sharp(processed).metadata();
+    // Lower kvalitet på thumbs — ikke synlig forskjell ved liten visning,
+    // men kutter byte-størrelse 30-40 %.
+    variantBuffers = await Promise.all(VARIANT_SIZES.map(function (size) {
+      return sharp(rotated)
+        .resize({ width: size, height: size, fit: 'inside', withoutEnlargement: true })
+        .webp({ quality: 78 })
+        .toBuffer();
+    }));
   } catch (err) {
     throw new HttpError(400, 'bad_image', 'Kunne ikke lese bildet.');
   }
 
-  const key = `salons/${salon.id}/${randomBase64Url(10)}.webp`;
+  // «/v2/»-prefiks markerer at varianter eksisterer. Gamle bilder uten v2
+  // har bare full-size og frontend faller tilbake til <img src> uten srcset.
+  const key = `salons/${salon.id}/v2/${randomBase64Url(10)}.webp`;
   await storage.put({ key, body: processed, contentType: 'image/webp' });
+  await Promise.all(VARIANT_SIZES.map(function (size, i) {
+    return storage.put({
+      key: variantKey(key, size),
+      body: variantBuffers[i],
+      contentType: 'image/webp',
+    });
+  }));
 
   // Append to gallery: position = count.
   const result = await query(
@@ -92,14 +111,16 @@ router.post('/:id/images', requireAuth, upload.single('file'), asyncRoute(async 
     [key, salon.id]
   );
 
-  res.status(201).json({
-    id: result.insertId,
-    key,
-    url: storage.publicUrl(key),
-    width: metadata.width,
-    height: metadata.height,
-    bytes: processed.length,
-  });
+  res.status(201).json(Object.assign(
+    {
+      id: result.insertId,
+      key,
+      width: metadata.width,
+      height: metadata.height,
+      bytes: processed.length,
+    },
+    variantUrls(key, storage.publicUrl),
+  ));
 }));
 
 // GET /salons/:id/images — list (public; mirror of public salon detail)
@@ -112,7 +133,7 @@ router.get('/:id/images', asyncRoute(async (req, res) => {
     [salonId]
   );
   res.json({
-    images: rows.map(r => ({ ...r, url: storage.publicUrl(r.key) })),
+    images: rows.map(r => Object.assign({}, r, variantUrls(r.key, storage.publicUrl))),
   });
 }));
 
@@ -131,8 +152,18 @@ router.delete('/:id/images/:imageId', requireAuth, asyncRoute(async (req, res) =
   const next = await queryOne(`SELECT image_key FROM salon_images WHERE salon_id = ? ORDER BY position ASC, id ASC LIMIT 1`, [salon.id]);
   await query(`UPDATE salons SET cover_image_key = ? WHERE id = ? AND cover_image_key = ?`, [next ? next.image_key : null, salon.id, img.image_key]);
 
-  // Best-effort blob removal.
-  try { await storage.remove({ key: img.image_key }); } catch (err) { console.error('[storage.remove]', err); }
+  // Best-effort blob removal — inkluder variants hvis bildet er en v2-upload.
+  const keysToRemove = [img.image_key];
+  if (hasVariants(img.image_key)) {
+    VARIANT_SIZES.forEach(function (size) {
+      keysToRemove.push(variantKey(img.image_key, size));
+    });
+  }
+  await Promise.all(keysToRemove.map(function (k) {
+    return storage.remove({ key: k }).catch(function (err) {
+      console.error('[storage.remove]', k, err && err.message ? err.message : err);
+    });
+  }));
   res.json({ ok: true });
 }));
 

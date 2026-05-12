@@ -6,16 +6,22 @@ const { asyncRoute, HttpError } = require('../lib/util');
 const { lazyUrl } = require('../lib/schema');
 const geocode = require('../lib/geocode');
 const storage = require('../storage');
+const { hasVariants, variantKey, variantUrls } = require('../lib/image-variants');
 
 const router = express.Router();
 
 function withCoverUrl(row) {
   const { cover_image_key, ...rest } = row;
-  return {
-    ...rest,
-    cover_image_key,
-    cover_url: cover_image_key ? storage.publicUrl(cover_image_key) : null,
-  };
+  if (!cover_image_key) {
+    return { ...rest, cover_image_key, cover_url: null };
+  }
+  const base = { cover_url: storage.publicUrl(cover_image_key) };
+  if (hasVariants(cover_image_key)) {
+    base.cover_url_400  = storage.publicUrl(variantKey(cover_image_key, 400));
+    base.cover_url_800  = storage.publicUrl(variantKey(cover_image_key, 800));
+    base.cover_url_1600 = storage.publicUrl(variantKey(cover_image_key, 1600));
+  }
+  return { ...rest, cover_image_key, ...base };
 }
 
 // GET /salons — public listing (paginated)
@@ -380,7 +386,7 @@ router.get('/:slug', asyncRoute(async (req, res) => {
     salon: withCoverUrl(salon),
     services: servicesWithTeam,
     categories,
-    images: images.map(i => ({ ...i, url: storage.publicUrl(i.key) })),
+    images: images.map(i => Object.assign({}, i, variantUrls(i.key, storage.publicUrl))),
     hours,
     team: team.map(m => ({ ...m, image_url: m.image_key ? storage.publicUrl(m.image_key) : null })),
     amenities: amenities.map(a => a.amenity),
@@ -512,7 +518,7 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
 
   res.json({
     salon: withCoverUrl(salonOut),
-    images: images.map(i => ({ ...i, url: storage.publicUrl(i.key) })),
+    images: images.map(i => Object.assign({}, i, variantUrls(i.key, storage.publicUrl))),
     hours,
     team: team.map(m => ({
       ...m,

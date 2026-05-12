@@ -1419,7 +1419,15 @@
       var photoStyle, photoInner;
       if (salon.cover_url) {
         photoStyle = '';
-        photoInner = '<img class="service-card__cover" src="' + encodeURI(salon.cover_url) + '" alt="" loading="lazy" decoding="async">';
+        // Bruk srcset hvis backend har generert varianter (nye v2-uploads).
+        var srcset = '';
+        if (salon.cover_url_400) {
+          srcset = ' srcset="' + encodeURI(salon.cover_url_400) + ' 400w, '
+                              + encodeURI(salon.cover_url_800) + ' 800w, '
+                              + encodeURI(salon.cover_url_1600) + ' 1600w"'
+                 + ' sizes="(max-width: 720px) 100vw, (max-width: 1200px) 50vw, 33vw"';
+        }
+        photoInner = '<img class="service-card__cover" src="' + encodeURI(salon.cover_url) + '"' + srcset + ' alt="" loading="lazy" decoding="async">';
       } else {
         photoStyle = 'background: ' + gradientFor(salon.id) + ';';
         photoInner = '';

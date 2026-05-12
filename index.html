@@ -358,10 +358,17 @@
       var photoStyle, photoInner;
       if (salon.cover_url) {
         photoStyle = '';
-        // De første 2 kortene på forsiden er sannsynligvis above-the-fold —
-        // last dem eagerly for LCP. Resten lazy.
+        // De første 2 kortene er sannsynligvis above-the-fold — last dem eagerly for LCP.
         var loadAttr = idx < 2 ? 'eager' : 'lazy';
-        photoInner = '<img class="service-card__cover" src="' + encodeURI(salon.cover_url) + '" alt="" loading="' + loadAttr + '" decoding="async">';
+        // Bruk srcset hvis backend har generert varianter (nye v2-uploads).
+        var srcset = '';
+        if (salon.cover_url_400) {
+          srcset = ' srcset="' + encodeURI(salon.cover_url_400) + ' 400w, '
+                              + encodeURI(salon.cover_url_800) + ' 800w, '
+                              + encodeURI(salon.cover_url_1600) + ' 1600w"'
+                 + ' sizes="(max-width: 720px) 100vw, (max-width: 1200px) 50vw, 33vw"';
+        }
+        photoInner = '<img class="service-card__cover" src="' + encodeURI(salon.cover_url) + '"' + srcset + ' alt="" loading="' + loadAttr + '" decoding="async">';
       } else {
         photoStyle = 'background: ' + FEATURED_FALLBACK_GRADIENTS[idx % FEATURED_FALLBACK_GRADIENTS.length] + ';';
         photoInner = '';
