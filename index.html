@@ -416,7 +416,7 @@
       }
 
       return ''
-        + '<article class="service-card card' + featured + '" onclick="location.href=\'salon?slug=' + slug + '\'">'
+        + '<article class="service-card card' + featured + '" onclick="(window.NailedSpaNav?window.NailedSpaNav.navigate:function(h){location.href=h;})(\'salon?slug=' + slug + '\')">'
           + '<div class="service-card__photo" style="' + photoStyle + '">'
             + '<button class="service-card__heart" data-fav="' + featuredEscapeHtml(salon.slug || '') + '" data-salon-id="' + salon.id + '">'
               + '<i data-lucide="heart"></i>'

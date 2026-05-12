@@ -188,4 +188,16 @@
     if (!shouldHandle(url, null)) { location.reload(); return; }
     navigate(url.pathname + url.search + url.hash, { replace: true, restoreScroll: true });
   });
+
+  // Eksponér navigate() så onclick="location.href=..."-mønstre kan bytte over
+  // til SPA-nav. shouldHandle() filtrerer fortsatt eksterne URLer / file
+  // downloads og faller tilbake til full-load.
+  window.NailedSpaNav = {
+    navigate: function (href) {
+      var url;
+      try { url = new URL(href, location.href); } catch (_) { location.href = href; return; }
+      if (!shouldHandle(url, null)) { location.href = href; return; }
+      navigate(url.pathname + url.search + url.hash);
+    }
+  };
 })();

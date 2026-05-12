@@ -1376,7 +1376,7 @@
           + 'data-rating="' + (salon.avg_rating != null ? salon.avg_rating : '') + '" '
           + 'data-reviews="' + (salon.review_count || 0) + '" '
           + 'data-slot="" '
-          + 'onclick="location.href=\'salon?slug=' + slug + '\'">'
+          + 'onclick="(window.NailedSpaNav?window.NailedSpaNav.navigate:function(h){location.href=h;})(\'salon?slug=' + slug + '\')">'
           + '<div class="service-card__photo" style="' + photoStyle + '">'
             + openPill
             + '<button class="' + heartClass + '" data-fav="' + escapeHtml(salon.slug || '') + '" data-salon-id="' + salon.id + '" aria-pressed="' + (isFav ? 'true' : 'false') + '">'

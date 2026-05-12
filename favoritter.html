@@ -163,7 +163,7 @@
         : '';
 
       return ''
-        + '<article class="service-card card" onclick="location.href=\'salon?slug=' + slug + '\'">'
+        + '<article class="service-card card" onclick="(window.NailedSpaNav?window.NailedSpaNav.navigate:function(h){location.href=h;})(\'salon?slug=' + slug + '\')">'
           + '<div class="service-card__photo" style="' + photoStyle + '">'
             + '<button class="service-card__heart is-favorite" data-salon-id="' + fav.id + '" aria-pressed="true">'
               + '<i data-lucide="heart" style="color:var(--rouge-500);fill:var(--rouge-500);"></i>'
@@ -185,7 +185,7 @@
       // name/city without a lookup, so show the slug pretty-printed.
       var pretty = String(slug).replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
       return ''
-        + '<article class="service-card card" onclick="location.href=\'salon?slug=' + encodeURIComponent(slug) + '\'">'
+        + '<article class="service-card card" onclick="(window.NailedSpaNav?window.NailedSpaNav.navigate:function(h){location.href=h;})(\'salon?slug=' + encodeURIComponent(slug) + '\')">'
           + '<div class="service-card__photo" style="background: ' + FALLBACK_GRADIENTS[0] + ';">'
             + '<button class="service-card__heart is-favorite" data-fav="' + escapeHtml(slug) + '" aria-pressed="true">'
               + '<i data-lucide="heart" style="color:var(--rouge-500);fill:var(--rouge-500);"></i>'
