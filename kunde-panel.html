@@ -1160,6 +1160,24 @@
     // ---------------------------------------------------------------------
     // Dashboard — KPI tiles + become-salon callout state
     // ---------------------------------------------------------------------
+    // Animert telling fra 0 til target over ~600 ms. Subtilt belønnende
+     // når dashboard laster.
+    function animateCount(el, target) {
+      if (!el) return;
+      target = Number(target) || 0;
+      if (target === 0) { el.textContent = '0'; return; }
+      var start = performance.now();
+      var duration = 600;
+      function step(now) {
+        var t = Math.min((now - start) / duration, 1);
+        // ease-out-quad
+        var eased = 1 - (1 - t) * (1 - t);
+        el.textContent = String(Math.round(target * eased));
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
     async function loadDashboard() {
       var [bookingsRes, favoritesRes, completedRes, appRes] = await Promise.all([
         NailedAuth.api('/api/v1/bookings/mine?filter=upcoming'),
@@ -1181,8 +1199,8 @@
         nextSub.textContent = next.salon_name + ' · ' + next.service_name;
         nextSub.classList.add('kp-tile__sub--good');
       }
-      document.getElementById('kpiCompleted').textContent = completed.length;
-      document.getElementById('kpiFavorites').textContent = favs.length;
+      animateCount(document.getElementById('kpiCompleted'), completed.length);
+      animateCount(document.getElementById('kpiFavorites'), favs.length);
 
       // Velkomstkort vs. KPI-fliser: vis velkomst kun til helt nye brukere.
       var isBrandNew = !next && completed.length === 0 && favs.length === 0;
