@@ -378,20 +378,13 @@
   <section class="salon-detail" id="salonDetail">
     <div class="page">
 
-      <!-- Airbnb-style photo gallery -->
-      <div class="salon-gallery" id="gallery">
-        <a href="utforsk" class="btn btn-ghost btn-sm salon-gallery__back">
-          <i data-lucide="arrow-left"></i> Tilbake
-        </a>
-        <button class="salon-gallery__tile salon-gallery__tile--hero" style="background: linear-gradient(135deg, #FFE0E9 0%, #FFC4D6 60%, #82103D 100%);"></button>
-        <button class="salon-gallery__tile" style="background: linear-gradient(135deg, #F4ECDF, #E8DCC4);"></button>
-        <button class="salon-gallery__tile" style="background: linear-gradient(135deg, #FFE0E9, #FFC4D6);"></button>
-        <button class="salon-gallery__tile" style="background: linear-gradient(135deg, #DDE3D2, #8DA079);"></button>
-        <button class="salon-gallery__tile" style="background: linear-gradient(135deg, #ECDFCB, #C9B79A);"></button>
-        <button class="salon-gallery__show-all" id="showAllPhotos">
-          <i data-lucide="grid-2x2"></i> Vis alle bilder
-        </button>
-      </div>
+      <!-- Back link sits above the gallery so it doesn't compete with the hero image. -->
+      <a href="utforsk" class="salon-back-link">
+        <i data-lucide="arrow-left"></i> Tilbake til utforsk
+      </a>
+
+      <!-- Gallery — layout adapts to image count (1, 2, 3+). Populated by JS. -->
+      <div class="salon-gallery" id="gallery" data-count="0"></div>
 
       <!-- Lightbox (hidden by default) -->
       <div class="lightbox" id="lightbox" style="display:none;">
@@ -709,15 +702,8 @@
       document.getElementById('lightboxThumbs').innerHTML = thumbsHtml;
     }
 
-    document.querySelectorAll('.salon-gallery__tile').forEach(function(tile, i) {
-      tile.addEventListener('click', function() {
-        if (photos.length > i) openLightbox(i);
-      });
-    });
-    document.getElementById('showAllPhotos').addEventListener('click', function(e) {
-      e.stopPropagation();
-      if (photos.length) openLightbox(0);
-    });
+    // Gallery tiles + Vis-alle-knappen rendres dynamisk i renderSalon(), så
+    // handlers bindes der. Ikke noe statisk markup å binde til her.
     document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
     lightbox.addEventListener('click', closeLightbox);
     document.querySelector('.lightbox__stage').addEventListener('click', function(e) { e.stopPropagation(); });
@@ -1880,11 +1866,35 @@
         ratingEl.style.display = 'none';
       }
 
-      // Gallery tiles: fill up to 5 with images
-      var tiles = document.querySelectorAll('.salon-gallery__tile');
-      images.slice(0, tiles.length).forEach(function(img, i) {
-        tiles[i].style.background = 'url(' + encodeURI(img.url) + ') center/cover no-repeat';
+      // Gallery: render tiles dynamically based on actual image count (1-5+).
+      // 0 images → gallery hides via data-count CSS rule.
+      var galleryEl = document.getElementById('gallery');
+      var visible = Math.min(images.length, 5);
+      galleryEl.setAttribute('data-count', String(visible));
+      var galleryHtml = '';
+      for (var gi = 0; gi < visible; gi++) {
+        galleryHtml += '<button type="button" class="salon-gallery__tile" data-idx="' + gi + '" ' +
+          'style="background-image:url(\'' + encodeURI(images[gi].url) + '\');" ' +
+          'aria-label="Bilde ' + (gi + 1) + '"></button>';
+      }
+      if (images.length > 1) {
+        galleryHtml += '<button type="button" class="salon-gallery__show-all" id="showAllPhotos">' +
+          '<i data-lucide="grid-2x2"></i> Vis alle ' + images.length + ' bilder</button>';
+      }
+      galleryEl.innerHTML = galleryHtml;
+      galleryEl.querySelectorAll('.salon-gallery__tile').forEach(function (t) {
+        t.addEventListener('click', function () {
+          var idx = parseInt(t.getAttribute('data-idx'), 10) || 0;
+          openLightbox(idx);
+        });
       });
+      var showAllBtn = document.getElementById('showAllPhotos');
+      if (showAllBtn) {
+        showAllBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          openLightbox(0);
+        });
+      }
 
       // Lightbox photos
       photos = images.map(function(img, i) {
