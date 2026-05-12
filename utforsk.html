@@ -613,10 +613,12 @@
     .sc2-team span { color: var(--ink); font-weight: 500; }
     .sc2-footer {
       display: flex;
-      justify-content: flex-end;
-      align-items: flex-end;
-      padding-top: 4px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
     }
+    .sc2-footer .sc2-cats { flex: 1; min-width: 0; }
+    .sc2-footer .sc2-price { flex-shrink: 0; }
     .sc2-price {
       display: inline-flex;
       align-items: baseline;
@@ -1515,8 +1517,10 @@
             + '<div class="sc2-meta">' + locationLine + ratingLine + '</div>'
             + '<div class="sc2-bottom">'
               + teamHtml
-              + catsHtml
-              + '<div class="sc2-footer">' + priceHtml + '</div>'
+              + '<div class="sc2-footer">'
+                + catsHtml
+                + priceHtml
+              + '</div>'
             + '</div>'
           + '</div>'
         + '</article>';
