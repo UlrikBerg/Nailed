@@ -58,37 +58,47 @@
 
   // Re-execute <script> tags in the swapped region. Cloning a parsed-but-
   // inert script element triggers the browser's execution path.
-  // For src scripts: avoid re-loading shared assets that already exist via
-  // their src (auth.js, lucide etc) by skipping when a script with the same
-  // resolved URL is already in the document AT THE TIME execScripts is called
-  // (not after — the new scripts have just been inserted into DOM by the
-  // content swap, so we need to take the snapshot once and exclude them).
-  function execScripts(scope) {
+  //
+  // Viktig: vi MÅ vente på at hvert src-script har lastet ferdig før neste
+  // inline-script kjører, ellers risikerer vi at inline-koden refererer til
+  // globaler som ennå ikke er definert (f.eks. initFavorites fra favorites.js).
+  // Default for dynamisk-innsatte src-scripts er async-load — så vi awaiter
+  // load/error eksplisitt.
+  async function execScripts(scope) {
     var newScripts = Array.prototype.slice.call(scope.querySelectorAll('script'));
     var newSet = new Set(newScripts);
     var loaded = {};
     document.querySelectorAll('script[src]').forEach(function (s) {
-      if (newSet.has(s)) return; // skip the newly-inserted ones
+      if (newSet.has(s)) return;
       loaded[s.src] = true;
     });
-    newScripts.forEach(function (old) {
+    for (var i = 0; i < newScripts.length; i++) {
+      var old = newScripts[i];
       var src = old.getAttribute('src');
       if (src) {
         var resolved = new URL(src, location.href).href;
         if (loaded[resolved]) {
           old.parentNode.removeChild(old);
-          return;
+          continue;
         }
         loaded[resolved] = true;
       }
       var fresh = document.createElement('script');
-      for (var i = 0; i < old.attributes.length; i++) {
-        var a = old.attributes[i];
+      for (var j = 0; j < old.attributes.length; j++) {
+        var a = old.attributes[j];
         fresh.setAttribute(a.name, a.value);
       }
       fresh.textContent = old.textContent;
-      old.parentNode.replaceChild(fresh, old);
-    });
+      if (src) {
+        await new Promise(function (resolve) {
+          fresh.onload = function () { resolve(); };
+          fresh.onerror = function () { resolve(); };
+          old.parentNode.replaceChild(fresh, old);
+        });
+      } else {
+        old.parentNode.replaceChild(fresh, old);
+      }
+    }
   }
 
   function saveScroll(url) {
@@ -152,8 +162,10 @@
 
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
 
-      // Re-execute scripts now in the live DOM.
-      execScripts(document.body);
+      // Re-execute scripts now in the live DOM. Await så src-scripts har
+      // lastet før vi proklamerer ferdig — ellers kan onclicks osv refere
+      // til ennå-udefinerte globaler.
+      await execScripts(document.body);
 
       if (opts.restoreScroll) {
         restoreScroll(location.pathname + location.search);
