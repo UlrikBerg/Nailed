@@ -2592,3 +2592,58 @@ select:focus-visible {
 .bottom-nav__item:focus-visible {
   border-radius: 999px;
 }
+
+/* =========================================================================
+   Smooth scroll på # anchor-hopp + slanke brand-farget scrollbar i lange
+   scrollable områder (chat-tråder, lister, tab-rails).
+   ========================================================================= */
+
+html {
+  scroll-behavior: smooth;
+}
+/* Brukerens reduced-motion-preferanse vinner over smooth scroll. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Slank rosa scrollbar — opt-in via .nailed-scrollbar-klassen så vi ikke
+   bryter med plattform-defaults der det er bedre å la dem være. */
+.nailed-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rouge-200) transparent;
+}
+.nailed-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.nailed-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.nailed-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--rouge-200);
+  border-radius: 3px;
+}
+.nailed-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--rouge-300); }
+
+/* Standard scrollbar-styling for spesifikke kjente scrollable kontekster.
+   Brukes uten .nailed-scrollbar-klassen så eksisterende markup ikke må
+   oppdateres. */
+.nc-list,
+.nc-body,
+.kp-list,
+.utforsk-filters,
+.day-carousel__viewport,
+.kp-tabs {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rouge-200) transparent;
+}
+.nc-list::-webkit-scrollbar,
+.nc-body::-webkit-scrollbar,
+.kp-list::-webkit-scrollbar,
+.utforsk-filters::-webkit-scrollbar,
+.day-carousel__viewport::-webkit-scrollbar,
+.kp-tabs::-webkit-scrollbar { width: 6px; height: 6px; }
+.nc-list::-webkit-scrollbar-thumb,
+.nc-body::-webkit-scrollbar-thumb,
+.kp-list::-webkit-scrollbar-thumb,
+.utforsk-filters::-webkit-scrollbar-thumb,
+.day-carousel__viewport::-webkit-scrollbar-thumb,
+.kp-tabs::-webkit-scrollbar-thumb {
+  background: var(--rouge-200);
+  border-radius: 3px;
+}
