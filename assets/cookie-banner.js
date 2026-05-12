@@ -15,6 +15,7 @@
 
 (function () {
   'use strict';
+  if (window.NailedCookieConsent) return; // Idempotent re-init under SPA-nav.
 
   var STORAGE_KEY = 'nailed.cookieConsent';
   var VERSION = 1;

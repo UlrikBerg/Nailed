@@ -9,6 +9,8 @@
 // styles.css and are shared with every page that includes this script.
 
 (function () {
+  if (window.__nailedNav) return;
+  window.__nailedNav = true;
   if (!window.NailedAuth) return;
 
   function ready(fn) {

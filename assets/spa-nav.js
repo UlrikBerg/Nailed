@@ -1,34 +1,28 @@
 // SPA-style navigation: intercept same-origin link clicks, fetch destination,
-// swap content between header.top-nav and footer.footer, keep header in DOM.
-//
-// Each page is still its own HTML document on the server — this is a pjax-
-// style enhancement layer. Browsers without JS or with the script blocked
-// fall back to normal navigation.
+// swap everything in <body> except the top-nav header. Header DOM persists so
+// the user-pill doesn't rerender between navigations.
 //
 // Boundaries: only swap pages that share the standard public shell
-// (header.top-nav + footer.footer). Pages without these markers (login,
-// admin, OAuth callbacks) fall through to a regular browser load.
+// (header.top-nav present). Pages without it (admin, OAuth callbacks) fall
+// through to a regular browser load.
 
 (function () {
+  if (window.__nailedSpaNav) return;
+  window.__nailedSpaNav = true;
   if (!window.history || !window.history.pushState || !window.fetch) return;
 
-  // Tag the current document as SPA-managed so destination scripts can
-  // detect they're loading into an already-initialized shell.
   document.documentElement.setAttribute('data-spa', '1');
 
   function getShell(root) {
-    var header = root.querySelector('header.top-nav');
-    var footer = root.querySelector('footer.footer');
-    if (!header || !footer) return null;
-    // Sibling order: anything between header and footer is page content.
-    if (header.parentNode !== footer.parentNode) return null;
-    var nodes = [];
-    var n = header.nextSibling;
-    while (n && n !== footer) {
-      nodes.push(n);
-      n = n.nextSibling;
+    var body = root.body || root;
+    var header = body.querySelector('header.top-nav');
+    if (!header) return null;
+    var swappable = [];
+    var kids = body.children;
+    for (var i = 0; i < kids.length; i++) {
+      if (kids[i] !== header) swappable.push(kids[i]);
     }
-    return { header: header, footer: footer, nodes: nodes };
+    return { body: body, header: header, swappable: swappable };
   }
 
   function shouldHandle(url, anchor) {
@@ -37,7 +31,6 @@
     if (anchor && anchor.hasAttribute('download')) return false;
     if (anchor && anchor.dataset.spa === 'false') return false;
     var p = url.pathname;
-    // API + auth + admin + file-likes go full-load.
     if (p.indexOf('/api/') === 0) return false;
     if (p.indexOf('/auth') === 0) return false;
     if (p.indexOf('/admin') === 0) return false;
@@ -48,8 +41,7 @@
   }
 
   // Adopt new <style> tags from destination head — only those not already
-  // present (compare textContent hash via length+head heuristic to avoid
-  // O(n²) full-text comparisons).
+  // present (keyed by id+length so we avoid duplicates).
   function adoptHeadStyles(srcDoc) {
     var have = {};
     document.head.querySelectorAll('style[data-spa-key]').forEach(function (s) {
@@ -64,12 +56,28 @@
     });
   }
 
-  // Re-execute <script> tags in the swapped region. We CLONE the node and
-  // re-insert so the browser runs it; the original parsed copy from
-  // DOMParser is inert.
+  // Re-execute <script> tags in the swapped region. Cloning a parsed-but-
+  // inert script element triggers the browser's execution path.
+  // For src scripts: avoid re-loading shared assets that already exist via
+  // their src (auth.js, lucide etc) by skipping when a script with the same
+  // resolved URL is already in the document.
   function execScripts(scope) {
+    var loaded = {};
+    document.querySelectorAll('script[src]').forEach(function (s) {
+      loaded[s.src] = true;
+    });
     var scripts = Array.prototype.slice.call(scope.querySelectorAll('script'));
     scripts.forEach(function (old) {
+      var src = old.getAttribute('src');
+      if (src) {
+        var resolved = new URL(src, location.href).href;
+        if (loaded[resolved]) {
+          // Already loaded by the parent page (or prior nav); skip re-fetch.
+          old.parentNode.removeChild(old);
+          return;
+        }
+        loaded[resolved] = true;
+      }
       var fresh = document.createElement('script');
       for (var i = 0; i < old.attributes.length; i++) {
         var a = old.attributes[i];
@@ -102,14 +110,10 @@
       try {
         res = await fetch(href, { headers: { 'Accept': 'text/html' }, credentials: 'same-origin' });
       } catch (err) {
-        // Network failure — fall through to full load so user gets an error page.
         location.href = href;
         return;
       }
-      if (!res.ok) {
-        location.href = href;
-        return;
-      }
+      if (!res.ok) { location.href = href; return; }
       var html = await res.text();
       var doc;
       try { doc = new DOMParser().parseFromString(html, 'text/html'); }
@@ -118,13 +122,10 @@
       var newShell = getShell(doc);
       var curShell = getShell(document);
       if (!newShell || !curShell) {
-        // Destination doesn't have the standard shell (e.g. login.html) — full load.
         location.href = href;
         return;
       }
 
-      // Update title & meta description before swapping content so the
-      // browser tab updates feel instant.
       if (doc.title) document.title = doc.title;
       var newDesc = doc.querySelector('meta[name="description"]');
       var curDesc = document.querySelector('meta[name="description"]');
@@ -132,35 +133,31 @@
 
       adoptHeadStyles(doc);
 
-      // Update history before DOM swap so popstate timing is predictable.
       if (opts.replace) {
         history.replaceState({ spa: true }, '', href);
       } else {
         history.pushState({ spa: true }, '', href);
       }
 
-      // Remove current content nodes, then insert new ones before the footer.
-      curShell.nodes.forEach(function (n) { n.parentNode.removeChild(n); });
-      var frag = document.createDocumentFragment();
-      newShell.nodes.forEach(function (n) { frag.appendChild(n); });
-      curShell.footer.parentNode.insertBefore(frag, curShell.footer);
+      // Remove all current swappable nodes (everything except header).
+      curShell.swappable.forEach(function (n) { n.parentNode.removeChild(n); });
 
-      // Re-init lucide icons that came in with the new markup.
+      // Insert new swappable nodes in the same order — after the header.
+      var frag = document.createDocumentFragment();
+      newShell.swappable.forEach(function (n) { frag.appendChild(n); });
+      curShell.header.parentNode.appendChild(frag);
+
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
 
-      // Re-execute the destination's inline + external scripts now that
-      // they're in the live DOM. External scripts will be deduped by the
-      // browser when src matches a previously-loaded one (most cases).
-      execScripts(curShell.footer.parentNode);
+      // Re-execute scripts now in the live DOM.
+      execScripts(document.body);
 
-      // Scroll: top for new navs, restore for back/forward.
       if (opts.restoreScroll) {
         restoreScroll(location.pathname + location.search);
       } else {
         window.scrollTo(0, 0);
       }
 
-      // Notify any listeners that page content changed (analytics, etc).
       window.dispatchEvent(new CustomEvent('spa:navigated', { detail: { url: href } }));
     } finally {
       navigating = false;
@@ -177,8 +174,6 @@
     var url;
     try { url = new URL(anchor.href, location.href); } catch (_) { return; }
     if (!shouldHandle(url, anchor)) return;
-
-    // Same-page hash: let browser handle.
     if (url.pathname === location.pathname && url.search === location.search && url.hash) return;
 
     e.preventDefault();
@@ -187,10 +182,7 @@
 
   window.addEventListener('popstate', function () {
     var url = new URL(location.href);
-    if (!shouldHandle(url, null)) {
-      location.reload();
-      return;
-    }
+    if (!shouldHandle(url, null)) { location.reload(); return; }
     navigate(url.pathname + url.search + url.hash, { replace: true, restoreScroll: true });
   });
 })();

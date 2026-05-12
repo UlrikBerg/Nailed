@@ -2,6 +2,7 @@
 // Stores access + refresh tokens in localStorage, attaches Bearer to fetches,
 // and silently refreshes the access token when it expires.
 (function (global) {
+  if (global.NailedAuth) return; // Idempotent re-init under SPA-nav.
   var ACCESS_KEY  = 'nailed.accessToken';
   var REFRESH_KEY = 'nailed.refreshToken';
   var ROLE_KEY    = 'nailed.role';
