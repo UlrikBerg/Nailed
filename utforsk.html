@@ -523,7 +523,8 @@
       }
     }
     /* Nytt salongkort-layout (sc2). Status-pill går inn i info-kolonnen,
-       pris dyttes ned i høyre hjørne, team og kategorier rendres som chips. */
+       pris dyttes ned i høyre hjørne, kategorier/behandlere klistret til
+       bunnen så det blir luft mellom rating og chips. */
     .utforsk-results .sc2-body {
       display: flex;
       flex-direction: column;
@@ -531,6 +532,9 @@
       padding: 22px 26px 18px;
       position: relative;
     }
+    .utforsk-results .sc2-cats { margin-top: auto; }
+    /* Hjerteknappen flyttes til topp-VENSTRE i utforsk-kortet. */
+    .utforsk-results .service-card__heart { right: auto; left: 12px; }
     .sc2-status {
       display: inline-flex;
       align-items: center;
@@ -570,7 +574,6 @@
       display: flex;
       gap: 6px;
       flex-wrap: wrap;
-      margin-top: 2px;
     }
     .sc2-cat {
       font-size: 12px;
