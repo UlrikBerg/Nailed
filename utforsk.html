@@ -532,10 +532,10 @@
       padding: 22px 26px 18px;
       position: relative;
     }
-    /* Bottom-gruppen: kategorier → behandlere → pris. Fast margin-top
-       gir pusterom mellom rating og chips uten å vokse hele kortet. */
+    /* Bottom-gruppen: behandlere → kategorier → pris. Stor margin-top
+       gir tydelig pusterom mellom rating og chips. */
     .sc2-bottom {
-      margin-top: 24px;
+      margin-top: 56px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -1508,8 +1508,8 @@
             + '<div class="sc2-name">' + escapeHtml(salon.name || 'Salong') + '</div>'
             + '<div class="sc2-meta">' + locationLine + ratingLine + '</div>'
             + '<div class="sc2-bottom">'
-              + catsHtml
               + teamHtml
+              + catsHtml
               + '<div class="sc2-footer">' + priceHtml + '</div>'
             + '</div>'
           + '</div>'
