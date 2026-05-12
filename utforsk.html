@@ -2058,9 +2058,11 @@
     renderActiveChips();
 
     // Auto-expand the Sted accordion when arriving with a fylke/city preset.
-    if (currentFylke !== 'all' || currentCity) {
+    // Guarder mot null — stedAccordion-elementet kan være fjernet i et tidligere
+    // designpass. Uten denne guarden kaster TypeError og loadSalons() kjøres aldri.
+    if ((currentFylke !== 'all' || currentCity) && stedAccordion) {
       stedAccordion.classList.add('is-open');
-      stedTrigger.setAttribute('aria-expanded', 'true');
+      if (stedTrigger) stedTrigger.setAttribute('aria-expanded', 'true');
     }
 
     loadSalons();
