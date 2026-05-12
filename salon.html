@@ -2122,6 +2122,40 @@
     lucide.createIcons();
     if (typeof initFavorites === 'function') initFavorites();
 
+    // Mobil-reorder: flytt booking-panelet rett etter amenity-chipsene på mobil.
+    // På desktop sitter det i høyre kolonne (grid). På mobil ville det landet
+    // helt nederst — etter 30 services + map + anmeldelser. Vi flytter det opp.
+    (function () {
+      var grid = document.querySelector('.salon-detail__grid');
+      var rightCol = document.querySelector('.salon-detail__right');
+      var leftCol = grid && grid.firstElementChild;
+      var anchor = document.getElementById('amenitiesChips');
+      if (!grid || !rightCol || !leftCol || !anchor) return;
+
+      // Placeholder så vi kan flytte tilbake til original-posisjon i grid-en.
+      var placeholder = document.createComment('right-col-placeholder');
+      rightCol.parentNode.insertBefore(placeholder, rightCol);
+
+      var movedToMobile = false;
+      function apply() {
+        var isMobile = window.matchMedia('(max-width: 900px)').matches;
+        if (isMobile && !movedToMobile) {
+          // Sett inn rett etter amenity-chipsene
+          if (anchor.nextSibling) {
+            leftCol.insertBefore(rightCol, anchor.nextSibling);
+          } else {
+            leftCol.appendChild(rightCol);
+          }
+          movedToMobile = true;
+        } else if (!isMobile && movedToMobile) {
+          placeholder.parentNode.insertBefore(rightCol, placeholder);
+          movedToMobile = false;
+        }
+      }
+      apply();
+      window.addEventListener('resize', apply);
+    })();
+
     // Del-knapp: bruker navigator.share() på mobil, faller tilbake til
     // clipboard-kopiering på desktop.
     var shareBtn = document.getElementById('shareBtn');
