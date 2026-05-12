@@ -2557,5 +2557,13 @@ p { margin: 0 0 var(--space-4) 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
 
+/* iOS-variant: ingen Installer-knapp, bare instruks med Share-ikon inline */
+.install-banner--ios .install-banner__close { margin-left: 8px; }
+.install-banner__share {
+  vertical-align: -2px;
+  margin: 0 2px;
+  color: var(--rouge-300);
+}
+
 /* Når tastatur er åpent, gjem install-banner. */
 body.has-kb .install-banner { display: none; }
