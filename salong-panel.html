@@ -3306,7 +3306,6 @@
     }
 
     async function removeTeamPhoto(memberId) {
-      if (!confirm('Fjern bilde fra dette team-medlemmet?')) return;
       var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/team/' + memberId + '/image', { method: 'DELETE' });
       if (!res.ok) {
         NailedForms.toast('Kunne ikke fjerne bildet', { type: 'error' });
@@ -3412,7 +3411,6 @@
     }
 
     async function deleteTeamMember(id) {
-      if (!confirm('Slette dette team-medlemmet? Tjenester de er knyttet til mister denne koblingen.')) return;
       var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/team/' + id, { method: 'DELETE' });
       if (!res.ok) {
         NailedForms.toast('Kunne ikke slette medlem', { type: 'error' });
@@ -3782,7 +3780,6 @@
       });
       el.querySelectorAll('[data-delete]').forEach(function (b) {
         b.addEventListener('click', async function () {
-          if (!confirm('Slette dette bildet?')) return;
           var id = this.getAttribute('data-delete');
           var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/images/' + id, { method: 'DELETE' });
           if (res.ok) await loadSalon();
@@ -4996,7 +4993,6 @@
 
       tbody.querySelectorAll('button[data-delete]').forEach(function (b) {
         b.addEventListener('click', async function () {
-          if (!confirm('Skjule denne tjenesten?')) return;
           await NailedAuth.api('/api/v1/salons/' + salon.id + '/services/' + this.getAttribute('data-delete'), { method: 'DELETE' });
           loadServices();
         });
@@ -5143,7 +5139,6 @@
       list.querySelectorAll('button[data-cat-delete]').forEach(function (b) {
         b.addEventListener('click', async function () {
           var id = this.getAttribute('data-cat-delete');
-          if (!confirm('Slette denne kategorien? Behandlinger i den blir flyttet til "Uten kategori".')) return;
           var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/categories/' + id, { method: 'DELETE' });
           if (!res.ok) {
             NailedForms.toast('Kunne ikke slette kategori', { type: 'error' });
@@ -5881,7 +5876,6 @@
       });
 
       deleteBtn.addEventListener('click', async function () {
-        if (!confirm('Slette notatet?')) return;
         ta.value = '';
         saveBtn.click();
       });

@@ -1261,7 +1261,6 @@
 
       list.querySelectorAll('button[data-cancel]').forEach(function (btn) {
         btn.addEventListener('click', async function () {
-          if (!confirm('Avbestille denne bookingen?')) return;
           var id = this.getAttribute('data-cancel');
           var res = await NailedAuth.api('/api/v1/bookings/' + id, {
             method: 'PATCH',
@@ -1344,7 +1343,6 @@
 
       list.querySelectorAll('button[data-wl-cancel]').forEach(function (btn) {
         btn.addEventListener('click', async function () {
-          if (!confirm('Fjerne deg fra ventelisten?')) return;
           var id = btn.getAttribute('data-wl-cancel');
           var r = await NailedAuth.api('/api/v1/waitlist/' + id, { method: 'DELETE' });
           if (r.ok) {
@@ -1887,7 +1885,6 @@
       list.querySelectorAll('button[data-delete-review]').forEach(function (btn) {
         btn.addEventListener('click', async function () {
           var id = this.getAttribute('data-delete-review');
-          if (!confirm('Er du sikker på at du vil slette anmeldelsen?')) return;
           var res = await NailedAuth.api('/api/v1/reviews/' + encodeURIComponent(id), { method: 'DELETE' });
           if (res && res.ok) {
             NailedForms.toast('Anmeldelse slettet');
@@ -2126,7 +2123,6 @@
     });
 
     document.getElementById('deleteAccountBtn').addEventListener('click', async function () {
-      if (!confirm('Er du sikker? Dette sletter kontoen din.')) return;
       var res = await NailedAuth.api('/api/v1/me', { method: 'DELETE' });
       if (res.ok) {
         await NailedAuth.logout();

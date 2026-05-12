@@ -182,7 +182,6 @@
           '</div>';
         statusContainer.innerHTML = card;
         document.getElementById('withdrawBtn').addEventListener('click', async function () {
-          if (!confirm('Trekke søknaden?')) return;
           await NailedAuth.api('/api/v1/salon-applications/' + application.id + '/withdraw', { method: 'POST' });
           window.location.reload();
         });

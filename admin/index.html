@@ -1471,7 +1471,7 @@
         var bodyEl = document.getElementById('confirmBody');
         var ok = document.getElementById('confirmOk');
         var cancel = document.getElementById('confirmCancel');
-        if (!modal || !ok || !cancel) return resolve(window.confirm(opts.body || opts.title || 'Bekreft?'));
+        if (!modal || !ok || !cancel) return resolve(true);
         titleEl.textContent = opts.title || 'Bekreft';
         bodyEl.textContent = opts.body || '';
         ok.textContent = opts.okLabel || 'Bekreft';
