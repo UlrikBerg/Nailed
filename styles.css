@@ -1936,7 +1936,7 @@ p { margin: 0 0 var(--space-4) 0; }
 .home-promise__title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(36px, 4.5vw, 58px);
+  font-size: clamp(48px, 6vw, 78px);
   line-height: 1.05;
   letter-spacing: -0.025em;
   color: var(--ink);
@@ -1950,8 +1950,10 @@ p { margin: 0 0 var(--space-4) 0; }
 }
 /* Tre-linjes-skulptur: «Bygget for» er medium, «norske salonger»
    (italic rouge) er hovedfokus i full størrelse, «og kundene deres»
-   er minst — gir en descending visuell hierarki. */
+   er minst — gir en descending visuell hierarki. Margin mellom hver
+   linje gir pusterom så skalaen blir tydelig. */
 .home-promise__line { display: block; }
+.home-promise__title .home-promise__line + .home-promise__line { margin-top: 0.12em; }
 .home-promise__title .home-promise__line:first-child { font-size: 0.78em; }
 .home-promise__title .home-promise__line:last-child { font-size: 0.62em; }
 .home-promise__list {
