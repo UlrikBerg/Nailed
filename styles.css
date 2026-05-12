@@ -1459,6 +1459,12 @@ p { margin: 0 0 var(--space-4) 0; }
    Salon gallery (Airbnb-style)
    ========================================================================= */
 
+.salon-back-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 .salon-back-link {
   display: inline-flex;
   align-items: center;
@@ -1473,6 +1479,28 @@ p { margin: 0 0 var(--space-4) 0; }
 }
 .salon-back-link:hover { color: var(--ink); }
 .salon-back-link i { width: 16px; height: 16px; }
+
+.salon-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--stone-200);
+  background: var(--cream-50);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: border-color var(--dur-fast), background var(--dur-fast);
+  min-height: 36px;
+}
+.salon-share-btn:hover { border-color: var(--stone-400); background: var(--cream-100); }
+.salon-share-btn i { width: 16px; height: 16px; }
+@media (max-width: 720px) {
+  .salon-share-btn { min-height: 40px; }
+}
 
 .salon-gallery {
   position: relative;

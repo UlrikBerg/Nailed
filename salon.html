@@ -384,10 +384,18 @@
   <section class="salon-detail" id="salonDetail">
     <div class="page">
 
-      <!-- Back link sits above the gallery so it doesn't compete with the hero image. -->
-      <a href="utforsk" class="salon-back-link">
-        <i data-lucide="arrow-left"></i> Tilbake til utforsk
-      </a>
+      <!-- Back link + share knapp sitter over galleriet så de ikke konkurrerer
+           med hero-bildet. Del-knappen bruker navigator.share() på mobil, faller
+           tilbake til kopier-til-utklippstavle på desktop. -->
+      <div class="salon-back-row">
+        <a href="utforsk" class="salon-back-link">
+          <i data-lucide="arrow-left"></i> Tilbake til utforsk
+        </a>
+        <button class="salon-share-btn" id="shareBtn" type="button" aria-label="Del salongen">
+          <i data-lucide="share-2"></i>
+          <span>Del</span>
+        </button>
+      </div>
 
       <!-- Gallery — layout adapts to image count (1, 2, 3+). Populated by JS. -->
       <div class="salon-gallery" id="gallery" data-count="0"></div>
@@ -2098,6 +2106,37 @@
     // First-paint icons + favorites init for the static shell.
     lucide.createIcons();
     if (typeof initFavorites === 'function') initFavorites();
+
+    // Del-knapp: bruker navigator.share() på mobil, faller tilbake til
+    // clipboard-kopiering på desktop.
+    var shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async function () {
+        var titleEl = document.querySelector('.salon-detail__title');
+        var name = titleEl ? titleEl.textContent.trim() : 'Salong';
+        var shareData = {
+          title: name + ' — nailed',
+          text: 'Sjekk ut ' + name + ' på nailed.',
+          url: location.href,
+        };
+        if (navigator.share) {
+          try {
+            await navigator.share(shareData);
+            return;
+          } catch (err) {
+            // Bruker avbrøt — ikke fallback til clipboard, det er bare støy.
+            if (err && err.name === 'AbortError') return;
+          }
+        }
+        // Fallback: kopier lenken til utklippstavlen.
+        try {
+          await navigator.clipboard.writeText(location.href);
+          if (window.NailedForms) NailedForms.toast('Lenken er kopiert', { type: 'success' });
+        } catch (_) {
+          if (window.NailedForms) NailedForms.toast('Kunne ikke kopiere — prøv manuelt.', { type: 'info' });
+        }
+      });
+    }
   </script>
 </body>
 </html>
