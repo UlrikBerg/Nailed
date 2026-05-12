@@ -3342,11 +3342,11 @@
 
       if (!imgs.length) {
         el.innerHTML =
-          '<label for="imageUploader" class="gallery-tile gallery-tile--add gallery-tile--empty" id="galleryAddTile" tabindex="0" aria-label="Last opp bilder">' +
+          '<button type="button" class="gallery-tile gallery-tile--add gallery-tile--empty" id="galleryAddTile" aria-label="Last opp bilder">' +
             '<i data-lucide="image-plus"></i>' +
             '<span class="gallery-tile__emptyTitle">Last opp dine første bilder</span>' +
             '<span class="gallery-tile__emptySub">Dra bilder hit, eller klikk for å velge</span>' +
-          '</label>';
+          '</button>';
         window.lucide && window.lucide.createIcons();
         return;
       }
@@ -3385,10 +3385,10 @@
 
       if (imgs.length < MAX_IMAGES_PER_SALON) {
         html +=
-          '<label for="imageUploader" class="gallery-tile gallery-tile--add" id="galleryAddTile" tabindex="0" aria-label="Legg til bilde">' +
+          '<button type="button" class="gallery-tile gallery-tile--add" id="galleryAddTile" aria-label="Legg til bilde">' +
             '<i data-lucide="plus"></i>' +
             '<span>Legg til bilde</span>' +
-          '</label>';
+          '</button>';
       }
 
       el.innerHTML = html;
@@ -3412,17 +3412,21 @@
       window.lucide && window.lucide.createIcons();
     }
 
-    // The add-tile is a <label for="imageUploader">, so clicks open the file
-    // picker natively. Programmatic input.click() is intentionally NOT used —
-    // Safari blocks it in some cases and we get double-firing otherwise.
-    // Keyboard-only users still need parity: Enter/Space on a focused label
-    // doesn't trigger the for-target, so forward those keys to a click.
-    document.addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
+    // Delegated click handler — gallery re-renders the button each load, so we
+    // can't bind in renderGallery (the bound element would be removed). Find
+    // the closest ancestor matching #galleryAddTile and trigger the file input.
+    // Programmatic .click() from inside a user-gesture click handler is
+    // explicitly allowed across modern Safari/Chrome/Firefox.
+    document.addEventListener('click', function (e) {
       var tile = e.target.closest && e.target.closest('#galleryAddTile');
       if (!tile) return;
-      e.preventDefault();
-      tile.click();
+      var input = document.getElementById('imageUploader');
+      if (!input) {
+        console.error('[upload] imageUploader input not found in DOM');
+        return;
+      }
+      console.log('[upload] opening file picker');
+      input.click();
     });
 
     var MAX_IMAGES_PER_SALON = 24;
@@ -3501,6 +3505,7 @@
 
     document.getElementById('imageUploader').addEventListener('change', function () {
       var files = this.files;
+      console.log('[upload] change event — files:', files && files.length);
       this.value = '';
       if (!files || !files.length) return;
       uploadImages(files);
