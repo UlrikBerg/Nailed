@@ -4,5 +4,5 @@
     .wm { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; letter-spacing: -0.045em; }
   </style>
   <text x="0" y="92" class="wm" fill="#FBF6EE" font-size="116">nailed</text>
-  <circle cx="300" cy="83" r="7" fill="#EE3F7E"></circle>
+  <circle cx="325" cy="83" r="7" fill="#EE3F7E"></circle>
 </svg>
