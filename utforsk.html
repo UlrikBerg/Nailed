@@ -532,7 +532,14 @@
       padding: 22px 26px 18px;
       position: relative;
     }
-    .utforsk-results .sc2-cats { margin-top: auto; }
+    /* Bottom-gruppen: kategorier → behandlere → pris. Får margin-top:auto
+       så de klistres mot bunnen og åpner pusterom mot meta-raden over. */
+    .sc2-bottom {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
     /* Hjerteknappen flyttes til topp-VENSTRE i utforsk-kortet. */
     .utforsk-results .service-card__heart { right: auto; left: 12px; }
     .sc2-status {
@@ -596,8 +603,7 @@
       display: flex;
       justify-content: flex-end;
       align-items: flex-end;
-      margin-top: auto;
-      padding-top: 8px;
+      padding-top: 4px;
     }
     .sc2-price {
       display: inline-flex;
@@ -1496,9 +1502,11 @@
             + statusPill
             + '<div class="sc2-name">' + escapeHtml(salon.name || 'Salong') + '</div>'
             + '<div class="sc2-meta">' + locationLine + ratingLine + '</div>'
-            + catsHtml
-            + teamHtml
-            + '<div class="sc2-footer">' + priceHtml + '</div>'
+            + '<div class="sc2-bottom">'
+              + catsHtml
+              + teamHtml
+              + '<div class="sc2-footer">' + priceHtml + '</div>'
+            + '</div>'
           + '</div>'
         + '</article>';
     }
