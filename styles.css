@@ -2403,34 +2403,56 @@ p { margin: 0 0 var(--space-4) 0; }
   .service-list__item { padding: 14px 16px; min-height: 56px; }
   .service-list__name { font-size: 15px; }
 
-  /* Dag-velger: 5 kort × romslig høyde */
-  .day-pick { padding: 10px 4px; min-height: 52px; }
-  .day-pick__num { font-size: 16px; }
-  .day-pick__dow { font-size: 10px; }
-  .day-carousel { gap: 8px; }
-  .day-carousel__nav {
-    flex: 0 0 44px;
-    min-height: 52px;
+  /* Dag-velger som horisontal scroll-carousel: skjul nav-arrows, native
+     swipe gjennom dagene. JS-pagineringens transform overstyres så native
+     scroll ikke kjemper med transform. */
+  .day-carousel { gap: 0; }
+  .day-carousel__nav { display: none; }
+  .day-carousel__viewport {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
   }
-  .day-carousel__nav i { width: 18px; height: 18px; }
+  .day-carousel__viewport::-webkit-scrollbar { display: none; }
+  .day-carousel__track {
+    transform: none !important;
+    transition: none;
+  }
+  .day-carousel__page { scroll-snap-align: start; }
+  .day-pick {
+    padding: 10px 6px;
+    min-height: 60px;
+    border-radius: 12px;
+  }
+  .day-pick__num { font-size: 18px; }
+  .day-pick__dow { font-size: 11px; }
 
-  /* Slot-grid: 4 cols på vanlig mobil, 3 cols på svært smale skjermer */
+  /* Slot-velger som horisontal carousel — én rad slots, swipe for å se mer. */
   .slots {
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
     gap: 8px;
+    padding-bottom: 4px;
+    grid-template-columns: none;
   }
+  .slots::-webkit-scrollbar { display: none; }
   .slot {
+    flex: 0 0 auto;
+    min-width: 86px;
     min-height: 44px;
     font-size: 14px;
-    padding: 0 4px;
+    padding: 0 12px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    color: var(--ink); /* eksplisitt så vi matcher desktop */
   }
-}
-
-@media (max-width: 380px) {
-  .slots { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* =========================================================================

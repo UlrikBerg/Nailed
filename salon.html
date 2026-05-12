@@ -447,12 +447,34 @@
           <!-- Alle behandlinger -->
           <div style="display:flex; align-items:baseline; justify-content:space-between; margin-top: 40px; margin-bottom: 8px;">
             <h3 style="margin: 0; font-size: 24px;">Alle behandlinger</h3>
-            <span style="font-family:var(--font-body); font-size:13px; color:var(--fg-muted);">Trykk for å velge — tider vises til høyre</span>
           </div>
 
           <!-- Behandlinger (rendered from API) -->
           <div class="svc-cat" id="servicesCategory">
             <ul class="all-services" id="allServicesList"></ul>
+          </div>
+
+          <!-- Åpningstider + Team — flyttet hit fra høyrekolonnen.
+               Accordion-pattern fra .acc-klassen (default lukket på mobil,
+               alltid åpen på desktop). -->
+          <div id="hoursPanelSection" class="booking-panel booking-panel--side acc" style="display:none; margin-top: 28px;">
+            <button type="button" class="acc__head booking-panel__header" aria-expanded="false">
+              <h3>Åpningstider</h3>
+              <i data-lucide="chevron-down" class="acc__chev"></i>
+            </button>
+            <div class="acc__body">
+              <div class="profile-hours profile-hours--compact" id="hoursPanelList"></div>
+            </div>
+          </div>
+
+          <div id="teamPanelSection" class="booking-panel booking-panel--side acc" style="display:none; margin-top: 16px;">
+            <button type="button" class="acc__head booking-panel__header" aria-expanded="false">
+              <h3>Team</h3>
+              <i data-lucide="chevron-down" class="acc__chev"></i>
+            </button>
+            <div class="acc__body">
+              <div class="profile-team" id="teamPanelList"></div>
+            </div>
           </div>
 
           <!-- Map (OpenStreetMap via Leaflet) — only shown when the API returns
@@ -535,28 +557,6 @@
           </div>
         </div>
 
-        <!-- Separate Åpningstider card under the booking panel.
-             Accordion på mobil: default lukket. På desktop alltid åpen via CSS. -->
-        <div id="hoursPanelSection" class="booking-panel booking-panel--side acc" style="display:none;">
-          <button type="button" class="acc__head booking-panel__header" aria-expanded="false">
-            <h3>Åpningstider</h3>
-            <i data-lucide="chevron-down" class="acc__chev"></i>
-          </button>
-          <div class="acc__body">
-            <div class="profile-hours profile-hours--compact" id="hoursPanelList"></div>
-          </div>
-        </div>
-
-        <!-- Separate Team card under the hours card -->
-        <div id="teamPanelSection" class="booking-panel booking-panel--side acc" style="display:none;">
-          <button type="button" class="acc__head booking-panel__header" aria-expanded="false">
-            <h3>Team</h3>
-            <i data-lucide="chevron-down" class="acc__chev"></i>
-          </button>
-          <div class="acc__body">
-            <div class="profile-team" id="teamPanelList"></div>
-          </div>
-        </div>
 
         </div>
 
