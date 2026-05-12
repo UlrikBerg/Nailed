@@ -2282,3 +2282,36 @@ p { margin: 0 0 var(--space-4) 0; }
      56px nav + safe-area bunn. */
   .has-bottom-nav { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
 }
+
+/* =========================================================================
+   Mobil-fix: iOS-input-zoom + touch-targets
+   - font-size 16 px på alle inputs/textarea/select forhindrer auto-zoom på iOS Safari
+   - touch-targets min 44×44 px iht. Apple/WCAG-anbefaling
+   ========================================================================= */
+
+@media (max-width: 720px) {
+  /* Inputs: 16 px minimum. Spesifikke overrider (som hero-search) tar fra denne. */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+  /* Overrid kjente undermål-inputs eksplisitt (samme spesifisitet) */
+  .search-bar__field input { font-size: 16px; }
+
+  /* Touch-targets — bumpes til 44×44 */
+  .btn-icon { width: 44px; height: 44px; }
+  .footer__social { width: 44px; height: 44px; }
+  .service-card__heart { width: 44px; height: 44px; }
+  .service-card__heart i { width: 18px; height: 18px; }
+
+  /* Chips og filter-piller: høyere taphøyde uten å brekke layout */
+  .chip,
+  .filter-pill {
+    min-height: 40px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  /* Bottom-nav-items har allerede min-height 56 — sjekket */
+}
