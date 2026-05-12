@@ -513,8 +513,10 @@
         flex-direction: row;
         align-items: stretch;
         /* Fast høyde gjør at alle kortene blir like uavhengig av antall
-           chips. 260px matcher tilnærmet hva kortene hadde før. */
-        height: 260px;
+           chips. 290px gir plass til at margin-top:auto faktisk skubber
+           bottom-gruppen ned mot bunnen (med 22px padding-bottom + 8px
+           gap mellom price og kant-edge). */
+        height: 290px;
       }
       .utforsk-results .service-card__photo {
         flex: 0 0 280px;
@@ -530,8 +532,8 @@
     .utforsk-results .sc2-body {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      padding: 22px 26px 14px;
+      gap: 8px;
+      padding: 22px 26px 22px;
       position: relative;
     }
     /* Bottom-gruppen: behandlere → kategorier → pris. margin-top:auto
