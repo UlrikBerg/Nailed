@@ -9,11 +9,11 @@
   <link rel="preload" as="image" href="assets/logo-wordmark.svg">
   <style>
     .auth {
-      min-height: 100vh;
+      min-height: calc(100vh - 88px);
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 48px 24px;
+      padding: 56px 24px 64px;
     }
     .auth__card {
       width: 100%;
@@ -106,17 +106,24 @@
 
     .provider-btn--vipps {
       background: #FF5B24;
-      color: white;
+      color: #fff;
       border-color: #FF5B24;
+      font-weight: 500;
+      gap: 8px;
     }
     .provider-btn--vipps:hover { background: #E64C18; border-color: #E64C18; }
-    .provider-btn--vipps[disabled] { background: var(--stone-100); color: var(--stone-500); border-color: var(--stone-200); }
-    .provider-btn--vipps .provider-btn__brand {
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-size: 17px;
-      letter-spacing: -0.02em;
+    .provider-btn--vipps.disabled {
+      background: var(--stone-100);
+      color: var(--stone-500);
+      border-color: var(--stone-200);
+      opacity: 1;
     }
+    .provider-btn--vipps .provider-btn__vipps-logo {
+      height: 22px;
+      width: auto;
+      flex-shrink: 0;
+    }
+    .provider-btn--vipps.disabled .provider-btn__vipps-logo { opacity: 0.5; }
 
     .auth__divider {
       display: flex;
@@ -204,9 +211,12 @@
       <div id="errorBanner" class="auth__notice auth__notice--error" style="display:none;"></div>
 
       <div class="auth__providers">
-        <a class="provider-btn provider-btn--vipps disabled" id="vippsBtn" href="#" aria-disabled="true">
-          Fortsett med <span class="provider-btn__brand">vipps</span>
-          <span class="provider-btn__hint" style="color: rgba(255,255,255,0.85)">Kommer snart — venter på godkjenning</span>
+        <a class="provider-btn provider-btn--vipps disabled" id="vippsBtn" href="#" aria-disabled="true" aria-label="Logg inn med Vipps">
+          <span>Logg inn med</span>
+          <svg class="provider-btn__vipps-logo" viewBox="0 0 96 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <text x="0" y="25" font-family="Helvetica, Arial, sans-serif" font-size="28" font-weight="700" font-style="italic" fill="currentColor" letter-spacing="-1">vipps</text>
+            <circle cx="89" cy="9" r="3.5" fill="currentColor"/>
+          </svg>
         </a>
 
         <a class="provider-btn" id="googleBtn" href="#">
@@ -280,7 +290,6 @@
       if (enabled.indexOf('vipps') >= 0) {
         vippsBtn.classList.remove('disabled');
         vippsBtn.removeAttribute('aria-disabled');
-        vippsBtn.querySelector('.provider-btn__hint').remove();
         vippsBtn.addEventListener('click', function (e) { e.preventDefault(); startProvider('vipps'); });
         document.getElementById('vippsNotice').style.display = 'none';
       } else {
