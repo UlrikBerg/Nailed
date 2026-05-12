@@ -402,6 +402,15 @@
       padding: 24px;
       margin-top: 32px;
       margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kp-cal::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--rouge-500), var(--rouge-300) 60%, var(--rouge-100));
     }
     .kp-cal__head {
       display: flex;
@@ -413,14 +422,15 @@
     .kp-cal__nav { display: inline-flex; align-items: center; gap: 14px; }
     .kp-cal__navBtn {
       width: 40px; height: 40px;
-      border: 1px solid var(--stone-200);
+      border: 1px solid var(--rouge-100);
       background: var(--cream-50);
       border-radius: 999px;
       cursor: pointer;
-      color: var(--ink);
+      color: var(--rouge-500);
       display: inline-flex; align-items: center; justify-content: center;
+      transition: all 120ms ease;
     }
-    .kp-cal__navBtn:hover { background: var(--cream-100); border-color: var(--stone-400); }
+    .kp-cal__navBtn:hover { background: var(--rouge-500); border-color: var(--rouge-500); color: #fff; }
     .kp-cal__navBtn i { width: 20px; height: 20px; }
     .kp-cal__monthLabel {
       font-family: var(--font-display);
@@ -430,6 +440,18 @@
       min-width: 200px;
       text-align: center;
       color: var(--ink);
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      justify-content: center;
+    }
+    .kp-cal__monthLabel::after {
+      content: '';
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--rouge-500);
+      align-self: flex-end;
+      margin-bottom: 4px;
     }
     .kp-cal__weekdays {
       display: grid;
@@ -452,7 +474,7 @@
       position: relative;
       min-height: 110px;
       border-radius: 10px;
-      border: 1px solid transparent;
+      border: 1px solid var(--stone-100);
       background: var(--cream-100);
       display: flex;
       flex-direction: column;
@@ -460,19 +482,29 @@
       color: var(--ink);
       font-size: 13px;
       font-weight: 500;
-      transition: background 120ms ease, border-color 120ms ease;
+      transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
       padding: 6px 6px 4px;
       overflow: hidden;
     }
-    .kp-cal__cell:hover { background: var(--cream-200, #ece4d8); }
-    .kp-cal__cell--other { color: var(--stone-400); background: transparent; cursor: default; }
-    .kp-cal__cell--other:hover { background: transparent; }
+    .kp-cal__cell:hover {
+      background: var(--rouge-50);
+      border-color: var(--rouge-100);
+      transform: translateY(-1px);
+    }
+    .kp-cal__cell--other { color: var(--stone-400); background: transparent; border-color: transparent; cursor: default; }
+    .kp-cal__cell--other:hover { background: transparent; border-color: transparent; transform: none; }
+    .kp-cal__cell--today {
+      background: var(--rouge-50);
+      border-color: var(--rouge-300);
+    }
     .kp-cal__cell--today .kp-cal__num { color: var(--rouge-500); }
+    .kp-cal__cell--hasBookings { background: #fff; }
     .kp-cal__num {
       font-size: 12px;
       font-weight: 700;
       align-self: flex-start;
       margin-bottom: 4px;
+      color: var(--ink);
     }
     .kp-cal__chips {
       display: flex;
@@ -484,10 +516,11 @@
     .kp-cal__chip {
       display: flex;
       align-items: center;
-      gap: 4px;
-      padding: 2px 6px;
+      gap: 5px;
+      padding: 2px 6px 2px 5px;
       border-radius: 6px;
-      background: rgba(255,255,255,0.8);
+      background: var(--cream-50);
+      border-left: 3px solid var(--chip-color, var(--rouge-500));
       font-size: 10px;
       font-weight: 500;
       color: var(--ink);
@@ -495,22 +528,22 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .kp-cal__chip__dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .kp-cal__chip__time { font-weight: 700; }
+    .kp-cal__chip__time { font-weight: 700; color: var(--ink); }
     .kp-cal__chip__name {
       overflow: hidden;
       text-overflow: ellipsis;
       min-width: 0;
+      color: var(--fg-muted);
     }
     .kp-cal__more {
       font-size: 10px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--rouge-500);
       align-self: flex-start;
       padding: 2px 4px;
+      background: var(--rouge-50);
+      border-radius: 4px;
+      margin-top: 2px;
     }
     .kp-cal__cell--other .kp-cal__chips,
     .kp-cal__cell--other .kp-cal__more { display: none; }
@@ -536,12 +569,21 @@
       max-height: 80vh;
       overflow-y: auto;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      position: relative;
+      overflow-x: hidden;
+    }
+    .kp-cal__modal__card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--rouge-500), var(--rouge-300) 60%, var(--rouge-100));
     }
     .kp-cal__modal__head {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 18px;
+      margin: 4px 0 18px;
     }
     .kp-cal__modal__title {
       margin: 0;
@@ -549,26 +591,31 @@
       font-weight: 600;
       font-size: 20px;
       text-transform: capitalize;
+      color: var(--ink);
     }
     .kp-cal__modal__close {
-      background: transparent;
+      width: 32px; height: 32px;
+      background: var(--cream-100);
       border: 0;
-      padding: 6px;
+      border-radius: 999px;
+      padding: 0;
       cursor: pointer;
       color: var(--fg-muted);
+      display: inline-flex; align-items: center; justify-content: center;
     }
-    .kp-cal__modal__close:hover { color: var(--ink); }
+    .kp-cal__modal__close:hover { background: var(--rouge-50); color: var(--rouge-500); }
     .kp-cal__modal__list { display: flex; flex-direction: column; gap: 10px; }
     .kp-cal__modal__item {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 12px 14px;
-      background: var(--cream-100);
+      padding: 12px 14px 12px 18px;
+      background: #fff;
       border-radius: 10px;
+      border-left: 4px solid var(--item-color, var(--rouge-500));
       font-size: 14px;
     }
-    .kp-cal__modal__time { font-weight: 700; min-width: 56px; }
+    .kp-cal__modal__time { font-weight: 700; min-width: 56px; color: var(--ink); }
     .kp-cal__modal__main { flex: 1; min-width: 0; }
     .kp-cal__modal__customer { font-weight: 600; color: var(--ink); }
     .kp-cal__modal__service { font-size: 13px; color: var(--fg-muted); margin-top: 2px; }
@@ -3935,6 +3982,7 @@
         var classes = ['kp-cal__cell'];
         if (iso === todayIso) classes.push('kp-cal__cell--today');
         var items = byDay[iso] || [];
+        if (items.length) classes.push('kp-cal__cell--hasBookings');
         var chipsHtml = '';
         var visible = Math.min(items.length, 3);
         for (var c = 0; c < visible; c++) {
@@ -3942,8 +3990,7 @@
           var color = stylistColor(b.team_member_id);
           var time = fmtClock(new Date(b.start_at));
           var name = stylistName(b);
-          chipsHtml += '<span class="kp-cal__chip">' +
-            '<span class="kp-cal__chip__dot" style="background:' + color + '"></span>' +
+          chipsHtml += '<span class="kp-cal__chip" style="--chip-color:' + color + '">' +
             '<span class="kp-cal__chip__time">' + time + '</span>' +
             '<span class="kp-cal__chip__name">' + escapeHtml(name) + '</span>' +
           '</span>';
@@ -3990,7 +4037,7 @@
           var who = b.customer_name || b.guest_name || 'Kunde';
           var sn = stylistName(b);
           var color = stylistColor(b.team_member_id);
-          return '<div class="kp-cal__modal__item">' +
+          return '<div class="kp-cal__modal__item" style="--item-color:' + color + '">' +
             '<span class="kp-cal__modal__time">' + fmtClock(start) + '</span>' +
             '<div class="kp-cal__modal__main">' +
               '<div class="kp-cal__modal__customer">' + escapeHtml(who) + '</div>' +
