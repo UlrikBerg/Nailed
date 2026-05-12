@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kontakt oss — nailed</title>
+  <meta name="description" content="Skriv til oss på hei@nailed.no eller bruk skjemaet. Vi er folk, og vi leser hver melding." />
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preload" as="image" href="assets/logo-wordmark.svg?v=6">
+  <style>
+    .kontakt-hero {
+      padding: 80px 0 32px;
+      text-align: center;
+    }
+    .kontakt-hero__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(40px, 6vw, 64px);
+      letter-spacing: -0.03em;
+      line-height: 1.06;
+      margin: 0 auto 20px;
+      color: var(--ink);
+      max-width: 14ch;
+    }
+    .kontakt-hero__title em {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rouge-500);
+    }
+    .kontakt-hero__lead {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-size: clamp(18px, 2vw, 22px);
+      line-height: 1.5;
+      color: var(--stone-700);
+      max-width: 48ch;
+      margin: 0 auto;
+    }
+    .kontakt-email {
+      text-align: center;
+      padding: 8px 0 56px;
+    }
+    .kontakt-email__label {
+      font-family: var(--font-body);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--fg-muted);
+      margin-bottom: 10px;
+    }
+    .kontakt-email__link {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: clamp(22px, 3vw, 28px);
+      color: var(--rouge-500);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: border-color .15s ease;
+    }
+    .kontakt-email__link:hover { border-color: var(--rouge-500); }
+
+    .kontakt-section {
+      padding: 0 0 96px;
+    }
+    .kontakt-form-wrap {
+      max-width: 620px;
+      margin: 0 auto;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+    }
+    .kontakt-form__head {
+      margin-bottom: 24px;
+    }
+    .kontakt-form__head h2 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 24px;
+      letter-spacing: -0.01em;
+      margin: 0 0 6px;
+    }
+    .kontakt-form__head p {
+      font-size: 14px;
+      color: var(--fg-muted);
+      margin: 0;
+    }
+    .kontakt-field { margin-bottom: 18px; }
+    .kontakt-field__label {
+      display: block;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .kontakt-field__input,
+    .kontakt-field__select,
+    .kontakt-field__textarea {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      padding: 11px 14px;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .kontakt-field__input:focus,
+    .kontakt-field__select:focus,
+    .kontakt-field__textarea:focus {
+      outline: none;
+      border-color: var(--rouge-300);
+      box-shadow: 0 0 0 3px var(--rouge-50);
+    }
+    .kontakt-field__textarea {
+      min-height: 140px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    .kontakt-hp {
+      position: absolute;
+      left: -9999px;
+      width: 1px; height: 1px;
+      opacity: 0;
+    }
+    .kontakt-submit { margin-top: 8px; }
+    .kontakt-feedback {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      display: none;
+    }
+    .kontakt-feedback--ok {
+      background: var(--success-50);
+      color: var(--success-700);
+      border: 1px solid var(--success-200);
+    }
+    .kontakt-feedback--err {
+      background: #FDECEC;
+      color: #8C2A2A;
+      border: 1px solid #F4C5C5;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="/">
+        <img src="assets/logo-wordmark.svg?v=6" alt="nailed" />
+      </a>
+      <nav class="top-nav__links">
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
+      </nav>
+      <div class="top-nav__actions">
+        <a href="favoritter" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login" class="btn btn-ghost btn-sm">Logg inn</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="kontakt-hero">
+    <div class="page">
+      <h1 class="kontakt-hero__title">Si <em>hei.</em></h1>
+      <p class="kontakt-hero__lead">
+        Vi er folk, ikke et call-senter. Skriv hva som er på hjertet — spørsmål, skryt, klage, idé.
+        Vi leser hver e-post, og prøver å svare innen et par dager.
+      </p>
+    </div>
+  </section>
+
+  <!-- E-post -->
+  <section class="kontakt-email">
+    <div class="page">
+      <div class="kontakt-email__label">Skriv direkte til oss</div>
+      <a class="kontakt-email__link" href="mailto:hei@nailed.no">hei@nailed.no</a>
+    </div>
+  </section>
+
+  <!-- Skjema -->
+  <section class="kontakt-section">
+    <div class="page">
+      <div class="kontakt-form-wrap">
+        <div class="kontakt-form__head">
+          <h2>Eller bruk skjemaet</h2>
+          <p>Vi svarer på e-postadressen du oppgir.</p>
+        </div>
+
+        <form id="kontaktForm" novalidate>
+          <div class="kontakt-field">
+            <label class="kontakt-field__label" for="kontaktName">Navn</label>
+            <input class="kontakt-field__input" type="text" id="kontaktName" name="name" required maxlength="100" autocomplete="name" />
+          </div>
+
+          <div class="kontakt-field">
+            <label class="kontakt-field__label" for="kontaktEmail">E-post</label>
+            <input class="kontakt-field__input" type="email" id="kontaktEmail" name="email" required maxlength="200" autocomplete="email" />
+          </div>
+
+          <div class="kontakt-field">
+            <label class="kontakt-field__label" for="kontaktTopic">Emne</label>
+            <select class="kontakt-field__select" id="kontaktTopic" name="topic">
+              <option value="generelt">Generelt</option>
+              <option value="kunde">Som kunde</option>
+              <option value="salong">Som salong</option>
+              <option value="bug">Bug / feil</option>
+              <option value="annet">Annet</option>
+            </select>
+          </div>
+
+          <div class="kontakt-field">
+            <label class="kontakt-field__label" for="kontaktMessage">Melding</label>
+            <textarea class="kontakt-field__textarea" id="kontaktMessage" name="message" required minlength="10" maxlength="5000"></textarea>
+          </div>
+
+          <!-- Honeypot — bots fyller det inn, mennesker ser det ikke -->
+          <input class="kontakt-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+          <button class="btn btn-primary btn-lg kontakt-submit" type="submit" id="kontaktSubmit">
+            Send melding
+          </button>
+
+          <div class="kontakt-feedback kontakt-feedback--ok" id="kontaktOk">
+            Takk! Vi har mottatt meldingen din og svarer så snart vi kan.
+          </div>
+          <div class="kontakt-feedback kontakt-feedback--err" id="kontaktErr">
+            Noe gikk galt. Send oss gjerne en e-post direkte til <a href="mailto:hei@nailed.no" style="color:inherit; text-decoration:underline;">hei@nailed.no</a>.
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer id="siteFooter"></footer>
+  <script defer src="/assets/footer.js"></script>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script defer src="/assets/cookie-banner.js"></script>
+  <script src="/assets/auth.js"></script>
+  <script defer src="/assets/nav.js"></script>
+  <script>
+    lucide.createIcons();
+    var nav = document.getElementById('topNav');
+    window.addEventListener('scroll', function () {
+      nav.classList.toggle('scrolled', window.scrollY > 30);
+    });
+
+    var form = document.getElementById('kontaktForm');
+    var ok = document.getElementById('kontaktOk');
+    var err = document.getElementById('kontaktErr');
+    var submit = document.getElementById('kontaktSubmit');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      ok.style.display = 'none';
+      err.style.display = 'none';
+      submit.disabled = true;
+      submit.textContent = 'Sender …';
+
+      var body = {
+        name:    document.getElementById('kontaktName').value.trim(),
+        email:   document.getElementById('kontaktEmail').value.trim(),
+        topic:   document.getElementById('kontaktTopic').value,
+        message: document.getElementById('kontaktMessage').value.trim(),
+        website: form.elements.namedItem('website').value,
+      };
+
+      try {
+        var res = await fetch('/api/v1/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error('http_' + res.status);
+        ok.style.display = 'block';
+        form.reset();
+      } catch (_) {
+        err.style.display = 'block';
+      } finally {
+        submit.disabled = false;
+        submit.textContent = 'Send melding';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -29,7 +29,7 @@
         '<a href="/personvern">Personvern</a>' +
         '<a href="/vilkar">Bruksvilkår</a>' +
         '<a href="/cookies">Cookies</a>' +
-        '<a href="mailto:hei@nailed.no">Kontakt oss</a>' +
+        '<a href="/kontakt">Kontakt oss</a>' +
       '</div>' +
       '<div class="footer__bottom">' +
         '<small>&copy; 2026 Nailed av Berg Event &middot; Made in Oslo</small>' +
