@@ -193,8 +193,18 @@ function buildApp() {
   app.use('/api/v1/track', trackRoutes);
   app.use('/api/v1/contact', contactRoutes);
 
-  // 404 for unknown /api/v1/* — let static handler reply for everything else.
+  // 404 for unknown /api/v1/* — returnerer JSON-feil.
   app.use('/api/v1', notFound);
+
+  // Custom 404-side for ukjente ikke-API-ruter. Static handler over kjørte
+  // allerede `extensions: ['html']` — alt som matchet en fil ble servert.
+  // Det som havner her er ekte 404-er (ingen fil + ingen API-rute).
+  app.use((req, res, next) => {
+    // Skipp gif/jpg/etc — la nettleser få sin standard 404.
+    if (/\.[a-z0-9]+$/i.test(req.path)) return next();
+    res.status(404).sendFile(path.join(__dirname, '..', '404.html'));
+  });
+
   app.use(errorHandler);
 
   return app;

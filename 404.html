@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Siden finnes ikke — nailed</title>
+  <meta name="description" content="Siden du leter etter finnes ikke. Gå tilbake til forsiden eller utforsk salonger." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#FBF6EE" />
+  <link rel="icon" href="assets/logo-mark.svg" />
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Nailed">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preload" as="image" href="assets/logo-wordmark.svg?v=6">
+  <style>
+    .nf {
+      min-height: calc(100dvh - 64px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+    }
+    .nf__card {
+      max-width: 520px;
+      text-align: center;
+    }
+    .nf__code {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-size: clamp(96px, 18vw, 168px);
+      font-weight: 400;
+      line-height: 1;
+      color: var(--rouge-500);
+      margin: 0 0 16px;
+      letter-spacing: -0.04em;
+    }
+    .nf__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(28px, 4vw, 40px);
+      letter-spacing: -0.02em;
+      margin: 0 0 12px;
+      color: var(--ink);
+    }
+    .nf__desc {
+      font-size: 16px;
+      color: var(--fg-muted);
+      max-width: 38ch;
+      margin: 0 auto 28px;
+      line-height: 1.5;
+    }
+    .nf__actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-nav" id="topNav">
+    <div class="page top-nav__inner">
+      <a class="top-nav__brand" href="/">
+        <img src="assets/logo-wordmark.svg?v=6" alt="nailed" />
+      </a>
+      <nav class="top-nav__links">
+        <a href="utforsk">Utforsk</a>
+        <a href="for-salonger">For salonger</a>
+        <a href="last-ned-app">Last ned app</a>
+      </nav>
+      <div class="top-nav__actions">
+        <a href="favoritter" class="btn-icon"><i data-lucide="heart"></i></a>
+        <a href="login" class="btn btn-ghost btn-sm">Logg inn</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="nf">
+    <div class="page">
+      <div class="nf__card">
+        <div class="nf__code">404</div>
+        <h1 class="nf__title">Denne siden finnes ikke.</h1>
+        <p class="nf__desc">
+          Lenken er kanskje gått ut på dato — eller du har truffet feil tast. Vi tar deg
+          dit du skal.
+        </p>
+        <div class="nf__actions">
+          <a href="/" class="btn btn-primary btn-lg">Til forsiden</a>
+          <a href="/utforsk" class="btn btn-ghost btn-lg">Utforsk salonger</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="siteFooter"></footer>
+  <script defer src="/assets/footer.js"></script>
+  <script defer src="/assets/bottom-nav.js"></script>
+  <script defer src="/assets/keyboard-inset.js"></script>
+  <script defer src="/assets/pwa.js"></script>
+  <script defer src="/assets/install-prompt.js"></script>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="/assets/auth.js"></script>
+  <script defer src="/assets/cookie-banner.js"></script>
+  <script defer src="/assets/nav.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
