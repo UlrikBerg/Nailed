@@ -922,14 +922,14 @@
                  '</div>';
       serviceList.insertAdjacentHTML('beforeend', html);
 
-      // På mobil: scroll til toppen av bookingpanelet, ikke til ad-hoc-card-en
-      // selv. Det gir brukeren en naturlig start på bookingflyten uten å
-      // overshoote, og kompenserer for sticky top-nav (~70 px).
+      // På mobil: scroll til selve «Valgt behandling»-card-en — ikke bookingpanel-
+      // toppen — så brukeren lander rett på det de nettopp valgte. ~100 px
+      // fra toppen plasserer kortet rett under top-nav-en uten å overshoote.
       if (window.matchMedia('(max-width: 900px)').matches) {
-        var panel = document.querySelector('.booking-panel');
-        if (panel) {
+        var card = serviceList.querySelector('.service-list__adhoc');
+        if (card) {
           setTimeout(function () {
-            var top = panel.getBoundingClientRect().top + window.scrollY - 70;
+            var top = card.getBoundingClientRect().top + window.scrollY - 100;
             window.scrollTo({ top: top, behavior: 'smooth' });
           }, 50);
         }
