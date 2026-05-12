@@ -283,7 +283,13 @@
       }
 
       var favs = (data && data.favorites) || [];
-      if (favs.length === 0) {
+      // Cookie-baserte anonyme favoritter (lagret før innlogging eller på
+      // tvers av enheter uten innlogging). Vis dem som egen seksjon med
+      // mulighet til å migrere til kontoen.
+      var serverIds = new Set(favs.map(function (f) { return f.id; }));
+      var anonSlugs = (typeof getFavorites === 'function') ? getFavorites() : [];
+
+      if (favs.length === 0 && anonSlugs.length === 0) {
         grid.style.display = 'none';
         empty.style.display = '';
         countEl.textContent = 'Du har ingen favoritter ennå.';
@@ -296,10 +302,58 @@
         return;
       }
 
-      grid.style.display = '';
-      empty.style.display = 'none';
-      countEl.textContent = favs.length + (favs.length === 1 ? ' lagret salong' : ' lagrede salonger');
-      grid.innerHTML = favs.map(buildFavCard).join('');
+      if (favs.length > 0) {
+        grid.style.display = '';
+        empty.style.display = 'none';
+        countEl.textContent = favs.length + (favs.length === 1 ? ' lagret salong' : ' lagrede salonger');
+        grid.innerHTML = favs.map(buildFavCard).join('');
+      } else {
+        grid.style.display = 'none';
+        countEl.textContent = anonSlugs.length + ' favoritter på denne enheten — ikke lagret i kontoen din ennå.';
+      }
+
+      // Fyll inn cookie-favoritter (anon) som en sekundær seksjon. Hopp
+      // over slugs som ikke matcher en aktiv salong eller som allerede er
+      // lagret i kontoen.
+      if (anonSlugs.length) {
+        Promise.all(anonSlugs.map(function (slug) {
+          return fetch('/api/v1/salons/' + encodeURIComponent(slug))
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (j) { return j && j.salon ? j.salon : null; })
+            .catch(function () { return null; });
+        })).then(function (results) {
+          var fresh = results.filter(function (s) { return s && !serverIds.has(s.id); });
+          if (!fresh.length) return;
+          var anonGrid = document.getElementById('favAnonGrid');
+          anonGrid.innerHTML = fresh.map(buildFavCard).join('');
+          document.getElementById('favAnonExtra').style.display = '';
+          // Bind heart-klikk → flytter anon-favoritten til kontoen via POST.
+          anonGrid.querySelectorAll('.service-card__heart').forEach(function (btn) {
+            btn.addEventListener('click', async function (e) {
+              e.stopPropagation();
+              e.preventDefault();
+              var id = parseInt(btn.dataset.salonId, 10);
+              if (!Number.isFinite(id)) return;
+              btn.disabled = true;
+              try {
+                var res = await NailedAuth.api('/api/v1/favorites', { method: 'POST', body: { salon_id: id } });
+                if (res && res.ok) {
+                  // Fjern slug fra cookie så vi ikke ber om migrasjon igjen.
+                  var slug = (results.find(function (s) { return s && s.id === id; }) || {}).slug;
+                  if (slug && typeof saveFavorites === 'function') {
+                    saveFavorites(getFavorites().filter(function (s) { return s !== slug; }));
+                  }
+                  await loadServerFavorites();
+                }
+              } catch (_) {}
+              btn.disabled = false;
+            });
+          });
+          window.lucide && window.lucide.createIcons();
+        });
+      }
+
+      if (favs.length === 0) return; // bind nothing for the empty server grid
 
       // Bind heart buttons → DELETE favorite.
       grid.querySelectorAll('.service-card__heart').forEach(function (btn) {
