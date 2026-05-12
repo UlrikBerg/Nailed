@@ -8,7 +8,7 @@
 //
 // Cache-versjon bumpes når vi vil tvinge ny precache (bumpes ved deploy).
 
-var CACHE_VERSION = 'nailed-v4';
+var CACHE_VERSION = 'nailed-v5';
 var SHELL = [
   '/',
   '/utforsk',

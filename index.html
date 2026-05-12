@@ -142,6 +142,7 @@
         Finn salong, velg behandling og tid — og book din time.
       </p>
       <div class="hero__search-wrap">
+        <!-- Desktop: full pill med Hva | Hvor | Søk side-by-side -->
         <form class="search-bar" id="heroSearchForm" action="/utforsk" method="get">
           <div class="search-bar__field">
             <i data-lucide="sparkles" class="search-bar__field-icon"></i>
@@ -162,6 +163,13 @@
             <i data-lucide="search"></i>
           </button>
         </form>
+
+        <!-- Mobil: kompakt trigger som åpner full-screen søk-overlay.
+             Skjules over 720 px via CSS. -->
+        <button type="button" class="hero__search-trigger" id="heroSearchTrigger" aria-label="Søk salonger">
+          <i data-lucide="search" class="hero__search-trigger__icon"></i>
+          <span class="hero__search-trigger__text">Hva trenger du?</span>
+        </button>
       </div>
       <div class="hero__quick">
         <span class="eyebrow">Populært:</span>
@@ -271,6 +279,39 @@
   <!-- ============================================================
        Footer
        ============================================================ -->
+  <!-- Mobil-søk-overlay (åpnes fra .hero__search-trigger).
+       Holdes utenfor .hero så fixed positioning ikke kolliderer med stacking. -->
+  <div class="search-overlay" id="searchOverlay" aria-hidden="true">
+    <div class="search-overlay__head">
+      <button type="button" class="search-overlay__close" id="searchOverlayClose" aria-label="Lukk">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <h2 class="search-overlay__title">Søk</h2>
+    </div>
+    <form class="search-overlay__form" id="searchOverlayForm" action="/utforsk" method="get">
+      <label class="search-overlay__field">
+        <span class="search-overlay__label">Hva</span>
+        <input type="text" name="q" id="searchOverlayQ" placeholder="Behandling — f.eks. gel manikyr" autocomplete="off" />
+      </label>
+      <label class="search-overlay__field">
+        <span class="search-overlay__label">Hvor</span>
+        <input type="text" name="city" id="searchOverlayCity" placeholder="By eller sted" autocomplete="off" />
+      </label>
+      <div class="search-overlay__quick">
+        <span class="eyebrow" style="display:block; margin-bottom: 10px;">Populært</span>
+        <div class="search-overlay__quick-chips">
+          <a class="chip" href="/utforsk?q=Gel+manikyr">Gel manikyr</a>
+          <a class="chip" href="/utforsk?q=Klassiske+vipper">Klassiske vipper</a>
+          <a class="chip" href="/utforsk?q=Brynsfarge">Brynsfarge</a>
+          <a class="chip" href="/utforsk?q=Brudemakeup">Brudemakeup</a>
+          <a class="chip" href="/utforsk?q=Negler">Negler</a>
+          <a class="chip" href="/utforsk?q=Vipper">Vipper</a>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg search-overlay__submit">Søk</button>
+    </form>
+  </div>
+
   <footer id="siteFooter"></footer>
   <script defer src="/assets/footer.js"></script>
   <script defer src="/assets/bottom-nav.js"></script>
@@ -325,6 +366,45 @@
         if (city) parts.push('city=' + encodeURIComponent(city));
         var qs = parts.length ? '?' + parts.join('&') : '';
         window.location.href = '/utforsk' + qs;
+      });
+    })();
+
+    // Mobil-søk-overlay: åpne, lukk, send.
+    (function () {
+      var trigger = document.getElementById('heroSearchTrigger');
+      var overlay = document.getElementById('searchOverlay');
+      var closeBtn = document.getElementById('searchOverlayClose');
+      var form = document.getElementById('searchOverlayForm');
+      var qInput = document.getElementById('searchOverlayQ');
+      if (!trigger || !overlay || !form) return;
+
+      function open() {
+        overlay.classList.add('is-open');
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('search-overlay-open');
+        // Auto-fokus Hva-input etter at slide-in er ferdig
+        setTimeout(function () { qInput && qInput.focus(); }, 320);
+      }
+      function close() {
+        overlay.classList.remove('is-open');
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('search-overlay-open');
+        if (qInput) qInput.blur();
+      }
+      trigger.addEventListener('click', open);
+      closeBtn.addEventListener('click', close);
+      // Esc-tast lukker (desktop test)
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && overlay.classList.contains('is-open')) close();
+      });
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var q = (qInput.value || '').trim();
+        var city = (document.getElementById('searchOverlayCity').value || '').trim();
+        var parts = [];
+        if (q) parts.push('q=' + encodeURIComponent(q));
+        if (city) parts.push('city=' + encodeURIComponent(city));
+        window.location.href = '/utforsk' + (parts.length ? '?' + parts.join('&') : '');
       });
     })();
 
