@@ -416,6 +416,18 @@ ALTER TABLE salons
 ALTER TABLE salons
   ADD COLUMN IF NOT EXISTS onboarding_skipped TINYINT(1) NOT NULL DEFAULT 0;
 
+-- Subscription / billing skeleton (V1 launch: 149 kr/mnd flat, 30 dagers
+-- gratis prøveperiode, ingen bindingstid). Faktisk Stripe/Vipps-betaling
+-- legges til senere — disse kolonnene gir oss state-maskinen vi trenger
+-- for å vise riktig UI og fakturere fra-dato.
+ALTER TABLE salons
+  ADD COLUMN IF NOT EXISTS subscription_status ENUM('trial','active','past_due','cancelled','none')
+    NOT NULL DEFAULT 'trial',
+  ADD COLUMN IF NOT EXISTS subscription_price_nok INT NOT NULL DEFAULT 149,
+  ADD COLUMN IF NOT EXISTS trial_ends_at DATETIME DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS subscription_started_at DATETIME DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS subscription_cancelled_at DATETIME DEFAULT NULL;
+
 -- Per-date closures (vacation, holidays, …). One row per closed date.
 CREATE TABLE IF NOT EXISTS salon_closures (
   id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
