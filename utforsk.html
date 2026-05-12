@@ -1637,6 +1637,7 @@
 
     function styleHeartBtn(btn, active) {
       var icon = btn.querySelector('i') || btn.querySelector('svg');
+      var wasActive = btn.classList.contains('is-favorite');
       if (active) {
         btn.classList.add('is-favorite');
         btn.setAttribute('aria-pressed', 'true');
@@ -1646,8 +1647,14 @@
           icon.setAttribute('fill', '#EE3F7E');
           icon.style.stroke = '#EE3F7E';
         }
+        // Pulse-animasjon kun ved overgang tom → favoritt (ikke ved første render).
+        if (!wasActive) {
+          btn.classList.add('is-pulsing');
+          setTimeout(function () { btn.classList.remove('is-pulsing'); }, 450);
+        }
       } else {
         btn.classList.remove('is-favorite');
+        btn.classList.remove('is-pulsing');
         btn.setAttribute('aria-pressed', 'false');
         if (icon) {
           icon.style.color = '';

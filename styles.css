@@ -2647,3 +2647,19 @@ html {
   background: var(--rouge-200);
   border-radius: 3px;
 }
+
+/* =========================================================================
+   Heart-pulse: subtil scale-bounce når bruker legger til favoritt.
+   Klassen .is-pulsing settes på JS, fjernes etter animasjonen.
+   ========================================================================= */
+
+@keyframes heart-pulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.28); }
+  70%  { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
+.service-card__heart.is-pulsing,
+.favorite-btn.is-pulsing {
+  animation: heart-pulse 420ms cubic-bezier(.22,.61,.36,1);
+}
