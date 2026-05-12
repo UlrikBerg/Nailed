@@ -4,11 +4,65 @@ const { pool, query, queryOne, tx } = require('../db');
 const { requireRole } = require('../middleware/auth');
 const { asyncRoute, HttpError, slugify, randomBase64Url } = require('../lib/util');
 const geocode = require('../lib/geocode');
+const T = require('../lib/notify/templates');
+const { sendEmail } = require('../lib/notify/email');
 
 const router = express.Router();
 
 // All admin routes require role=admin.
 router.use(requireRole('admin'));
+
+// POST /admin/email-samples — sender en eksempel-render av hver mal til
+// gitt mottaker. Body: { to: "mail@..." }. Brukes til design-review.
+router.post('/email-samples', asyncRoute(async (req, res) => {
+  const schema = z.object({ to: z.string().email() });
+  const { to } = schema.parse(req.body || {});
+
+  const startAt = new Date(Date.now() + 26 * 60 * 60 * 1000);
+  const endAt = new Date(startAt.getTime() + 45 * 60 * 1000);
+  const salon = {
+    id: 1, slug: '7-sma-rom', name: '7 Små Rom',
+    address_line: 'Storgata 12', postal_code: '1771', city: 'Halden',
+    public_phone: '+47 90 12 34 56', cancellation_lead_hours: 24,
+    booking_confirmation_text: 'Inngang fra bakgården. Vi har stoppeklokke på alle behandlinger.',
+  };
+  const baseCtx = {
+    bookingId: 12345, salon, salonName: salon.name,
+    serviceName: 'Klassisk vippeløft', durationMin: 45, priceNok: 750,
+    startAt, endAt,
+    customerName: 'Ulrik Theodor', customerDisplayName: 'Ulrik T.',
+    customerEmail: to, customerPhone: '+47 99 88 77 66',
+    teamMemberName: 'Katrine', isGuest: false, isSeries: false,
+    cancelReason: 'Stylist syk',
+  };
+  const samples = [
+    ['bookingCreatedCustomer',   'Kundebekreftelse'],
+    ['bookingCreatedOwner',      'Salongeier: ny booking'],
+    ['bookingCreatedTeam',       'Teammedlem: ny booking'],
+    ['bookingConfirmedCustomer', 'Kunde: bekreftet'],
+    ['bookingCancelledCustomer', 'Kunde: avlyst av salong'],
+    ['bookingCancelledOwner',    'Salongeier: kunde avbestilte'],
+    ['bookingCancelledTeam',     'Teammedlem: kunde avbestilte'],
+    ['bookingReminderCustomer',  'Kunde: påminnelse'],
+  ];
+
+  const results = [];
+  for (const [fn, label] of samples) {
+    try {
+      const tpl = T[fn](baseCtx);
+      const r = await sendEmail({
+        to,
+        subject: '[Eksempel: ' + label + '] ' + tpl.subject,
+        html: tpl.html,
+        text: tpl.text,
+      });
+      results.push({ fn, ok: r.ok, id: r.id || null, error: r.error || null });
+    } catch (e) {
+      results.push({ fn, ok: false, error: e.message });
+    }
+  }
+  res.json({ to, results });
+}));
 
 // ----------------------------------------------------------------------------
 // Dashboard counts
