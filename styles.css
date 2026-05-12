@@ -2750,3 +2750,25 @@ html {
   .acc__chev { display: none; }
   .acc__body > * { padding-top: 12px; }
 }
+
+/* =========================================================================
+   Salongside mobil-justeringer:
+   - Mindre topp-padding så «Tilbake til utforsk» sitter nært logoen
+   - Kompakte amenity-chips for å spare plass
+   ========================================================================= */
+
+@media (max-width: 720px) {
+  .salon-detail { padding: 8px 0 64px; }
+  .salon-back-link { padding: 8px 0 8px; font-size: 13px; }
+  .salon-share-btn { min-height: 32px; padding: 6px 12px; font-size: 13px; }
+
+  /* Amenity-chips: kompakte tags, 2 kolonner pakke seg tett, ikke touch-targets. */
+  .salon-detail__chips .chip {
+    padding: 5px 10px;
+    font-size: 12px;
+    min-height: 28px;
+    gap: 5px;
+  }
+  .salon-detail__chips .chip i { width: 13px; height: 13px; }
+  .salon-detail__chips { gap: 6px; margin: 16px 0; }
+}

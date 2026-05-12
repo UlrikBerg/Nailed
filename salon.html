@@ -889,8 +889,8 @@
         existing.classList.add('active');
         return;
       }
-      // Non-popular service: rebuild the ad-hoc card at the BOTTOM. Wrap in
-      // a labelled section so it visually stands apart from the popular list.
+      // Non-popular service: rebuild the ad-hoc card at the BOTTOM. Wrap i
+      // en labelled section så det visuelt skiller seg fra populær-listen.
       clearAdhocCard();
       var name = escapeHtml(svc.name || '');
       var dur = (svc.duration_min != null) ? escapeHtml(String(svc.duration_min)) + ' min' : '';
@@ -903,6 +903,16 @@
                   '</div>' +
                  '</div>';
       serviceList.insertAdjacentHTML('beforeend', html);
+      // Scroll til den nye «Valgt behandling»-card-en på mobil — bookingpanelet
+      // sitter da øverst og brukeren ser umiddelbart at valget er registrert.
+      if (window.matchMedia('(max-width: 900px)').matches) {
+        var newCard = serviceList.querySelector('.service-list__adhoc');
+        if (newCard) {
+          setTimeout(function () {
+            newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 50);
+        }
+      }
     }
 
     // Toggle: re-clicking the same service deselects it; otherwise switch.
