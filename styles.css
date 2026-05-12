@@ -2181,7 +2181,7 @@ p { margin: 0 0 var(--space-4) 0; }
   line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--cream-50);
-  max-width: 22ch;
+  max-width: 44ch;
 }
 .home-prefooter__title em {
   font-family: var(--font-editorial);
