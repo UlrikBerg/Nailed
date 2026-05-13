@@ -1783,9 +1783,31 @@
     @media (max-width: 900px) {
       .analytics-grid { grid-template-columns: 1fr; }
     }
+    @media (max-width: 720px) {
+      .analytics-grid { gap: 12px; }
+      .analytics-card { padding: 16px 14px; }
+      .analytics-card__head { margin-bottom: 10px; flex-wrap: wrap; gap: 4px; }
+      .analytics-card__title { font-size: 15px; }
+      .bar-chart__row { grid-template-columns: 42px 1fr 36px; gap: 6px; font-size: 12px; }
+      .data-table { font-size: 13px; }
+      .data-table thead th { padding: 0 10px 10px; font-size: 10px; }
+      .data-table tbody td { padding: 12px 10px; }
+    }
     .analytics-card {
       background: var(--cream-50); border: 1px solid var(--stone-200);
       border-radius: var(--radius-lg); padding: 20px;
+      min-width: 0;
+    }
+    /* Horisontal scroll-container for data-tables så de ikke sprenger
+       analytics-kortet på smalere skjermer. */
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 0 -4px;
+    }
+    .table-scroll::-webkit-scrollbar { height: 4px; }
+    .table-scroll::-webkit-scrollbar-thumb {
+      background: var(--stone-200); border-radius: 999px;
     }
     .analytics-card__head {
       display: flex; align-items: center; justify-content: space-between;
@@ -2136,7 +2158,7 @@
       <!-- Greeting hero -->
       <div class="kp-hero">
         <div>
-          <h1 class="kp-hero__title">Hei, <em id="greetingName">der</em>!</h1>
+          <h1 class="kp-hero__title">Hei, <em id="greetingName">der</em></h1>
           <p class="kp-hero__sub">Her kan du endre og jobbe med salongen din.</p>
           <!-- greetingSalon beholdes som usynlig fallback så eksisterende JS
                som setter teksten på <em id="greetingSalon"> ikke krasjer. -->
@@ -2491,17 +2513,19 @@
               <h3 class="analytics-card__title">Topp behandlinger</h3>
               <span class="analytics-card__sub">Sortert på antall i valgt periode</span>
             </div>
-            <table class="data-table" id="topServicesTable">
-              <thead>
-                <tr>
-                  <th>Behandling</th>
-                  <th style="width: 90px;">Antall</th>
-                  <th style="width: 110px;">Snittpris</th>
-                  <th style="width: 130px;">Omsetning</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+            <div class="table-scroll">
+              <table class="data-table" id="topServicesTable">
+                <thead>
+                  <tr>
+                    <th>Behandling</th>
+                    <th style="width: 90px;">Antall</th>
+                    <th style="width: 110px;">Snittpris</th>
+                    <th style="width: 130px;">Omsetning</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
             <div id="topServicesEmpty" class="analytics-empty" style="display:none;">
               Ingen data for valgt periode.
             </div>
@@ -2513,18 +2537,20 @@
               <h3 class="analytics-card__title">Topp stylister</h3>
               <span class="analytics-card__sub">Andel av totalt bookede timer</span>
             </div>
-            <table class="data-table" id="topStylistsTable">
-              <thead>
-                <tr>
-                  <th>Navn</th>
-                  <th style="width: 90px;">Antall</th>
-                  <th style="width: 110px;">Andel</th>
-                  <th style="width: 130px;">Omsetning</th>
-                  <th style="width: 110px;">No-show</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+            <div class="table-scroll">
+              <table class="data-table" id="topStylistsTable">
+                <thead>
+                  <tr>
+                    <th>Navn</th>
+                    <th style="width: 90px;">Antall</th>
+                    <th style="width: 110px;">Andel</th>
+                    <th style="width: 130px;">Omsetning</th>
+                    <th style="width: 110px;">No-show</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
           </div>
 
           <!-- Bookinger per ukedag -->
