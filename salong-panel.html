@@ -1704,6 +1704,8 @@
     }
     .sub-card__list li i { width: 16px; height: 16px; color: var(--rouge-500); flex-shrink: 0; }
     .sub-card__note { margin: 0; font-size: 13px; color: var(--fg-muted); font-style: italic; }
+    .sub-card__actions { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--stone-200); }
+    .sub-card__hint { margin: 8px 0 0; font-size: 12px; color: var(--fg-muted); }
     .sub-card__statusPill {
       display: inline-flex;
       align-items: center;
@@ -3402,7 +3404,7 @@
             </div>
           </div>
           <ul class="sub-card__list">
-            <li><i data-lucide="check"></i> 3 måneder gratis prøveperiode</li>
+            <li><i data-lucide="check"></i> 4 måneder gratis prøveperiode</li>
             <li><i data-lucide="check"></i> Ubegrenset bookinger og kunder</li>
             <li><i data-lucide="check"></i> Egen salongprofil + bilder</li>
             <li><i data-lucide="check"></i> E-postvarslinger til deg og kundene</li>
@@ -3410,6 +3412,12 @@
             <li><i data-lucide="check"></i> Ingen bindingstid — si opp når du vil</li>
           </ul>
           <p class="sub-card__note">SMS-påminnelser kommer senere som tilleggspakke.</p>
+          <div class="sub-card__actions" id="subActionsBox" hidden>
+            <button type="button" class="btn btn-primary" id="subRequestInvoiceBtn">
+              <i data-lucide="file-text"></i> Be om faktura
+            </button>
+            <p class="sub-card__hint">Vi sender deg en faktura i Fiken så abonnementet fortsetter etter prøveperioden.</p>
+          </div>
         </div>
 
         <div class="kp-card">
@@ -4621,7 +4629,7 @@
 
       if (status === 'trial') {
         var daysLeft = null;
-        var totalDays = 90; // 3 mnd
+        var totalDays = 120; // 4 mnd
         if (s.trial_ends_at) {
           var endMs = new Date(s.trial_ends_at).getTime();
           var msLeft = endMs - Date.now();
@@ -4632,13 +4640,13 @@
         var primary, secondary = '';
         if (daysLeft != null) {
           if (daysLeft > 0) {
-            primary = '3 måneder gratis prøveperiode — ' + daysLeft + ' dager igjen.';
+            primary = '4 måneder gratis prøveperiode — ' + daysLeft + ' dager igjen.';
             secondary = 'Faktureres ' + price + ' kr/mnd etterpå.';
           } else {
             primary = 'Prøveperioden er over. Velg betaling for å fortsette.';
           }
         } else {
-          primary = '3 måneder gratis prøveperiode.';
+          primary = '4 måneder gratis prøveperiode.';
           secondary = 'Faktureres ' + price + ' kr/mnd etterpå.';
         }
         setPill('trial', 'Prøveperiode');
@@ -4673,6 +4681,23 @@
         if (pillEl) { pillEl.className = 'sub-card__title-pill'; pillEl.textContent = ''; }
         statusEl.textContent = price + ' kr/mnd. Ingen bindingstid.';
       }
+
+      // Vis «Be om faktura»-knapp når abonnementet trenger handling:
+      //  - trial: 14 dager eller mindre igjen
+      //  - past_due / cancelled / none
+      var actionsBox = document.getElementById('subActionsBox');
+      var showActions = false;
+      if (status === 'trial') {
+        // Beregn daysLeft på nytt for å unngå skopproblem
+        var dLeft = null;
+        if (s.trial_ends_at) {
+          dLeft = Math.max(0, Math.ceil((new Date(s.trial_ends_at).getTime() - Date.now()) / 86400000));
+        }
+        if (dLeft != null && dLeft <= 14) showActions = true;
+      } else if (status === 'past_due' || status === 'cancelled' || status === 'none') {
+        showActions = true;
+      }
+      if (actionsBox) actionsBox.hidden = !showActions;
     }
 
     function renderProfileView(s, images) {
@@ -6831,6 +6856,28 @@
       window.location.replace('/');
     }
     document.getElementById('logoutBtn').addEventListener('click', doLogout);
+
+    // Abonnement: «Be om faktura»-knapp → sender e-post til admin
+    (function wireSubInvoice() {
+      var btn = document.getElementById('subRequestInvoiceBtn');
+      if (!btn) return;
+      btn.addEventListener('click', async function () {
+        if (!salon || !salon.id) return;
+        btn.disabled = true;
+        try {
+          var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/request-invoice', {
+            method: 'POST', body: {},
+          });
+          if (res.ok) {
+            NailedForms.toast('Forespørsel sendt — vi sender faktura snart');
+          } else {
+            NailedForms.toast('Kunne ikke sende forespørsel', { type: 'error' });
+          }
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    })();
 
     /* ---------- ANALYSE-FANE ---------- */
 

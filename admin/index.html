@@ -1796,6 +1796,23 @@
           ? '<button class="btn btn-ghost btn-sm" data-act="delete" data-id="' + s.id + '" data-name="' + escapeHtml(s.name) + '" title="Slett salong"><i data-lucide="trash-2"></i></button>'
           : '';
 
+        // Subscription-pill + handlinger
+        var subStatus = s.subscription_status || 'trial';
+        var subLabel = { trial: 'Prøve', active: 'Betalt', past_due: 'Forfalt', cancelled: 'Oppsagt', none: 'Ingen' }[subStatus] || subStatus;
+        var subCls   = { trial: 'status--pending', active: 'status--paid', past_due: 'status--noshow', cancelled: 'status--inactive', none: 'status--inactive' }[subStatus] || 'status--inactive';
+        var subPill  = '<span class="status ' + subCls + '" title="Abonnement">' + subLabel + '</span>';
+        var subBtn;
+        if (subStatus === 'active') {
+          subBtn = '<button class="btn btn-ghost btn-sm" data-act="sub-cancelled" data-id="' + s.id + '"><i data-lucide="x-circle"></i> Marker oppsagt</button>';
+        } else {
+          subBtn = '<button class="btn btn-primary btn-sm" data-act="sub-active" data-id="' + s.id + '"><i data-lucide="check"></i> Marker betalt</button>';
+        }
+        var subInfo = '';
+        if (subStatus === 'trial' && s.trial_ends_at) {
+          var daysLeft = Math.max(0, Math.ceil((new Date(s.trial_ends_at).getTime() - Date.now()) / 86400000));
+          subInfo = ' · Trial ' + daysLeft + ' d igjen';
+        }
+
         return '<div class="ap-row">' +
           '<div class="ap-row__main">' +
             '<div class="ap-row__name">' + escapeHtml(s.name) + '</div>' +
@@ -1803,9 +1820,10 @@
               escapeHtml(s.owner_name || s.owner_email || '--') +
               (s.city ? ' · ' + escapeHtml(s.city) : '') +
               ' · Registrert ' + formatDate(s.created_at) +
+              subInfo +
             '</div>' +
           '</div>' +
-          '<div class="ap-row__actions">' + statusPill(s.status) + profileLink + statusBtn + deleteBtn + '</div>' +
+          '<div class="ap-row__actions">' + statusPill(s.status) + subPill + profileLink + subBtn + statusBtn + deleteBtn + '</div>' +
         '</div>';
       }).join('');
 
@@ -1847,17 +1865,23 @@
 
       btn.disabled = true;
       try {
-        var url = '/api/v1/admin/salons/' + id + (act === 'delete' ? '' : '/' + act);
-        var fetchOpts = { method: act === 'delete' ? 'DELETE' : 'POST' };
-        if (act === 'suspend' && suspendReason) fetchOpts.body = { reason: suspendReason };
+        var url, fetchOpts, label;
+        if (act === 'sub-active' || act === 'sub-cancelled') {
+          var newStatus = act === 'sub-active' ? 'active' : 'cancelled';
+          url = '/api/v1/admin/salons/' + id + '/subscription';
+          fetchOpts = { method: 'PATCH', body: { status: newStatus } };
+          label = act === 'sub-active' ? 'Markert som betalt' : 'Markert som oppsagt';
+        } else {
+          url = '/api/v1/admin/salons/' + id + (act === 'delete' ? '' : '/' + act);
+          fetchOpts = { method: act === 'delete' ? 'DELETE' : 'POST' };
+          if (act === 'suspend' && suspendReason) fetchOpts.body = { reason: suspendReason };
+          label = act === 'suspend' ? 'Salong suspendert' :
+                  act === 'activate' ? 'Salong aktivert' :
+                  act === 'delete' ? 'Salong slettet' : 'OK';
+        }
         var res = await NailedAuth.api(url, fetchOpts);
         if (!res.ok) throw new Error('salon ' + act + ' ' + res.status);
-        showToast(
-          act === 'suspend' ? 'Salong suspendert' :
-          act === 'activate' ? 'Salong aktivert' :
-          act === 'delete' ? 'Salong slettet' : 'OK',
-          'success'
-        );
+        showToast(label, 'success');
         await loadSalonger();
         await loadDashboard();
       } catch (err) {

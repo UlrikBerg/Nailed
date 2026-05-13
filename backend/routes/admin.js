@@ -139,12 +139,54 @@ router.get('/salons', asyncRoute(async (req, res) => {
   const offset = parseInt(req.query.offset, 10) || 0;
   const rows = await query(
     `SELECT s.id, s.slug, s.name, s.city, s.status, s.created_at,
+            s.subscription_status, s.trial_ends_at, s.subscription_started_at,
+            s.subscription_cancelled_at, s.subscription_price_nok,
             u.email AS owner_email, u.name AS owner_name
        FROM salons s JOIN users u ON u.id = s.owner_user_id
       ORDER BY s.created_at DESC LIMIT ? OFFSET ?`,
     [limit, offset]
   );
   res.json({ salons: rows, limit, offset });
+}));
+
+// PATCH /admin/salons/:id/subscription
+// Endrer subscription_status for en salong. Manuell flyt: admin lager
+// faktura i Fiken og markerer salongen som «active» når betaling kommer.
+router.patch('/salons/:id/subscription', asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const schema = z.object({
+    status: z.enum(['trial', 'active', 'past_due', 'cancelled', 'none']),
+    extend_trial_days: z.number().int().min(0).max(365).optional(),
+  });
+  const { status, extend_trial_days } = schema.parse(req.body || {});
+
+  if (status === 'active') {
+    await query(
+      `UPDATE salons
+          SET subscription_status = 'active',
+              subscription_started_at = COALESCE(subscription_started_at, NOW()),
+              subscription_cancelled_at = NULL
+        WHERE id = ?`,
+      [id]
+    );
+  } else if (status === 'cancelled') {
+    await query(
+      `UPDATE salons SET subscription_status = 'cancelled',
+                          subscription_cancelled_at = NOW() WHERE id = ?`,
+      [id]
+    );
+  } else if (status === 'trial' && extend_trial_days) {
+    await query(
+      `UPDATE salons SET subscription_status = 'trial',
+                          trial_ends_at = DATE_ADD(NOW(), INTERVAL ? DAY) WHERE id = ?`,
+      [extend_trial_days, id]
+    );
+  } else {
+    await query(`UPDATE salons SET subscription_status = ? WHERE id = ?`, [status, id]);
+  }
+  await audit(req.user.id, 'salon.subscription_change', 'salon', id, { status, extend_trial_days });
+  res.json({ ok: true });
 }));
 
 router.post('/salons/:id/suspend', asyncRoute(async (req, res) => {
@@ -307,7 +349,7 @@ router.post('/salon-applications/:id/approve', asyncRoute(async (req, res) => {
          (owner_user_id, slug, name, city, address_line, postal_code, lat, lng,
           instagram_url, tiktok_url, facebook_url, website_url,
           subscription_status, trial_ends_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'trial', DATE_ADD(NOW(), INTERVAL 3 MONTH))`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'trial', DATE_ADD(NOW(), INTERVAL 4 MONTH))`,
       [
         app.applicant_user_id, slug, app.salon_name, app.city,
         app.address_line, app.postal_code,
@@ -926,7 +968,7 @@ router.get('/analytics/summary', asyncRoute(async (req, res) => {
 const SETTINGS_DEFAULTS = {
   platform_name:           { type: 'string',  value: 'nailed' },
   support_email:           { type: 'string',  value: 'hei@nailed.no' },
-  trial_length:            { type: 'string',  value: '6 måneder' },
+  trial_length:            { type: 'string',  value: '4 måneder' },
   monthly_price:           { type: 'string',  value: '99 kr' },
   feature_vipps_login:     { type: 'boolean', value: true },
   feature_push:            { type: 'boolean', value: true },
