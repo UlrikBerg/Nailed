@@ -1938,7 +1938,10 @@
           if (card.dataset.fylke && card.dataset.fylke !== currentFylke) show = false;
         }
         if (currentCity && card.dataset.city !== currentCity) show = false;
-        if (currentTx !== 'all' && card.dataset.tx && card.dataset.tx.indexOf(currentTx) < 0) show = false;
+        // currentTx er server-side-filtrert via ?category=. Vi filtrerer IKKE
+        // klient-side på data-tx — den har bare top-3-kategorier per kort, så
+        // en behandler kan ha Bryn-tjeneste men ikke ha «Bryn» i top-3 dataset,
+        // og ville da blitt skjult. La backend ha siste ordet.
         if (activeQuick.indexOf('today') >= 0 && card.dataset.slot && !card.dataset.slot.startsWith('I dag')) show = false;
         if (activeQuick.indexOf('topRated') >= 0 && card.dataset.rating && parseFloat(card.dataset.rating) < 4.8) show = false;
         if (activeQuick.indexOf('budget') >= 0 && card.dataset.price && parseInt(card.dataset.price) >= 800) show = false;
