@@ -1950,12 +1950,18 @@
       var head = document.getElementById('resultsHeadCount');
       if (head) {
         var label = escapeHtml(fylkeLabelForHead());
-        // Vis «X av Y behandlere i …» når vi har en total fra backend
-        // (mange behandlere paginert). Når visnet = total, viser vi bare ett tall.
+        // Når kategori-filter er aktivt, prefiks tellingen med kategorinavnet
+        // (f.eks. «Bryn-behandlere i Norge») så Y-tallet ikke ser ut som
+        // «alle behandlere i landet».
+        var catLabel = '';
+        if (currentTx && currentTx !== 'all') {
+          var pill = document.querySelector('#treatmentRow [data-tx="' + currentTx + '"] span');
+          if (pill) catLabel = pill.textContent.trim() + '-';
+        }
         if (totalSalons > count) {
-          head.innerHTML = '<strong>' + count + '</strong> av <strong>' + totalSalons + '</strong> behandlere i ' + label;
+          head.innerHTML = '<strong>' + count + '</strong> av <strong>' + totalSalons + '</strong> ' + catLabel.toLowerCase() + 'behandlere i ' + label;
         } else {
-          head.innerHTML = '<strong>' + count + '</strong> behandlere i ' + label;
+          head.innerHTML = '<strong>' + count + '</strong> ' + catLabel.toLowerCase() + 'behandlere i ' + label;
         }
       }
       var noCards = cards.length === 0;
