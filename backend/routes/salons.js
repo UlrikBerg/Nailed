@@ -175,6 +175,17 @@ router.get('/', asyncRoute(async (req, res) => {
   // They appear BEFORE the WHERE-clause params.
   const selectParams = [oslo.hhmm, oslo.weekday, oslo.hhmm, oslo.dateStr, oslo.weekday];
 
+  // Totalt antall salonger som matcher filteret (uten LIMIT/OFFSET) —
+  // brukt av frontend for sidenummerering.
+  const totalRow = await queryOne(
+    `SELECT COUNT(DISTINCT s.id) AS n
+       FROM salons s
+       ${qJoin}
+      WHERE ${where.join(' AND ')}`,
+    [...params]
+  );
+  const total = Number(totalRow?.n || 0);
+
   const rows = await query(
     `SELECT DISTINCT
             s.id, s.slug, s.name, s.city, s.bio, s.instagram_url, s.cover_image_key, s.created_at,
@@ -265,7 +276,7 @@ router.get('/', asyncRoute(async (req, res) => {
     r.top_team = topTeamBy.get(r.id) || [];
     return r;
   });
-  res.json({ salons: out, limit, offset });
+  res.json({ salons: out, limit, offset, total });
 }));
 
 // GET /salons/:slug — public salon detail
