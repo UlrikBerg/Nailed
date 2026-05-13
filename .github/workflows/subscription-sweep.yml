@@ -1,0 +1,26 @@
+  name: Subscription Sweep
+
+  on:
+    schedule:
+      - cron: '0 7 * * *'
+    workflow_dispatch:
+
+  jobs:
+    sweep:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Trigger sveip   
+          run: |
+            response=$(curl -sS -w "\n%{http_code}" -X POST \
+              -H "Authorization: Bearer ${{ secrets.CRON_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d '{}' \
+              https://nailed.no/api/v1/cron/subscription-sweep)
+            body=$(echo "$response" | head -n -1)
+            status=$(echo "$response" | tail -n 1)
+            echo "Status: $status" 
+            echo "Body: $body"
+            if [ "$status" != "200" ]; then
+              echo "::error::Sveip feilet med status $status"
+              exit 1  
+            fi
