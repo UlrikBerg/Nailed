@@ -1105,7 +1105,8 @@
       #tab-innstillinger .kp-card { padding: 18px 16px; margin-bottom: 14px; }
       #tab-innstillinger h2,
       #tab-innstillinger .sub-card__title { font-size: 18px !important; }
-      .sub-card__head { flex-direction: column; gap: 10px; margin-bottom: 14px; }
+      .sub-card__head { flex-direction: column; gap: 10px; margin-bottom: 14px; align-items: stretch; }
+      .sub-card__head-text { width: 100%; }
       .sub-card__price { width: 100%; justify-content: center; padding: 8px 12px; }
       .sub-card__priceValue { font-size: 24px; }
       .sub-card__list { gap: 6px; }
@@ -1838,6 +1839,65 @@
       .owner-review__body { font-size: 14px; }
       .owner-review__reply { padding: 10px 12px; margin-top: 10px; }
       .owner-review__reply-body { font-size: 13px; }
+
+      /* Kategorier (Tjenester): kompakt cat-row med mindre knapper */
+      .cat-row { padding: 6px 8px; gap: 4px; }
+      .cat-row__name { font-size: 14px; padding: 6px; }
+      .cat-row__actions .btn { padding: 6px 8px; min-height: 0; }
+      .cat-row__actions .btn i { width: 14px; height: 14px; }
+
+      /* Kunder-tabellen som 2-kol grid-card per rad på mobil. */
+      #customersTable, #customersTable thead, #customersTable tbody {
+        display: block; width: 100%;
+      }
+      #customersTable thead { display: none; }
+      #customersTable tbody tr {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 12px;
+        row-gap: 4px;
+        padding: 12px 14px;
+        border: 1px solid var(--stone-200);
+        border-radius: var(--radius-md);
+        background: var(--cream-50);
+        margin-bottom: 10px;
+      }
+      #customersTable td { padding: 0; border: 0; font-size: 13px; white-space: normal; }
+      #customersTable td:nth-child(1) {
+        grid-column: 1; grid-row: 1;
+        font-size: 14px; color: var(--ink);
+      }
+      #customersTable td:nth-child(2) {
+        grid-column: 1 / span 2; grid-row: 2;
+        font-size: 12px; color: var(--fg-muted);
+      }
+      #customersTable td:nth-child(3),
+      #customersTable td:nth-child(4),
+      #customersTable td:nth-child(5) {
+        grid-column: 1 / span 2;
+        font-size: 12px; color: var(--ink);
+      }
+      #customersTable td:nth-child(3) { grid-row: 3; }
+      #customersTable td:nth-child(4) { grid-row: 4; }
+      #customersTable td:nth-child(5) { grid-row: 5; }
+      #customersTable td:nth-child(3)::before { content: 'Bookinger: '; color: var(--fg-muted); font-weight: 500; }
+      #customersTable td:nth-child(4)::before { content: 'Sist besøk: '; color: var(--fg-muted); font-weight: 500; }
+      #customersTable td:nth-child(5)::before { content: 'Verdi: '; color: var(--fg-muted); font-weight: 500; }
+      #customersTable td:nth-child(6) {
+        grid-column: 2; grid-row: 1;
+        justify-self: end; align-self: start;
+      }
+      /* Notat-rad utvides over hele bredden når den vises (åpnet editor) */
+      #customersTable tr.note-editor-row {
+        display: block;
+        background: transparent;
+        border: 0;
+        padding: 0;
+        margin-bottom: 10px;
+      }
+      #customersTable tr.note-editor-row td {
+        display: block; padding: 0;
+      }
     }
 
     /* Bookings status-filter — stilig dropdown */
@@ -2105,13 +2165,35 @@
     }
 
     /* ------------------ Kunder-fane ------------------ */
+    .customers-toolbar {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
     .customers-search {
-      width: 100%; max-width: 360px;
+      flex: 1; min-width: 200px; max-width: 360px;
       padding: 10px 14px; border-radius: var(--radius-md);
       border: 1px solid var(--stone-200); background: var(--cream-50);
-      font-size: 14px; margin-bottom: 12px;
+      font-size: 14px;
     }
     .customers-search:focus { outline: 2px solid var(--rouge-300); }
+    .customers-sort {
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 10px 38px 10px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--stone-200);
+      background-color: var(--cream-50);
+      color: var(--ink);
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231b1218' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 14px 14px;
+      min-width: 170px;
+    }
+    .customers-sort:focus { outline: none; border-color: var(--rouge-500); }
 
     .note-cell-btn {
       background: transparent; border: 0; cursor: pointer; padding: 4px;
@@ -2589,7 +2671,15 @@
         </div>
 
         <div class="kp-card">
-          <input class="customers-search" id="customersSearch" type="search" placeholder="Søk i navn, e-post eller telefon …" autocomplete="off" />
+          <div class="customers-toolbar">
+            <input class="customers-search" id="customersSearch" type="search" placeholder="Søk i navn, e-post eller telefon …" autocomplete="off" />
+            <select class="customers-sort" id="customersSort" aria-label="Sorter kunder">
+              <option value="name">Navn (A → Å)</option>
+              <option value="last_visit">Sist besøk</option>
+              <option value="value">Verdi</option>
+              <option value="bookings">Bookinger</option>
+            </select>
+          </div>
           <table class="data-table" id="customersTable">
             <thead>
               <tr>
@@ -2635,8 +2725,12 @@
           <div class="cat-list" id="categoriesList"></div>
         </div>
 
-        <div class="kp-card" id="serviceFormPanel" style="display:none;">
-          <div class="kp-card__head"><h3 id="serviceFormTitle">Ny tjeneste</h3></div>
+        <div class="sp-modal-backdrop" id="serviceModalBackdrop"></div>
+        <div class="sp-modal" id="serviceFormPanel" role="dialog" aria-modal="true" aria-labelledby="serviceFormTitle">
+          <div class="sp-modal__head">
+            <h2 class="sp-modal__title" id="serviceFormTitle">Ny tjeneste</h2>
+            <button type="button" class="sp-modal__close" id="cancelServiceBtn" aria-label="Lukk"><i data-lucide="x"></i></button>
+          </div>
           <form id="serviceForm" class="settings-grid">
             <div class="form-group" style="grid-column: 1 / -1;">
               <label>Navn</label>
@@ -2670,9 +2764,9 @@
                 La være tom for at alle kan tilby tjenesten.
               </div>
             </div>
-            <div style="grid-column: 1 / -1; display:flex; gap:8px;">
+            <div style="grid-column: 1 / -1; display:flex; gap:8px; justify-content: flex-end; margin-top: 4px;">
+              <button class="btn btn-ghost" type="button" id="cancelServiceBtn2">Avbryt</button>
               <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Lagre</button>
-              <button class="btn btn-ghost" type="button" id="cancelServiceBtn">Avbryt</button>
             </div>
           </form>
         </div>
@@ -6050,9 +6144,17 @@
       sel.innerHTML = html;
     }
 
+    function closeServiceForm() {
+      var panel = document.getElementById('serviceFormPanel');
+      var backdrop = document.getElementById('serviceModalBackdrop');
+      if (panel) panel.classList.remove('open');
+      if (backdrop) backdrop.classList.remove('open');
+    }
     function openServiceForm(svc) {
       var panel = document.getElementById('serviceFormPanel');
-      panel.style.display = 'block';
+      var backdrop = document.getElementById('serviceModalBackdrop');
+      panel.classList.add('open');
+      if (backdrop) backdrop.classList.add('open');
       document.getElementById('serviceFormTitle').textContent = svc ? 'Rediger tjeneste' : 'Ny tjeneste';
       var form = document.getElementById('serviceForm');
       form.dataset.id = svc ? svc.id : '';
@@ -6195,8 +6297,14 @@
     });
 
     document.getElementById('newServiceBtn').addEventListener('click', function () { openServiceForm(null); });
-    document.getElementById('cancelServiceBtn').addEventListener('click', function () {
-      document.getElementById('serviceFormPanel').style.display = 'none';
+    document.getElementById('cancelServiceBtn').addEventListener('click', closeServiceForm);
+    document.getElementById('cancelServiceBtn2').addEventListener('click', closeServiceForm);
+    document.getElementById('serviceModalBackdrop').addEventListener('click', closeServiceForm);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        var p = document.getElementById('serviceFormPanel');
+        if (p && p.classList.contains('open')) closeServiceForm();
+      }
     });
 
     document.getElementById('serviceForm').addEventListener('submit', async function (e) {
@@ -6235,7 +6343,7 @@
       } else {
         NailedForms.toast(id ? 'Tjeneste oppdatert' : 'Tjeneste lagt til');
       }
-      document.getElementById('serviceFormPanel').style.display = 'none';
+      closeServiceForm();
       loadServices();
     });
 
@@ -6706,6 +6814,30 @@
       } catch (_) { return ''; }
     }
 
+    function sortCustomers(list, mode) {
+      var arr = list.slice();
+      if (mode === 'name') {
+        arr.sort(function (a, b) {
+          return (a.name || '').localeCompare(b.name || '', 'nb');
+        });
+      } else if (mode === 'last_visit') {
+        arr.sort(function (a, b) {
+          var av = a.last_booking_at ? new Date(a.last_booking_at).getTime() : 0;
+          var bv = b.last_booking_at ? new Date(b.last_booking_at).getTime() : 0;
+          return bv - av; // nyligst først
+        });
+      } else if (mode === 'value') {
+        arr.sort(function (a, b) {
+          return Number(b.lifetime_value || 0) - Number(a.lifetime_value || 0);
+        });
+      } else if (mode === 'bookings') {
+        arr.sort(function (a, b) {
+          return Number(b.booking_count || 0) - Number(a.booking_count || 0);
+        });
+      }
+      return arr;
+    }
+
     function customerMatchesSearch(c, q) {
       if (!q) return true;
       q = q.toLowerCase();
@@ -6722,7 +6854,12 @@
       var tableEl = document.getElementById('customersTable');
       if (!tbody) return;
       var q = (document.getElementById('customersSearch').value || '').trim();
-      var visible = currentCustomers.filter(function (c) { return customerMatchesSearch(c, q); });
+      var sortEl = document.getElementById('customersSort');
+      var sortMode = sortEl ? sortEl.value : 'name';
+      var visible = sortCustomers(
+        currentCustomers.filter(function (c) { return customerMatchesSearch(c, q); }),
+        sortMode
+      );
       if (!visible.length) {
         tbody.innerHTML = '';
         emptyEl.style.display = '';
@@ -6780,6 +6917,9 @@
     }
 
     document.getElementById('customersSearch').addEventListener('input', function () {
+      renderCustomers();
+    });
+    document.getElementById('customersSort').addEventListener('change', function () {
       renderCustomers();
     });
 
