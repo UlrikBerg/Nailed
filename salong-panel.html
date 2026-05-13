@@ -951,6 +951,12 @@
     .data-table tbody tr { transition: background var(--dur-fast); }
     .data-table tbody tr:hover { background: var(--stone-50); }
     .td-muted { color: var(--fg-muted); font-size: 13px; }
+    /* Høyrejusterte tallkolonner i analytics-tabeller — utnytter bredden
+       og trekker tallene mot høyre kant av kortet. */
+    .data-table .col-num { text-align: right; font-variant-numeric: tabular-nums; }
+    .data-table--right tbody td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+    /* Stylist-navn skal ikke wrappe på «Anne H.» — ett stykke ord. */
+    #topStylistsTable td:first-child { white-space: nowrap; }
 
     /* Status badges (admin-derived; cream/rouge palette) */
     .status {
@@ -1595,6 +1601,50 @@
     }
     .slot-pill:has(input:checked) span { color: var(--rouge-500); }
 
+    /* Booking-action-knapper (Bekreft, Marker fullført, Avbestill, …):
+       mindre enn standard btn-sm så de ikke tar for mye plass. */
+    #incomingTable .btn { padding: 6px 12px; font-size: 12px; min-height: 0; gap: 4px; }
+    #incomingTable .btn i { width: 14px; height: 14px; }
+    #incomingTable td:last-child { white-space: nowrap; }
+
+    /* Bookings-table som card-list på mobil — standard responsive-table
+       pattern: skjul header, hver rad blir et stack-card med radioptions
+       som "label: value". */
+    @media (max-width: 720px) {
+      #incomingTable, #incomingTable thead, #incomingTable tbody,
+      #incomingTable tr, #incomingTable td {
+        display: block;
+        width: 100%;
+      }
+      #incomingTable thead { display: none; }
+      #incomingTable tbody tr {
+        border: 1px solid var(--stone-200);
+        border-radius: var(--radius-md);
+        background: var(--cream-50);
+        padding: 12px 14px;
+        margin-bottom: 10px;
+      }
+      #incomingTable tbody tr:hover { background: var(--cream-50); }
+      #incomingTable td {
+        padding: 4px 0;
+        border: 0;
+        font-size: 13px;
+      }
+      #incomingTable td:first-child {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--ink);
+      }
+      #incomingTable td:last-child {
+        margin-top: 8px;
+        white-space: normal;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      #incomingTable td:last-child:empty { display: none; }
+    }
+
     /* Bookings status-filter — stilig dropdown */
     .kp-bookings-filter {
       display: flex;
@@ -1781,13 +1831,13 @@
     .analytics-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 28px;
+      gap: 40px;
     }
     @media (max-width: 900px) {
       .analytics-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 720px) {
-      .analytics-grid { gap: 20px; }
+      .analytics-grid { gap: 28px; }
       .analytics-card { padding: 16px 14px; }
       .analytics-card__head { margin-bottom: 10px; flex-wrap: wrap; gap: 4px; }
       .analytics-card__title { font-size: 15px; }
@@ -2525,12 +2575,12 @@
               <span class="analytics-card__sub">Sortert på antall i valgt periode</span>
             </div>
             <div class="table-scroll">
-              <table class="data-table" id="topServicesTable">
+              <table class="data-table data-table--right" id="topServicesTable">
                 <thead>
                   <tr>
                     <th>Behandling</th>
-                    <th style="width: 90px;">Antall</th>
-                    <th style="width: 130px;">Omsetning</th>
+                    <th class="col-num" style="width: 25%;">Antall</th>
+                    <th class="col-num" style="width: 30%;">Omsetning</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
@@ -2548,13 +2598,13 @@
               <span class="analytics-card__sub">Andel av totalt bookede timer</span>
             </div>
             <div class="table-scroll">
-              <table class="data-table" id="topStylistsTable">
+              <table class="data-table data-table--right" id="topStylistsTable">
                 <thead>
                   <tr>
                     <th>Navn</th>
-                    <th style="width: 110px;">Bookinger</th>
-                    <th style="width: 110px;">Andel</th>
-                    <th style="width: 130px;">Omsetning</th>
+                    <th class="col-num" style="width: 18%;">Antall</th>
+                    <th class="col-num" style="width: 18%;">Andel</th>
+                    <th class="col-num" style="width: 28%;">Omsetning</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
