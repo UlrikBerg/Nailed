@@ -971,6 +971,9 @@
     .form-label { font-weight: 600; font-size: 13px; color: var(--ink); }
     .form-help { font-size: 13px; color: var(--fg-muted); display: block; margin-top: 4px; }
 
+    /* Lunsjpause: to time-input side-om-side på desktop. */
+    .lunch-break-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
     /* Mobil-tilpasninger for Innstillinger-tab: kortene blir kompakte,
        sub-card stacker tittel+pris, inputs får full bredde og border-box. */
     @media (max-width: 720px) {
@@ -982,11 +985,21 @@
       .sub-card__priceValue { font-size: 24px; }
       .sub-card__list { gap: 6px; }
       .sub-card__list li { font-size: 13px; }
+      /* Title + pill skal holde seg på én linje med pill til høyre */
+      .sub-card__title-row { flex-direction: row; align-items: center; justify-content: space-between; }
       /* Booking-regler-form: max-width fjernes så input fyller kortet */
       #bookingRulesForm,
-      #notificationsForm { max-width: 100%; }
+      #notificationsForm,
+      #lunchBreakForm,
+      #orgNumberForm { max-width: 100%; }
       .form-input { font-size: 16px; padding: 10px 12px; }
       .form-help { font-size: 12px; }
+      /* Lunsjpause: stack Start/Slutt på smale skjermer */
+      .lunch-break-grid { grid-template-columns: 1fr; gap: 12px; }
+      /* Varslinger: gjør label-tekst kompakt så den matcher resten av panelet */
+      #notificationsForm label { gap: 12px; }
+      #notificationsForm label > span > span:first-child { font-size: 14px; }
+      #notificationsForm label > span > span:last-child { font-size: 12px; }
     }
 
     /* Extra button variants (success/danger) — base .btn comes from styles.css. */
@@ -1416,7 +1429,17 @@
       margin-bottom: 18px;
       padding-top: 4px;
     }
-    .sub-card__title { margin: 0 0 6px; font-family: var(--font-display); font-weight: 600; font-size: 22px; color: var(--ink); }
+    .sub-card__head-text { flex: 1; min-width: 0; }
+    .sub-card__title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .sub-card__title { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 22px; color: var(--ink); }
+    .sub-card__title-pill { flex-shrink: 0; }
+    .sub-card__title-pill:empty { display: none; }
     .sub-card__sub { margin: 0; font-size: 14px; color: var(--fg-muted); }
     .sub-card__price {
       display: inline-flex;
@@ -2822,8 +2845,11 @@
 
         <div class="kp-card sub-card" id="subscriptionCard">
           <div class="sub-card__head">
-            <div>
-              <h2 class="sub-card__title">Abonnement</h2>
+            <div class="sub-card__head-text">
+              <div class="sub-card__title-row">
+                <h2 class="sub-card__title">Abonnement</h2>
+                <span class="sub-card__title-pill" id="subStatusPill"></span>
+              </div>
               <p class="sub-card__sub" id="subStatusText">Laster …</p>
             </div>
             <div class="sub-card__price">
@@ -2989,7 +3015,7 @@
             Slots i denne perioden blir blokkert hver dag. La feltene være tomme hvis dere ikke har fast lunsjpause.
           </p>
           <form id="lunchBreakForm" style="display:grid; gap:16px; max-width:560px;">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div class="lunch-break-grid">
               <label class="form-field" style="display:block;">
                 <span class="form-label">Start</span>
                 <input class="form-input" type="time" name="lunch_break_start" />
@@ -3936,9 +3962,13 @@
       priceEl.textContent = price.toLocaleString('no-NO');
 
       var status = s.subscription_status || 'trial';
-      var pill = function (cls, label) {
-        return '<span class="sub-card__statusPill sub-card__statusPill--' + cls + '">' + label + '</span>';
-      };
+      var pillEl = document.getElementById('subStatusPill');
+      function setPill(cls, label) {
+        if (pillEl) {
+          pillEl.className = 'sub-card__title-pill sub-card__statusPill sub-card__statusPill--' + cls;
+          pillEl.textContent = label;
+        }
+      }
 
       // Skjul trial-bar som default — vises kun for status='trial'.
       var barWrap = document.getElementById('subTrialBar');
@@ -3957,7 +3987,8 @@
               ? '3 måneder gratis prøveperiode — ' + daysLeft + ' dager igjen. Faktureres ' + price + ' kr/mnd etterpå.'
               : 'Prøveperioden er over. Velg betaling for å fortsette.')
           : '3 måneder gratis prøveperiode. Faktureres ' + price + ' kr/mnd etterpå.';
-        statusEl.innerHTML = pill('trial', 'Prøveperiode') + msg;
+        setPill('trial', 'Prøveperiode');
+        statusEl.textContent = msg;
 
         // Trial-bar — fyller fra venstre mot høyre etter hvor mange dager
         // som er brukt opp av prøveperioden.
@@ -3978,13 +4009,17 @@
         var since = s.subscription_started_at
           ? ' siden ' + new Date(s.subscription_started_at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })
           : '';
-        statusEl.innerHTML = pill('active', 'Aktiv') + 'Du betaler ' + price + ' kr/mnd' + since + '.';
+        setPill('active', 'Aktiv');
+        statusEl.textContent = 'Du betaler ' + price + ' kr/mnd' + since + '.';
       } else if (status === 'past_due') {
-        statusEl.innerHTML = pill('past_due', 'Forfalt') + 'Betalingen mislyktes — oppdater betalingsmetoden for å unngå at salongen skjules.';
+        setPill('past_due', 'Forfalt');
+        statusEl.textContent = 'Betalingen mislyktes — oppdater betalingsmetoden for å unngå at salongen skjules.';
       } else if (status === 'cancelled') {
-        statusEl.innerHTML = pill('cancelled', 'Oppsagt') + 'Abonnementet er sagt opp. Du kan starte det igjen når som helst.';
+        setPill('cancelled', 'Oppsagt');
+        statusEl.textContent = 'Abonnementet er sagt opp. Du kan starte det igjen når som helst.';
       } else {
-        statusEl.innerHTML = price + ' kr/mnd. Ingen bindingstid.';
+        if (pillEl) { pillEl.className = 'sub-card__title-pill'; pillEl.textContent = ''; }
+        statusEl.textContent = price + ' kr/mnd. Ingen bindingstid.';
       }
     }
 
