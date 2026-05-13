@@ -656,6 +656,7 @@ router.post('/seed-salon-activity', asyncRoute(async (req, res) => {
 // Beholder service_categories, settings, audit_log (med NULL-actor) og
 // admin-brukere (role='admin').
 router.post('/reset-platform', asyncRoute(async (req, res) => {
+  try {
   const schema = z.object({ confirm: z.literal('SLETT ALT') });
   try {
     schema.parse(req.body || {});
@@ -750,6 +751,13 @@ router.post('/reset-platform', asyncRoute(async (req, res) => {
   };
   await audit(req.user.id, 'admin.reset_platform', null, null, result);
   res.json(result);
+  } catch (err) {
+    if (err instanceof HttpError) throw err;
+    console.error('[reset-platform] feil:', err);
+    throw new HttpError(500, 'reset_failed',
+      'Reset feilet: ' + (err.message || err.code || String(err)) +
+      (err.stack ? ' [' + (err.stack.split('\n')[1] || '').trim() + ']' : ''));
+  }
 }));
 
 // ----------------------------------------------------------------------------
