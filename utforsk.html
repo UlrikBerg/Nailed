@@ -730,13 +730,9 @@
       }
       .utforsk-results .sc2-meta { padding-right: 80px; }
 
-      /* Hjertet plasseres på selve bildet (som på forsiden). Vi gjør
-         .service-card til positioneringsanker så heart-button (som ligger
-         inne i body) kan plasseres relativt til hele kortet via top + right. */
-      .utforsk-results .service-card { position: relative; }
-      .utforsk-results .service-card__photo { position: static; }
+      /* Hjertet plasseres på selve bildet via JS (moveHeartsOnMobile).
+         Det havner inne i .service-card__photo og positioneres top-right. */
       .utforsk-results .service-card__heart {
-        position: absolute;
         top: 12px;
         right: 12px;
         left: auto;
