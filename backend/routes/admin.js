@@ -489,6 +489,17 @@ router.patch('/chat-reports/:id', asyncRoute(async (req, res) => {
 }));
 
 // ----------------------------------------------------------------------------
+// Seed test-salonger (utvikling/demo) — kun admin
+// ----------------------------------------------------------------------------
+router.post('/seed-test-salons', asyncRoute(async (req, res) => {
+  const count = Math.max(1, Math.min(500, parseInt(req.body?.count, 10) || 100));
+  const { seedTestSalons } = require('../lib/seed-test-salons');
+  const result = await seedTestSalons(query, count);
+  await audit(req.user.id, 'admin.seed_test_salons', null, null, result);
+  res.json(result);
+}));
+
+// ----------------------------------------------------------------------------
 // Bookings (read-only listing for admin)
 // ----------------------------------------------------------------------------
 

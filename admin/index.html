@@ -1242,6 +1242,22 @@
         </div>
 
         <div class="ap-card">
+          <div class="ap-card__head"><h3 class="ap-card__title">Utvikling / demo</h3></div>
+          <p style="margin: 0 0 12px; color: var(--fg-muted); font-size: 13px;">
+            Opprett N test-salonger med kategorier, tjenester, team og Unsplash-bilder.
+            Slug-prefiks «test-» så de er enkle å rydde opp i senere.
+          </p>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <label style="font-size: 13px; color: var(--ink);">Antall:</label>
+            <input type="number" id="seedCountInput" class="form-input" style="width: 100px;" value="100" min="1" max="500" />
+            <button class="btn btn-primary btn-sm" id="seedTestSalonsBtn">
+              <i data-lucide="zap"></i> Opprett test-salonger
+            </button>
+            <span id="seedTestSalonsStatus" style="font-size: 13px; color: var(--fg-muted);"></span>
+          </div>
+        </div>
+
+        <div class="ap-card">
           <div class="ap-card__head"><h3 class="ap-card__title">Generelt</h3></div>
           <div class="ap-form-grid">
             <div class="form-group">
@@ -2780,6 +2796,35 @@
         console.error('[admin] settings load failed', err);
         showToast('Kunne ikke laste innstillinger', 'error');
       }
+    }
+
+    // Seed test-salonger
+    var seedBtn = document.getElementById('seedTestSalonsBtn');
+    if (seedBtn) {
+      seedBtn.addEventListener('click', async function () {
+        var count = parseInt(document.getElementById('seedCountInput').value, 10) || 100;
+        if (!confirm('Opprette ' + count + ' test-salonger? Dette kan ta opp til et minutt.')) return;
+        var statusEl = document.getElementById('seedTestSalonsStatus');
+        seedBtn.disabled = true;
+        statusEl.textContent = 'Oppretter ...';
+        try {
+          var res = await NailedAuth.api('/api/v1/admin/seed-test-salons', {
+            method: 'POST', body: { count: count },
+          });
+          if (!res.ok) {
+            var err = await res.json().catch(function () { return {}; });
+            throw new Error((err.error && err.error.message) || ('seed ' + res.status));
+          }
+          var data = await res.json();
+          statusEl.textContent = 'Ferdig: ' + data.created + ' opprettet, ' + data.skipped + ' hoppet over.';
+          showToast(data.created + ' test-salonger opprettet', 'success');
+        } catch (e) {
+          statusEl.textContent = 'Feil: ' + (e.message || e);
+          showToast('Seeding feilet: ' + e.message, 'error');
+        } finally {
+          seedBtn.disabled = false;
+        }
+      });
     }
 
     document.getElementById('saveSettingsBtn').addEventListener('click', async function () {
