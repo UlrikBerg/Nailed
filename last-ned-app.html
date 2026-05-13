@@ -167,6 +167,14 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      background: var(--cream-100);
+    }
+    .app-phone__img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
     }
     .app-phone__screen--home {
       background: var(--cream-100);
@@ -567,87 +575,16 @@
         </div>
       </div>
 
-      <!-- Phone mockups — speiler den faktiske mobilversjonen av nailed.no -->
+      <!-- Phone mockups — ekte screenshots av mobilversjonen -->
       <div class="app-phones">
-        <!-- Telefon 1: Forsiden (hero-søk + salongkort + bottom-nav) -->
         <div class="app-phone">
-          <div class="app-phone__screen app-phone__screen--home">
-            <div class="phone-nav">
-              <div class="phone-nav__brand">nailed <span class="phone-nav__dot"></span></div>
-            </div>
-            <div class="phone-hero-title">book deg <em>pen.</em></div>
-            <div class="phone-search-stack">
-              <div class="phone-search-row"><span class="phone-search-row__ico">✨</span>Velg behandling</div>
-              <div class="phone-search-row"><span class="phone-search-row__ico">📍</span>By eller sted</div>
-              <div class="phone-search-btn">Søk</div>
-            </div>
-            <div class="phone-section-title">Salonger på <em>nailed</em></div>
-            <div class="phone-card">
-              <div class="phone-card__photo" style="background:linear-gradient(135deg, #FFE0E9, #FFC4D6);"></div>
-              <div class="phone-card__body">
-                <div class="phone-card__rating">★ 4.9</div>
-                <div class="phone-card__name">Studio Lakk</div>
-                <div class="phone-card__meta">Salong i Oslo</div>
-              </div>
-            </div>
-            <div class="phone-card">
-              <div class="phone-card__photo" style="background:linear-gradient(135deg, #F4ECDF, #E8DCC4);"></div>
-              <div class="phone-card__body">
-                <div class="phone-card__rating">★ 4.8</div>
-                <div class="phone-card__name">Lash & Linn</div>
-                <div class="phone-card__meta">Salong i Bergen</div>
-              </div>
-            </div>
-            <div class="phone-bottom-nav">
-              <span class="phone-bottom-nav__item phone-bottom-nav__item--active">Utforsk</span>
-              <span class="phone-bottom-nav__item">Favoritter</span>
-              <span class="phone-bottom-nav__item">Logg inn</span>
-            </div>
+          <div class="app-phone__screen">
+            <img class="app-phone__img" src="assets/mockup-home.webp" alt="Mobilversjon av nailed-forsiden" loading="lazy" />
           </div>
         </div>
-
-        <!-- Telefon 2: Salongprofil (galleri + booking-flow + bottom-nav) -->
         <div class="app-phone">
-          <div class="app-phone__screen app-phone__screen--salon">
-            <div class="phone-nav phone-nav--salon">
-              <div class="phone-nav__brand">nailed <span class="phone-nav__dot"></span></div>
-            </div>
-            <div class="phone-back-row">
-              <span class="phone-back">← Tilbake</span>
-              <span class="phone-share">↑ Del</span>
-            </div>
-            <div class="phone-salon-hero"></div>
-            <div class="phone-salon-body">
-              <div class="phone-salon-title">Studio Lakk</div>
-              <div class="phone-salon-rating">★ 4.9 · 312 anmeldelser</div>
-              <div class="phone-salon-addr">Storgata 12, Oslo</div>
-              <div class="phone-bp">
-                <div class="phone-bp__head">Velg behandling</div>
-                <div class="phone-salon-svc phone-salon-svc--active">
-                  <span>Gel manikyr · 75 min</span>
-                  <strong>690 kr</strong>
-                </div>
-                <div class="phone-bp__head">Velg en dag</div>
-                <div class="phone-days">
-                  <span class="phone-day">Man</span>
-                  <span class="phone-day phone-day--active">Tir<br><b>16</b></span>
-                  <span class="phone-day">Ons</span>
-                  <span class="phone-day">Tor</span>
-                </div>
-                <div class="phone-bp__head">Velg en tid</div>
-                <div class="phone-slots">
-                  <span class="phone-slot">09:00</span>
-                  <span class="phone-slot phone-slot--active">10:30</span>
-                  <span class="phone-slot">12:00</span>
-                </div>
-              </div>
-              <div class="phone-salon-btn">Book</div>
-            </div>
-            <div class="phone-bottom-nav">
-              <span class="phone-bottom-nav__item phone-bottom-nav__item--active">Utforsk</span>
-              <span class="phone-bottom-nav__item">Favoritter</span>
-              <span class="phone-bottom-nav__item">Logg inn</span>
-            </div>
+          <div class="app-phone__screen">
+            <img class="app-phone__img" src="assets/mockup-for-salonger.webp" alt="Mobilversjon av For salonger-siden" loading="lazy" />
           </div>
         </div>
       </div>
