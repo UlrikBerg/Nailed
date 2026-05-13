@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Booking bekreftet — nailed</title>
-  <meta name="description" content="Bekreftelse på din booking hos salongen. Se detaljer, tid og kontaktinfo." />
+  <meta name="description" content="Bekreftelse på din booking hos behandleren. Se detaljer, tid og kontaktinfo." />
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -38,7 +38,7 @@
     <div class="page" id="confirmPage">
       <img src="assets/sticker-nailed-it.svg" class="confirm__sticker" alt="" />
       <h1 class="confirm__title"><em id="confirmGreeting">Nailed it!</em></h1>
-      <p class="confirm__sub" id="confirmSub">Vi har sendt deg en bekreftelse. Salongen får varsel og bekrefter snart.</p>
+      <p class="confirm__sub" id="confirmSub">Vi har sendt deg en bekreftelse. Behandleren får varsel og bekrefter snart.</p>
 
       <div class="confirm__layout">
         <div class="confirm__card">
@@ -69,7 +69,7 @@
           <!-- Salon-specific message (parking, entrance, what to bring …).
                Hidden by default; populated and shown only when present. -->
           <div id="confSalonMessage" style="display:none; margin-top:16px; padding:14px 16px; border-radius: 12px; background: var(--cream-100, #F4ECDF); border: 1px solid var(--stone-200);">
-            <div class="confirm__card-eyebrow" style="margin-bottom:6px;">Beskjed fra salongen</div>
+            <div class="confirm__card-eyebrow" style="margin-bottom:6px;">Beskjed fra behandleren</div>
             <div id="confSalonMessageText" style="font-family: var(--font-body); font-size: 14px; white-space: pre-wrap;"></div>
           </div>
         </div>
@@ -122,7 +122,7 @@
         <button id="icsBtn" class="btn btn-ghost" type="button" style="display:none;">
           <i data-lucide="calendar-plus"></i> Legg til i kalender
         </button>
-        <a href="utforsk" class="btn btn-primary">Utforsk flere salonger</a>
+        <a href="utforsk" class="btn btn-primary">Utforsk flere behandlere</a>
       </div>
     </div>
   </section>
@@ -168,7 +168,7 @@
 
     var statusLabels = {
       pending:   { text: 'Venter på bekreftelse', icon: 'clock' },
-      confirmed: { text: 'Bekreftet av salongen', icon: 'check-circle' },
+      confirmed: { text: 'Bekreftet av behandleren', icon: 'check-circle' },
       completed: { text: 'Fullført',              icon: 'check-circle' },
       cancelled: { text: 'Kansellert',            icon: 'x-circle' },
       no_show:   { text: 'No-show',               icon: 'x-circle' },
@@ -207,9 +207,9 @@
 
       var status = statusLabels[booking.status] || { text: booking.status, icon: 'info' };
       document.getElementById('confirmSub').textContent = booking.status === 'confirmed'
-        ? 'Salongen har bekreftet timen din.'
+        ? 'Behandleren har bekreftet timen din.'
         : booking.status === 'pending'
-          ? 'Bookingen er sendt. Salongen får varsel og bekrefter snart.'
+          ? 'Bookingen er sendt. Behandleren får varsel og bekrefter snart.'
           : booking.status === 'cancelled'
             ? 'Denne bookingen ble kansellert.'
             : booking.status === 'completed'

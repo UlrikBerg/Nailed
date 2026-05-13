@@ -1109,7 +1109,7 @@
     <div class="utforsk-main">
 
       <div class="utforsk-main__head">
-        <span class="utforsk-main__head-count" id="resultsHeadCount">Laster salonger…</span>
+        <span class="utforsk-main__head-count" id="resultsHeadCount">Laster behandlere…</span>
         <div class="utforsk-main__head-right">
           Sortér
           <select id="sortSelect">
@@ -1657,7 +1657,7 @@
               + '<i data-lucide="heart" style="' + heartFillStyle + '"></i>'
             + '</button>'
             + statusPill
-            + '<div class="sc2-name">' + escapeHtml(salon.name || 'Salong') + '</div>'
+            + '<div class="sc2-name">' + escapeHtml(salon.name || 'Behandler') + '</div>'
             + '<div class="sc2-meta">' + locationLine + ratingLine + '</div>'
             + '<div class="sc2-bottom">'
               + teamHtml
@@ -1922,7 +1922,7 @@
       });
       var head = document.getElementById('resultsHeadCount');
       if (head) {
-        head.innerHTML = '<strong>' + count + '</strong> salonger i ' + escapeHtml(fylkeLabelForHead());
+        head.innerHTML = '<strong>' + count + '</strong> behandlere i ' + escapeHtml(fylkeLabelForHead());
       }
       var noCards = cards.length === 0;
       var noMatches = count === 0;
@@ -1930,11 +1930,11 @@
         if (currentQ) {
           setState('Ingen treff for «' + currentQ + '»');
         } else if (currentCity) {
-          setState('Ingen salonger i ' + currentCity);
+          setState('Ingen behandlere i ' + currentCity);
         } else if (noCards) {
-          setState('Ingen salonger funnet');
+          setState('Ingen behandlere funnet');
         } else {
-          setState('Ingen salonger matcher filtrene dine');
+          setState('Ingen behandlere matcher filtrene dine');
         }
       } else {
         setState('');
@@ -1976,7 +1976,7 @@
         if (gridErr) gridErr.querySelectorAll('.service-card').forEach(function (c) { c.parentNode.removeChild(c); });
         var headErr = document.getElementById('resultsHeadCount');
         if (headErr) headErr.textContent = '';
-        setState('Kunne ikke laste salonger. Prøv igjen senere.');
+        setState('Kunne ikke laste behandlere. Prøv igjen senere.');
         return;
       }
 

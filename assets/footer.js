@@ -23,7 +23,7 @@
       '</div>' +
       '<div class="footer__links">' +
         '<a href="/utforsk">Utforsk</a>' +
-        '<a href="/for-salonger">For salonger</a>' +
+        '<a href="/for-salonger">For behandlere</a>' +
         '<a href="/last-ned-app">Last ned app</a>' +
         '<a href="/om-oss">Om oss</a>' +
         '<a href="/personvern">Personvern</a>' +

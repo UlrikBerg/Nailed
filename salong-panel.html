@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Salongpanel — nailed</title>
-  <meta name="description" content="Administrer salongen din på Nailed: bookinger, kalender, tjenester, team og profil." />
+  <title>Behandler-panel — nailed</title>
+  <meta name="description" content="Administrer behandler-profilen din på Nailed: bookinger, kalender, tjenester, team og profil." />
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -2602,7 +2602,7 @@
       <div class="kp-hero">
         <div>
           <h1 class="kp-hero__title">Hei, <em id="greetingName">der</em></h1>
-          <p class="kp-hero__sub">Her kan du endre og jobbe med salongen din.</p>
+          <p class="kp-hero__sub">Her kan du endre og jobbe med profilen din.</p>
           <!-- greetingSalon beholdes som usynlig fallback så eksisterende JS
                som setter teksten på <em id="greetingSalon"> ikke krasjer. -->
           <span id="greetingSalon" hidden></span>
@@ -2620,7 +2620,7 @@
         <button type="button" class="kp-tabs__chev kp-tabs__chev--right" id="kpTabsChevRight" aria-label="Bla til høyre"><i data-lucide="chevron-right"></i></button>
         <div class="kp-tabs" id="kpTabs" role="tablist">
           <button class="kp-tab active" role="tab" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Oversikt</button>
-          <button class="kp-tab" role="tab" data-tab="profil"><i data-lucide="store"></i> Min salong</button>
+          <button class="kp-tab" role="tab" data-tab="profil"><i data-lucide="store"></i> Min profil</button>
           <button class="kp-tab" role="tab" data-tab="bookinger">
             <i data-lucide="calendar-check"></i> Bookinger
             <span class="kp-tab__badge" id="bookingsPendingBadge" hidden>0</span>
@@ -2947,7 +2947,7 @@
         <div class="kp-section">
           <div>
             <h2 class="kp-section__title">Statistikk</h2>
-            <p class="kp-section__sub">Tall for salongen din. Velg periode for å se hvordan de endrer seg.</p>
+            <p class="kp-section__sub">Tall for virksomheten din. Velg periode for å se hvordan de endrer seg.</p>
           </div>
         </div>
 
@@ -3115,7 +3115,7 @@
         <div class="kp-section">
           <div>
             <h2 class="kp-section__title">Salongprofil</h2>
-            <p class="kp-section__sub">Slik ser salongen din ut for kundene på nailed.</p>
+            <p class="kp-section__sub">Slik ser profilen din ut for kundene på nailed.</p>
           </div>
         </div>
 
@@ -4753,7 +4753,7 @@
         bio.textContent = s.bio;
       } else {
         bio.classList.add('profile-about--empty');
-        bio.textContent = 'Ingen beskrivelse lagt til. Klikk Rediger for å fortelle kundene om salongen din.';
+        bio.textContent = 'Ingen beskrivelse lagt til. Klikk Rediger for å fortelle kundene om virksomheten din.';
       }
 
       // Contact card

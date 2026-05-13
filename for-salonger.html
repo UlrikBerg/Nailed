@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>For salonger — gratis i 4 måneder — nailed</title>
-  <meta name="description" content="Drift salongen din uten provisjon. 149 kr/mnd med 4 måneders gratis prøveperiode. Kalender, kundebehandling og innsikt — alt på ett sted." />
+  <title>For behandlere — gratis i 4 måneder — nailed</title>
+  <meta name="description" content="Drift din egen virksomhet uten provisjon. 149 kr/mnd med 4 måneders gratis prøveperiode. Kalender, kundebehandling og innsikt — alt på ett sted." />
   <link rel="canonical" href="https://nailed.no/for-salonger" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="nailed" />
-  <meta property="og:title" content="For salonger — gratis i 4 måneder" />
-  <meta property="og:description" content="Drift salongen uten provisjon. Kalender, kundebehandling og innsikt — alt på ett sted." />
+  <meta property="og:title" content="For behandlere — gratis i 4 måneder" />
+  <meta property="og:description" content="Drift din egen virksomhet uten provisjon. Kalender, kundebehandling og innsikt — alt på ett sted." />
   <meta property="og:url" content="https://nailed.no/for-salonger" />
   <meta property="og:image" content="https://nailed.no/assets/sticker-nailed-it.svg" />
   <meta property="og:locale" content="nb_NO" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="For salonger — gratis i 4 måneder" />
-  <meta name="twitter:description" content="Drift salongen uten provisjon. Kalender, kundebehandling og innsikt — alt på ett sted." />
+  <meta name="twitter:title" content="For behandlere — gratis i 4 måneder" />
+  <meta name="twitter:description" content="Drift din egen virksomhet uten provisjon. Kalender, kundebehandling og innsikt — alt på ett sted." />
   <meta name="twitter:image" content="https://nailed.no/assets/sticker-nailed-it.svg" />
   <link rel="icon" href="assets/logo-mark.svg" />
   <link rel="manifest" href="/manifest.json">
@@ -285,16 +285,14 @@
       max-width: 360px;
       margin: 0 12px;
     }
-    /* Plassholder-innhold mens vi venter på ekte skjermbilder. Bytt ut hele
-       .lp-preview__body med <img src="..." alt="..."> når screenshot er klart. */
     .lp-preview__body {
-      aspect-ratio: 16 / 10;
-      background:
-        linear-gradient(180deg, var(--cream-50) 0%, var(--cream-100) 100%);
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(180deg, var(--cream-50) 0%, var(--cream-100) 100%);
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
     .lp-preview__placeholder {
       text-align: center;
@@ -353,7 +351,7 @@
   <section class="lp-hero">
     <div class="page">
       <h1 class="lp-hero__title">Fyll kalenderen.<br>Vi sender <em>kundene.</em></h1>
-      <p class="lp-hero__sub"><span style="font-family:var(--font-display); letter-spacing:-0.03em; color:var(--ink);">nailed</span> kobler kunder med salonger og behandlere i hele Norge.<br>Du fokuserer på faget — vi tar oss av bookingen.</p>
+      <p class="lp-hero__sub"><span style="font-family:var(--font-display); letter-spacing:-0.03em; color:var(--ink);">nailed</span> kobler kunder med behandlere i hele Norge.<br>Du fokuserer på faget — vi tar oss av bookingen.</p>
       <div class="lp-hero__actions">
         <a href="bli-salong" class="btn btn-primary btn-lg">Kom i gang gratis</a>
         <a href="#slik-fungerer-det" class="btn btn-ghost btn-lg">Se hvordan det fungerer</a>
@@ -377,11 +375,7 @@
           <span class="lp-preview__url">nailed.no/salong-panel</span>
         </div>
         <div class="lp-preview__body">
-          <div class="lp-preview__placeholder">
-            <i data-lucide="calendar"></i>
-            <div>Salongpanelet ditt</div>
-            <p>Kalender, bookinger, kunder og statistikk — alt på ett sted.</p>
-          </div>
+          <img src="assets/marketing/panel-bookinger.png" alt="Innkommende bookinger i panelet — oversikt over avventende og bekreftede timer." style="width:100%; height:100%; display:block; object-fit:cover; object-position:top;" />
         </div>
       </div>
       <p class="lp-preview__caption">
@@ -404,7 +398,7 @@
         <div class="lp-pricing__trial">Prøv gratis i 4 måneder — ingen kort kreves</div>
         <div class="lp-pricing__list">
           <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Ubegrensede bookinger</div>
-          <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Offentlig salongprofil</div>
+          <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Offentlig behandler-profil</div>
           <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Kalender & tjenestestyring</div>
           <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Kundebehandling & meldinger</div>
           <div class="lp-pricing__item"><i data-lucide="check-circle"></i> Innsikt & statistikk</div>
@@ -422,7 +416,7 @@
     <div class="page">
       <div class="lp-section__head">
         <h2 class="lp-section__title">Bygget for skjønnhetsbransjen</h2>
-        <p class="lp-section__sub">Verktøyene du trenger for å drive salongen smartere.</p>
+        <p class="lp-section__sub">Verktøyene du trenger for å drive virksomheten smartere.</p>
       </div>
       <div class="lp-features">
         <div class="lp-feature">
@@ -474,7 +468,7 @@
         <div class="lp-step">
           <div class="lp-step__num">2</div>
           <h3 class="lp-step__title">Kundene finner deg</h3>
-          <p class="lp-step__desc">Salongen din vises på nailed.no. Kunder filtrerer på sted, behandling og tilgjengelighet.</p>
+          <p class="lp-step__desc">Profilen din vises på nailed.no. Kunder filtrerer på sted, behandling og tilgjengelighet.</p>
         </div>
         <div class="lp-step">
           <div class="lp-step__num">3</div>

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Salong — nailed</title>
-  <meta name="description" content="Se behandlinger, priser, anmeldelser og ledig tid hos salongen. Book time direkte på nailed — ingen provisjon, pengene går rett til salongen." />
+  <title>Behandler — nailed</title>
+  <meta name="description" content="Se behandlinger, priser, anmeldelser og ledig tid hos behandleren. Book time direkte på nailed — ingen provisjon, pengene går rett til behandleren." />
   <meta name="theme-color" content="#EE3F7E" />
   <link rel="canonical" href="https://nailed.no/salon" />
   <link rel="icon" href="assets/logo-mark.svg" />
@@ -24,16 +24,16 @@
   <!-- Open Graph (defaults; updated dynamically in renderSalon() once data loads) -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="nailed" />
-  <meta property="og:title" content="Salong — nailed" />
-  <meta property="og:description" content="Book time hos en av Norges beste skjønnhetssalonger på nailed." />
+  <meta property="og:title" content="Behandler — nailed" />
+  <meta property="og:description" content="Book time hos en av Norges beste behandlere på nailed." />
   <meta property="og:url" content="https://nailed.no/salon" />
   <meta property="og:image" content="https://nailed.no/assets/logo-wordmark.svg?v=6" />
   <meta property="og:locale" content="nb_NO" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Salong — nailed" />
-  <meta name="twitter:description" content="Book time hos en av Norges beste skjønnhetssalonger på nailed." />
+  <meta name="twitter:title" content="Behandler — nailed" />
+  <meta name="twitter:description" content="Book time hos en av Norges beste behandlere på nailed." />
   <meta name="twitter:image" content="https://nailed.no/assets/logo-wordmark.svg?v=6" />
   <style>
     /* Opening hours (copied verbatim from /partner/profil.html) */
@@ -436,7 +436,7 @@
         <a href="utforsk" class="salon-back-link">
           <i data-lucide="arrow-left"></i> Tilbake til utforsk
         </a>
-        <button class="salon-share-btn" id="shareBtn" type="button" aria-label="Del salongen">
+        <button class="salon-share-btn" id="shareBtn" type="button" aria-label="Del behandleren">
           <i data-lucide="share-2"></i>
           <span>Del</span>
         </button>
@@ -464,7 +464,7 @@
 
         <!-- Left column: salon info -->
         <div>
-          <h1 class="salon-detail__title">Salong</h1>
+          <h1 class="salon-detail__title">Behandler</h1>
           <p class="salon-detail__rating" id="salonRating" style="display:none; margin: 0 0 16px 0; font-family: var(--font-body); font-size: 15px; color: var(--ink);"></p>
           <p class="salon-detail__sub"></p>
           <p class="salon-detail__addr"></p>
@@ -538,7 +538,7 @@
               <h3 class="salon-map-section__title">Slik finner du oss</h3>
               <span class="salon-map-section__addr" id="mapAddr"></span>
             </div>
-            <div class="salon-map" id="salonMap" aria-label="Kart over salongens beliggenhet"></div>
+            <div class="salon-map" id="salonMap" aria-label="Kart over behandlerens beliggenhet"></div>
             <div class="salon-map-section__actions">
               <a id="mapDirections" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">
                 <i data-lucide="navigation"></i> Veibeskrivelse
@@ -1617,7 +1617,7 @@
       var reply = '';
       if (r.owner_reply) {
         reply = '<div class="review-card__reply">' +
-          '<div class="review-card__reply-head">Svar fra ' + escapeHtml(salonName || 'salongen') + '</div>' +
+          '<div class="review-card__reply-head">Svar fra ' + escapeHtml(salonName || 'behandleren') + '</div>' +
           '<p class="review-card__reply-body">' + escapeHtml(r.owner_reply) + '</p>' +
         '</div>';
       }
@@ -1744,7 +1744,7 @@
       // Empty state.
       if (count === 0) {
         emptyEl.style.display = '';
-        emptyEl.textContent = 'Ingen anmeldelser ennå. Bli den første til å anmelde ' + (salonName || 'denne salongen') + '!';
+        emptyEl.textContent = 'Ingen anmeldelser ennå. Bli den første til å anmelde ' + (salonName || 'denne behandleren') + '!';
         listEl.innerHTML = '';
         showAllBtn.style.display = 'none';
         lucide.createIcons();
@@ -1811,10 +1811,10 @@
         var s = (data && data.salon) || {};
         var url = location.origin + location.pathname + '?slug=' + encodeURIComponent(s.slug || '');
         var desc = (s.bio && String(s.bio).trim()) ||
-                   ('Book time hos ' + (s.name || 'salongen') + (s.city ? ' i ' + s.city : '') + ' på nailed.');
+                   ('Book time hos ' + (s.name || 'behandleren') + (s.city ? ' i ' + s.city : '') + ' på nailed.');
         desc = String(desc).slice(0, 300);
         var img = (s.cover_url) || (location.origin + '/assets/logo-wordmark.svg?v=6');
-        var title = (s.name || 'Salong') + ' — nailed';
+        var title = (s.name || 'Behandler') + ' — nailed';
 
         function setMeta(selector, attr, value) {
           var el = document.querySelector(selector);
@@ -2039,7 +2039,7 @@
       var catEl = document.getElementById('servicesCategory');
       var panelTitle = document.getElementById('bookingPanelTitle');
       if (!services.length) {
-        catEl.innerHTML = '<p style="font-family:var(--font-body); color:var(--fg-muted); margin:0;">Salongen har ingen behandlinger lagt til ennå.</p>';
+        catEl.innerHTML = '<p style="font-family:var(--font-body); color:var(--fg-muted); margin:0;">Behandleren har ingen behandlinger lagt til ennå.</p>';
         serviceList.innerHTML = '';
         panelTitle.textContent = 'Ingen behandlinger';
         cta.disabled = true;
@@ -2188,11 +2188,11 @@
       fetch('/api/v1/salons/' + encodeURIComponent(slug), { headers: { 'Accept': 'application/json' } })
         .then(function(res) {
           if (res.status === 404) {
-            showFatalEmptyState('Salongen finnes ikke', 'Vi fant ingen salong med denne lenken.');
+            showFatalEmptyState('Behandleren finnes ikke', 'Vi fant ingen behandler med denne lenken.');
             throw new Error('not_found');
           }
           if (!res.ok) {
-            showFatalEmptyState('Noe gikk galt', 'Kunne ikke laste salongen.');
+            showFatalEmptyState('Noe gikk galt', 'Kunne ikke laste behandleren.');
             throw new Error('http_' + res.status);
           }
           return res.json();
@@ -2201,7 +2201,7 @@
         .catch(function(err) {
           // Errors already handled above; swallow.
           if (err && err.message && !/not_found|http_/.test(err.message)) {
-            showFatalEmptyState('Noe gikk galt', 'Kunne ikke laste salongen.');
+            showFatalEmptyState('Noe gikk galt', 'Kunne ikke laste behandleren.');
           }
         });
     }
@@ -2263,7 +2263,7 @@
     if (shareBtn) {
       shareBtn.addEventListener('click', async function () {
         var titleEl = document.querySelector('.salon-detail__title');
-        var name = titleEl ? titleEl.textContent.trim() : 'Salong';
+        var name = titleEl ? titleEl.textContent.trim() : 'Behandler';
         var shareData = {
           title: name + ' — nailed',
           text: 'Sjekk ut ' + name + ' på nailed.',
