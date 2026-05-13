@@ -20,7 +20,12 @@
     var swappable = [];
     var kids = body.children;
     for (var i = 0; i < kids.length; i++) {
-      if (kids[i] !== header) swappable.push(kids[i]);
+      var k = kids[i];
+      if (k === header) continue;
+      // Persist'ende elementer (eks. bottom-nav, profil-sheet) overlever
+      // sidebytte uten å bli wipet — de er sticky UI som ikke skal flikre.
+      if (k.hasAttribute && k.hasAttribute('data-spa-persist')) continue;
+      swappable.push(k);
     }
     return { body: body, header: header, swappable: swappable };
   }

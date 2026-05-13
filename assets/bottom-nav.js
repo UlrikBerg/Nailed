@@ -147,7 +147,7 @@
         '</a>'
       );
     }).join('');
-    return '<nav class="bottom-nav" id="bottomNav" aria-label="Hovedmeny">' + items + '</nav>';
+    return '<nav class="bottom-nav" id="bottomNav" data-spa-persist="true" aria-label="Hovedmeny">' + items + '</nav>';
   }
 
   function render() {
@@ -233,9 +233,9 @@
 
   function ensureSheet() {
     if (document.getElementById('bnProfileSheet')) return;
-    var backdrop = '<div class="bn-sheet-backdrop" id="bnProfileBackdrop"></div>';
+    var backdrop = '<div class="bn-sheet-backdrop" id="bnProfileBackdrop" data-spa-persist="true"></div>';
     var sheet =
-      '<div class="bn-sheet" id="bnProfileSheet" role="dialog" aria-modal="true" aria-labelledby="bnProfileName" hidden>' +
+      '<div class="bn-sheet" id="bnProfileSheet" data-spa-persist="true" role="dialog" aria-modal="true" aria-labelledby="bnProfileName" hidden>' +
         '<div class="bn-sheet__grabber"></div>' +
         '<div class="bn-sheet__head">' +
           '<div class="bn-sheet__avatar" id="bnProfileAvatar">?</div>' +
