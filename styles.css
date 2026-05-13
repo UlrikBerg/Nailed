@@ -2415,6 +2415,108 @@ div.salon-detail__about > p:last-child { margin-bottom: 0; }
 }
 
 /* =========================================================================
+   Bottom-nav profil-sheet (bottom sheet som glir opp ved trykk på Min profil)
+   Injiseres av /assets/bottom-nav.js. Animasjon via transform + opacity.
+   ========================================================================= */
+.bn-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.42);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+  z-index: 1300;
+}
+.bn-sheet-backdrop--open { opacity: 1; pointer-events: auto; }
+.bn-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--cream-50, #FBF6EE);
+  border-radius: 18px 18px 0 0;
+  padding: 8px 20px calc(24px + env(safe-area-inset-bottom));
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.12);
+  transform: translateY(110%);
+  transition: transform 260ms cubic-bezier(.2, .8, .2, 1);
+  z-index: 1301;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.bn-sheet--open { transform: translateY(0); }
+.bn-sheet__grabber {
+  width: 40px;
+  height: 4px;
+  background: var(--stone-200);
+  border-radius: 999px;
+  margin: 0 auto 14px;
+}
+.bn-sheet__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 4px 16px;
+  border-bottom: 1px solid var(--stone-200);
+  margin-bottom: 12px;
+}
+.bn-sheet__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--rouge-50);
+  color: var(--rouge-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.bn-sheet__info { min-width: 0; flex: 1; }
+.bn-sheet__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bn-sheet__email {
+  font-size: 13px;
+  color: var(--fg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bn-sheet__actions { display: flex; flex-direction: column; gap: 4px; }
+.bn-sheet__action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 8px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  text-decoration: none;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+.bn-sheet__action:hover,
+.bn-sheet__action:focus-visible { background: var(--stone-100); outline: none; }
+.bn-sheet__action i { width: 20px; height: 20px; color: var(--stone-500); flex-shrink: 0; }
+.bn-sheet__action--danger { color: var(--danger-500); }
+.bn-sheet__action--danger i { color: var(--danger-500); }
+.bn-sheet[hidden] { display: block; visibility: hidden; pointer-events: none; }
+
+/* =========================================================================
    Mobil-fix: iOS-input-zoom + touch-targets
    - font-size 16 px på alle inputs/textarea/select forhindrer auto-zoom på iOS Safari
    - touch-targets min 44×44 px iht. Apple/WCAG-anbefaling
