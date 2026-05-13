@@ -235,6 +235,71 @@
       if (e.key === 'Escape') closeSheet();
     });
 
+    // Swipe-down-to-dismiss: dra hvor som helst på sheet'en nedover for å lukke.
+    // Aktiveres etter > 8 px bevegelse så vanlige tapps på knapper ikke fanges.
+    (function attachDrag() {
+      var sheet = document.getElementById('bnProfileSheet');
+      var backdrop = document.getElementById('bnProfileBackdrop');
+      if (!sheet) return;
+      var startY = 0;
+      var delta = 0;
+      var dragging = false;
+
+      function onStart(e) {
+        if (!sheet.classList.contains('bn-sheet--open')) return;
+        startY = (e.touches ? e.touches[0].clientY : e.clientY);
+        delta = 0;
+        dragging = false;
+      }
+      function onMove(e) {
+        if (startY === 0 && !dragging) return;
+        var y = (e.touches ? e.touches[0].clientY : e.clientY);
+        var d = y - startY;
+        if (!dragging) {
+          if (d > 8) {
+            dragging = true;
+            sheet.style.transition = 'none';
+            backdrop.style.transition = 'none';
+          } else if (d < -8) {
+            // Trekk oppover — ignorér helt
+            startY = 0;
+            return;
+          } else {
+            return;
+          }
+        }
+        if (d < 0) d = 0; // ingen oppovertrekk
+        delta = d;
+        sheet.style.transform = 'translateY(' + d + 'px)';
+        var maxDelta = sheet.offsetHeight || 400;
+        var opacity = Math.max(0, 1 - d / maxDelta);
+        backdrop.style.opacity = String(opacity);
+      }
+      function onEnd() {
+        if (!dragging) { startY = 0; return; }
+        dragging = false;
+        startY = 0;
+        sheet.style.transition = '';
+        backdrop.style.transition = '';
+        backdrop.style.opacity = '';
+        var threshold = Math.max(100, sheet.offsetHeight * 0.25);
+        if (delta > threshold) {
+          // Lukk — fjern inline transform så CSS-overgangen kan ta over
+          sheet.style.transform = '';
+          closeSheet();
+        } else {
+          // Sprett tilbake
+          sheet.style.transform = '';
+        }
+        delta = 0;
+      }
+
+      sheet.addEventListener('touchstart', onStart, { passive: true });
+      sheet.addEventListener('touchmove',  onMove,  { passive: true });
+      sheet.addEventListener('touchend',   onEnd);
+      sheet.addEventListener('touchcancel', onEnd);
+    })();
+
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       try { window.lucide.createIcons(); } catch (_) {}
     }
