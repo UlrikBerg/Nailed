@@ -770,6 +770,11 @@ CREATE TABLE IF NOT EXISTS chat_messages (
   CONSTRAINT fk_cm_sender FOREIGN KEY (sender_user_id) REFERENCES users(id)        ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Image-meldinger: en melding kan ha enten body, image_key eller begge.
+ALTER TABLE chat_messages
+  ADD COLUMN IF NOT EXISTS image_key VARCHAR(255) DEFAULT NULL,
+  MODIFY body TEXT NULL;
+
 -- -----------------------------------------------------------------------------
 -- chat_message_reports
 -- Bruker rapporterer en melding for moderering. Vises i adminpanelet under
