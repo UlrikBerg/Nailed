@@ -1,7 +1,17 @@
+const path = require('path');
 const { HttpError } = require('../lib/util');
 
 function notFound(req, res) {
   res.status(404).json({ error: { code: 'not_found', message: 'Ressursen finnes ikke.' } });
+}
+
+// Returns true when the client wants HTML (browser navigation). API clients
+// either hit /api/v1/* or send Accept: application/json explicitly — we never
+// want to serve the HTML page to them.
+function wantsHtml(req) {
+  if (req.path && req.path.indexOf('/api/') === 0) return false;
+  const accept = (req.headers && req.headers.accept) || '';
+  return accept.indexOf('text/html') !== -1;
 }
 
 // Multer surfaces upload-time errors with err.name === 'MulterError' and an
@@ -35,6 +45,10 @@ function errorHandler(err, req, res, next) {
     return res.status(m.status).json({ error: { code: m.code, message: m.message } });
   }
   console.error('[unhandled]', err);
+  // Browser-navigerte requests får en pen 500-side; API-klienter får JSON.
+  if (wantsHtml(req)) {
+    return res.status(500).sendFile(path.join(__dirname, '..', '..', '500.html'));
+  }
   res.status(500).json({ error: { code: 'internal_error', message: 'Noe gikk galt.' } });
 }
 
