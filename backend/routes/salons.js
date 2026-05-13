@@ -40,7 +40,7 @@ function withCoverUrl(row) {
 // Each row includes computed: min_price, min_duration, avg_rating, review_count,
 // is_open_now (bool) and top_categories (top 3 distinct category names as JSON).
 router.get('/', asyncRoute(async (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit, 10) || 24, 100);
+  const limit = Math.min(parseInt(req.query.limit, 10) || 24, 500);
   const offset = parseInt(req.query.offset, 10) || 0;
   const city = (req.query.city || '').toString().trim();
   const q = (req.query.q || '').toString().trim();
