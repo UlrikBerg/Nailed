@@ -198,7 +198,7 @@
       }
       .auth__card {
         max-width: 100%;
-        padding: 28px 22px;
+        padding: 28px 22px 18px;
         border-radius: var(--radius-lg);
       }
       .auth__title {
@@ -206,7 +206,7 @@
         white-space: normal;
         flex-wrap: wrap;
         gap: 0.2em;
-        margin-bottom: 8px;
+        margin-bottom: 14px;
       }
       .auth__title-brand::after {
         width: .2em;
@@ -277,7 +277,7 @@
       </div>
 
       <p class="auth__fineprint" id="vippsNotice">
-        Vipps Login er under godkjenning hos Vipps. Inntil videre kan du logge inn med Google.
+        Vipps Login er under vedlikehold. Inntil videre kan du logge inn med Google.
       </p>
 
       <div class="auth__divider">Trygt og enkelt</div>
@@ -354,7 +354,7 @@
       } else {
         vippsBtn.addEventListener('click', function (e) {
           e.preventDefault();
-          alert('Vipps Login er under godkjenning. Bruk Google i mellomtiden.');
+          alert('Vipps Login er under vedlikehold. Bruk Google i mellomtiden.');
         });
       }
     }).catch(function () {
