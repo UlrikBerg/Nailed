@@ -965,9 +965,20 @@
       color: var(--ink);
       outline: none;
       transition: border-color var(--dur-fast);
+      -webkit-appearance: none;
+      appearance: none;
+      min-width: 0;
     }
     .form-input:focus { border-color: var(--rouge-500); }
     .form-input { width: 100%; box-sizing: border-box; }
+    /* iOS Safari rendrer type=date/time med innebygd UI som ignorerer
+       høyde/padding fra .form-input uten appearance:none. Tving inn samme
+       høyde som tekst-inputs så de matcher kortet de står i. */
+    .form-input[type="date"],
+    .form-input[type="time"] {
+      min-height: 44px;
+      line-height: 1.2;
+    }
     .form-label { font-weight: 600; font-size: 13px; color: var(--ink); }
     .form-help { font-size: 13px; color: var(--fg-muted); display: block; margin-top: 4px; }
 
@@ -999,6 +1010,17 @@
       .form-help { font-size: 12px; }
       /* Lunsjpause: stack Start/Slutt på smale skjermer */
       .lunch-break-grid { grid-template-columns: 1fr; gap: 12px; }
+      /* Booking-intervall piller: midtstill og la dem skalere ned så de
+         passer i kortbredden uten å sprenge ut. */
+      .slot-interval-pills { justify-content: center; gap: 8px; }
+      .slot-pill { min-width: 0; flex: 1 1 auto; padding: 10px 12px; }
+      /* «Kommer»-chip og andre inline-chips i Innstillinger-form skal ikke
+         påvirkes av det globale .chip min-height: 40 px-regelen. */
+      #tab-innstillinger .chip {
+        min-height: 0;
+        padding-top: 2px;
+        padding-bottom: 2px;
+      }
     }
 
     /* Extra button variants (success/danger) — base .btn comes from styles.css. */
