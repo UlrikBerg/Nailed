@@ -2851,8 +2851,11 @@ html {
 
 @media (max-width: 720px) {
   .salon-detail { padding: 2px 0 64px; }
-  .salon-back-link { padding: 4px 0 20px; font-size: 13px; }
+  /* Symmetrisk padding på back-link så den senterstilles likt som Del-knappen
+     i flex-row. Gap ned til galleri legges på selve raden istedet. */
+  .salon-back-link { padding: 4px 0; font-size: 13px; }
   .salon-share-btn { min-height: 32px; padding: 6px 12px; font-size: 13px; }
+  .salon-back-row { margin-bottom: 16px; }
 
   /* Amenity-chips: horisontal carousel på mobil — full-bleed til viewport-
      kantene så scroll-følelsen er naturlig. Skjul scrollbar. */
