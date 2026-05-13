@@ -508,10 +508,9 @@
     /* Dashboard summary tiles — soft warm tiles */
     .kp-summary {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 14px;
     }
-    @media (max-width: 1100px) { .kp-summary { grid-template-columns: 1fr 1fr; } }
     /* Statistikk-fliser: 3 og 3 på alle viewports.
        Bruker id-selektor så det vinner over .kp-summary-defaultsen. */
     #analyticsKpiRow { grid-template-columns: repeat(3, 1fr); }
@@ -524,9 +523,9 @@
       #analyticsKpiRow .kp-tile__label { font-size: 10px; }
     }
     @media (max-width: 600px)  {
-      /* Mobil: to fliser i bredden så de tar mindre plass enn én stablet
-         kolonne. Innholdet vertikalt inni (ikon → label → tall), kompakt. */
-      .kp-summary { grid-template-columns: 1fr 1fr; gap: 10px; }
+      /* Mobil: tre fliser i bredden så Oversikt blir kompakt. Innholdet
+         vertikalt inni (ikon → label → tall). */
+      .kp-summary { grid-template-columns: repeat(3, 1fr); gap: 10px; }
       .kp-tile {
         padding: 14px 12px;
         gap: 4px;
@@ -2211,18 +2210,13 @@
             <span class="kp-tile__value" id="kpiToday">0</span>
           </div>
           <div class="kp-tile">
-            <span class="kp-tile__icon kp-tile__icon--amber"><i data-lucide="hourglass"></i></span>
-            <span class="kp-tile__label">Avventer bekreftelse</span>
-            <span class="kp-tile__value" id="kpiPending">0</span>
-          </div>
-          <div class="kp-tile">
             <span class="kp-tile__icon kp-tile__icon--green"><i data-lucide="check-circle"></i></span>
-            <span class="kp-tile__label">Fullført denne måneden</span>
-            <span class="kp-tile__value" id="kpiCompletedMonth">0</span>
+            <span class="kp-tile__label">Fullført i dag</span>
+            <span class="kp-tile__value" id="kpiCompletedToday">0</span>
           </div>
           <div class="kp-tile">
             <span class="kp-tile__icon kp-tile__icon--ink"><i data-lucide="banknote"></i></span>
-            <span class="kp-tile__label">Omsetning denne måneden</span>
+            <span class="kp-tile__label">Omsetning i dag</span>
             <span class="kp-tile__value" id="kpiRevenue">0 <span class="kp-tile__unit">kr</span></span>
           </div>
         </div>
@@ -4835,18 +4829,17 @@
       // KPI computation
       var today = new Date(); today.setHours(0,0,0,0);
       var tomorrow = new Date(today.getTime() + 86400000);
-      var todayCount = 0, pendingCount = 0, completedMonth = 0, revenueMonth = 0;
-      var monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+      var todayCount = 0, pendingCount = 0, completedToday = 0, revenueToday = 0;
       bookings.forEach(function (b) {
         var s = new Date(b.start_at);
-        if (s >= today && s < tomorrow && (b.status === 'pending' || b.status === 'confirmed')) todayCount++;
+        var inToday = s >= today && s < tomorrow;
+        if (inToday && (b.status === 'pending' || b.status === 'confirmed')) todayCount++;
         if (b.status === 'pending') pendingCount++;
-        if (b.status === 'completed' && s >= monthStart) { completedMonth++; revenueMonth += b.price_nok; }
+        if (b.status === 'completed' && inToday) { completedToday++; revenueToday += b.price_nok; }
       });
       animateCount(document.getElementById('kpiToday'), todayCount);
-      animateCount(document.getElementById('kpiPending'), pendingCount);
-      animateCount(document.getElementById('kpiCompletedMonth'), completedMonth);
-      animateCount(document.getElementById('kpiRevenue'), revenueMonth, { format: 'nok' });
+      animateCount(document.getElementById('kpiCompletedToday'), completedToday);
+      animateCount(document.getElementById('kpiRevenue'), revenueToday, { format: 'nok' });
 
       // Lagre bookings for kalender-rendering så prev/next-knappene kan
       // re-rendere uten å fetche på nytt.
