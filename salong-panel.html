@@ -83,9 +83,13 @@
       font-size: clamp(32px, 5vw, 48px);
       letter-spacing: -0.02em;
       margin: 0 0 6px;
+      color: var(--rouge-500);
     }
     .kp-hero__title em { font-style: normal; color: var(--rouge-500); }
     .kp-hero__sub { font-size: 15px; color: var(--fg-muted); margin: 0 0 28px; }
+    @media (max-width: 720px) {
+      .kp-hero__sub { margin-bottom: 12px; }
+    }
     .kp-hero__actions { display: flex; gap: 8px; flex-wrap: wrap; }
     @media (max-width: 720px) {
       /* Begge knapper på samme rad på mobil — kompakt størrelse */
@@ -1990,7 +1994,7 @@
         <button type="button" class="kp-tabs__chev kp-tabs__chev--right" id="kpTabsChevRight" aria-label="Bla til høyre"><i data-lucide="chevron-right"></i></button>
         <div class="kp-tabs" id="kpTabs" role="tablist">
           <button class="kp-tab active" role="tab" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Oversikt</button>
-          <button class="kp-tab" role="tab" data-tab="profil"><i data-lucide="store"></i> Rediger salongprofil</button>
+          <button class="kp-tab" role="tab" data-tab="profil"><i data-lucide="store"></i> Min salong</button>
           <button class="kp-tab" role="tab" data-tab="bookinger">
             <i data-lucide="calendar-check"></i> Bookinger
             <span class="kp-tab__badge" id="bookingsPendingBadge" hidden>0</span>
