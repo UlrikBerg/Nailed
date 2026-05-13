@@ -165,12 +165,23 @@
         </form>
 
       </div>
-      <div class="hero__quick">
-        <span class="eyebrow">Populært:</span>
-        <a class="chip" href="/utforsk?q=Gel+manikyr">Gel manikyr</a>
-        <a class="chip" href="/utforsk?q=Klassiske+vipper">Klassiske vipper</a>
-        <a class="chip" href="/utforsk?q=Brynsfarge">Brynsfarge</a>
-        <a class="chip" href="/utforsk?q=Brudemakeup">Brudemakeup</a>
+      <div class="hero__cta-row">
+        <a class="hero__cta-pill" href="for-salonger">
+          <i data-lucide="store"></i>
+          <span class="hero__cta-pill__text">
+            <span class="hero__cta-pill__title">For salonger</span>
+            <span class="hero__cta-pill__sub">3 mnd gratis · ingen provisjon</span>
+          </span>
+          <i data-lucide="arrow-right" class="hero__cta-pill__arrow"></i>
+        </a>
+        <a class="hero__cta-pill" href="last-ned-app">
+          <i data-lucide="smartphone"></i>
+          <span class="hero__cta-pill__text">
+            <span class="hero__cta-pill__title">Last ned app</span>
+            <span class="hero__cta-pill__sub">Kommer juni / juli</span>
+          </span>
+          <i data-lucide="arrow-right" class="hero__cta-pill__arrow"></i>
+        </a>
       </div>
     </div>
     <img src="assets/sticker-nailed-it.svg" class="hero__sticker" alt="" />
@@ -186,7 +197,6 @@
         <div>
           <h2>Salonger på <em>nailed</em></h2>
         </div>
-        <a class="section-head__link" href="utforsk" style="text-decoration:none;">Se alle <i data-lucide="arrow-right"></i></a>
       </div>
       <div class="grid-3" id="featuredGrid"></div>
     </div>
@@ -382,16 +392,6 @@
       var slug = encodeURIComponent(salon.slug || '');
       var featured = (opts.allowFeatured && idx === 0) ? ' service-card--featured' : '';
 
-      // Status pill — samme som utforsk: i info-arealet, ikke på bildet.
-      var statusPill;
-      if (salon.is_open_now === true) {
-        statusPill = '<span class="sc2-status sc2-status--open"><span class="sc2-status__dot"></span>Åpent nå</span>';
-      } else if (salon.reopens_today) {
-        statusPill = '<span class="sc2-status sc2-status--closed"><span class="sc2-status__dot"></span>Stengt · Åpner ' + featuredEscapeHtml(salon.reopens_today) + '</span>';
-      } else {
-        statusPill = '<span class="sc2-status sc2-status--closed"><span class="sc2-status__dot"></span>Stengt nå</span>';
-      }
-
       var locationLine = salon.city
         ? '<span class="sc2-meta__item"><i data-lucide="map-pin"></i>' + featuredEscapeHtml(salon.city) + '</span>'
         : '';
@@ -413,14 +413,6 @@
         '</div>';
       }
 
-      // Maks 2 team-medlemmer (smalt kort).
-      var teamHtml = '';
-      if (Array.isArray(salon.top_team) && salon.top_team.length) {
-        teamHtml = '<div class="sc2-team"><i data-lucide="users"></i>' +
-          '<span>' + featuredEscapeHtml(salon.top_team.slice(0, 2).join(', ')) + '</span>' +
-        '</div>';
-      }
-
       var priceHtml = '';
       if (salon.min_price != null) {
         priceHtml = '<div class="sc2-price">'
@@ -439,11 +431,9 @@
             + '</button>'
           + '</div>'
           + '<div class="service-card__body sc2-body sc2-body--vertical">'
-            + statusPill
             + '<div class="sc2-name">' + featuredEscapeHtml(salon.name || 'Salong') + '</div>'
             + '<div class="sc2-meta">' + locationLine + ratingLine + '</div>'
             + '<div class="sc2-bottom">'
-              + teamHtml
               + '<div class="sc2-footer">'
                 + catsHtml
                 + priceHtml
