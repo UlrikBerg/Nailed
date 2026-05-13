@@ -277,8 +277,8 @@
   <script defer src="/assets/nav.js"></script>
   <script>
     lucide.createIcons();
-    var nav = document.getElementById('topNav');
-    window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 30); });
+    // top-nav scroll-shrink: håndtert av /assets/topnav-scroll.js
   </script>
+  <script defer src="/assets/topnav-scroll.js"></script>
 </body>
 </html>

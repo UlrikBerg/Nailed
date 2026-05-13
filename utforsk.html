@@ -1110,12 +1110,11 @@
   <script defer src="/assets/nav.js"></script>
   <script defer src="/assets/track.js"></script>
   <script defer src="/assets/spa-nav.js"></script>
+  <script defer src="/assets/topnav-scroll.js"></script>
   <script>
     lucide.createIcons();
 
-    // Nav scroll
-    var nav = document.getElementById('topNav');
-    window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 30); });
+    // Nav scroll — håndtert av /assets/topnav-scroll.js
 
     // City data — used by city sub-list UI
     var CITIES = {
