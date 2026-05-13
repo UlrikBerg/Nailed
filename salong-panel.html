@@ -974,6 +974,9 @@
     /* Lunsjpause: to time-input side-om-side på desktop. */
     .lunch-break-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
+    /* Varslinger: kompakt label-tekst på alle viewports (samme som mobil). */
+    #notificationsForm label > span > span:first-child { font-size: 14px; }
+
     /* Mobil-tilpasninger for Innstillinger-tab: kortene blir kompakte,
        sub-card stacker tittel+pris, inputs får full bredde og border-box. */
     @media (max-width: 720px) {
@@ -996,10 +999,6 @@
       .form-help { font-size: 12px; }
       /* Lunsjpause: stack Start/Slutt på smale skjermer */
       .lunch-break-grid { grid-template-columns: 1fr; gap: 12px; }
-      /* Varslinger: gjør label-tekst kompakt så den matcher resten av panelet */
-      #notificationsForm label { gap: 12px; }
-      #notificationsForm label > span > span:first-child { font-size: 14px; }
-      #notificationsForm label > span > span:last-child { font-size: 12px; }
     }
 
     /* Extra button variants (success/danger) — base .btn comes from styles.css. */
@@ -1438,8 +1437,13 @@
       margin-bottom: 6px;
     }
     .sub-card__title { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 22px; color: var(--ink); }
-    .sub-card__title-pill { flex-shrink: 0; }
+    .sub-card__title-pill { flex-shrink: 0; display: none; }
     .sub-card__title-pill:empty { display: none; }
+    @media (max-width: 720px) {
+      /* På mobil: pill flyttes opp i tittel-raden, inline-pill i status-teksten skjules */
+      .sub-card__title-pill:not(:empty) { display: inline-flex; }
+      #subStatusText > .sub-card__statusPill { display: none; }
+    }
     .sub-card__sub { margin: 0; font-size: 14px; color: var(--fg-muted); }
     .sub-card__price {
       display: inline-flex;
@@ -3963,11 +3967,21 @@
 
       var status = s.subscription_status || 'trial';
       var pillEl = document.getElementById('subStatusPill');
-      function setPill(cls, label) {
+      function escapeText(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      // Skriver pill i to slots: title-row (vises kun mobil) og inline foran
+      // status-tekst (vises kun desktop). CSS skjuler ett av dem per breakpoint.
+      function setStatus(cls, label, msg) {
         if (pillEl) {
           pillEl.className = 'sub-card__title-pill sub-card__statusPill sub-card__statusPill--' + cls;
           pillEl.textContent = label;
         }
+        statusEl.innerHTML =
+          '<span class="sub-card__statusPill sub-card__statusPill--' + cls + '">' + escapeText(label) + '</span>' +
+          escapeText(msg);
       }
 
       // Skjul trial-bar som default — vises kun for status='trial'.
@@ -3987,8 +4001,7 @@
               ? '3 måneder gratis prøveperiode — ' + daysLeft + ' dager igjen. Faktureres ' + price + ' kr/mnd etterpå.'
               : 'Prøveperioden er over. Velg betaling for å fortsette.')
           : '3 måneder gratis prøveperiode. Faktureres ' + price + ' kr/mnd etterpå.';
-        setPill('trial', 'Prøveperiode');
-        statusEl.textContent = msg;
+        setStatus('trial', 'Prøveperiode', msg);
 
         // Trial-bar — fyller fra venstre mot høyre etter hvor mange dager
         // som er brukt opp av prøveperioden.
@@ -4009,14 +4022,11 @@
         var since = s.subscription_started_at
           ? ' siden ' + new Date(s.subscription_started_at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })
           : '';
-        setPill('active', 'Aktiv');
-        statusEl.textContent = 'Du betaler ' + price + ' kr/mnd' + since + '.';
+        setStatus('active', 'Aktiv', 'Du betaler ' + price + ' kr/mnd' + since + '.');
       } else if (status === 'past_due') {
-        setPill('past_due', 'Forfalt');
-        statusEl.textContent = 'Betalingen mislyktes — oppdater betalingsmetoden for å unngå at salongen skjules.';
+        setStatus('past_due', 'Forfalt', 'Betalingen mislyktes — oppdater betalingsmetoden for å unngå at salongen skjules.');
       } else if (status === 'cancelled') {
-        setPill('cancelled', 'Oppsagt');
-        statusEl.textContent = 'Abonnementet er sagt opp. Du kan starte det igjen når som helst.';
+        setStatus('cancelled', 'Oppsagt', 'Abonnementet er sagt opp. Du kan starte det igjen når som helst.');
       } else {
         if (pillEl) { pillEl.className = 'sub-card__title-pill'; pillEl.textContent = ''; }
         statusEl.textContent = price + ' kr/mnd. Ingen bindingstid.';
