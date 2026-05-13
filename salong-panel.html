@@ -1745,11 +1745,21 @@
     }
 
     /* ------------------ Analyse-fane ------------------ */
-    /* Period chip-row (7d / 30d / 90d / 6m / 12m / Alt). Visual style matches
-       the rouge accent used elsewhere on the panel. */
+    /* Period chip-row som horisontal carousel (i dag / i går / 7d / 30d /
+       90d / 6m / 12m / Siden start). Scroller vannrett på smale skjermer
+       i stedet for å wrappe til ny linje. */
     .analytics-period {
-      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      scroll-snap-type: x proximity;
+      padding-bottom: 2px;
     }
+    .analytics-period::-webkit-scrollbar { display: none; }
+    .analytics-period__chip { scroll-snap-align: start; flex-shrink: 0; }
     .analytics-period__chip {
       font-family: var(--font-body);
       font-size: 13px;
@@ -2424,7 +2434,7 @@
           <button type="button" class="analytics-period__chip" data-period="90d">90 dager</button>
           <button type="button" class="analytics-period__chip" data-period="6m">6 måneder</button>
           <button type="button" class="analytics-period__chip" data-period="12m">12 måneder</button>
-          <button type="button" class="analytics-period__chip" data-period="all">Alt</button>
+          <button type="button" class="analytics-period__chip" data-period="all">Siden start</button>
         </div>
 
         <div class="kp-summary" id="analyticsKpiRow">
