@@ -241,6 +241,93 @@
     }
     .lp-step__title { font-family: var(--font-display); font-weight: 600; font-size: 18px; margin: 0 0 6px; }
     .lp-step__desc { font-size: 14px; color: var(--fg-muted); margin: 0; }
+
+    /* Preview-seksjon — browser-window-mockup som senere får ekte skjermbilder. */
+    .lp-preview {
+      padding: 0 0 80px;
+      position: relative;
+    }
+    .lp-preview__window {
+      max-width: 920px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid var(--stone-200);
+      border-radius: 16px;
+      box-shadow: 0 32px 80px -32px rgba(31,19,24,.32), 0 12px 24px -12px rgba(31,19,24,.10);
+      overflow: hidden;
+    }
+    .lp-preview__bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--stone-100);
+      background: var(--cream-50);
+    }
+    .lp-preview__dot {
+      width: 12px; height: 12px;
+      border-radius: 999px;
+      background: var(--stone-200);
+    }
+    .lp-preview__dot--r { background: #FF5F57; }
+    .lp-preview__dot--y { background: #FEBC2E; }
+    .lp-preview__dot--g { background: #28C840; }
+    .lp-preview__url {
+      flex: 1;
+      text-align: center;
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--fg-muted);
+      background: #fff;
+      border: 1px solid var(--stone-100);
+      border-radius: 999px;
+      padding: 6px 14px;
+      max-width: 360px;
+      margin: 0 12px;
+    }
+    /* Plassholder-innhold mens vi venter på ekte skjermbilder. Bytt ut hele
+       .lp-preview__body med <img src="..." alt="..."> når screenshot er klart. */
+    .lp-preview__body {
+      aspect-ratio: 16 / 10;
+      background:
+        linear-gradient(180deg, var(--cream-50) 0%, var(--cream-100) 100%);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lp-preview__placeholder {
+      text-align: center;
+      color: var(--fg-muted);
+    }
+    .lp-preview__placeholder i {
+      width: 48px; height: 48px;
+      color: var(--rouge-300);
+      margin-bottom: 12px;
+    }
+    .lp-preview__placeholder div {
+      font-family: var(--font-display);
+      font-size: 18px;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .lp-preview__placeholder p {
+      font-size: 13px;
+      margin: 0;
+      color: var(--fg-muted);
+    }
+    .lp-preview__caption {
+      text-align: center;
+      max-width: 560px;
+      margin: 28px auto 0;
+      font-size: 14px;
+      color: var(--fg-muted);
+    }
+    @media (max-width: 720px) {
+      .lp-preview__window { margin: 0 16px; border-radius: 12px; }
+      .lp-preview__bar { padding: 10px 12px; }
+      .lp-preview__url { font-size: 11px; padding: 5px 10px; }
+    }
   </style>
 </head>
 <body>
@@ -274,6 +361,34 @@
       <p class="lp-hero__note">4 måneder gratis prøveperiode · Ingen bindingstid · Ingen provisjon</p>
     </div>
     <img src="assets/sticker-nailed-it.svg" class="hero__sticker" alt="" />
+  </section>
+
+  <!-- Preview / produktbilde ============================================
+       Plassholder for ekte skjermbilde av panelet (kalender, profil,
+       statistikk). Når screenshot er klart: bytt ut hele .lp-preview__body
+       med <img src="assets/marketing/panel-kalender.png" alt="..."> -->
+  <section class="lp-preview">
+    <div class="page">
+      <div class="lp-preview__window">
+        <div class="lp-preview__bar">
+          <span class="lp-preview__dot lp-preview__dot--r"></span>
+          <span class="lp-preview__dot lp-preview__dot--y"></span>
+          <span class="lp-preview__dot lp-preview__dot--g"></span>
+          <span class="lp-preview__url">nailed.no/salong-panel</span>
+        </div>
+        <div class="lp-preview__body">
+          <div class="lp-preview__placeholder">
+            <i data-lucide="calendar"></i>
+            <div>Salongpanelet ditt</div>
+            <p>Kalender, bookinger, kunder og statistikk — alt på ett sted.</p>
+          </div>
+        </div>
+      </div>
+      <p class="lp-preview__caption">
+        Bygget i samme estetikk som kundefronten. Du logger inn på nailed.no og styrer hele
+        bookingen fra nettleseren — eller appen når den slippes i sommer.
+      </p>
+    </div>
   </section>
 
   <!-- Pricing -->
