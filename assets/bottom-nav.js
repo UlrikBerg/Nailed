@@ -15,7 +15,7 @@
   if (window.__nailedBottomNav) return;
   window.__nailedBottomNav = true;
 
-  var HIDE_ON = ['auth-complete', 'confirmation', 'bli-salong'];
+  var HIDE_ON = ['login', 'auth-complete', 'confirmation', 'bli-salong'];
   // Hvilken sub-side under /admin/ vi viser bottom-nav på (resten skipper)
   var ADMIN_HIDE_PATHS = []; // tom: alle admin-sider får bottom-nav
 
