@@ -134,6 +134,8 @@ router.get('/:id/analytics', requireAuth, asyncRoute(async (req, res) => {
   const kpiRow = await queryOne(
     `SELECT
         COUNT(*)                                          AS bookings_count,
+        SUM(CASE WHEN b.status='pending'   THEN 1 ELSE 0 END) AS pending_count,
+        SUM(CASE WHEN b.status='confirmed' THEN 1 ELSE 0 END) AS confirmed_count,
         SUM(CASE WHEN b.status='completed' THEN 1 ELSE 0 END) AS completed_count,
         SUM(CASE WHEN b.status='cancelled' THEN 1 ELSE 0 END) AS cancelled_count,
         SUM(CASE WHEN b.status='no_show'   THEN 1 ELSE 0 END) AS no_show_count,
@@ -182,6 +184,8 @@ router.get('/:id/analytics', requireAuth, asyncRoute(async (req, res) => {
 
   const kpi = {
     bookings_count:      bookingsCount,
+    pending_count:       Number(kpiRow?.pending_count     || 0),
+    confirmed_count:     Number(kpiRow?.confirmed_count   || 0),
     completed_count:     Number(kpiRow?.completed_count   || 0),
     cancelled_count:     Number(kpiRow?.cancelled_count   || 0),
     no_show_count:       noShowCount,
