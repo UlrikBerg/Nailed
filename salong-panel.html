@@ -3143,6 +3143,13 @@
     var navItems = document.querySelectorAll('.kp-tab[data-tab]');
     var tabContents = document.querySelectorAll('.tab-content');
     function setActiveTab(tab) {
+      // Dedupe: hvis denne fanen allerede er aktiv, hopp ut. Tidligere ble
+      // setActiveTab kalt to ganger per klikk (én gang fra click-handleren,
+      // én gang fra hashchange) — det re-trigget scrollIntoView-animasjon
+      // og lazy-load, og brukeren oppfattet det som re-rendering.
+      var current = document.querySelector('.kp-tab.active');
+      if (current && current.getAttribute('data-tab') === tab) return;
+
       navItems.forEach(function (n) {
         n.classList.toggle('active', n.getAttribute('data-tab') === tab);
       });
