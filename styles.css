@@ -2850,8 +2850,8 @@ html {
    ========================================================================= */
 
 @media (max-width: 720px) {
-  .salon-detail { padding: 8px 0 64px; }
-  .salon-back-link { padding: 8px 0 8px; font-size: 13px; }
+  .salon-detail { padding: 2px 0 64px; }
+  .salon-back-link { padding: 4px 0 20px; font-size: 13px; }
   .salon-share-btn { min-height: 32px; padding: 6px 12px; font-size: 13px; }
 
   /* Amenity-chips: horisontal carousel på mobil — full-bleed til viewport-
