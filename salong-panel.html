@@ -1432,7 +1432,7 @@
     .sub-card__title-row {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: space-between;
       gap: 12px;
       margin-bottom: 6px;
     }
@@ -2822,28 +2822,6 @@
           <div>
             <h2 class="kp-section__title">Innstillinger</h2>
             <p class="kp-section__sub">Abonnement, booking-regler og varslinger.</p>
-          </div>
-        </div>
-
-        <!-- Konto-kort: panel-bytte + logg ut -->
-        <div class="kp-card kp-account" id="settingsAccountCard" hidden style="margin-bottom: 20px;">
-          <div class="kp-account__head">
-            <div class="kp-account__info">
-              <div class="kp-account__name" id="settingsAccountName">—</div>
-              <div class="kp-account__email" id="settingsAccountEmail">—</div>
-            </div>
-            <span class="kp-account__badge">Salongpanel</span>
-          </div>
-          <div class="kp-account__actions">
-            <a class="btn btn-ghost btn-sm" href="/kunde-panel">
-              <i data-lucide="user"></i> Kundepanel
-            </a>
-            <a class="btn btn-ghost btn-sm" href="/admin/" id="settingsGoAdmin" hidden>
-              <i data-lucide="shield"></i> Adminpanel
-            </a>
-            <button class="btn btn-ghost btn-sm" id="settingsLogout">
-              <i data-lucide="log-out"></i> Logg ut
-            </button>
           </div>
         </div>
 
@@ -6070,27 +6048,6 @@
       window.location.replace('/');
     }
     document.getElementById('logoutBtn').addEventListener('click', doLogout);
-    var settingsLogout = document.getElementById('settingsLogout');
-    if (settingsLogout) settingsLogout.addEventListener('click', doLogout);
-
-    // Fyll konto-kortet (navn/e-post + admin-knapp basert på rolle)
-    (async function loadAccountCard() {
-      try {
-        var card = document.getElementById('settingsAccountCard');
-        if (!card) return;
-        var res = await NailedAuth.api('/api/v1/me');
-        if (!res.ok) return;
-        var data = await res.json();
-        var u = data.user || {};
-        document.getElementById('settingsAccountName').textContent = u.name || '—';
-        document.getElementById('settingsAccountEmail').textContent = u.email || '—';
-        var role = (NailedAuth.getRole && NailedAuth.getRole()) || u.role || 'salon_owner';
-        var adminBtn = document.getElementById('settingsGoAdmin');
-        if (adminBtn) adminBtn.hidden = role !== 'admin';
-        card.hidden = false;
-        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
-      } catch (_) {}
-    })();
 
     /* ---------- ANALYSE-FANE ---------- */
 
