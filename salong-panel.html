@@ -1257,8 +1257,16 @@
     .profile-card__title {
       font-family: var(--font-display); font-weight: 600; font-size: 18px; margin: 0;
     }
+    /* Mindre, ikon-tung edit-knapp på hver profile-card */
+    .profile-card__edit {
+      padding: 6px 10px;
+      font-size: 12px;
+      min-height: 0;
+      gap: 4px;
+    }
+    .profile-card__edit i { width: 14px; height: 14px; }
 
-    .profile-about { font-size: 15px; line-height: 1.65; color: var(--ink); margin: 0; }
+    .profile-about { font-size: 15px; line-height: 1.65; color: var(--ink); margin: 0; white-space: pre-wrap; }
     .profile-about--empty { color: var(--fg-muted); font-style: italic; }
 
     .profile-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
@@ -2014,6 +2022,16 @@
       transition: opacity .18s var(--ease-out-soft), transform .18s var(--ease-out-soft);
     }
     .sp-modal.open { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    /* Bredere variant — brukt for «Rediger profil»-modalen som rommer
+       form-felter i flere kolonner. */
+    .sp-modal--wide { width: 720px; }
+    @media (max-width: 720px) {
+      .sp-modal { width: 100%; max-width: 100%; max-height: 100dvh; height: 100dvh;
+        top: 0; left: 0; transform: translate(0, 0) scale(0.96);
+        border-radius: 0; padding: 20px 16px;
+      }
+      .sp-modal.open { transform: translate(0, 0) scale(1); }
+    }
     .sp-modal__head {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 18px;
@@ -2981,29 +2999,6 @@
               <h2 class="profile-header__name" id="phName">—</h2>
               <div class="profile-header__meta" id="phMeta"></div>
             </div>
-            <div class="profile-header__actions">
-              <a id="phPreviewLinkTop" class="btn btn-ghost btn-sm" href="#" target="_blank" rel="noopener">
-                <i data-lucide="external-link"></i> Se kundevisning
-              </a>
-              <button id="editProfileBtn" type="button" class="btn btn-primary btn-sm">
-                <i data-lucide="pencil"></i> Rediger profil
-              </button>
-            </div>
-          </div>
-
-          <div class="profile-stats" style="margin-bottom: 20px;">
-            <div class="profile-stat">
-              <div class="profile-stat__value" id="statBookings">0</div>
-              <div class="profile-stat__label">Bookinger totalt</div>
-            </div>
-            <div class="profile-stat">
-              <div class="profile-stat__value" id="statServices">0</div>
-              <div class="profile-stat__label">Behandlinger</div>
-            </div>
-            <div class="profile-stat">
-              <div class="profile-stat__value" id="statImages">0</div>
-              <div class="profile-stat__label">Bilder</div>
-            </div>
           </div>
 
           <div class="profile-grid">
@@ -3013,7 +3008,7 @@
               <div class="profile-card">
                 <div class="profile-card__head">
                   <h3 class="profile-card__title">Behandlinger</h3>
-                  <button class="btn btn-ghost btn-sm" data-tab-link="tjenester"><i data-lucide="pencil"></i> Rediger</button>
+                  <button class="btn btn-ghost btn-sm profile-card__edit" data-tab-link="tjenester"><i data-lucide="pencil"></i> Rediger</button>
                 </div>
                 <div class="profile-services" id="phServices"></div>
                 <div id="phServicesAll" style="margin-top:12px; text-align:center; display:none;">
@@ -3024,7 +3019,7 @@
               <div class="profile-card">
                 <div class="profile-card__head">
                   <h3 class="profile-card__title">Om salongen</h3>
-                  <button class="btn btn-ghost btn-sm" data-edit="bio"><i data-lucide="pencil"></i> Rediger</button>
+                  <button class="btn btn-ghost btn-sm profile-card__edit" data-edit="bio"><i data-lucide="pencil"></i> Rediger</button>
                 </div>
                 <p class="profile-about" id="phBio">—</p>
                 <div class="profile-chips" id="phSocialChips"></div>
@@ -3033,7 +3028,7 @@
               <div class="profile-card">
                 <div class="profile-card__head">
                   <h3 class="profile-card__title">Team</h3>
-                  <button class="btn btn-ghost btn-sm" data-edit="team"><i data-lucide="plus"></i> Legg til</button>
+                  <button class="btn btn-ghost btn-sm profile-card__edit" data-edit="team"><i data-lucide="plus"></i> Legg til</button>
                 </div>
                 <div class="profile-team" id="phTeam"></div>
                 <div id="phTeamEmpty" class="profile-team__empty" style="display:none;">
@@ -3047,11 +3042,18 @@
 
               <div class="profile-card">
                 <div class="profile-card__head">
-                  <h3 class="profile-card__title">Kontakt &amp; tilgjengelighet</h3>
-                  <button class="btn btn-ghost btn-sm" data-edit="contact"><i data-lucide="pencil"></i> Rediger</button>
+                  <h3 class="profile-card__title">Kontaktinformasjon</h3>
+                  <button class="btn btn-ghost btn-sm profile-card__edit" data-edit="contact"><i data-lucide="pencil"></i> Rediger</button>
                 </div>
                 <div class="profile-contact" id="phContact"></div>
-                <div class="profile-contact" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--stone-200);">
+              </div>
+
+              <div class="profile-card">
+                <div class="profile-card__head">
+                  <h3 class="profile-card__title">Tilgjengelighet</h3>
+                  <button class="btn btn-ghost btn-sm profile-card__edit" data-edit="availability"><i data-lucide="pencil"></i> Rediger</button>
+                </div>
+                <div class="profile-contact">
                   <div class="profile-contact__row">
                     <i data-lucide="check-circle"></i>
                     <span id="phAcceptsBookings">—</span>
@@ -3066,7 +3068,7 @@
               <div class="profile-card">
                 <div class="profile-card__head">
                   <h3 class="profile-card__title">Åpningstider</h3>
-                  <button class="btn btn-ghost btn-sm" data-edit="hours"><i data-lucide="pencil"></i> Rediger</button>
+                  <button class="btn btn-ghost btn-sm profile-card__edit" data-edit="hours"><i data-lucide="pencil"></i> Rediger</button>
                 </div>
                 <div class="profile-hours" id="phHours"></div>
               </div>
@@ -3074,7 +3076,7 @@
               <div class="profile-card">
                 <div class="profile-card__head">
                   <h3 class="profile-card__title">Hva tilbys</h3>
-                  <button class="btn btn-ghost btn-sm" data-edit="amenities"><i data-lucide="pencil"></i> Rediger</button>
+                  <button class="btn btn-ghost btn-sm profile-card__edit" data-edit="amenities"><i data-lucide="pencil"></i> Rediger</button>
                 </div>
                 <div class="profile-chips" id="phAmenities"></div>
                 <div id="phAmenitiesEmpty" class="profile-about profile-about--empty" style="display:none;">
@@ -3086,17 +3088,13 @@
         </div>
 
         <!-- ======================================================
-             EDIT MODE — image manager + form (default hidden)
+             EDIT — popup-modal, åpnes per-section fra view-mode
              ====================================================== -->
-        <div id="profileEdit" style="display:none;">
-          <div class="profile-edit-toolbar">
-            <button class="btn btn-ghost btn-sm" id="cancelEditProfileBtn" type="button">
-              <i data-lucide="arrow-left"></i> Tilbake til visning
-            </button>
-            <h3 class="profile-edit-toolbar__title" id="profileEditTitle">Rediger profil</h3>
-            <button class="btn btn-primary btn-sm" id="topSaveProfileBtn" type="button">
-              <i data-lucide="save"></i> Lagre
-            </button>
+        <div class="sp-modal-backdrop" id="profileEditBackdrop"></div>
+        <div class="sp-modal sp-modal--wide" id="profileEdit" role="dialog" aria-modal="true" aria-labelledby="profileEditTitle">
+          <div class="sp-modal__head">
+            <h2 class="sp-modal__title" id="profileEditTitle">Rediger</h2>
+            <button type="button" class="sp-modal__close" id="cancelEditProfileBtn" aria-label="Lukk"><i data-lucide="x"></i></button>
           </div>
 
           <div class="kp-card image-drop-zone" id="imageDropZone" data-edit-section="photos">
@@ -4056,6 +4054,7 @@
       }
       NailedForms.toast('Åpningstider lagret');
       await loadSalon();
+      setProfileMode('view');
     }
 
     /* ---------- TEAM (view + editor) ---------- */
@@ -4360,6 +4359,7 @@
       }
       NailedForms.toast('Fasiliteter lagret');
       await loadSalon();
+      setProfileMode('view');
     }
 
     function renderSuspendBanner(s) {
@@ -4504,10 +4504,6 @@
       if (s.accepts_new_bookings) bits.push('<span style="color:var(--success-500)"><i data-lucide="check-circle"></i>Tar imot bookinger</span>');
       else bits.push('<span style="color:var(--danger-500)"><i data-lucide="x-circle"></i>Tar ikke imot bookinger</span>');
       meta.innerHTML = bits.join('');
-      var publicHref = '/salon?slug=' + encodeURIComponent(s.slug);
-      var phPreview = document.getElementById('phPreviewLinkTop');
-      if (phPreview) phPreview.href = publicHref;
-
       // Bio
       var bio = document.getElementById('phBio');
       if (s.bio && s.bio.trim()) {
@@ -4548,12 +4544,6 @@
         ? 'Telefonnummer er synlig offentlig på salongprofilen.'
         : 'Telefonnummer er skjult for kunder.';
 
-      // Stats — use what we know without extra fetches.
-      document.getElementById('statImages').textContent = images.length;
-      // Service count + total bookings: leave defaults; salon-page services tab loads later.
-      var bookingsRows = document.querySelectorAll('#incomingTable tbody tr');
-      document.getElementById('statBookings').textContent = bookingsRows.length || '0';
-
       // Top 4 services
       renderProfileServices();
 
@@ -4565,7 +4555,6 @@
       var allBtn = document.getElementById('phServicesAll');
       if (!container) return;
       var items = (window.__lastServices || []).filter(function (s) { return s.active; });
-      document.getElementById('statServices').textContent = items.length;
       if (!items.length) {
         container.innerHTML = '<div class="profile-services__row" style="border:0;color:var(--fg-muted);font-style:italic;">Ingen behandlinger lagt til ennå.</div>';
         allBtn.style.display = 'none';
@@ -4598,93 +4587,56 @@
     };
 
     function setProfileMode(mode, section) {
-      var view = document.getElementById('profileView');
-      var edit = document.getElementById('profileEdit');
-      if (!view || !edit) return;
-      view.style.display = mode === 'edit' ? 'none' : '';
-      edit.style.display = mode === 'edit' ? '' : 'none';
+      var modal = document.getElementById('profileEdit');
+      var backdrop = document.getElementById('profileEditBackdrop');
+      if (!modal) return;
       if (mode === 'edit') {
-        var sec = section || 'all';
+        var sec = section || 'bio';
         currentEditSection = sec;
         var titleEl = document.getElementById('profileEditTitle');
-        if (titleEl) titleEl.textContent = EDIT_SECTION_TITLES[sec] || EDIT_SECTION_TITLES.all;
-        // Per-card: any card whose data-edit-section list includes this
-        // section is shown; the rest hide. Cards with no attribute always show
-        // when section='all', otherwise hide.
-        edit.querySelectorAll('.kp-card').forEach(function (p) {
+        if (titleEl) titleEl.textContent = EDIT_SECTION_TITLES[sec] || 'Rediger';
+        // Vis kun .kp-card-en som matcher valgt seksjon.
+        modal.querySelectorAll('.kp-card').forEach(function (p) {
           var attr = p.getAttribute('data-edit-section');
-          if (sec === 'all') { p.style.display = ''; return; }
           if (!attr) { p.style.display = 'none'; return; }
           var sections = attr.split(/\s+/);
           p.style.display = sections.indexOf(sec) >= 0 ? '' : 'none';
         });
-        // Within the shared (bio/contact/availability) panel, hide field
-        // groups that don't belong to the active section. ALSO disable the
-        // inputs inside hidden groups — otherwise Chrome's form validation
-        // tries to focus a `required` input that's display:none and silently
-        // blocks submit ("An invalid form control … is not focusable").
+        // Vis kun form-gruppene som hører til valgt seksjon (bio/contact/availability)
         document.querySelectorAll('#salonForm [data-section]').forEach(function (g) {
-          var matches = (sec === 'all' || g.getAttribute('data-section') === sec);
+          var matches = g.getAttribute('data-section') === sec;
           g.style.display = matches ? '' : 'none';
           g.querySelectorAll('input, textarea, select').forEach(function (el) {
             el.disabled = !matches;
           });
         });
-        // Section-headers: when editing a single section, only the matching
-        // header is visible. When editing everything (sec='all'), show all
-        // three so the user can see the visual split between Om salongen,
-        // Kontakt and Tilgjengelighet inside the shared card.
         document.querySelectorAll('[data-section-header]').forEach(function (h) {
-          if (sec === 'all') { h.style.display = ''; return; }
           h.style.display = h.getAttribute('data-section-header') === sec ? '' : 'none';
         });
-        // Re-bind icons in case anything inside was just shown for the first time.
         if (window.lucide) window.lucide.createIcons();
-        edit.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        modal.classList.add('open');
+        if (backdrop) backdrop.classList.add('open');
       } else {
-        view.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        modal.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('open');
       }
     }
 
-    // Primary "Rediger profil"-knapp i view-mode opens edit-mode for hele profilen.
-    var topEditBtn = document.getElementById('editProfileBtn');
-    if (topEditBtn) topEditBtn.addEventListener('click', function () { setProfileMode('edit', 'all'); });
     document.getElementById('cancelEditProfileBtn').addEventListener('click', function () {
       setProfileMode('view');
     });
-    document.getElementById('cancelEditProfileBtn2').addEventListener('click', function () { setProfileMode('view'); });
+    document.getElementById('profileEditBackdrop').addEventListener('click', function () {
+      setProfileMode('view');
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        var m = document.getElementById('profileEdit');
+        if (m && m.classList.contains('open')) setProfileMode('view');
+      }
+    });
+    var cancelBtn2 = document.getElementById('cancelEditProfileBtn2');
+    if (cancelBtn2) cancelBtn2.addEventListener('click', function () { setProfileMode('view'); });
 
-    // Sticky top "Lagre"-knapp triggers the save for whatever section is open.
-    // For sections backed by separate Save-buttons (hours/amenities) we click
-    // them; for sections in #salonForm we submit the form. The 'photos' card
-    // saves on upload, so the button just returns to view. 'team' lives in an
-    // add-form: clicking Lagre simply returns to view.
-    var topSaveBtn = document.getElementById('topSaveProfileBtn');
-    if (topSaveBtn) {
-      topSaveBtn.addEventListener('click', function () {
-        var sec = currentEditSection;
-        if (sec === 'hours') {
-          var btn = document.getElementById('saveHoursBtn');
-          if (btn) btn.click();
-          return;
-        }
-        if (sec === 'amenities') {
-          var btn2 = document.getElementById('saveAmenitiesBtn');
-          if (btn2) btn2.click();
-          return;
-        }
-        if (sec === 'photos' || sec === 'team') {
-          setProfileMode('view');
-          return;
-        }
-        var form = document.getElementById('salonForm');
-        if (form && typeof form.requestSubmit === 'function') {
-          form.requestSubmit();
-        } else if (form) {
-          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-        }
-      });
-    }
     document.querySelectorAll('[data-edit]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var key = this.getAttribute('data-edit');
