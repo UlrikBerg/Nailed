@@ -59,6 +59,18 @@
       '.nc-modal__actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }',
       '.nc-modal__actions .btn-ghost, .nc-modal__actions .btn-primary { padding: 9px 16px; font-size: 14px; }',
       '@media (max-width: 720px) { .nc-modal { width: calc(100vw - 24px); padding: 18px; } }',
+      '.nc-msg__image { display: block; max-width: 240px; max-height: 320px; border-radius: 10px; cursor: pointer; }',
+      '.nc-row--mine .nc-msg__image { margin-left: auto; }',
+      '.nc-msg--image { padding: 4px; background: transparent !important; }',
+      '.nc-row--mine .nc-msg--image { background: transparent !important; }',
+      '.nc-form__file-btn { background: transparent; border: 1px solid var(--stone-200); border-radius: 10px; padding: 0 12px; cursor: pointer; color: var(--fg-muted); display: inline-flex; align-items: center; justify-content: center; }',
+      '.nc-form__file-btn:hover { color: var(--rouge-500); border-color: var(--rouge-300); }',
+      '.nc-form__file-btn i, .nc-form__file-btn svg { width: 18px; height: 18px; }',
+      '.nc-form__file-input { display: none; }',
+      '.nc-uploading { padding: 8px 12px; font-size: 12px; color: var(--fg-muted); text-align: center; }',
+      '.nc-imgview-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1400; display: none; align-items: center; justify-content: center; padding: 24px; }',
+      '.nc-imgview-backdrop.open { display: flex; }',
+      '.nc-imgview-backdrop img { max-width: 100%; max-height: 100%; border-radius: 8px; }',
     ].join('\n');
     var s = document.createElement('style');
     s.id = 'nailed-chat-styles';
@@ -127,6 +139,19 @@
         text = escapeHtml(initialsOf(name));
       }
       return '<span class="nc-row__avatar" style="' + style + '">' + text + '</span>';
+    }
+
+    function ensureImgView() {
+      if (document.getElementById('ncImgViewBackdrop')) return;
+      var back = document.createElement('div');
+      back.className = 'nc-imgview-backdrop';
+      back.id = 'ncImgViewBackdrop';
+      back.innerHTML = '<img alt="Bilde" />';
+      document.body.appendChild(back);
+      back.addEventListener('click', function () { back.classList.remove('open'); });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && back.classList.contains('open')) back.classList.remove('open');
+      });
     }
 
     function ensureReportModal() {
@@ -220,12 +245,21 @@
           '<button type="button" class="nc-report-btn" data-report-msg="' + m.id + '" title="Rapporter melding" aria-label="Rapporter melding">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>' +
           '</button>';
+        var msgInner;
+        if (m.image_url) {
+          msgInner = '<div class="nc-msg nc-msg--image" data-msg-id="' + m.id + '">' +
+            '<img class="nc-msg__image" src="' + escapeHtml(m.image_url) + '" alt="Bilde" data-imgview="' + escapeHtml(m.image_url) + '" />' +
+            '<span class="nc-msg__time" style="color: var(--fg-muted);">' + escapeHtml(fmtTime(m.sent_at)) + '</span>' +
+          '</div>';
+        } else {
+          msgInner = '<div class="nc-msg" data-msg-id="' + m.id + '">' +
+              escapeHtml(m.body || '').replace(/\n/g, '<br>') +
+              '<span class="nc-msg__time">' + escapeHtml(fmtTime(m.sent_at)) + '</span>' +
+            '</div>';
+        }
         return '<div class="nc-row nc-row--' + (mine ? 'mine' : 'theirs') + '">' +
             avatar +
-            '<div class="nc-msg" data-msg-id="' + m.id + '">' +
-              escapeHtml(m.body).replace(/\n/g, '<br>') +
-              '<span class="nc-msg__time">' + escapeHtml(fmtTime(m.sent_at)) + '</span>' +
-            '</div>' +
+            msgInner +
             reportBtn +
           '</div>' + readMark;
       }).join('');
@@ -303,7 +337,11 @@
         '</div>' +
         '<div class="nc-body" id="ncBody"><div style="text-align:center;color:var(--fg-muted);padding:24px;">Laster …</div></div>' +
         '<form class="nc-form" id="ncForm" autocomplete="off">' +
-          '<textarea id="ncInput" rows="1" placeholder="Skriv en melding …" maxlength="4000" required></textarea>' +
+          '<input type="file" id="ncFileInput" class="nc-form__file-input" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" />' +
+          '<button type="button" class="nc-form__file-btn" id="ncFileBtn" title="Send bilde" aria-label="Send bilde">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' +
+          '</button>' +
+          '<textarea id="ncInput" rows="1" placeholder="Skriv en melding …" maxlength="4000"></textarea>' +
           '<button type="submit" id="ncSend">Send</button>' +
         '</form>';
       if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
@@ -368,6 +406,52 @@
         } finally {
           sendBtn.disabled = false;
         }
+      });
+
+      // Bilde-upload: file-input + opplastings-handler.
+      var fileBtn = paneEl.querySelector('#ncFileBtn');
+      var fileInput = paneEl.querySelector('#ncFileInput');
+      if (fileBtn && fileInput) {
+        fileBtn.addEventListener('click', function () { fileInput.click(); });
+        fileInput.addEventListener('change', async function () {
+          var file = this.files && this.files[0];
+          if (!file) return;
+          var fd = new FormData();
+          fd.append('file', file);
+          fileBtn.disabled = true;
+          var token = window.NailedAuth && NailedAuth.getAccess ? NailedAuth.getAccess() : null;
+          try {
+            var res = await fetch('/api/v1/chat/threads/' + id + '/messages/image', {
+              method: 'POST',
+              headers: token ? { 'Authorization': 'Bearer ' + token } : {},
+              body: fd,
+            });
+            if (!res.ok) {
+              var err = await res.json().catch(function () { return {}; });
+              var msg = (err.error && err.error.message) || 'Kunne ikke sende bildet';
+              if (window.NailedForms && NailedForms.toast) NailedForms.toast(msg, { type: 'error' });
+              return;
+            }
+            this.value = '';
+            await loadMessages();
+            await refreshThreads();
+          } catch (_) {
+            if (window.NailedForms && NailedForms.toast) NailedForms.toast('Kunne ikke sende bildet', { type: 'error' });
+          } finally {
+            fileBtn.disabled = false;
+            fileInput.value = '';
+          }
+        });
+      }
+
+      // Lightbox: klikk på bilde åpner full-skjerm visning.
+      bodyEl.addEventListener('click', function (e) {
+        var img = e.target && e.target.closest && e.target.closest('[data-imgview]');
+        if (!img) return;
+        ensureImgView();
+        var view = document.getElementById('ncImgViewBackdrop');
+        view.querySelector('img').src = img.getAttribute('data-imgview');
+        view.classList.add('open');
       });
       // Mobil: scroll til siste melding når tastaturet åpner seg.
       // Liten delay så iOS rekker å resize viewport først.

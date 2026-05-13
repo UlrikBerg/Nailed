@@ -6,6 +6,9 @@
 // brukeren er enten kunden i tråden eller eier av salongen i tråden.
 
 const express = require('express');
+const multer = require('multer');
+const sharp = require('sharp');
+const crypto = require('crypto');
 const { z } = require('zod');
 const { query, queryOne } = require('../db');
 const { requireAuth } = require('../middleware/auth');
@@ -16,6 +19,22 @@ router.use(requireAuth);
 
 // Returner { thread, role } hvis brukeren har tilgang, ellers throw.
 const storage = require('../storage');
+
+const CHAT_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
+const CHAT_IMAGE_ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']);
+const chatImageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: CHAT_IMAGE_MAX_BYTES, files: 1 },
+  fileFilter(req, file, cb) {
+    if (!CHAT_IMAGE_ALLOWED.has(file.mimetype)) {
+      return cb(new HttpError(415, 'unsupported_media', 'Bare JPEG, PNG, WEBP eller HEIC.'));
+    }
+    cb(null, true);
+  },
+});
+function randomKeyPart(bytes) {
+  return crypto.randomBytes(bytes).toString('base64url');
+}
 
 async function loadThreadForUser(threadId, userId) {
   const t = await queryOne(
@@ -71,8 +90,10 @@ router.get('/threads', asyncRoute(async (req, res) => {
             s.owner_user_id, s.name AS salon_name, s.slug AS salon_slug,
             s.cover_image_key,
             c.name AS customer_name, c.email AS customer_email,
-            (SELECT SUBSTRING(body, 1, 140) FROM chat_messages
-              WHERE thread_id = t.id ORDER BY sent_at DESC LIMIT 1) AS last_message_preview
+            (SELECT IF(body IS NOT NULL AND body <> '', SUBSTRING(body, 1, 140),
+                       IF(image_key IS NOT NULL, '📷 Bilde', NULL))
+                FROM chat_messages WHERE thread_id = t.id
+                ORDER BY sent_at DESC LIMIT 1) AS last_message_preview
        FROM chat_threads t
        JOIN salons s ON s.id = t.salon_id
        JOIN users  c ON c.id = t.customer_user_id
@@ -101,7 +122,7 @@ router.get('/threads/:id/messages', asyncRoute(async (req, res) => {
   const { thread, role } = await loadThreadForUser(threadId, req.user.id);
 
   const msgs = await query(
-    `SELECT id, sender_user_id, sender_role, body, sent_at
+    `SELECT id, sender_user_id, sender_role, body, image_key, sent_at
        FROM chat_messages
       WHERE thread_id = ? ORDER BY sent_at ASC LIMIT 500`,
     [threadId]
@@ -134,6 +155,7 @@ router.get('/threads/:id/messages', asyncRoute(async (req, res) => {
       sender_user_id: m.sender_user_id,
       sender_role: m.sender_role,
       body: m.body,
+      image_url: m.image_key ? storage.publicUrl(m.image_key) : null,
       sent_at: m.sent_at,
       read: m.sender_role === role && otherLastRead != null
         && new Date(otherLastRead) >= new Date(m.sent_at),
@@ -224,6 +246,52 @@ router.post('/messages/:id/report', asyncRoute(async (req, res) => {
     [messageId, msg.thread_id, req.user.id, reporterRole, reason || null]
   );
   res.status(201).json({ id: result.insertId });
+}));
+
+// POST /chat/threads/:id/messages/image — send bilde-melding.
+// Body via multipart/form-data, felt-navn «file». Bildet komprimeres til
+// webp (q=82, max 1600 px) og lagres på storage. body settes til '' siden
+// kolonna er TEXT NULL (frontend rendrer kun image_url når satt).
+router.post('/threads/:id/messages/image', chatImageUpload.single('file'), asyncRoute(async (req, res) => {
+  if (!req.file) throw new HttpError(400, 'no_file', 'Ingen fil mottatt.');
+  const threadId = parseInt(req.params.id, 10);
+  if (!Number.isFinite(threadId)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const { role } = await loadThreadForUser(threadId, req.user.id);
+
+  let processed;
+  try {
+    const rotated = await sharp(req.file.buffer).rotate().toBuffer();
+    processed = await sharp(rotated)
+      .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 82 })
+      .toBuffer();
+  } catch (err) {
+    throw new HttpError(400, 'bad_image', 'Kunne ikke lese bildet.');
+  }
+
+  const key = `chat/${threadId}/${Date.now()}-${randomKeyPart(8)}.webp`;
+  await storage.put({ key, body: processed, contentType: 'image/webp' });
+
+  const result = await query(
+    `INSERT INTO chat_messages (thread_id, sender_user_id, sender_role, body, image_key)
+     VALUES (?, ?, ?, NULL, ?)`,
+    [threadId, req.user.id, role, key]
+  );
+  const readCol = role === 'customer' ? 'customer_last_read' : 'salon_last_read';
+  await query(
+    `UPDATE chat_threads
+        SET last_message_at = CURRENT_TIMESTAMP, ${readCol} = CURRENT_TIMESTAMP
+      WHERE id = ?`,
+    [threadId]
+  );
+  res.status(201).json({
+    id: result.insertId,
+    sender_user_id: req.user.id,
+    sender_role: role,
+    body: null,
+    image_url: storage.publicUrl(key),
+    sent_at: new Date().toISOString(),
+  });
 }));
 
 // POST /chat/threads/:id/read — marker tråden som lest.
