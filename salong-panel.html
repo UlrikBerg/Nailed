@@ -556,6 +556,74 @@
       .kp-tile__unit, .kpi__unit { font-size: 12px; }
     }
 
+    /* Dagens timer — kompakt oversikt mellom KPI-fliser og kalender */
+    .kp-today {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .kp-today__head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .kp-today__title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 18px;
+      margin: 0;
+      color: var(--ink);
+    }
+    .kp-today__count {
+      font-size: 13px;
+      color: var(--fg-muted);
+      font-weight: 600;
+    }
+    .kp-today__list {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .kp-today__item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 14px;
+      background: var(--cream-100);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+    }
+    .kp-today__time {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--rouge-500);
+      line-height: 1;
+      min-width: 48px;
+    }
+    .kp-today__info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .kp-today__name {
+      font-weight: 600; font-size: 14px; color: var(--ink);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .kp-today__service {
+      font-size: 13px; color: var(--fg-muted);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .kp-today__empty {
+      font-size: 14px; color: var(--fg-muted); text-align: center;
+      padding: 20px 0;
+    }
+    @media (max-width: 720px) {
+      .kp-today { padding: 14px 16px; }
+      .kp-today__title { font-size: 16px; }
+      .kp-today__item { padding: 10px 12px; gap: 10px; }
+      .kp-today__time { font-size: 15px; min-width: 42px; }
+      .kp-today__name { font-size: 13px; }
+      .kp-today__service { font-size: 12px; }
+    }
+
     /* Kalender — månedsvisning på dashboard. */
     .kp-cal {
       background: var(--cream-50);
@@ -1662,42 +1730,59 @@
     .booking-actions__item:hover { background: var(--stone-100); }
     .booking-actions__item--primary { color: var(--success-500); font-weight: 600; }
 
-    /* Bookings-table som card-list på mobil — standard responsive-table
-       pattern: skjul header, hver rad blir et stack-card med radioptions
-       som "label: value". */
+    /* Bookings-table på mobil: hver rad blir et kompakt 2-kolonne card.
+       Venstre kolonne: tid / kunde / behandling / pris stablet.
+       Høyre kolonne: status-badge øverst, bell-popover nederst. */
     @media (max-width: 720px) {
-      #incomingTable, #incomingTable thead, #incomingTable tbody,
-      #incomingTable tr, #incomingTable td {
+      #incomingTable, #incomingTable thead, #incomingTable tbody {
         display: block;
         width: 100%;
       }
       #incomingTable thead { display: none; }
       #incomingTable tbody tr {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 12px;
+        row-gap: 2px;
+        padding: 12px 14px;
         border: 1px solid var(--stone-200);
         border-radius: var(--radius-md);
         background: var(--cream-50);
-        padding: 12px 14px;
         margin-bottom: 10px;
       }
       #incomingTable tbody tr:hover { background: var(--cream-50); }
-      #incomingTable td {
-        padding: 4px 0;
-        border: 0;
-        font-size: 13px;
+      #incomingTable td { padding: 0; border: 0; font-size: 13px; white-space: normal; }
+      /* td 1 = Når (top-left, muted) */
+      #incomingTable td:nth-child(1) {
+        grid-column: 1; grid-row: 1;
+        font-size: 12px; color: var(--fg-muted); font-weight: 500;
       }
-      #incomingTable td:first-child {
-        font-weight: 600;
-        font-size: 14px;
-        color: var(--ink);
+      /* td 2 = Kunde (large, bold) */
+      #incomingTable td:nth-child(2) {
+        grid-column: 1; grid-row: 2;
+        font-size: 14px; color: var(--ink);
       }
-      #incomingTable td:last-child {
-        margin-top: 8px;
-        white-space: normal;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
+      /* td 3 = Behandling (muted) */
+      #incomingTable td:nth-child(3) {
+        grid-column: 1; grid-row: 3;
+        font-size: 13px; color: var(--fg-muted);
       }
-      #incomingTable td:last-child:empty { display: none; }
+      /* td 4 = Pris (bold) */
+      #incomingTable td:nth-child(4) {
+        grid-column: 1; grid-row: 4;
+        font-size: 13px; color: var(--ink); font-weight: 600;
+      }
+      /* td 5 = Status (top-right) */
+      #incomingTable td:nth-child(5) {
+        grid-column: 2; grid-row: 1 / span 2;
+        justify-self: end; align-self: start;
+      }
+      /* td 6 = Actions (bell — bottom-right) */
+      #incomingTable td:nth-child(6) {
+        grid-column: 2; grid-row: 3 / span 2;
+        justify-self: end; align-self: end;
+      }
+      #incomingTable td:nth-child(6):empty { display: none; }
     }
 
     /* Bookings status-filter — stilig dropdown */
@@ -2354,6 +2439,16 @@
             <span class="kp-tile__label">Omsetning i dag</span>
             <span class="kp-tile__value" id="kpiRevenue">0 <span class="kp-tile__unit">kr</span></span>
           </div>
+        </div>
+
+        <!-- Dagens timer — kompakt liste over bookinger i dag -->
+        <div class="kp-today" id="dashTodayCard">
+          <div class="kp-today__head">
+            <h3 class="kp-today__title">Dagens timer</h3>
+            <span class="kp-today__count" id="dashTodayCount"></span>
+          </div>
+          <div class="kp-today__list" id="dashTodayList"></div>
+          <div class="kp-today__empty" id="dashTodayEmpty" hidden>Ingen timer i dag.</div>
         </div>
 
         <!-- Kalender — månedsvisning av bookinger. Hver celle viser opp til
@@ -4955,30 +5050,82 @@
       });
     })();
 
+    function renderTodayList(bookings, today, tomorrow) {
+      var listEl = document.getElementById('dashTodayList');
+      var emptyEl = document.getElementById('dashTodayEmpty');
+      var countEl = document.getElementById('dashTodayCount');
+      if (!listEl) return;
+      var todayList = (bookings || [])
+        .filter(function (b) {
+          if (b.status === 'cancelled') return false;
+          var s = new Date(b.start_at);
+          return s >= today && s < tomorrow;
+        })
+        .sort(function (a, b) { return new Date(a.start_at) - new Date(b.start_at); });
+
+      if (countEl) {
+        countEl.textContent = todayList.length
+          ? todayList.length + (todayList.length === 1 ? ' time' : ' timer')
+          : '';
+      }
+      if (!todayList.length) {
+        listEl.innerHTML = '';
+        if (emptyEl) emptyEl.hidden = false;
+        return;
+      }
+      if (emptyEl) emptyEl.hidden = true;
+      listEl.innerHTML = todayList.map(function (b) {
+        var time = new Date(b.start_at).toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' });
+        var name = b.display_name || b.customer_name || '—';
+        var statusCls = statusClass[b.status] || 'status';
+        var statusLab = statusLabel[b.status] || b.status;
+        return '<div class="kp-today__item">' +
+          '<div class="kp-today__time">' + time + '</div>' +
+          '<div class="kp-today__info">' +
+            '<div class="kp-today__name">' + escapeHtml(name) + '</div>' +
+            '<div class="kp-today__service">' + escapeHtml(b.service_name || '') + '</div>' +
+          '</div>' +
+          '<span class="' + statusCls + '">' + statusLab + '</span>' +
+        '</div>';
+      }).join('');
+    }
+
     async function loadIncoming() {
-      var res = await NailedAuth.api('/api/v1/bookings/incoming');
+      // Hent bookinger og «i dag»-analytikk parallelt. Vi bruker analytics-
+      // endepunktet for KPI-flisene så tallene på Oversikt og Statistikk er
+      // garantert konsistente (samme Oslo-dag-vindu, samme SQL).
+      var inPromise = NailedAuth.api('/api/v1/bookings/incoming');
+      var analyticsPromise = salon
+        ? NailedAuth.api('/api/v1/salons/' + salon.id + '/analytics?period=today')
+        : Promise.resolve(null);
+      var res = await inPromise;
       var data = await res.json();
       var bookings = data.bookings || [];
 
-      // KPI computation
+      var pendingCount = 0;
+      bookings.forEach(function (b) {
+        if (b.status === 'pending') pendingCount++;
+      });
+
+      // KPI-er fra analytics-API (kpi.bookings_count / pending / completed /
+      // revenue) — samme tall som vises på Statistikk.
+      try {
+        var aRes = await analyticsPromise;
+        if (aRes && aRes.ok) {
+          var aData = await aRes.json();
+          var k = aData.kpi || {};
+          animateCount(document.getElementById('kpiToday'), Number(k.bookings_count || 0));
+          animateCount(document.getElementById('kpiPendingToday'), Number(k.pending_count || 0));
+          animateCount(document.getElementById('kpiCompletedToday'), Number(k.completed_count || 0));
+          animateCount(document.getElementById('kpiRevenue'), Number(k.revenue_nok || 0), { format: 'nok' });
+        }
+      } catch (_) { /* ignore — gamle tall blir stående */ }
+
+      // Dagens timer — sortert liste over bookinger i dag, brukes mellom
+      // KPI-flisene og kalenderen.
       var today = new Date(); today.setHours(0,0,0,0);
       var tomorrow = new Date(today.getTime() + 86400000);
-      var todayCount = 0, pendingCount = 0, pendingToday = 0,
-          completedToday = 0, revenueToday = 0;
-      bookings.forEach(function (b) {
-        var s = new Date(b.start_at);
-        var inToday = s >= today && s < tomorrow;
-        if (inToday && (b.status === 'pending' || b.status === 'confirmed')) todayCount++;
-        if (b.status === 'pending') {
-          pendingCount++;
-          if (inToday) pendingToday++;
-        }
-        if (b.status === 'completed' && inToday) { completedToday++; revenueToday += b.price_nok; }
-      });
-      animateCount(document.getElementById('kpiToday'), todayCount);
-      animateCount(document.getElementById('kpiPendingToday'), pendingToday);
-      animateCount(document.getElementById('kpiCompletedToday'), completedToday);
-      animateCount(document.getElementById('kpiRevenue'), revenueToday, { format: 'nok' });
+      renderTodayList(bookings, today, tomorrow);
 
       // Lagre bookings for kalender-rendering så prev/next-knappene kan
       // re-rendere uten å fetche på nytt.
