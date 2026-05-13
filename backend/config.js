@@ -111,6 +111,19 @@ const config = {
 
   bootstrapAdminEmails: list('BOOTSTRAP_ADMIN_EMAILS'),
 
+  // Fiken-integrasjon (regnskap). Salongene kobler sin Fiken-konto via OAuth
+  // og Nailed oppretter fakturaer automatisk når bookinger fullføres.
+  // clientId + secret hentes fra fiken.no/utvikler etter at appen er
+  // registrert. redirectUri må matche det som er satt opp hos Fiken.
+  fiken: {
+    enabled: optional('FIKEN_ENABLED', 'false') === 'true',
+    clientId: optional('FIKEN_CLIENT_ID', ''),
+    clientSecret: optional('FIKEN_CLIENT_SECRET', ''),
+    redirectUri: optional('FIKEN_REDIRECT_URI', ''),
+    apiBaseUrl: optional('FIKEN_API_BASE_URL', 'https://api.fiken.no/api/v2'),
+    authBaseUrl: optional('FIKEN_AUTH_BASE_URL', 'https://fiken.no'),
+  },
+
   storage: {
     backend: optional('STORAGE_BACKEND', 'local'),
     localDir: optional('LOCAL_UPLOAD_DIR', './uploads'),

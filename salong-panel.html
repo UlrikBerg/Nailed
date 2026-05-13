@@ -3517,6 +3517,16 @@
           </form>
         </div>
 
+        <!-- Fiken-integrasjon (regnskap) -->
+        <div class="kp-card" id="fikenCard">
+          <h2 style="margin:0 0 4px 0; font-size:18px; font-family: var(--font-display);">Fiken — automatisk fakturering</h2>
+          <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
+            Koble Nailed til Fiken-kontoen din så lager vi automatisk faktura
+            i Fiken hver gang en booking markeres fullført.
+          </p>
+          <div id="fikenStatusBox"></div>
+        </div>
+
         <!-- Lunsjpause -->
         <div class="kp-card">
           <h2 style="margin:0 0 4px 0; font-size:18px; font-family: var(--font-display);">Lunsjpause</h2>
@@ -3966,6 +3976,7 @@
       renderProfileView(salon, currentImages);
       renderSubscriptionCard(salon);
       renderSuspendBanner(salon);
+      renderFikenCard();
       renderHoursView();
       renderTeamView();
       renderAmenitiesView();
@@ -4482,6 +4493,83 @@
         if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
       } else {
         banner.hidden = true;
+      }
+    }
+
+    async function renderFikenCard() {
+      var box = document.getElementById('fikenStatusBox');
+      if (!box || !salon) return;
+      try {
+        var res = await NailedAuth.api('/api/v1/fiken/status?salon_id=' + salon.id);
+        if (!res.ok) {
+          box.innerHTML = '<p style="color: var(--fg-muted); font-size:13px;">Kunne ikke laste Fiken-status.</p>';
+          return;
+        }
+        var data = await res.json();
+        if (!data.enabled) {
+          box.innerHTML =
+            '<div style="padding: 10px 14px; background: var(--cream-100); border-radius: 8px; font-size: 13px; color: var(--fg-muted);">' +
+              '<i data-lucide="info" style="width:14px; height:14px; vertical-align:-2px;"></i> ' +
+              'Fiken-integrasjonen er under oppsett. Vi melder fra når den er klar.' +
+            '</div>';
+        } else if (data.connected) {
+          box.innerHTML =
+            '<div style="display:flex; align-items:center; gap:10px; padding: 12px 14px; background: var(--success-50); border: 1px solid #c8e6c9; border-radius: 8px;">' +
+              '<i data-lucide="check-circle" style="color: var(--success-500); width:18px; height:18px;"></i>' +
+              '<div style="flex:1;">' +
+                '<div style="font-weight: 600; color: var(--ink);">Koblet til Fiken</div>' +
+                '<div style="font-size: 12px; color: var(--fg-muted);">Selskap: ' + escapeHtml(data.company_slug || '–') + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer; margin-top:14px;">' +
+              '<input type="checkbox" id="fikenAutoToggle"' + (data.auto_invoice ? ' checked' : '') + ' style="margin-top:3px;" />' +
+              '<span>' +
+                '<span style="display:block; font-weight: 600; font-size: 14px;">Lag faktura automatisk</span>' +
+                '<span style="display:block; font-size: 12px; color: var(--fg-muted);">Når en booking markeres fullført, opprettes faktura i Fiken med tjeneste, pris og MVA.</span>' +
+              '</span>' +
+            '</label>' +
+            '<div style="margin-top:14px;">' +
+              '<button class="btn btn-ghost btn-sm" id="fikenDisconnectBtn" type="button">Koble fra Fiken</button>' +
+            '</div>';
+          document.getElementById('fikenAutoToggle').addEventListener('change', async function () {
+            var on = this.checked;
+            var r = await NailedAuth.api('/api/v1/fiken/auto-invoice', {
+              method: 'PATCH', body: { salon_id: salon.id, enabled: on },
+            });
+            if (r.ok) NailedForms.toast(on ? 'Auto-faktura aktivert' : 'Auto-faktura deaktivert');
+            else NailedForms.toast('Kunne ikke lagre', { type: 'error' });
+          });
+          document.getElementById('fikenDisconnectBtn').addEventListener('click', async function () {
+            if (!confirm('Koble fra Fiken? Auto-faktura stopper inntil videre.')) return;
+            var r = await NailedAuth.api('/api/v1/fiken/disconnect', {
+              method: 'POST', body: { salon_id: salon.id },
+            });
+            if (r.ok) { NailedForms.toast('Koblet fra'); renderFikenCard(); }
+            else NailedForms.toast('Kunne ikke koble fra', { type: 'error' });
+          });
+        } else {
+          box.innerHTML =
+            '<button class="btn btn-primary" type="button" id="fikenConnectBtn">' +
+              '<i data-lucide="link"></i> Koble til Fiken' +
+            '</button>' +
+            '<p style="margin: 10px 0 0; font-size: 12px; color: var(--fg-muted);">' +
+              'Du blir sendt til fiken.no for å godkjenne tilgangen. Vi får bare lov til å lese selskap og lage fakturaer.' +
+            '</p>';
+          document.getElementById('fikenConnectBtn').addEventListener('click', async function () {
+            this.disabled = true;
+            var r = await NailedAuth.api('/api/v1/fiken/auth/start?salon_id=' + salon.id);
+            if (!r.ok) {
+              NailedForms.toast('Kunne ikke starte Fiken-koblingen', { type: 'error' });
+              this.disabled = false;
+              return;
+            }
+            var d = await r.json();
+            window.location.href = d.auth_url;
+          });
+        }
+        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      } catch (err) {
+        console.warn('[fiken] render failed', err);
       }
     }
 

@@ -756,6 +756,17 @@ router.patch('/:id', asyncRoute(async (req, res) => {
     setImmediate(() => { notify.sendBookingConfirmed(id); });
   } else if (status === 'cancelled') {
     setImmediate(() => { notify.sendBookingCancelled(id, cancelledByRole); });
+  } else if (status === 'completed') {
+    // Auto-faktura via Fiken (beste-innsats, blokkerer ikke responsen).
+    // syncBookingInvoice no-op-er hvis Fiken ikke koblet eller deaktivert.
+    setImmediate(() => {
+      try {
+        const fiken = require('../lib/fiken');
+        fiken.syncBookingInvoice(id);
+      } catch (err) {
+        console.warn('[bookings] fiken sync hook failed', err.message);
+      }
+    });
   }
 
   if (status === 'cancelled' || status === 'no_show') {
