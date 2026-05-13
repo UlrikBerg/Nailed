@@ -680,7 +680,7 @@ router.post('/reset-platform', asyncRoute(async (req, res) => {
   };
   const [salonCovers, salonImgs, teamImgs, chatImgs] = await Promise.all([
     query(`SELECT cover_image_key AS k FROM salons WHERE cover_image_key IS NOT NULL`),
-    query(`SELECT \`key\` AS k FROM salon_images`),
+    query(`SELECT image_key AS k FROM salon_images`),
     query(`SELECT image_key AS k FROM team_members WHERE image_key IS NOT NULL`),
     query(`SELECT image_key AS k FROM chat_messages WHERE image_key IS NOT NULL`),
   ]);
