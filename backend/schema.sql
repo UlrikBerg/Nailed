@@ -464,6 +464,13 @@ CREATE TABLE IF NOT EXISTS page_views (
 ALTER TABLE salons
   ADD COLUMN IF NOT EXISTS org_number VARCHAR(20) DEFAULT NULL;
 
+-- Salongens egen e-post og telefon — separat fra eierens user-record.
+-- Vises på Tilgjengelighet-kortet i salongpanelet + på offentlig
+-- salongprofil (når satt) som kontaktinfo for salongen.
+ALTER TABLE salons
+  ADD COLUMN IF NOT EXISTS public_email VARCHAR(255) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS public_phone VARCHAR(32)  DEFAULT NULL;
+
 -- Per-date closures (vacation, holidays, …). One row per closed date.
 CREATE TABLE IF NOT EXISTS salon_closures (
   id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

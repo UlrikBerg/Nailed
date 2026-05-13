@@ -3059,7 +3059,6 @@
                   <button class="btn btn-ghost btn-sm profile-card__edit" data-edit="bio"><i data-lucide="pencil"></i> Rediger</button>
                 </div>
                 <p class="profile-about" id="phBio">—</p>
-                <div class="profile-chips" id="phSocialChips"></div>
               </div>
 
               <div class="profile-card">
@@ -3090,16 +3089,7 @@
                   <h3 class="profile-card__title">Tilgjengelighet</h3>
                   <button class="btn btn-ghost btn-sm profile-card__edit" data-edit="availability"><i data-lucide="pencil"></i> Rediger</button>
                 </div>
-                <div class="profile-contact">
-                  <div class="profile-contact__row">
-                    <i data-lucide="check-circle"></i>
-                    <span id="phAcceptsBookings">—</span>
-                  </div>
-                  <div class="profile-contact__row">
-                    <i data-lucide="phone"></i>
-                    <span id="phPhoneVisibility">—</span>
-                  </div>
-                </div>
+                <div class="profile-contact" id="phAvailability"></div>
               </div>
 
               <div class="profile-card">
@@ -3170,6 +3160,14 @@
               <div class="form-group" data-section="contact">
                 <label>By/område</label>
                 <input class="form-input" name="city" type="text" required autocomplete="off" placeholder="Begynn å skrive…" />
+              </div>
+              <div class="form-group" data-section="availability">
+                <label>E-post</label>
+                <input class="form-input" name="public_email" type="email" maxlength="255" placeholder="post@salongen.no" />
+              </div>
+              <div class="form-group" data-section="availability">
+                <label>Telefon</label>
+                <input class="form-input" name="public_phone" type="tel" maxlength="32" placeholder="+47 ..." />
               </div>
               <div class="form-group" data-section="availability">
                 <label>Instagram-URL</label>
@@ -3829,6 +3827,8 @@
       } else {
         cityInput.value = salon.city || '';
       }
+      document.querySelector('input[name=public_email]').value = salon.public_email || '';
+      document.querySelector('input[name=public_phone]').value = salon.public_phone || '';
       document.querySelector('input[name=instagram_url]').value = salon.instagram_url || '';
       document.querySelector('input[name=tiktok_url]').value = salon.tiktok_url || '';
       document.querySelector('input[name=facebook_url]').value = salon.facebook_url || '';
@@ -4551,19 +4551,6 @@
         bio.textContent = 'Ingen beskrivelse lagt til. Klikk Rediger for å fortelle kundene om salongen din.';
       }
 
-      // Social-link chips
-      var chips = document.getElementById('phSocialChips');
-      var social = [
-        { url: s.instagram_url, icon: 'instagram', label: 'Instagram' },
-        { url: s.tiktok_url, icon: 'music', label: 'TikTok' },
-        { url: s.facebook_url, icon: 'facebook', label: 'Facebook' },
-        { url: s.website_url, icon: 'globe', label: 'Nettside' },
-      ].filter(function (x) { return x.url; });
-      chips.innerHTML = social.map(function (x) {
-        return '<a class="profile-chip" target="_blank" rel="noopener" href="' + escapeHtml(x.url) + '">' +
-          '<i data-lucide="' + x.icon + '"></i> ' + escapeHtml(x.label) + '</a>';
-      }).join('');
-
       // Contact card
       var contact = document.getElementById('phContact');
       var rows = [];
@@ -4573,13 +4560,33 @@
       }
       contact.innerHTML = rows.join('');
 
-      // Availability card text
-      document.getElementById('phAcceptsBookings').textContent = s.accepts_new_bookings
-        ? 'Salongen tar imot nye bookinger.'
-        : 'Salongen tar ikke imot nye bookinger akkurat nå.';
-      document.getElementById('phPhoneVisibility').textContent = s.public_phone_visible
-        ? 'Telefonnummer er synlig offentlig på salongprofilen.'
-        : 'Telefonnummer er skjult for kunder.';
+      // Availability card — e-post, telefon, sosiale URL-er + status-flagg
+      var availEl = document.getElementById('phAvailability');
+      if (availEl) {
+        var rows2 = [];
+        if (s.public_email) {
+          rows2.push('<div class="profile-contact__row"><i data-lucide="mail"></i>' +
+            '<a href="mailto:' + escapeHtml(s.public_email) + '">' + escapeHtml(s.public_email) + '</a></div>');
+        }
+        if (s.public_phone) {
+          rows2.push('<div class="profile-contact__row"><i data-lucide="phone"></i>' +
+            '<a href="tel:' + escapeHtml(s.public_phone) + '">' + escapeHtml(s.public_phone) + '</a></div>');
+        }
+        ['instagram_url','tiktok_url','facebook_url','website_url'].forEach(function (k) {
+          var url = s[k];
+          if (!url) return;
+          var icon = k === 'instagram_url' ? 'instagram' : k === 'tiktok_url' ? 'music' : k === 'facebook_url' ? 'facebook' : 'globe';
+          var label = k === 'instagram_url' ? 'Instagram' : k === 'tiktok_url' ? 'TikTok' : k === 'facebook_url' ? 'Facebook' : 'Nettside';
+          rows2.push('<div class="profile-contact__row"><i data-lucide="' + icon + '"></i>' +
+            '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' + label + '</a></div>');
+        });
+        rows2.push('<div class="profile-contact__row"><i data-lucide="check-circle"></i>' +
+          '<span>' + (s.accepts_new_bookings ? 'Tar imot nye bookinger.' : 'Tar ikke imot nye bookinger akkurat nå.') + '</span></div>');
+        if (rows2.length === 1) {
+          rows2.unshift('<div class="profile-contact__row profile-contact__row--empty"><i data-lucide="info"></i>Legg til kontaktinfo og lenker i Rediger.</div>');
+        }
+        availEl.innerHTML = rows2.join('');
+      }
 
       // Top 4 services
       renderProfileServices();
@@ -6398,7 +6405,7 @@
       // and FormData omits them — the PATCH endpoint accepts a partial body.
       var fd = new FormData(this);
       var body = {};
-      ['name','bio','address_line','postal_code','city','instagram_url','tiktok_url','facebook_url','website_url'].forEach(function (k) {
+      ['name','bio','address_line','postal_code','city','instagram_url','tiktok_url','facebook_url','website_url','public_email','public_phone'].forEach(function (k) {
         var raw = fd.get(k);
         if (raw === null) return; // input was disabled / missing
         // For optional URL/bio/etc. fields, send null when blank to clear them.
