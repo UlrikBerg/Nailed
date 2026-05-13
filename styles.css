@@ -858,6 +858,27 @@ p { margin: 0 0 var(--space-4) 0; }
   background: var(--cream-50);
 }
 
+/* Footer-justeringer på mobil: mindre topp-margin, strammere padding,
+   kompakt links-rad. */
+@media (max-width: 720px) {
+  .footer { margin-top: 24px; }
+  .footer__inner { padding: 24px 20px 18px; }
+  .footer__top { margin-bottom: 18px; gap: 12px; }
+  .footer__brand { height: 24px; }
+  .footer__social { width: 36px; height: 36px; }
+  .footer__links { gap: 12px 16px; padding-bottom: 16px; }
+  .footer__links a { font-size: 13px; }
+  .footer__bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding-top: 16px;
+    font-size: 11px;
+  }
+  .footer__badges { flex-wrap: wrap; gap: 6px; }
+  .footer__badge { font-size: 10px; padding: 3px 8px; }
+}
+
 /* =========================================================================
    Salon detail page
    ========================================================================= */
