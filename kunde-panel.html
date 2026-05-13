@@ -111,6 +111,34 @@
       margin-bottom: 20px;
     }
     .kp-card--danger { border-color: rgba(214, 36, 105, 0.25); }
+
+    /* Konto-kort i Profil-tab — navn/e-post, panel-bytte og logg-ut */
+    .kp-account__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .kp-account__name { font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+    .kp-account__email { font-size: 13px; color: var(--fg-muted); margin-top: 2px; }
+    .kp-account__badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--rouge-50);
+      color: var(--rouge-500);
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .kp-account__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .kp-account__actions .btn i { width: 16px; height: 16px; }
     .kp-card__head {
       display: flex;
       justify-content: space-between;
@@ -826,6 +854,28 @@
       <div class="kp-tab-content" id="tab-profil">
         <h2 class="kp-section-title">Profil</h2>
         <p class="kp-section-sub">Disse opplysningene brukes ved booking.</p>
+
+        <!-- Konto-kort: panel-bytte + logg ut -->
+        <div class="kp-card kp-account" id="profileAccountCard" hidden>
+          <div class="kp-account__head">
+            <div class="kp-account__info">
+              <div class="kp-account__name" id="profileAccountName">—</div>
+              <div class="kp-account__email" id="profileAccountEmail">—</div>
+            </div>
+            <span class="kp-account__badge">Kundepanel</span>
+          </div>
+          <div class="kp-account__actions">
+            <a class="btn btn-ghost btn-sm" href="/salong-panel" id="profileGoSalon" hidden>
+              <i data-lucide="store"></i> Salongpanel
+            </a>
+            <a class="btn btn-ghost btn-sm" href="/admin/" id="profileGoAdmin" hidden>
+              <i data-lucide="shield"></i> Adminpanel
+            </a>
+            <button class="btn btn-ghost btn-sm" id="profileLogout">
+              <i data-lucide="log-out"></i> Logg ut
+            </button>
+          </div>
+        </div>
 
         <div class="kp-card">
           <form id="profileForm" class="kp-form-grid">
@@ -2055,6 +2105,21 @@
       document.querySelector('input[name=notify_email_reminders]').checked = !!u.notify_email_reminders;
       document.querySelector('input[name=notify_sms_reminders]').checked = !!u.notify_sms_reminders;
       document.querySelector('input[name=notify_marketing]').checked = !!u.notify_marketing;
+
+      // Konto-kort: navn/e-post + panel-bytte basert på rolle.
+      var card = document.getElementById('profileAccountCard');
+      if (card) {
+        document.getElementById('profileAccountName').textContent = u.name || '—';
+        document.getElementById('profileAccountEmail').textContent = u.email || '—';
+        var role = (NailedAuth.getRole && NailedAuth.getRole()) || u.role || 'customer';
+        // Vis Salongpanel-knapp hvis bruker er salon_owner eller admin
+        var salonBtn = document.getElementById('profileGoSalon');
+        if (salonBtn) salonBtn.hidden = !(role === 'salon_owner' || role === 'admin');
+        // Vis Adminpanel-knapp kun for admin
+        var adminBtn = document.getElementById('profileGoAdmin');
+        if (adminBtn) adminBtn.hidden = role !== 'admin';
+        card.hidden = false;
+      }
     }
 
     document.getElementById('profileForm').addEventListener('submit', async function (e) {
@@ -2180,10 +2245,13 @@
     // ---------------------------------------------------------------------
     // Logout + account delete
     // ---------------------------------------------------------------------
-    document.getElementById('logoutBtn').addEventListener('click', async function () {
+    async function doLogout() {
       await NailedAuth.logout();
       window.location.replace('/');
-    });
+    }
+    document.getElementById('logoutBtn').addEventListener('click', doLogout);
+    var profileLogoutBtn = document.getElementById('profileLogout');
+    if (profileLogoutBtn) profileLogoutBtn.addEventListener('click', doLogout);
 
     document.getElementById('deleteAccountBtn').addEventListener('click', async function () {
       var res = await NailedAuth.api('/api/v1/me', { method: 'DELETE' });
