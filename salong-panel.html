@@ -514,7 +514,7 @@
     @media (max-width: 1100px) { .kp-summary { grid-template-columns: 1fr 1fr; } }
     /* Statistikk-fliser: 3 og 3 på alle viewports.
        Bruker id-selektor så det vinner over .kp-summary-defaultsen. */
-    #analyticsKpiRow { grid-template-columns: repeat(3, 1fr); }
+    #analyticsKpiRow { grid-template-columns: repeat(3, 1fr); margin-bottom: 28px; }
     @media (max-width: 600px) {
       /* Smalere mobil-fliser: krymp verdi-tekst litt så «1500 kr» osv
          får plass uten å bli kuttet eller pushet ut av kortet. Sentreres
@@ -527,8 +527,11 @@
       /* Mobil: 2 fliser i bredden på Oversikt (kun «Bookinger i dag» og
          «Omsetning i dag» vises — avventer/fullført skjules av
          .kp-tile--desktop-only). Innholdet vertikalt inni. */
-      .kp-summary { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .kp-summary { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
       .kp-tile--desktop-only { display: none; }
+      /* Mer luft mellom KPI-fliser og det som kommer etter (kalender på
+         Oversikt, Topp behandlinger på Statistikk). */
+      #analyticsKpiRow { margin-bottom: 24px; }
       .kp-tile {
         padding: 14px 12px;
         gap: 4px;
@@ -1601,11 +1604,63 @@
     }
     .slot-pill:has(input:checked) span { color: var(--rouge-500); }
 
-    /* Booking-action-knapper (Bekreft, Marker fullført, Avbestill, …):
-       mindre enn standard btn-sm så de ikke tar for mye plass. */
-    #incomingTable .btn { padding: 6px 12px; font-size: 12px; min-height: 0; gap: 4px; }
-    #incomingTable .btn i { width: 14px; height: 14px; }
-    #incomingTable td:last-child { white-space: nowrap; }
+    /* Booking-actions: bell-ikon med popover-meny.
+       Sparer plass i tabellrad og signaliserer at handling kreves. */
+    .booking-actions { position: relative; display: inline-block; }
+    .booking-actions__btn {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--stone-200);
+      background: var(--cream-50);
+      color: var(--fg-muted);
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 120ms ease;
+    }
+    .booking-actions__btn:hover { border-color: var(--stone-400); color: var(--ink); background: var(--cream-100); }
+    .booking-actions__btn i { width: 16px; height: 16px; }
+    .booking-actions__btn.is-alert { color: var(--rouge-500); border-color: var(--rouge-200, #f7c6d4); background: var(--rouge-50); }
+    .booking-actions__dot {
+      position: absolute;
+      top: 5px; right: 5px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--rouge-500);
+      border: 2px solid var(--cream-50);
+      box-sizing: content-box;
+    }
+    .booking-actions__menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 200px;
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      padding: 4px;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .booking-actions__menu[hidden] { display: none; }
+    .booking-actions__item {
+      background: transparent;
+      border: 0;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink);
+      cursor: pointer;
+      transition: background 120ms ease;
+    }
+    .booking-actions__item:hover { background: var(--stone-100); }
+    .booking-actions__item--primary { color: var(--success-500); font-weight: 600; }
 
     /* Bookings-table som card-list på mobil — standard responsive-table
        pattern: skjul header, hver rad blir et stack-card med radioptions
@@ -2344,9 +2399,9 @@
           <label class="kp-bookings-filter__label" for="bookingsStatusFilter">Vis:</label>
           <select class="kp-bookings-filter__select" id="bookingsStatusFilter" aria-label="Filtrer på status">
             <option value="all">Alle</option>
-            <option value="pending">Avventer</option>
-            <option value="confirmed">Bekreftet</option>
             <option value="completed">Fullført</option>
+            <option value="confirmed">Bekreftet</option>
+            <option value="pending">Avventer</option>
             <option value="cancelled">Kansellert</option>
             <option value="no_show">No-show</option>
           </select>
@@ -2567,7 +2622,7 @@
           </div>
         </div>
 
-        <div class="analytics-grid" style="margin-top:16px;">
+        <div class="analytics-grid">
           <!-- Topp behandlinger -->
           <div class="analytics-card" style="grid-column: 1 / -1;">
             <div class="analytics-card__head">
@@ -4705,6 +4760,32 @@
       });
     })();
 
+    // Booking actions popover: bell-ikonet veksler den tilknyttede menyen.
+    // Klikk utenfor menyen lukker den. Menu-items har data-action og fyres
+    // av det eksisterende handler-løpet for status-bytter.
+    (function wireBookingActionsPopover() {
+      document.addEventListener('click', function (e) {
+        var toggle = e.target.closest('[data-actions-toggle]');
+        if (toggle) {
+          var id = toggle.getAttribute('data-actions-toggle');
+          document.querySelectorAll('.booking-actions__menu').forEach(function (m) {
+            if (m.getAttribute('data-actions-menu') !== id) m.hidden = true;
+          });
+          var target = document.querySelector('[data-actions-menu="' + id + '"]');
+          if (target) target.hidden = !target.hidden;
+          return;
+        }
+        if (!e.target.closest('.booking-actions__menu')) {
+          document.querySelectorAll('.booking-actions__menu').forEach(function (m) { m.hidden = true; });
+        }
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.booking-actions__menu').forEach(function (m) { m.hidden = true; });
+        }
+      });
+    })();
+
     // Dashboard-kalender: månedsvisning med stylist-farger per booking.
     var dashCalBookings = [];
     var dashCalMonth = new Date();
@@ -4929,21 +5010,38 @@
       document.getElementById('incomingEmpty').style.display = filtered.length === 0 ? 'block' : 'none';
       document.getElementById('incomingTable').style.display = filtered.length === 0 ? 'none' : '';
       filtered.forEach(function (b) {
-        var actions = '';
+        // Bygg handlingsliste basert på status. Renders som en popover-meny
+        // bak en bell-ikon — sparer plass og signaliserer at handling kreves.
+        var actList = [];
         if (b.status === 'pending') {
-          actions += '<button class="btn btn-success btn-sm" data-action="confirmed" data-id="' + b.id + '">Bekreft</button> ';
-          actions += '<button class="btn btn-ghost btn-sm" data-action="cancelled" data-id="' + b.id + '">Avvis</button>';
+          actList.push({ action: 'confirmed', label: 'Bekreft', primary: true });
+          actList.push({ action: 'cancelled', label: 'Avvis' });
         } else if (b.status === 'confirmed') {
-          actions += '<button class="btn btn-success btn-sm" data-action="completed" data-id="' + b.id + '">Marker fullført</button> ';
-          actions += '<button class="btn btn-ghost btn-sm" data-action="no_show" data-id="' + b.id + '">No-show</button> ';
-          actions += '<button class="btn btn-ghost btn-sm" data-action="cancelled" data-id="' + b.id + '">Avbestill</button>';
+          actList.push({ action: 'completed', label: 'Marker fullført', primary: true });
+          actList.push({ action: 'no_show', label: 'No-show' });
+          actList.push({ action: 'cancelled', label: 'Avbestill' });
         } else if (b.status === 'completed') {
-          // Angre fullført innen 60 min (server validerer også).
           var completedAtMs = b.completed_at ? new Date(b.completed_at).getTime() : 0;
           var withinUndo = completedAtMs && (Date.now() - completedAtMs) < 60 * 60 * 1000;
-          if (withinUndo) {
-            actions += '<button class="btn btn-ghost btn-sm" data-action="confirmed" data-id="' + b.id + '">Angre fullført</button>';
-          }
+          if (withinUndo) actList.push({ action: 'confirmed', label: 'Angre fullført' });
+        }
+        var actions = '';
+        if (actList.length) {
+          var needsAction = b.status === 'pending';
+          actions =
+            '<div class="booking-actions">' +
+              '<button type="button" class="booking-actions__btn' + (needsAction ? ' is-alert' : '') + '" ' +
+                'data-actions-toggle="' + b.id + '" aria-label="Handlinger" title="Handlinger">' +
+                '<i data-lucide="bell"></i>' +
+                (needsAction ? '<span class="booking-actions__dot"></span>' : '') +
+              '</button>' +
+              '<div class="booking-actions__menu" data-actions-menu="' + b.id + '" hidden>' +
+                actList.map(function (a) {
+                  var cls = 'booking-actions__item' + (a.primary ? ' booking-actions__item--primary' : '');
+                  return '<button type="button" class="' + cls + '" data-action="' + a.action + '" data-id="' + b.id + '">' + a.label + '</button>';
+                }).join('') +
+              '</div>' +
+            '</div>';
         }
         // Seed the per-user notes cache so the icon picks up has_note state
         // without an extra fetch. The cache is initialized at the top of this
