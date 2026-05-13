@@ -29,23 +29,50 @@ async function loadOwnedSalon(req) {
   return salon;
 }
 
-// Map a string like "7d" / "30d" / "90d" / "6m" / "12m" / "all" to a Date
-// representing the inclusive lower bound for analytics queries. "all" returns
-// null (= no lower bound).
-function periodToSince(period) {
+// UTC-instant for the start of the Oslo-local day that contains `date`.
+function osloStartOfDay(date) {
+  const ymd = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Oslo',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(date);
+  // UTC midnight of that Oslo date
+  const utcMid = new Date(`${ymd}T00:00:00Z`);
+  // What hour does that UTC instant land on in Oslo? 1 → CET (+1), 2 → CEST (+2)
+  const osloHour = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Oslo', hour: '2-digit', hour12: false,
+  }).format(utcMid);
+  const offsetHours = parseInt(osloHour, 10);
+  return new Date(utcMid.getTime() - offsetHours * 3600000);
+}
+
+// Map a period string to a {since, until} window for analytics queries.
+// since is inclusive (b.start_at >= since), until is exclusive (b.start_at < until).
+// null = unbounded.
+function periodToRange(period) {
   const now = new Date();
+  const oneDay = 86400000;
   switch (String(period || '').toLowerCase()) {
-    case '7d':  return new Date(now.getTime() - 7  * 86400000);
-    case '30d': return new Date(now.getTime() - 30 * 86400000);
-    case '90d': return new Date(now.getTime() - 90 * 86400000);
+    case 'today': {
+      return { since: osloStartOfDay(now), until: null };
+    }
+    case 'yesterday': {
+      const todayStart = osloStartOfDay(now);
+      const yStart = new Date(todayStart.getTime() - oneDay);
+      return { since: yStart, until: todayStart };
+    }
+    case '7d':  return { since: new Date(now.getTime() - 7  * oneDay), until: null };
+    case '30d': return { since: new Date(now.getTime() - 30 * oneDay), until: null };
+    case '90d': return { since: new Date(now.getTime() - 90 * oneDay), until: null };
     case '6m': {
-      const d = new Date(now); d.setMonth(d.getMonth() - 6); return d;
+      const d = new Date(now); d.setMonth(d.getMonth() - 6);
+      return { since: d, until: null };
     }
     case '12m': {
-      const d = new Date(now); d.setFullYear(d.getFullYear() - 1); return d;
+      const d = new Date(now); d.setFullYear(d.getFullYear() - 1);
+      return { since: d, until: null };
     }
-    case 'all': return null;
-    default:    return new Date(now.getTime() - 30 * 86400000);
+    case 'all': return { since: null, until: null };
+    default:    return { since: new Date(now.getTime() - 30 * oneDay), until: null };
   }
 }
 
@@ -68,7 +95,7 @@ function osloPartsOf(d) {
 }
 
 // =============================================================================
-// GET /salons/:id/analytics?period=7d|30d|90d|6m|12m|all
+// GET /salons/:id/analytics?period=today|yesterday|7d|30d|90d|6m|12m|all
 // =============================================================================
 //
 // Returns a snapshot scoped to this salon only. Shape:
@@ -91,12 +118,17 @@ function osloPartsOf(d) {
 router.get('/:id/analytics', requireAuth, asyncRoute(async (req, res) => {
   const salon = await loadOwnedSalon(req);
   const period = (req.query.period || '30d').toString();
-  const since = periodToSince(period);
+  const range = periodToRange(period);
+  const since = range.since;
+  const until = range.until;
 
   // The window filter is applied via b.start_at. We use the same condition for
-  // every aggregate so a "30d" view stays consistent across tiles.
-  const winSql = since ? 'AND b.start_at >= ?' : '';
-  const winParams = since ? [since] : [];
+  // every aggregate så en "30d"/"today"/"yesterday"-visning er konsistent.
+  const winParts = [];
+  const winParams = [];
+  if (since) { winParts.push('AND b.start_at >= ?'); winParams.push(since); }
+  if (until) { winParts.push('AND b.start_at < ?');  winParams.push(until); }
+  const winSql = winParts.join(' ');
 
   // --- KPI tiles ------------------------------------------------------------
   const kpiRow = await queryOne(
@@ -121,15 +153,14 @@ router.get('/:id/analytics', requireAuth, asyncRoute(async (req, res) => {
     const retRow = await queryOne(
       `SELECT COUNT(DISTINCT b.customer_user_id) AS n
          FROM bookings b
-        WHERE b.salon_id = ?
-          AND b.start_at >= ?
+        WHERE b.salon_id = ? ${winSql}
           AND EXISTS (
             SELECT 1 FROM bookings b2
              WHERE b2.salon_id = b.salon_id
                AND b2.customer_user_id = b.customer_user_id
                AND b2.start_at < ?
           )`,
-      [salon.id, since, since]
+      [salon.id, ...winParams, since]
     );
     returningCustomers = Number(retRow?.n || 0);
   } else {
@@ -337,6 +368,7 @@ router.get('/:id/analytics', requireAuth, asyncRoute(async (req, res) => {
   res.json({
     period,
     since: since ? since.toISOString() : null,
+    until: until ? until.toISOString() : null,
     kpi,
     top_services: topServices.map(r => ({
       id: r.id,

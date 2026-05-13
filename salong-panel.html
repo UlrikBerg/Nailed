@@ -517,7 +517,29 @@
       gap: 14px;
     }
     @media (max-width: 1100px) { .kp-summary { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 600px)  { .kp-summary { grid-template-columns: 1fr; } }
+    @media (max-width: 600px)  {
+      .kp-summary { grid-template-columns: 1fr; gap: 8px; }
+      /* Kompakt mobil-layout: ikon → label → tall horisontalt på én rad,
+         redusert padding så kortene blir mindre. */
+      .kp-tile {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+      }
+      .kp-tile__icon { width: 32px; height: 32px; margin-bottom: 0; flex-shrink: 0; }
+      .kp-tile__icon i { width: 16px; height: 16px; }
+      .kp-tile__label {
+        flex: 1;
+        font-size: 13px;
+        text-transform: none;
+        letter-spacing: 0;
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .kp-tile__value { font-size: 18px; flex-shrink: 0; }
+      .kp-tile__unit, .kpi__unit { font-size: 12px; }
+    }
 
     /* Kalender — månedsvisning på dashboard. */
     .kp-cal {
@@ -2382,6 +2404,8 @@
         </div>
 
         <div class="analytics-period" id="analyticsPeriod">
+          <button type="button" class="analytics-period__chip" data-period="today">I dag</button>
+          <button type="button" class="analytics-period__chip" data-period="yesterday">I går</button>
           <button type="button" class="analytics-period__chip" data-period="7d">7 dager</button>
           <button type="button" class="analytics-period__chip active" data-period="30d">30 dager</button>
           <button type="button" class="analytics-period__chip" data-period="90d">90 dager</button>
