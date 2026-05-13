@@ -969,11 +969,11 @@
     .status i { width: 10px; height: 10px; }
     .status--active    { background: var(--success-50); color: var(--success-500); }
     .status--inactive  { background: var(--stone-100); color: var(--stone-500); }
-    .status--pending   { background: var(--cream-200); color: var(--stone-600); }
-    .status--confirmed { background: rgba(141, 160, 121, 0.18); color: var(--sage-700); }
-    .status--completed { background: var(--cream-200); color: var(--stone-600); }
+    .status--pending   { background: var(--warning-50); color: var(--warning-500); }
+    .status--confirmed { background: var(--success-50); color: var(--success-500); }
+    .status--completed { background: var(--success-500); color: #fff; }
     .status--cancelled { background: var(--stone-100); color: var(--stone-500); }
-    .status--noshow    { background: var(--rouge-50); color: var(--rouge-700); }
+    .status--noshow    { background: var(--danger-50); color: var(--danger-500); }
 
     /* Forms */
     .settings-grid {
@@ -1595,39 +1595,39 @@
     }
     .slot-pill:has(input:checked) span { color: var(--rouge-500); }
 
-    /* Bookings status-filter pills */
+    /* Bookings status-filter — stilig dropdown */
     .kp-bookings-filter {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
       align-items: center;
+      gap: 10px;
       margin: -4px 0 16px;
     }
     .kp-bookings-filter__label {
       font-size: 13px;
       color: var(--fg-muted);
       font-weight: 600;
-      margin-right: 4px;
     }
-    .kp-bookings-filter__chip {
+    .kp-bookings-filter__select {
       font-family: var(--font-body);
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 500;
-      padding: 6px 14px;
-      border-radius: 999px;
+      padding: 9px 38px 9px 14px;
+      border-radius: var(--radius-md);
       border: 1px solid var(--stone-200);
-      background: var(--cream-50);
-      color: var(--fg-muted);
+      background-color: var(--cream-50);
+      color: var(--ink);
       cursor: pointer;
-      transition: all 120ms ease;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231b1218' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 14px 14px;
+      transition: border-color 120ms ease;
+      min-width: 180px;
     }
-    .kp-bookings-filter__chip:hover { border-color: var(--rouge-300); color: var(--ink); }
-    .kp-bookings-filter__chip.is-active {
-      background: var(--rouge-500);
-      color: #fff;
-      border-color: var(--rouge-500);
-    }
-    .kp-bookings-filter__chip.is-active:hover { background: var(--rouge-600, #c93668); border-color: var(--rouge-600, #c93668); }
+    .kp-bookings-filter__select:hover { border-color: var(--stone-400); }
+    .kp-bookings-filter__select:focus { outline: none; border-color: var(--rouge-500); }
 
     /* Inline reschedule widget — rendered as a colspan row below the booking. */
     .sp-resched-form {
@@ -2290,13 +2290,16 @@
           </div>
         </div>
 
-        <div class="kp-bookings-filter" id="bookingsStatusFilter" role="group" aria-label="Filtrer på status">
-          <span class="kp-bookings-filter__label">Vis:</span>
-          <button type="button" class="kp-bookings-filter__chip is-active" data-status="completed">Fullført</button>
-          <button type="button" class="kp-bookings-filter__chip is-active" data-status="confirmed">Bekreftet</button>
-          <button type="button" class="kp-bookings-filter__chip is-active" data-status="pending">Avventer</button>
-          <button type="button" class="kp-bookings-filter__chip is-active" data-status="cancelled">Kansellert</button>
-          <button type="button" class="kp-bookings-filter__chip is-active" data-status="no_show">No-show</button>
+        <div class="kp-bookings-filter">
+          <label class="kp-bookings-filter__label" for="bookingsStatusFilter">Vis:</label>
+          <select class="kp-bookings-filter__select" id="bookingsStatusFilter" aria-label="Filtrer på status">
+            <option value="all">Alle</option>
+            <option value="pending">Avventer</option>
+            <option value="confirmed">Bekreftet</option>
+            <option value="completed">Fullført</option>
+            <option value="cancelled">Kansellert</option>
+            <option value="no_show">No-show</option>
+          </select>
         </div>
 
         <div class="kp-card">
@@ -4645,18 +4648,10 @@
     // kan re-rendere tabellen uten ny API-fetch.
     var lastIncomingBookings = [];
     (function wireBookingsStatusFilter() {
-      var bar = document.getElementById('bookingsStatusFilter');
-      if (!bar) return;
-      bar.addEventListener('click', function (e) {
-        var chip = e.target.closest('.kp-bookings-filter__chip');
-        if (!chip) return;
-        chip.classList.toggle('is-active');
-        // loadIncoming() leser filteret og re-rendrer med samme data.
-        if (typeof loadIncoming === 'function' && lastIncomingBookings.length) {
-          // Trigger en re-render uten ny fetch: emuler hva loadIncoming
-          // gjør ved å gjenkalle den (den re-fetcher, men det er billig).
-          loadIncoming();
-        }
+      var sel = document.getElementById('bookingsStatusFilter');
+      if (!sel) return;
+      sel.addEventListener('change', function () {
+        if (typeof loadIncoming === 'function') loadIncoming();
       });
     })();
 
@@ -4872,13 +4867,11 @@
 
       // Stash for re-render uten ekstra fetch når status-filteret endres.
       lastIncomingBookings = bookings;
-      // Filtrer ut statuser brukeren har klikket av.
-      var activeStatuses = new Set();
-      document.querySelectorAll('#bookingsStatusFilter .kp-bookings-filter__chip.is-active').forEach(function (c) {
-        activeStatuses.add(c.getAttribute('data-status'));
-      });
-      var filtered = activeStatuses.size
-        ? bookings.filter(function (b) { return activeStatuses.has(b.status); })
+      // Dropdown velger én status om gangen (eller «all»).
+      var selEl = document.getElementById('bookingsStatusFilter');
+      var sel = selEl ? selEl.value : 'all';
+      var filtered = (sel && sel !== 'all')
+        ? bookings.filter(function (b) { return b.status === sel; })
         : bookings;
 
       var tbody = document.querySelector('#incomingTable tbody');
