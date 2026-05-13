@@ -20,8 +20,13 @@
 
   function homeForRole(role) {
     if (role === 'admin') return { href: '/admin/', label: 'Admin' };
-    if (role === 'salon_owner') return { href: '/salong-panel.html', label: 'Salongpanel' };
-    return { href: '/kunde-panel.html', label: 'Min konto' };
+    if (role === 'salon_owner') return { href: '/salong-panel.html', label: 'Salongprofil' };
+    return { href: '/kunde-panel.html', label: 'Kundeprofil' };
+  }
+
+  function firstName(user) {
+    var n = (user && user.name) || '';
+    return n.trim().split(/\s+/)[0] || '';
   }
 
   function findLoginLink(actions) {
@@ -59,10 +64,11 @@
     nameEl.className = 'user-pill__name';
     nameEl.textContent = user.name || '';
     text.appendChild(nameEl);
+    // I rolle-slotten viser vi nå fornavnet (i stedet for «Salongpanel»/«Min konto»).
     var roleEl = document.createElement('span');
     roleEl.className = 'user-pill__role';
     var roleLabel = document.createElement('span');
-    roleLabel.textContent = home.label;
+    roleLabel.textContent = firstName(user) || home.label;
     var chev = document.createElement('i');
     chev.setAttribute('data-lucide', 'chevron-down');
     roleEl.appendChild(roleLabel);
@@ -94,9 +100,9 @@
       return a;
     }
 
-    menu.appendChild(menuLink('/kunde-panel', 'user-round', 'Min profil'));
+    menu.appendChild(menuLink('/kunde-panel', 'user-round', 'Kundeprofil'));
     if (user.role === 'salon_owner' || user.role === 'admin') {
-      menu.appendChild(menuLink('/salong-panel', 'store', 'Salongpanel', 'salon'));
+      menu.appendChild(menuLink('/salong-panel', 'store', 'Salongprofil', 'salon'));
     }
     if (user.role === 'admin') {
       menu.appendChild(menuLink('/admin/', 'shield', 'Adminpanel', 'admin'));
@@ -180,6 +186,8 @@
       else actions.appendChild(pill);
     }
     if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+    // Varsle andre komponenter (eks. bottom-nav) om at brukerdata er klar.
+    try { window.dispatchEvent(new CustomEvent('nailed:user', { detail: user })); } catch (_) {}
   }
 
   function pillsEqual(a, b) {

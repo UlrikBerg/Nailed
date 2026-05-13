@@ -80,21 +80,44 @@
     { key: 'profil',     label: 'Profil',     href: '/admin/#tab-innstillinger', svg: SVG.user },
   ];
 
+  // Hent fornavn fra cachet brukerdata (lagt der av /assets/nav.js).
+  // Brukes som label på profil-item i bottom-nav når brukeren er logget inn.
+  function firstName() {
+    try {
+      var raw = localStorage.getItem('nailed.user');
+      if (!raw) return '';
+      var u = JSON.parse(raw);
+      return (u && u.name ? u.name.trim().split(/\s+/)[0] : '') || '';
+    } catch (_) { return ''; }
+  }
+
   function visibleItems() {
     var role = activeRole();
-    if (role === 'salon') return ITEMS_SALON;
-    if (role === 'admin') return ITEMS_ADMIN;
+    var loggedIn = isLoggedIn();
+    var fn = firstName();
+
+    function withProfileLabel(items) {
+      if (!fn) return items;
+      return items.map(function (it) {
+        if (it.key === 'profil') return Object.assign({}, it, { label: fn });
+        return it;
+      });
+    }
+
+    if (role === 'salon') return withProfileLabel(ITEMS_SALON);
+    if (role === 'admin') return withProfileLabel(ITEMS_ADMIN);
 
     // Kunde-modus: filtrer på auth + omdiriger Profil til login når utlogget
-    var loggedIn = isLoggedIn();
-    return ITEMS_CUSTOMER.filter(function (it) {
+    var customer = ITEMS_CUSTOMER.filter(function (it) {
       return !it.requiresAuth || loggedIn;
     }).map(function (it) {
-      if (it.key === 'profil' && !loggedIn) {
-        return Object.assign({}, it, { href: '/login', label: 'Logg inn' });
+      if (it.key === 'profil') {
+        if (!loggedIn) return Object.assign({}, it, { href: '/login', label: 'Logg inn' });
+        if (fn) return Object.assign({}, it, { label: fn });
       }
       return it;
     });
+    return customer;
   }
 
   function activeKey() {
@@ -425,4 +448,7 @@
   window.addEventListener('storage', function (e) {
     if (e.key === 'nailed.accessToken' || e.key === 'nailed.role') syncOrRender();
   });
+  // Når nav.js har lastet brukerdata, oppdater label på profil-item så
+  // den viser fornavn i stedet for «Min profil».
+  window.addEventListener('nailed:user', function () { render(); });
 })();
