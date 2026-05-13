@@ -57,7 +57,8 @@ router.post('/email-samples', asyncRoute(async (req, res) => {
   ];
 
   const results = [];
-  for (const [fn, label, ctx] of samples) {
+  for (let i = 0; i < samples.length; i++) {
+    const [fn, label, ctx] = samples[i];
     try {
       const tpl = T[fn](ctx);
       const r = await sendEmail({
@@ -69,6 +70,10 @@ router.post('/email-samples', asyncRoute(async (req, res) => {
       results.push({ fn, ok: r.ok, id: r.id || null, error: r.error || null });
     } catch (e) {
       results.push({ fn, ok: false, error: e.message });
+    }
+    // Resend free-tier har 2 req/sek — pause 600 ms mellom sends for å unngå 429.
+    if (i < samples.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 600));
     }
   }
   res.json({ to, results });
