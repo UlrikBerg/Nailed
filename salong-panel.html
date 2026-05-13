@@ -508,9 +508,10 @@
     /* Dashboard summary tiles — soft warm tiles */
     .kp-summary {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 14px;
     }
+    @media (max-width: 1100px) { .kp-summary { grid-template-columns: 1fr 1fr; } }
     /* Statistikk-fliser: 3 og 3 på alle viewports.
        Bruker id-selektor så det vinner over .kp-summary-defaultsen. */
     #analyticsKpiRow { grid-template-columns: repeat(3, 1fr); }
@@ -523,9 +524,11 @@
       #analyticsKpiRow .kp-tile__label { font-size: 10px; }
     }
     @media (max-width: 600px)  {
-      /* Mobil: tre fliser i bredden så Oversikt blir kompakt. Innholdet
-         vertikalt inni (ikon → label → tall). */
-      .kp-summary { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      /* Mobil: 2 fliser i bredden på Oversikt (kun «Bookinger i dag» og
+         «Omsetning i dag» vises — avventer/fullført skjules av
+         .kp-tile--desktop-only). Innholdet vertikalt inni. */
+      .kp-summary { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .kp-tile--desktop-only { display: none; }
       .kp-tile {
         padding: 14px 12px;
         gap: 4px;
@@ -2231,7 +2234,12 @@
             <span class="kp-tile__label">Bookinger i dag</span>
             <span class="kp-tile__value" id="kpiToday">0</span>
           </div>
-          <div class="kp-tile">
+          <div class="kp-tile kp-tile--desktop-only">
+            <span class="kp-tile__icon kp-tile__icon--amber"><i data-lucide="hourglass"></i></span>
+            <span class="kp-tile__label">Avventer i dag</span>
+            <span class="kp-tile__value" id="kpiPendingToday">0</span>
+          </div>
+          <div class="kp-tile kp-tile--desktop-only">
             <span class="kp-tile__icon kp-tile__icon--green"><i data-lucide="check-circle"></i></span>
             <span class="kp-tile__label">Fullført i dag</span>
             <span class="kp-tile__value" id="kpiCompletedToday">0</span>
@@ -4855,15 +4863,20 @@
       // KPI computation
       var today = new Date(); today.setHours(0,0,0,0);
       var tomorrow = new Date(today.getTime() + 86400000);
-      var todayCount = 0, pendingCount = 0, completedToday = 0, revenueToday = 0;
+      var todayCount = 0, pendingCount = 0, pendingToday = 0,
+          completedToday = 0, revenueToday = 0;
       bookings.forEach(function (b) {
         var s = new Date(b.start_at);
         var inToday = s >= today && s < tomorrow;
         if (inToday && (b.status === 'pending' || b.status === 'confirmed')) todayCount++;
-        if (b.status === 'pending') pendingCount++;
+        if (b.status === 'pending') {
+          pendingCount++;
+          if (inToday) pendingToday++;
+        }
         if (b.status === 'completed' && inToday) { completedToday++; revenueToday += b.price_nok; }
       });
       animateCount(document.getElementById('kpiToday'), todayCount);
+      animateCount(document.getElementById('kpiPendingToday'), pendingToday);
       animateCount(document.getElementById('kpiCompletedToday'), completedToday);
       animateCount(document.getElementById('kpiRevenue'), revenueToday, { format: 'nok' });
 
