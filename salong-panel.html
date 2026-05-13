@@ -1432,21 +1432,19 @@
     .sub-card__title-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
+      justify-content: flex-start;
+      gap: 12px;
       margin-bottom: 6px;
     }
     .sub-card__title { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 22px; color: var(--ink); }
     .sub-card__title-pill { flex-shrink: 0; }
-    /* Desktop: pill vises inline foran status-teksten (skjul tittel-pillen).
-       Bruker id-selektor for å vinne over .sub-card__statusPill { display: inline-flex }. */
-    #subStatusPill { display: none; }
-    @media (max-width: 720px) {
-      /* Mobil: pill flyttes opp i tittel-raden, inline-pill i statusteksten skjules */
-      #subStatusPill:not(:empty) { display: inline-flex; }
-      #subStatusText > .sub-card__statusPill { display: none; }
-    }
+    #subStatusPill:empty { display: none; }
     .sub-card__sub { margin: 0; font-size: 14px; color: var(--fg-muted); }
+    /* Faktureres-setningen: inline på desktop, egen linje under på mobil. */
+    .sub-card__sub-secondary { display: inline; }
+    @media (max-width: 720px) {
+      .sub-card__sub-secondary { display: block; margin-top: 2px; }
+    }
     .sub-card__price {
       display: inline-flex;
       align-items: baseline;
@@ -3974,16 +3972,15 @@
           return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
         });
       }
-      // Skriver pill i to slots: title-row (vises kun mobil) og inline foran
-      // status-tekst (vises kun desktop). CSS skjuler ett av dem per breakpoint.
-      function setStatus(cls, label, msg) {
+      function setPill(cls, label) {
         if (pillEl) {
           pillEl.className = 'sub-card__title-pill sub-card__statusPill sub-card__statusPill--' + cls;
           pillEl.textContent = label;
         }
-        statusEl.innerHTML =
-          '<span class="sub-card__statusPill sub-card__statusPill--' + cls + '">' + escapeText(label) + '</span>' +
-          escapeText(msg);
+      }
+      function setStatus(cls, label, msg) {
+        setPill(cls, label);
+        statusEl.textContent = msg;
       }
 
       // Skjul trial-bar som default — vises kun for status='trial'.
@@ -3998,12 +3995,23 @@
           var msLeft = endMs - Date.now();
           daysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
         }
-        var msg = daysLeft != null
-          ? (daysLeft > 0
-              ? '3 måneder gratis prøveperiode — ' + daysLeft + ' dager igjen. Faktureres ' + price + ' kr/mnd etterpå.'
-              : 'Prøveperioden er over. Velg betaling for å fortsette.')
-          : '3 måneder gratis prøveperiode. Faktureres ' + price + ' kr/mnd etterpå.';
-        setStatus('trial', 'Prøveperiode', msg);
+        // Splitt status-teksten: primær-setning + «Faktureres ...» i egen span
+        // (inline på desktop, egen linje på mobil via .sub-card__sub-secondary).
+        var primary, secondary = '';
+        if (daysLeft != null) {
+          if (daysLeft > 0) {
+            primary = '3 måneder gratis prøveperiode — ' + daysLeft + ' dager igjen.';
+            secondary = 'Faktureres ' + price + ' kr/mnd etterpå.';
+          } else {
+            primary = 'Prøveperioden er over. Velg betaling for å fortsette.';
+          }
+        } else {
+          primary = '3 måneder gratis prøveperiode.';
+          secondary = 'Faktureres ' + price + ' kr/mnd etterpå.';
+        }
+        setPill('trial', 'Prøveperiode');
+        statusEl.innerHTML = escapeText(primary) +
+          (secondary ? ' <span class="sub-card__sub-secondary">' + escapeText(secondary) + '</span>' : '');
 
         // Trial-bar — fyller fra venstre mot høyre etter hvor mange dager
         // som er brukt opp av prøveperioden.
