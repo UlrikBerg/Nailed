@@ -2561,7 +2561,7 @@
     }
   </style>
 </head>
-<body>
+<body data-topnav-mode="panel">
 
   <!-- Public top navigation -->
   <header class="top-nav" id="topNav">
@@ -3682,6 +3682,7 @@
   <script defer src="/assets/chat.js"></script>
   <script defer src="/assets/track.js"></script>
   <script defer src="/assets/spa-nav.js"></script>
+  <script defer src="/assets/topnav-scroll.js"></script>
 
   <script>
     var salon = null;
@@ -3694,20 +3695,8 @@
     var analyticsPeriod = 'today';
     var analyticsLoaded = false;
 
-    // Sticky-shadow on the public top-nav. På mobil i panelet låses .scrolled
-    // alltid på så headeren blir kompakt og innstillinger får mer plass.
-    (function () {
-      var nav = document.getElementById('topNav');
-      if (!nav) return;
-      var mq = window.matchMedia('(max-width: 720px)');
-      function update() {
-        if (mq.matches) nav.classList.add('scrolled');
-        else nav.classList.toggle('scrolled', window.scrollY > 30);
-      }
-      window.addEventListener('scroll', update, { passive: true });
-      if (mq.addEventListener) mq.addEventListener('change', update);
-      update();
-    })();
+    // Sticky-shadow on the public top-nav — håndtert av
+    // /assets/topnav-scroll.js (panel-modus + deadband mot flicker).
 
     // The tab pills act like the old sidebar nav-items: clicking switches the
     // tab-content panels and lazy-loads tab-specific data.

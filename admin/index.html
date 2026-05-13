@@ -643,7 +643,7 @@
     }
   </style>
 </head>
-<body>
+<body data-topnav-mode="panel">
 
   <!-- Public top navigation -->
   <header class="top-nav" id="topNav">
@@ -1368,25 +1368,15 @@
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="/assets/auth.js"></script>
+  <script defer src="/assets/topnav-scroll.js"></script>
   <script defer src="/assets/nav.js"></script>
   <script>
     lucide.createIcons();
 
     /* ================================================================
-       Top-nav scroll behavior — matches the public site
+       Top-nav scroll behavior — håndtert av /assets/topnav-scroll.js
+       (panel-modus + deadband mot flicker).
        ================================================================ */
-    (function () {
-      var nav = document.getElementById('topNav');
-      if (!nav) return;
-      var mq = window.matchMedia('(max-width: 720px)');
-      function update() {
-        if (mq.matches) nav.classList.add('scrolled');
-        else nav.classList.toggle('scrolled', window.scrollY > 30);
-      }
-      window.addEventListener('scroll', update, { passive: true });
-      if (mq.addEventListener) mq.addEventListener('change', update);
-      update();
-    })();
 
     /* ================================================================
        Helpers

@@ -701,7 +701,7 @@
     .kp-modal__actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
   </style>
 </head>
-<body>
+<body data-topnav-mode="panel">
 
   <!-- Public top navigation -->
   <header class="top-nav" id="topNav">
@@ -1040,22 +1040,10 @@
   <script defer src="/assets/chat.js"></script>
   <script defer src="/assets/track.js"></script>
   <script defer src="/assets/spa-nav.js"></script>
+  <script defer src="/assets/topnav-scroll.js"></script>
   <script>
-    // ---------------------------------------------------------------------
-    // Top-nav scroll behavior — matches the public site
-    // ---------------------------------------------------------------------
-    (function () {
-      var nav = document.getElementById('topNav');
-      if (!nav) return;
-      var mq = window.matchMedia('(max-width: 720px)');
-      function update() {
-        if (mq.matches) nav.classList.add('scrolled');
-        else nav.classList.toggle('scrolled', window.scrollY > 30);
-      }
-      window.addEventListener('scroll', update, { passive: true });
-      if (mq.addEventListener) mq.addEventListener('change', update);
-      update();
-    })();
+    // Top-nav scroll — håndtert av /assets/topnav-scroll.js
+    // (panel-modus med <body data-topnav-mode="panel"> låser .scrolled på mobil)
 
     // ---------------------------------------------------------------------
     // Tab routing — preserves the hash-based linking so external pages can

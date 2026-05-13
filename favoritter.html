@@ -105,12 +105,11 @@
   <script src="favorites.js"></script>
   <script defer src="/assets/cookie-banner.js"></script>
   <script defer src="/assets/nav.js"></script>
+  <script defer src="/assets/topnav-scroll.js"></script>
   <script>
     lucide.createIcons();
 
-    // Nav scroll
-    var nav = document.getElementById('topNav');
-    window.addEventListener('scroll', function() { nav.classList.toggle('scrolled', window.scrollY > 30); });
+    // Nav scroll — håndtert av /assets/topnav-scroll.js
 
     var FALLBACK_GRADIENTS = [
       'linear-gradient(135deg, #FFE0E9, #FFC4D6)',

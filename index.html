@@ -314,6 +314,7 @@
   <script defer src="/assets/nav.js"></script>
   <script defer src="/assets/track.js"></script>
   <script defer src="/assets/spa-nav.js"></script>
+  <script defer src="/assets/topnav-scroll.js"></script>
   <script src="/assets/no-places.js"></script>
   <script src="/assets/treatments.js"></script>
   <script>
@@ -355,15 +356,7 @@
     })();
 
 
-    // Sticky nav scroll effect
-    var nav = document.getElementById('topNav');
-    window.addEventListener('scroll', function() {
-      if (window.scrollY > 30) {
-        nav.classList.add('scrolled');
-      } else {
-        nav.classList.remove('scrolled');
-      }
-    });
+    // Sticky nav scroll effect — håndtert av /assets/topnav-scroll.js
 
     // ----- Salon card rendering (shared between featured + top-rated grids) -----
     var FEATURED_FALLBACK_GRADIENTS = [

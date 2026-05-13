@@ -385,18 +385,9 @@
 
     // Sticky top-nav scroll-shrink: legger til .scrolled på #topNav når man
     // scroller > 30 px så bakgrunnen får blur og logoen krymper (samme
-    // mønster som de andre sidene).
-    (function () {
-      var nav = document.getElementById('topNav');
-      if (!nav) return;
-      function onScroll() {
-        if (window.scrollY > 30) nav.classList.add('scrolled');
-        else nav.classList.remove('scrolled');
-      }
-      window.addEventListener('scroll', onScroll, { passive: true });
-      onScroll();
-    })();
+    // håndtert av /assets/topnav-scroll.js
   </script>
+  <script defer src="/assets/topnav-scroll.js"></script>
   <script defer src="/assets/bottom-nav.js"></script>
   <script defer src="/assets/keyboard-inset.js"></script>
   <script defer src="/assets/pwa.js"></script>
