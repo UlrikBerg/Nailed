@@ -1976,14 +1976,9 @@
         <div>
           <h1 class="kp-hero__title">Salongpanel</h1>
           <p class="kp-hero__sub">for <em id="greetingSalon">salongen</em></p>
-          <div class="kp-hero__actions">
-            <button type="button" class="btn btn-ghost btn-sm" data-tab-goto="profil">
-              <i data-lucide="store"></i> Redigere salongprofil
-            </button>
-            <a class="btn btn-ghost btn-sm" id="publicLink" href="#" target="_blank">
-              <i data-lucide="external-link"></i> Se kundevisning
-            </a>
-          </div>
+          <!-- publicLink beholdes som usynlig anker så JS som setter href fortsatt
+               kan kjøre uten å feile. Knappen er fjernet fra hero per design. -->
+          <a id="publicLink" href="#" target="_blank" hidden></a>
         </div>
       </div>
 
@@ -1994,21 +1989,18 @@
         <button type="button" class="kp-tabs__chev kp-tabs__chev--left" id="kpTabsChevLeft" aria-label="Bla til venstre"><i data-lucide="chevron-left"></i></button>
         <button type="button" class="kp-tabs__chev kp-tabs__chev--right" id="kpTabsChevRight" aria-label="Bla til høyre"><i data-lucide="chevron-right"></i></button>
         <div class="kp-tabs" id="kpTabs" role="tablist">
-          <button class="kp-tab active" role="tab" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-          <button class="kp-tab" role="tab" data-tab="analyse"><i data-lucide="bar-chart-3"></i> Analyse</button>
+          <button class="kp-tab active" role="tab" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Oversikt</button>
+          <button class="kp-tab" role="tab" data-tab="profil"><i data-lucide="store"></i> Rediger salongprofil</button>
           <button class="kp-tab" role="tab" data-tab="bookinger">
             <i data-lucide="calendar-check"></i> Bookinger
             <span class="kp-tab__badge" id="bookingsPendingBadge" hidden>0</span>
           </button>
           <button class="kp-tab" role="tab" data-tab="tjenester"><i data-lucide="sparkles"></i> Tjenester</button>
           <button class="kp-tab" role="tab" data-tab="kunder"><i data-lucide="users"></i> Kunder</button>
+          <button class="kp-tab" role="tab" data-tab="analyse"><i data-lucide="bar-chart-3"></i> Statistikk</button>
           <button class="kp-tab" role="tab" data-tab="anmeldelser">
             <i data-lucide="star"></i> Anmeldelser
             <span class="kp-tab__badge" id="reviewsUnansweredBadge" hidden>0</span>
-          </button>
-          <button class="kp-tab" role="tab" data-tab="meldinger">
-            <i data-lucide="message-circle"></i> Meldinger
-            <span class="kp-tab__badge" id="messagesUnreadBadge" hidden>0</span>
           </button>
           <button class="kp-tab" role="tab" data-tab="innstillinger"><i data-lucide="settings"></i> Innstillinger</button>
         </div>
@@ -2263,8 +2255,8 @@
       <div class="tab-content" id="tab-analyse">
         <div class="kp-section">
           <div>
-            <h2 class="kp-section__title">Analyse</h2>
-            <p class="kp-section__sub">Statistikk for salongen din. Velg periode for å se hvordan tallene endrer seg.</p>
+            <h2 class="kp-section__title">Statistikk</h2>
+            <p class="kp-section__sub">Tall for salongen din. Velg periode for å se hvordan de endrer seg.</p>
           </div>
         </div>
 
@@ -3115,7 +3107,7 @@
     setInterval(refreshMessagesBadge, 30000);
     // Hash-routing: /salong-panel#tab-bookinger åpner bookinger-tab.
     // Bottom-nav (mobil) bruker dette for å deep-linke til riktig fane.
-    var VALID_TABS = ['dashboard','analyse','bookinger','tjenester','kunder','anmeldelser','meldinger','innstillinger'];
+    var VALID_TABS = ['dashboard','profil','analyse','bookinger','tjenester','kunder','anmeldelser','meldinger','innstillinger'];
     function tabFromHash() {
       var h = (window.location.hash || '').replace(/^#tab-/, '');
       return VALID_TABS.indexOf(h) !== -1 ? h : 'dashboard';
