@@ -2591,8 +2591,8 @@
       <div class="suspend-banner" id="suspendBanner" hidden>
         <div class="suspend-banner__icon"><i data-lucide="alert-triangle"></i></div>
         <div class="suspend-banner__body">
-          <div class="suspend-banner__title">Salongen din er suspendert</div>
-          <p class="suspend-banner__sub" id="suspendBannerSub">Salongen vises ikke offentlig og kan ikke ta imot nye bookinger.</p>
+          <div class="suspend-banner__title">Profilen din er suspendert</div>
+          <p class="suspend-banner__sub" id="suspendBannerSub">Profilen vises ikke offentlig og kan ikke ta imot nye bookinger.</p>
           <p class="suspend-banner__reason" id="suspendBannerReason" hidden></p>
           <p class="suspend-banner__contact">Spørsmål? Skriv til <a href="mailto:hei@nailed.no">hei@nailed.no</a>.</p>
         </div>
@@ -2644,7 +2644,7 @@
       <div class="tab-content active" id="tab-dashboard">
         <div class="kp-section">
           <div>
-            <h2 class="kp-section__title" id="dashTitle">Salongpanel</h2>
+            <h2 class="kp-section__title" id="dashTitle">Behandler-panel</h2>
             <p class="kp-section__sub" id="dashSub">Oversikt over driften.</p>
           </div>
         </div>
@@ -2823,7 +2823,7 @@
         <div class="kp-section">
           <div>
             <h2 class="kp-section__title">Tjenester</h2>
-            <p class="kp-section__sub">Behandlingene salongen tilbyr. <span class="popular-count" id="popularCount"></span></p>
+            <p class="kp-section__sub">Behandlingene du tilbyr. <span class="popular-count" id="popularCount"></span></p>
           </div>
           <div class="kp-section__actions">
             <button class="btn btn-primary" id="newServiceBtn"><i data-lucide="plus"></i> Ny tjeneste</button>
@@ -3093,7 +3093,7 @@
         <div class="kp-section">
           <div>
             <h2 class="kp-section__title">Anmeldelser</h2>
-            <p class="kp-section__sub">Hva kundene synes om salongen. Skriv svar for å bygge tillit.</p>
+            <p class="kp-section__sub">Hva kundene synes om deg. Skriv svar for å bygge tillit.</p>
           </div>
           <div class="kp-section__actions">
             <div id="reviewsSummary" style="display:flex; align-items:center; gap:10px; font-size:14px; color: var(--fg-muted);"></div>
@@ -3114,7 +3114,7 @@
       <div class="tab-content" id="tab-profil">
         <div class="kp-section">
           <div>
-            <h2 class="kp-section__title">Salongprofil</h2>
+            <h2 class="kp-section__title">Profil</h2>
             <p class="kp-section__sub">Slik ser profilen din ut for kundene på nailed.</p>
           </div>
         </div>
@@ -3149,7 +3149,7 @@
 
               <div class="profile-card">
                 <div class="profile-card__head">
-                  <h3 class="profile-card__title">Om salongen</h3>
+                  <h3 class="profile-card__title">Om deg</h3>
                   <button class="btn btn-ghost btn-sm profile-card__edit" data-edit="bio"><i data-lucide="pencil"></i> Rediger</button>
                 </div>
                 <p class="profile-about" id="phBio">—</p>
@@ -3231,7 +3231,7 @@
           </div>
 
           <div class="kp-card" data-edit-section="bio contact availability">
-            <div class="kp-card__head" data-section-header="bio"><h3>Om salongen</h3></div>
+            <div class="kp-card__head" data-section-header="bio"><h3>Om deg</h3></div>
             <div class="kp-card__head" data-section-header="contact"><h3>Kontaktinformasjon</h3></div>
             <div class="kp-card__head" data-section-header="availability"><h3>Tilgjengelighet</h3></div>
             <form id="salonForm" class="settings-grid">
@@ -3257,7 +3257,7 @@
               </div>
               <div class="form-group" data-section="availability">
                 <label>E-post</label>
-                <input class="form-input" name="public_email" type="email" maxlength="255" placeholder="post@salongen.no" />
+                <input class="form-input" name="public_email" type="email" maxlength="255" placeholder="post@dinprofil.no" />
               </div>
               <div class="form-group" data-section="availability">
                 <label>Telefon</label>
@@ -3283,7 +3283,7 @@
               <div class="form-group" data-section="availability" style="grid-column: 1 / -1;">
                 <label style="display:flex; gap:10px; align-items:center;">
                   <input type="checkbox" name="public_phone_visible" />
-                  Vis telefonnummer offentlig på salongprofilen
+                  Vis telefonnummer offentlig på profilen
                 </label>
               </div>
               <div class="form-group" data-section="availability" style="grid-column: 1 / -1;">
@@ -3292,7 +3292,7 @@
                   Tar imot nye bookinger akkurat nå
                 </label>
                 <div style="font-size:12px; color: var(--fg-muted); margin-top: 4px;">
-                  Skru av når du er fullbooket eller tar pause. Salongen er fortsatt synlig, men kan ikke bookes.
+                  Skru av når du er fullbooket eller tar pause. Profilen er fortsatt synlig, men kan ikke bookes.
                 </div>
               </div>
 
@@ -3353,7 +3353,7 @@
           <div class="kp-card" id="amenitiesEditPanel" data-edit-section="amenities">
             <div class="kp-card__head">
               <h3>Hva tilbys</h3>
-              <div style="font-size: 13px; color: var(--fg-muted);">Marker fasilitetene salongen tilbyr.</div>
+              <div style="font-size: 13px; color: var(--fg-muted);">Marker fasilitetene du tilbyr.</div>
             </div>
             <div class="amen-grid" id="amenitiesEditGrid"></div>
             <div style="margin-top:16px; display:flex; gap:8px;">
@@ -3407,7 +3407,7 @@
           <ul class="sub-card__list">
             <li><i data-lucide="check"></i> 4 måneder gratis prøveperiode</li>
             <li><i data-lucide="check"></i> Ubegrenset bookinger og kunder</li>
-            <li><i data-lucide="check"></i> Egen salongprofil + bilder</li>
+            <li><i data-lucide="check"></i> Egen behandler-profil + bilder</li>
             <li><i data-lucide="check"></i> E-postvarslinger til deg og kundene</li>
             <li><i data-lucide="check"></i> Chat med kundene direkte i appen</li>
             <li><i data-lucide="check"></i> Ingen bindingstid — si opp når du vil</li>
@@ -3517,7 +3517,7 @@
         <div class="kp-card">
           <h2 style="margin:0 0 4px 0; font-size:18px; font-family: var(--font-display);">Booking-intervall</h2>
           <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
-            Hvor ofte kan timer starte? Påvirker hvilke tider kundene ser på salongsiden.
+            Hvor ofte kan timer starte? Påvirker hvilke tider kundene ser på profilsiden.
           </p>
           <form id="slotIntervalForm" style="display:flex; flex-direction:column; gap:12px; max-width:560px;">
             <div class="slot-interval-pills" id="slotIntervalPills">
@@ -3535,7 +3535,7 @@
         <div class="kp-card">
           <h2 style="margin:0 0 4px 0; font-size:18px; font-family: var(--font-display);">Organisasjonsnummer</h2>
           <p style="margin:0 0 16px 0; color: var(--fg-muted); font-size:14px;">
-            Vises på salongprofilen din og brukes til fakturering av abonnementet.
+            Vises på profilen din og brukes til fakturering av abonnementet.
           </p>
           <form id="orgNumberForm" style="display:flex; flex-direction:column; gap:12px; max-width:560px;">
             <label class="form-field" style="display:block;">
@@ -3886,9 +3886,9 @@
           dashTab.innerHTML =
             '<div class="kp-empty">' +
               '<span class="kp-empty__icon"><i data-lucide="store"></i></span>' +
-              '<h3 class="kp-empty__title">Ingen salong</h3>' +
-              '<p class="kp-empty__desc">Du er ikke registrert som salongeier ennå. ' +
-              '<a href="/bli-salong">Søk om å bli salong →</a></p>' +
+              '<h3 class="kp-empty__title">Ingen profil</h3>' +
+              '<p class="kp-empty__desc">Du er ikke registrert som behandler ennå. ' +
+              '<a href="/bli-salong">Søk om å bli behandler →</a></p>' +
             '</div>';
         }
         // Hide the other tabs and their tab pills — there's nothing to show
@@ -3915,7 +3915,7 @@
       document.getElementById('publicLink').href = '/salon?slug=' + encodeURIComponent(salon.slug);
       // Hero greeting — «for [salongnavn]»
       var greetSalonEl = document.getElementById('greetingSalon');
-      if (greetSalonEl) greetSalonEl.textContent = salon.name || 'salongen';
+      if (greetSalonEl) greetSalonEl.textContent = salon.name || 'profilen';
       // Scope to #salonForm — the service form also has an input[name=name].
       document.querySelector('#salonForm input[name=name]').value = salon.name || '';
       document.querySelector('#salonForm textarea[name=bio]').value = salon.bio || '';
@@ -4018,7 +4018,7 @@
        hjelpen" (persisted as salons.onboarding_skipped). The state object comes
        from GET /api/v1/salons/me/own. */
     var ONBOARDING_STEPS = [
-      { key: 'has_cover_image', label: 'Last opp bilder av salongen',  tab: 'profil', edit: 'photos' },
+      { key: 'has_cover_image', label: 'Last opp bilder av virksomheten',  tab: 'profil', edit: 'photos' },
       { key: 'has_bio',         label: 'Skriv en bio',                  tab: 'profil', edit: 'bio' },
       { key: 'has_hours',       label: 'Sett åpningstider',             tab: 'profil', edit: 'hours' },
       { key: 'has_services',    label: 'Legg til behandlinger',         tab: 'tjenester' },
@@ -4673,7 +4673,7 @@
           : '';
         setStatus('active', 'Aktiv', 'Du betaler ' + price + ' kr/mnd' + since + '.');
       } else if (status === 'past_due') {
-        setStatus('past_due', 'Forfalt', 'Betalingen mislyktes — oppdater betalingsmetoden for å unngå at salongen skjules.');
+        setStatus('past_due', 'Forfalt', 'Betalingen mislyktes — oppdater betalingsmetoden for å unngå at profilen skjules.');
       } else if (status === 'cancelled') {
         setStatus('cancelled', 'Oppsagt', 'Abonnementet er sagt opp. Du kan starte det igjen når som helst.');
       } else {
@@ -4834,7 +4834,7 @@
     var EDIT_SECTION_TITLES = {
       all: 'Rediger profil',
       photos: 'Rediger bilder',
-      bio: 'Om salongen',
+      bio: 'Om deg',
       contact: 'Kontaktinformasjon',
       availability: 'Tilgjengelighet',
       hours: 'Åpningstider',
