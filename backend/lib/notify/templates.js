@@ -709,6 +709,101 @@ function bookingCancelledTeam(ctx) {
   return { subject, html: shell({ bodyHtml: body, preheader }), text };
 }
 
+// =============================================================================
+// salonApplicationApproved.owner
+// =============================================================================
+// ctx: { ownerName, salonName, salonSlug, trialEndsAt }
+function salonApplicationApproved(ctx) {
+  const subject = `Søknaden for ${ctx.salonName} er godkjent`;
+  const preheader = `Velkommen til Nailed — du har 4 måneder gratis prøveperiode.`;
+  const panelLink = `${baseUrl()}/salong-panel`;
+  const publicLink = ctx.salonSlug
+    ? `${baseUrl()}/salon?slug=${encodeURIComponent(ctx.salonSlug)}`
+    : null;
+
+  let body = '';
+  body += heroHtml({ title: `Velkommen til Nailed ✓` });
+  body += `<p style="margin:0 0 22px 0;font-size:15px;line-height:1.55;color:${C.fgMuted};">Hei ${escapeHtml(ctx.ownerName || '')}, søknaden din om <strong style="color:${C.ink};">${escapeHtml(ctx.salonName)}</strong> er godkjent. Du har nå 4 måneder gratis prøveperiode.</p>`;
+
+  body += `<div style="margin:0 0 22px 0;padding:18px 20px;background:${C.rouge50};border:1px solid #FFD8E5;border-radius:12px;">
+    <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${C.rouge700};margin-bottom:8px;">Slik kommer du i gang</div>
+    <ol style="margin:0;padding:0 0 0 18px;color:${C.ink};font-size:14px;line-height:1.7;">
+      <li>Last opp bilder av salongen</li>
+      <li>Skriv en kort bio</li>
+      <li>Sett åpningstider</li>
+      <li>Legg til behandlinger med pris og varighet</li>
+      <li>Legg til team-medlemmer (om du er flere)</li>
+    </ol>
+    <div style="margin-top:10px;font-size:13px;color:${C.fgMuted};">Panelet har en sjekkliste som viser hva som mangler.</div>
+  </div>`;
+
+  body += buttonHtml('Gå til panelet', panelLink);
+  if (publicLink) {
+    body += `<div style="margin-top:14px;font-size:13px;color:${C.fgMuted};">${linkHtml('Se din offentlige side', publicLink)}</div>`;
+  }
+
+  body += divider();
+  body += `<div style="font-size:12px;color:${C.fgMuted};line-height:1.6;">
+    <strong style="color:${C.ink};font-weight:600;">Prøveperiode</strong><br>
+    4 måneder gratis. Etter prøveperioden får du faktura via Fiken — du kan kansellere når som helst fra panelet uten å bli fakturert.
+  </div>`;
+
+  const lines = [
+    `Hei ${ctx.ownerName || ''},`,
+    '',
+    `Søknaden din om ${ctx.salonName} er godkjent. Du har 4 måneder gratis prøveperiode.`,
+    '',
+    'Slik kommer du i gang:',
+    '  1. Last opp bilder av salongen',
+    '  2. Skriv en kort bio',
+    '  3. Sett åpningstider',
+    '  4. Legg til behandlinger',
+    '  5. Legg til team-medlemmer (om du er flere)',
+    '',
+    `Gå til panelet: ${panelLink}`,
+  ];
+  if (publicLink) lines.push(`Din offentlige side: ${publicLink}`);
+  lines.push('', 'Etter prøveperioden får du faktura via Fiken. Du kan kansellere når som helst fra panelet.');
+
+  return { subject, html: shell({ bodyHtml: body, preheader }), text: lines.join('\n') };
+}
+
+// =============================================================================
+// salonApplicationRejected.owner
+// =============================================================================
+// ctx: { ownerName, salonName, reviewerNotes }
+function salonApplicationRejected(ctx) {
+  const subject = `Søknad om ${ctx.salonName}`;
+  const preheader = `Vi kunne dessverre ikke godkjenne søknaden.`;
+
+  let body = '';
+  body += heroHtml({ title: `Søknaden er gjennomgått` });
+  body += `<p style="margin:0 0 18px 0;font-size:15px;line-height:1.55;color:${C.fgMuted};">Hei ${escapeHtml(ctx.ownerName || '')}, takk for at du sendte inn søknad om <strong style="color:${C.ink};">${escapeHtml(ctx.salonName)}</strong>.</p>`;
+  body += `<p style="margin:0 0 18px 0;font-size:15px;line-height:1.55;color:${C.fgMuted};">Vi kunne dessverre ikke godkjenne søknaden nå.</p>`;
+
+  if (ctx.reviewerNotes && ctx.reviewerNotes.trim()) {
+    body += `<div style="margin:0 0 22px 0;padding:16px 18px;background:${C.cream100};border-radius:10px;color:${C.ink};font-size:14px;line-height:1.55;white-space:pre-wrap;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${C.fgMuted};margin-bottom:6px;">Begrunnelse</div>
+      ${escapeHtml(ctx.reviewerNotes)}
+    </div>`;
+  }
+
+  body += `<p style="margin:0 0 18px 0;font-size:14px;line-height:1.55;color:${C.fgMuted};">Har du spørsmål eller ønsker å sende inn en ny søknad? Svar på denne e-posten — vi leser alle.</p>`;
+
+  const lines = [
+    `Hei ${ctx.ownerName || ''},`,
+    '',
+    `Takk for at du sendte inn søknad om ${ctx.salonName}.`,
+    'Vi kunne dessverre ikke godkjenne søknaden nå.',
+  ];
+  if (ctx.reviewerNotes && ctx.reviewerNotes.trim()) {
+    lines.push('', 'Begrunnelse:', ctx.reviewerNotes.trim());
+  }
+  lines.push('', 'Har du spørsmål eller ønsker å sende inn en ny søknad? Svar på denne e-posten.');
+
+  return { subject, html: shell({ bodyHtml: body, preheader }), text: lines.join('\n') };
+}
+
 module.exports = {
   bookingCreatedCustomer,
   bookingCreatedOwner,
@@ -721,4 +816,6 @@ module.exports = {
   bookingCancelledTeam,
   bookingReminderCustomer,
   bookingReminderCustomerSms,
+  salonApplicationApproved,
+  salonApplicationRejected,
 };

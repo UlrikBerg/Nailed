@@ -392,6 +392,29 @@ router.post('/salon-applications/:id/approve', asyncRoute(async (req, res) => {
     );
   });
   await audit(req.user.id, 'salon_application.approve', 'salon_application', id);
+
+  // Send approval-email til søkeren. Best effort — feiler stille (logget).
+  try {
+    const applicant = await queryOne(
+      `SELECT email, name FROM users WHERE id = ? LIMIT 1`,
+      [app.applicant_user_id]
+    );
+    const newSalon = await queryOne(
+      `SELECT slug FROM salons WHERE owner_user_id = ? ORDER BY id DESC LIMIT 1`,
+      [app.applicant_user_id]
+    );
+    if (applicant && applicant.email) {
+      const tpl = T.salonApplicationApproved({
+        ownerName: applicant.name,
+        salonName: app.salon_name,
+        salonSlug: newSalon ? newSalon.slug : null,
+      });
+      await sendEmail({ to: applicant.email, subject: tpl.subject, html: tpl.html, text: tpl.text });
+    }
+  } catch (err) {
+    console.warn('[approve] email failed', err && err.message);
+  }
+
   res.json({ ok: true });
 }));
 
@@ -401,7 +424,10 @@ router.post('/salon-applications/:id/reject', asyncRoute(async (req, res) => {
   const schema = z.object({ notes: z.string().max(2000).optional() });
   const { notes } = schema.parse(req.body || {});
 
-  const app = await queryOne(`SELECT id, status FROM salon_applications WHERE id = ?`, [id]);
+  const app = await queryOne(
+    `SELECT id, status, salon_name, applicant_user_id FROM salon_applications WHERE id = ?`,
+    [id]
+  );
   if (!app) throw new HttpError(404, 'not_found', 'Søknaden finnes ikke.');
   if (app.status !== 'pending') throw new HttpError(409, 'not_pending', 'Søknaden er allerede behandlet.');
 
@@ -412,6 +438,31 @@ router.post('/salon-applications/:id/reject', asyncRoute(async (req, res) => {
     [req.user.id, notes || null, id]
   );
   await audit(req.user.id, 'salon_application.reject', 'salon_application', id);
+
+  // Send rejection-email til søkeren. Best effort.
+  try {
+    const applicant = await queryOne(
+      `SELECT email, name FROM users WHERE id = ? LIMIT 1`,
+      [app.applicant_user_id]
+    );
+    if (applicant && applicant.email) {
+      const tpl = T.salonApplicationRejected({
+        ownerName: applicant.name,
+        salonName: app.salon_name,
+        reviewerNotes: notes || null,
+      });
+      await sendEmail({
+        to: applicant.email,
+        subject: tpl.subject,
+        html: tpl.html,
+        text: tpl.text,
+        replyTo: process.env.SUPPORT_EMAIL || 'hei@nailed.no',
+      });
+    }
+  } catch (err) {
+    console.warn('[reject] email failed', err && err.message);
+  }
+
   res.json({ ok: true });
 }));
 
