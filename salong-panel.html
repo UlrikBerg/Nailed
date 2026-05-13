@@ -296,6 +296,25 @@
       padding: 24px;
       margin-bottom: 20px;
     }
+    /* Stengte dager-form: grid på desktop, stack på mobil så input ikke
+       sprenger ut til høyre. */
+    .closure-add-form {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px;
+      align-items: end;
+      max-width: 560px;
+    }
+    .closure-add-form input { width: 100%; box-sizing: border-box; }
+    .closure-add-form .btn { width: auto; }
+    @media (max-width: 720px) {
+      .closure-add-form {
+        grid-template-columns: 1fr;
+        max-width: 100%;
+      }
+      .closure-add-form .btn { width: 100%; justify-content: center; }
+    }
+
     /* Konto-kort — navn/e-post + panel-bytte + logg ut */
     .kp-account__head {
       display: flex;
@@ -2914,7 +2933,7 @@
             Marker dager dere er stengt (ferie, helligdager osv.). Kundene ser dagen som stengt og kan ikke booke.
           </p>
           <div id="closuresList" style="display:grid; gap:8px; margin-bottom:16px;"></div>
-          <form id="closureAddForm" style="display:grid; grid-template-columns: auto 1fr auto; gap:8px; align-items:end; max-width:560px;">
+          <form id="closureAddForm" class="closure-add-form">
             <label class="form-field" style="display:block;">
               <span class="form-label">Dato</span>
               <input class="form-input" type="date" name="closed_date" required />
