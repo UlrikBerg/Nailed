@@ -45,6 +45,9 @@ async function remove({ key }) {
 }
 
 function publicUrl(key) {
+  if (!key) return null;
+  // Pass-through eksterne URLer (brukes av seed-data / test-salonger).
+  if (key.startsWith('http://') || key.startsWith('https://')) return key;
   // R2 public bucket URL or custom-domain URL — set via R2_PUBLIC_BASE_URL.
   // Example: https://media.nailed.no
   const base = config.storage.r2.publicBaseUrl.replace(/\/+$/, '');
