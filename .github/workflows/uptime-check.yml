@@ -1,26 +1,24 @@
 name: Uptime Check
-
-  on:
-    schedule:
-      - cron: '*/30 * * * *'
-    workflow_dispatch:
-
-  jobs:
-    health:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Ping helsen
-          run: |
-            response=$(curl -sS -w "\n%{http_code}" --max-time 30 https://nailed.no/api/v1/health)
-            body=$(echo "$response" | head -n -1)
-            status=$(echo "$response" | tail -n 1)
-            echo "Status: $status"
-            echo "Body: $body"
-            if [ "$status" != "200" ]; then
-              echo "::error::Helsen er nede med status $status"
-              exit 1
-            fi
-            if ! echo "$body" | grep -q '"db":true'; then
-              echo "::error::DB ikke klar i helsen-svaret"
-              exit 1
-            fi
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping helsen
+        run: |
+          response=$(curl -sS -w "\n%{http_code}" --max-time 30 https://nailed.no/api/v1/health)
+          body=$(echo "$response" | head -n -1)
+          status=$(echo "$response" | tail -n 1)
+          echo "Status: $status"
+          echo "Body: $body"
+          if [ "$status" != "200" ]; then
+            echo "::error::Helsen er nede med status $status"
+            exit 1
+          fi
+          if ! echo "$body" | grep -q '"db":true'; then
+            echo "::error::DB ikke klar i helsen-svaret"
+            exit 1
+          fi
