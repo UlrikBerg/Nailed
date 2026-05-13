@@ -2121,8 +2121,11 @@
       <!-- Greeting hero -->
       <div class="kp-hero">
         <div>
-          <h1 class="kp-hero__title">Salongpanel</h1>
-          <p class="kp-hero__sub">for <em id="greetingSalon">salongen</em></p>
+          <h1 class="kp-hero__title">Hei, <em id="greetingName">der</em>!</h1>
+          <p class="kp-hero__sub">Her kan du endre og jobbe med salongen din.</p>
+          <!-- greetingSalon beholdes som usynlig fallback så eksisterende JS
+               som setter teksten på <em id="greetingSalon"> ikke krasjer. -->
+          <span id="greetingSalon" hidden></span>
           <!-- publicLink beholdes som usynlig anker så JS som setter href fortsatt
                kan kjøre uten å feile. Knappen er fjernet fra hero per design. -->
           <a id="publicLink" href="#" target="_blank" hidden></a>
@@ -6556,6 +6559,10 @@
     (async function init() {
       var user = await NailedAuth.requireAuth('salon_owner');
       if (!user) return;
+      var greetEl = document.getElementById('greetingName');
+      if (greetEl) {
+        greetEl.textContent = (user.name || '').trim().split(/\s+/)[0] || 'der';
+      }
       // Wire the city autocomplete before loadSalon() so that the typeahead
       // can canonicalize the loaded value via _nailedPlaces.setValue().
       var cityInputEl = document.querySelector('#salonForm input[name=city]');

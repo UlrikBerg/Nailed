@@ -721,8 +721,8 @@
       <!-- Greeting hero -->
       <div class="kp-hero">
         <div>
-          <h1 class="kp-hero__title">Hei, <em id="greetingName">der!</em></h1>
-          <p class="kp-hero__sub">Velkommen tilbake til kontoen din.</p>
+          <h1 class="kp-hero__title">Hei, <em id="greetingName">der</em>!</h1>
+          <p class="kp-hero__sub">Velkommen til kundekontoen din.</p>
         </div>
       </div>
 
@@ -2234,7 +2234,7 @@
       // too because their salon panel doesn't replicate these.
       var user = await NailedAuth.requireAuth();
       if (!user) return;
-      document.getElementById('greetingName').textContent = ((user.name || '').split(' ')[0] || 'der') + '!';
+      document.getElementById('greetingName').textContent = (user.name || '').split(' ')[0] || 'der';
 
       // Apply the initial tab from the URL hash (e.g. /kunde-panel.html#tab-innstillinger).
       setActiveTab(tabFromHash());
