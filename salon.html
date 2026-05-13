@@ -193,6 +193,27 @@
     .booking-panel--side { padding: 20px 24px; }
 
     /* Anmeldelser */
+    .reviews-head {
+      margin-top: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .reviews-head__title {
+      margin: 0;
+      font-size: 24px;
+    }
+    .reviews-head__summary {
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--fg-muted);
+    }
+    .reviews-divider {
+      border: 0;
+      border-top: 1px solid var(--stone-200);
+      margin: 16px 0 8px;
+    }
     .review-card {
       padding: 16px 0;
       border-bottom: 1px solid var(--stone-200);
@@ -327,18 +348,24 @@
     }
     .salon-map-section__head {
       display: flex;
-      align-items: baseline;
-      justify-content: space-between;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
       margin-bottom: 12px;
+      max-width: 100%;
     }
     .salon-map-section__title {
       margin: 0;
       font-size: 24px;
+      white-space: nowrap;
     }
     .salon-map-section__addr {
       font-family: var(--font-body);
       font-size: 14px;
       color: var(--fg-muted);
+    }
+    @media (max-width: 720px) {
+      .salon-map-section__title { white-space: normal; }
     }
     .salon-map {
       width: 100%;
@@ -476,7 +503,10 @@
                alltid åpen på desktop). -->
           <div id="hoursPanelSection" class="booking-panel booking-panel--side acc" style="display:none; margin-top: 28px;">
             <button type="button" class="acc__head booking-panel__header" aria-expanded="false">
-              <h3>Åpningstider</h3>
+              <span class="acc__title-wrap">
+                <i data-lucide="clock" class="acc__icon"></i>
+                <h3>Åpningstider</h3>
+              </span>
               <i data-lucide="chevron-down" class="acc__chev"></i>
             </button>
             <div class="acc__body">
@@ -486,7 +516,10 @@
 
           <div id="teamPanelSection" class="booking-panel booking-panel--side acc" style="display:none; margin-top: 16px;">
             <button type="button" class="acc__head booking-panel__header" aria-expanded="false">
-              <h3>Team</h3>
+              <span class="acc__title-wrap">
+                <i data-lucide="users" class="acc__icon"></i>
+                <h3>Team</h3>
+              </span>
               <i data-lucide="chevron-down" class="acc__chev"></i>
             </button>
             <div class="acc__body">
@@ -514,10 +547,11 @@
           </section>
 
           <!-- Anmeldelser -->
-          <div style="display:flex; align-items:baseline; justify-content:space-between; margin-top: 56px; margin-bottom: 16px;">
-            <h3 style="margin: 0; font-size: 24px;">Anmeldelser</h3>
-            <span id="reviewsSummary" style="font-family:var(--font-body); font-size:14px; color:var(--fg-muted);"></span>
+          <div class="reviews-head">
+            <h3 class="reviews-head__title">Anmeldelser</h3>
+            <span id="reviewsSummary" class="reviews-head__summary"></span>
           </div>
+          <hr class="reviews-divider" />
           <div class="reviews" id="reviewsBlock">
             <p id="reviewsEmpty" style="font-family:var(--font-body); color:var(--fg-muted); margin:0; display:none;"></p>
             <div id="reviewsList"></div>

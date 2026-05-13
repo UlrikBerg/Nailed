@@ -2780,19 +2780,45 @@ html {
   flex-shrink: 0;
 }
 .acc.is-open .acc__chev { transform: rotate(180deg); }
-/* Når accordion er lukket på mobil: kompakt pill-card med subtil background
-   og border-radius som fremhever klikkbarheten. */
+/* Tittel-wrap (ikon + h3) i accordion-header */
+.acc__title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.acc__icon {
+  width: 18px;
+  height: 18px;
+  color: var(--rouge-500);
+  flex-shrink: 0;
+}
+
+/* Accordion-styling: kuratert med brand-paletten. Subtil rouge-tint og
+   venstre-aksent gir card-en en distinkt klikkbar feel. */
 @media (max-width: 900px) {
   .acc:not(.is-open) {
-    background: var(--cream-50);
+    background: linear-gradient(135deg, var(--cream-50) 0%, var(--rouge-50) 100%);
     padding: 14px 18px;
-    border: 1px solid var(--stone-200);
+    border: 1px solid var(--rouge-100, #FBE3EC);
+    border-left: 3px solid var(--rouge-500);
     border-radius: var(--radius-lg);
-    box-shadow: none;
+    box-shadow: 0 1px 3px rgba(238, 63, 126, 0.06);
+    transition: background 220ms ease, border-color 220ms ease;
   }
-  .acc:not(.is-open) .acc__head h3 { font-size: 16px; }
-  .acc:not(.is-open) .acc__chev { width: 16px; height: 16px; color: var(--rouge-500); }
+  .acc:not(.is-open):active {
+    background: linear-gradient(135deg, var(--rouge-50) 0%, var(--cream-100) 100%);
+  }
+  .acc:not(.is-open) .acc__head h3 {
+    font-size: 16px;
+    color: var(--ink);
+  }
+  .acc:not(.is-open) .acc__chev {
+    width: 16px;
+    height: 16px;
+    color: var(--rouge-500);
+  }
   .acc.is-open { padding: 18px 18px 4px; }
+  .acc.is-open .acc__icon { width: 16px; height: 16px; }
 }
 
 @media (max-width: 900px) {
