@@ -213,11 +213,6 @@
         </div>
       </div>
       <div class="grid-3" id="featuredGrid"></div>
-      <div class="featured-more" id="featuredMore" hidden>
-        <a href="/utforsk" class="btn btn-primary btn-lg">
-          Utforsk nailed <i data-lucide="arrow-right"></i>
-        </a>
-      </div>
     </div>
   </section>
 
@@ -510,8 +505,6 @@
           return;
         }
         var salons = allSalons.slice(0, 6);
-        var moreEl = document.getElementById('featuredMore');
-        if (moreEl) moreEl.hidden = allSalons.length <= 6;
         grid.innerHTML = salons.map(function (s, i) {
           return featuredCard(s, i, { allowFeatured: true });
         }).join('');

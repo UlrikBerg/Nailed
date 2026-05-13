@@ -700,21 +700,58 @@
       aspect-ratio: 16 / 11;
     }
 
-    /* Mobil-only: matcher forsidekort-stilen — skjul status+team, prefiks
-       «Salong i», flytt rating til top-right. Desktop påvirkes ikke. */
+    /* Mobil-only: matcher forsidekort-stilen — vertikalt kort, hjerte beholdes
+       oppe på bildet, rating absolutt-plassert øverst-høyre i info-arealet,
+       cats+pris flyter i normal flow (ikke absolutt-pinnet til bunn). */
     @media (max-width: 720px) {
       .utforsk-results .sc2-status,
       .utforsk-results .sc2-team { display: none; }
       .utforsk-results .sc2-meta__item--city i { display: none; }
       .utforsk-results .sc2-meta__city-text::before { content: "Salong i "; }
-      .utforsk-results .service-card__body { position: relative; }
+
+      /* sc2-body på mobil: normal flow, ingen fast høyde, ingen absolutt bottom-gruppe */
+      .utforsk-results .sc2-body {
+        padding: 18px 18px 16px;
+        gap: 6px;
+        min-height: 0;
+      }
+      .utforsk-results .sc2-bottom {
+        position: static;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        margin-top: 10px;
+      }
+      .utforsk-results .sc2-name {
+        font-size: 19px;
+        margin-top: 0;
+        /* La navnet vike for absolutt-plassert rating i hjørnet */
+        padding-right: 80px;
+      }
+      .utforsk-results .sc2-meta { padding-right: 80px; }
+
+      /* Hjertet plasseres på selve bildet (som på forsiden). Vi gjør
+         .service-card til positioneringsanker så heart-button (som ligger
+         inne i body) kan plasseres relativt til hele kortet via top + right. */
+      .utforsk-results .service-card { position: relative; }
+      .utforsk-results .service-card__photo { position: static; }
+      .utforsk-results .service-card__heart {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        left: auto;
+      }
+
+      /* Rating øvre høyre hjørne av info-arealet (under bildet) */
       .utforsk-results .sc2-meta__item--rating {
         position: absolute;
-        top: 14px;
-        right: 16px;
+        top: 18px;
+        right: 18px;
+        margin: 0;
         font-size: 13px;
         font-weight: 600;
         color: var(--ink);
+        background: transparent;
       }
       .utforsk-results .sc2-meta__item--rating i {
         color: var(--rouge-500);
@@ -1699,7 +1736,22 @@
       document.querySelectorAll('#resultsGrid .service-card__heart.is-favorite').forEach(function (btn) {
         styleHeartBtn(btn, true);
       });
+      moveHeartsOnMobile();
       filterResults();
+    }
+
+    // På mobil flyttes hjerteknappen fra .sc2-body til .service-card__photo
+    // så den ligger på selve bildet (som på forsidekortene). På desktop blir
+    // den værende i body som før — desktop påvirkes ikke.
+    function moveHeartsOnMobile() {
+      if (!window.matchMedia('(max-width: 720px)').matches) return;
+      document.querySelectorAll('#resultsGrid .service-card').forEach(function (card) {
+        var photo = card.querySelector('.service-card__photo');
+        var heart = card.querySelector('.service-card__heart');
+        if (photo && heart && heart.parentNode !== photo) {
+          photo.appendChild(heart);
+        }
+      });
     }
 
     function bindHearts() {
