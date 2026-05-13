@@ -1454,15 +1454,24 @@
     // Initial state — collapse if URL preselected a fylke.
     updateFylkeGridCollapse();
 
-    // Treatment selection (single-select, matches API contract of currentTx)
+    // Slug → norsk kategorinavn (backend tar exact match på name).
+    var TX_TO_CAT = {
+      nails: 'Negler', lashes: 'Vipper', brows: 'Bryn',
+      makeup: 'Makeup', hair: 'Hår', wax: 'Voksing',
+      tan: 'Hud', massage: 'Spa',
+    };
+
+    // Treatment selection (single-select, matches API contract of currentTx).
+    // Trigger server-side re-fetch så pagineringen jobber med riktig subset.
     document.getElementById('treatmentRow').addEventListener('click', function(e) {
       var pill = e.target.closest('[data-tx]');
       if (!pill) return;
       currentTx = pill.dataset.tx;
       document.querySelectorAll('#treatmentRow .v-pill').forEach(function(p) { p.classList.remove('active'); });
       pill.classList.add('active');
+      fState.category = currentTx === 'all' ? null : (TX_TO_CAT[currentTx] || null);
       refreshFilterBtnBadge();
-      filterResults();
+      loadSalons();
     });
 
     // Quick filter (multi-select)
