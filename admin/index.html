@@ -1741,7 +1741,7 @@
 
     async function loadSalonger() {
       try {
-        var res = await NailedAuth.api('/api/v1/admin/salons?limit=200');
+        var res = await NailedAuth.api('/api/v1/admin/salons?limit=500');
         if (!res.ok) throw new Error('salons ' + res.status);
         var data = await res.json();
         allSalons = data.salons || [];
@@ -1756,7 +1756,7 @@
     }
 
     function renderSalonger() {
-      var q = (salongerSearch.value || '').toLowerCase();
+      var q = (salongerSearch.value || '').trim().toLowerCase();
       var statusF = salongerStatusFilter.value;
       var list = document.getElementById('salongerList');
       if (!list) return;
@@ -1764,7 +1764,9 @@
       var rows = allSalons.filter(function (s) {
         if (statusF && s.status !== statusF) return false;
         if (!q) return true;
-        var hay = ((s.name || '') + ' ' + (s.city || '') + ' ' + (s.owner_name || '') + ' ' + (s.owner_email || '')).toLowerCase();
+        // Søk i navn, by, slug, eier-navn og eier-e-post
+        var hay = ((s.name || '') + ' ' + (s.city || '') + ' ' + (s.slug || '') + ' ' +
+                   (s.owner_name || '') + ' ' + (s.owner_email || '')).toLowerCase();
         return hay.indexOf(q) !== -1;
       });
 

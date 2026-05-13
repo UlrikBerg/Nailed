@@ -135,7 +135,7 @@ router.post('/users/:id/unsuspend', asyncRoute(async (req, res) => {
 // ----------------------------------------------------------------------------
 
 router.get('/salons', asyncRoute(async (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
+  const limit = Math.min(parseInt(req.query.limit, 10) || 50, 1000);
   const offset = parseInt(req.query.offset, 10) || 0;
   const rows = await query(
     `SELECT s.id, s.slug, s.name, s.city, s.status, s.created_at,
