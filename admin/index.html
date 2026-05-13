@@ -1258,6 +1258,21 @@
         </div>
 
         <div class="ap-card">
+          <div class="ap-card__head"><h3 class="ap-card__title">E-post-test</h3></div>
+          <p style="margin: 0 0 12px; color: var(--fg-muted); font-size: 13px;">
+            Sender alle e-post-malene (booking-bekreftelser, kanselleringer, søknads-svar
+            osv.) til en e-postadresse — for å verifisere at Resend fungerer i prod.
+          </p>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <input type="email" id="emailSampleTo" class="form-input" style="width: 280px;" placeholder="din@e-post.no" />
+            <button class="btn btn-primary btn-sm" id="emailSampleBtn">
+              <i data-lucide="mail"></i> Send alle mal-eksempler
+            </button>
+            <span id="emailSampleStatus" style="font-size: 13px; color: var(--fg-muted);"></span>
+          </div>
+        </div>
+
+        <div class="ap-card">
           <div class="ap-card__head"><h3 class="ap-card__title">Generelt</h3></div>
           <div class="ap-form-grid">
             <div class="form-group">
@@ -2845,6 +2860,41 @@
         console.error('[admin] settings load failed', err);
         showToast('Kunne ikke laste innstillinger', 'error');
       }
+    }
+
+    // E-post-test: send alle maler til oppgitt adresse
+    var emailSampleBtn = document.getElementById('emailSampleBtn');
+    if (emailSampleBtn) {
+      emailSampleBtn.addEventListener('click', async function () {
+        var toEl = document.getElementById('emailSampleTo');
+        var statusEl = document.getElementById('emailSampleStatus');
+        var to = (toEl.value || '').trim();
+        if (!to || !/.+@.+\..+/.test(to)) {
+          statusEl.textContent = 'Ugyldig e-postadresse.';
+          return;
+        }
+        emailSampleBtn.disabled = true;
+        statusEl.textContent = 'Sender ...';
+        try {
+          var res = await NailedAuth.api('/api/v1/admin/email-samples', {
+            method: 'POST', body: { to: to },
+          });
+          if (!res.ok) {
+            var err = await res.json().catch(function () { return {}; });
+            throw new Error((err.error && err.error.message) || ('e-post ' + res.status));
+          }
+          var data = await res.json();
+          var ok = (data.results || []).filter(function (r) { return r.ok; }).length;
+          var total = (data.results || []).length;
+          statusEl.textContent = ok + '/' + total + ' sendt. Sjekk innboksen.';
+          showToast(ok + '/' + total + ' e-poster sendt', ok === total ? 'success' : 'error');
+        } catch (e) {
+          statusEl.textContent = 'Feil: ' + (e.message || e);
+          showToast('E-post-test feilet: ' + e.message, 'error');
+        } finally {
+          emailSampleBtn.disabled = false;
+        }
+      });
     }
 
     // Seed test-salonger

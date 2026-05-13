@@ -36,20 +36,30 @@ router.post('/email-samples', asyncRoute(async (req, res) => {
     cancelReason: 'Stylist syk',
   };
   const samples = [
-    ['bookingCreatedCustomer',   'Kundebekreftelse'],
-    ['bookingCreatedOwner',      'Salongeier: ny booking'],
-    ['bookingCreatedTeam',       'Teammedlem: ny booking'],
-    ['bookingConfirmedCustomer', 'Kunde: bekreftet'],
-    ['bookingCancelledCustomer', 'Kunde: avlyst av salong'],
-    ['bookingCancelledOwner',    'Salongeier: kunde avbestilte'],
-    ['bookingCancelledTeam',     'Teammedlem: kunde avbestilte'],
-    ['bookingReminderCustomer',  'Kunde: påminnelse'],
+    ['bookingCreatedCustomer',     'Kundebekreftelse',              baseCtx],
+    ['bookingCreatedOwner',        'Salongeier: ny booking',        baseCtx],
+    ['bookingCreatedTeam',         'Teammedlem: ny booking',        baseCtx],
+    ['bookingConfirmedCustomer',   'Kunde: bekreftet',              baseCtx],
+    ['bookingCancelledCustomer',   'Kunde: avlyst av salong',       baseCtx],
+    ['bookingCancelledOwner',      'Salongeier: kunde avbestilte',  baseCtx],
+    ['bookingCancelledTeam',       'Teammedlem: kunde avbestilte',  baseCtx],
+    ['bookingReminderCustomer',    'Kunde: påminnelse',             baseCtx],
+    ['salonApplicationApproved',   'Søknad: godkjent', {
+      ownerName: 'Ulrik Theodor',
+      salonName: '7 Små Rom',
+      salonSlug: '7-sma-rom',
+    }],
+    ['salonApplicationRejected',   'Søknad: avvist', {
+      ownerName: 'Ulrik Theodor',
+      salonName: '7 Små Rom',
+      reviewerNotes: 'Mangler organisasjonsnummer. Send inn på nytt når dette er på plass.',
+    }],
   ];
 
   const results = [];
-  for (const [fn, label] of samples) {
+  for (const [fn, label, ctx] of samples) {
     try {
-      const tpl = T[fn](baseCtx);
+      const tpl = T[fn](ctx);
       const r = await sendEmail({
         to,
         subject: '[Eksempel: ' + label + '] ' + tpl.subject,
