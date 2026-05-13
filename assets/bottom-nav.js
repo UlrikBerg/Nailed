@@ -164,6 +164,41 @@
     syncMsgBadge();
   }
 
+  // Oppdater kun aktiv-klassen på eksisterende items — uten å re-rendere
+  // hele nav-en. Brukes når man bytter tab/side innen samme rolle.
+  function updateActive() {
+    var nav = document.getElementById('bottomNav');
+    if (!nav) return;
+    var key = activeKey();
+    nav.querySelectorAll('.bottom-nav__item').forEach(function (a) {
+      a.classList.toggle('bottom-nav__item--active', a.getAttribute('data-key') === key);
+    });
+  }
+
+  // Bestem om vi trenger full re-render (rolle endret, login-state for kunde
+  // endret, eller shouldRender flipped) — ellers oppdater bare active-state.
+  var lastRole = null;
+  var lastShouldRender = null;
+  var lastLoggedIn = null;
+  function syncOrRender() {
+    var should = shouldRender();
+    var role = activeRole();
+    var loggedIn = isLoggedIn();
+    var needsRender = (
+      should !== lastShouldRender ||
+      role !== lastRole ||
+      (role === 'customer' && loggedIn !== lastLoggedIn)
+    );
+    lastShouldRender = should;
+    lastRole = role;
+    lastLoggedIn = loggedIn;
+    if (needsRender) {
+      render();
+    } else if (should) {
+      updateActive();
+    }
+  }
+
   // Speil in-page meldinger-badge (#msgUnreadBadge) til bottom-nav-badge.
   function syncMsgBadge() {
     var src = document.getElementById('msgUnreadBadge');
@@ -369,21 +404,21 @@
   });
 
   if (document.readyState !== 'loading') {
-    render();
+    syncOrRender();
     observeBadge();
   } else {
     document.addEventListener('DOMContentLoaded', function () {
-      render();
+      syncOrRender();
       observeBadge();
     });
   }
 
-  window.addEventListener('hashchange', render);
+  window.addEventListener('hashchange', syncOrRender);
   window.addEventListener('spa:navigated', function () {
-    render();
+    syncOrRender();
     observeBadge();
   });
   window.addEventListener('storage', function (e) {
-    if (e.key === 'nailed.accessToken' || e.key === 'nailed.role') render();
+    if (e.key === 'nailed.accessToken' || e.key === 'nailed.role') syncOrRender();
   });
 })();
