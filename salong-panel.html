@@ -1380,19 +1380,22 @@
 
     /* Amenities checkbox grid */
     .amen-grid {
-      display: grid; grid-template-columns: repeat(5, 1fr);
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 10px;
     }
-    @media (max-width: 1100px) { .amen-grid { grid-template-columns: repeat(4, 1fr); } }
-    @media (max-width: 900px)  { .amen-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 600px)  { .amen-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) {
+      .amen-grid { grid-template-columns: repeat(2, 1fr); }
+    }
     .amen-card {
       display: flex; align-items: center; gap: 10px;
-      padding: 12px; border: 1px solid var(--stone-200);
+      padding: 10px 12px; border: 1px solid var(--stone-200);
       border-radius: var(--radius-md); background: var(--cream-100);
-      cursor: pointer; font-size: 14px;
+      cursor: pointer; font-size: 13px;
       transition: border-color var(--dur-fast), background var(--dur-fast);
+      min-width: 0;
     }
+    .amen-card span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .amen-card:hover { border-color: var(--rouge-300); }
     .amen-card input { margin: 0; }
     .amen-card i { width: 16px; height: 16px; color: var(--fg-muted); }
@@ -1442,15 +1445,24 @@
       display: flex; align-items: center; gap: 8px;
       padding: 8px 10px; border: 1px solid var(--stone-200);
       border-radius: var(--radius-md); background: var(--cream-100);
+      min-width: 0;
     }
     .cat-row__name {
-      flex: 1; border: 0; background: transparent; font-size: 14px;
+      flex: 1; min-width: 0; border: 0; background: transparent; font-size: 14px;
       padding: 4px 6px; border-radius: var(--radius-sm);
     }
     .cat-row__name:focus {
       outline: 2px solid var(--rouge-300); background: #fff;
     }
-    .cat-row__actions { display: flex; gap: 4px; }
+    .cat-row__actions { display: flex; gap: 4px; flex-shrink: 0; }
+    /* Kategori-action-knapper: kompakte 32×32 ikon-runde knapper så de
+       ikke sprenger ut av cat-row-en på smal viewport. */
+    .cat-row__actions .btn {
+      width: 32px; height: 32px;
+      padding: 0; min-height: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .cat-row__actions .btn i { width: 14px; height: 14px; }
     .cat-empty {
       padding: 12px; color: var(--fg-muted); font-style: italic; font-size: 13px;
     }
@@ -1798,49 +1810,51 @@
       .kp-card { padding: 16px 14px; margin-bottom: 14px; }
       .kp-card__head { flex-wrap: wrap; gap: 8px; }
 
-      /* Tjenester-tabellen: 3-kolonne grid per rad (drag · info · status/action) */
+      /* Tjenester-tabellen: 2-kolonne grid per rad (info-stable · status/action) */
       #servicesTable, #servicesTable thead, #servicesTable tbody { display: block; width: 100%; }
       #servicesTable thead { display: none; }
       #servicesTable tbody tr {
         display: grid;
-        grid-template-columns: auto 1fr auto;
+        grid-template-columns: 1fr auto;
         column-gap: 10px;
         row-gap: 2px;
-        padding: 12px 10px;
+        padding: 12px 14px;
         border: 1px solid var(--stone-200);
         border-radius: var(--radius-md);
         background: var(--cream-50);
         margin-bottom: 10px;
       }
       #servicesTable td { padding: 0; border: 0; font-size: 13px; white-space: normal; }
+      /* td 1 = Navn (top-left) */
       #servicesTable td:nth-child(1) {
-        grid-column: 1; grid-row: 1 / span 3;
-        align-self: center;
+        grid-column: 1; grid-row: 1;
+        font-size: 14px; color: var(--ink);
       }
+      /* td 2 = Varighet (small muted) */
       #servicesTable td:nth-child(2) {
-        grid-column: 2; grid-row: 1;
-        font-size: 14px; font-weight: 600; color: var(--ink);
-      }
-      #servicesTable td:nth-child(3) {
-        grid-column: 2; grid-row: 2;
+        grid-column: 1; grid-row: 2;
         font-size: 12px; color: var(--fg-muted);
       }
-      #servicesTable td:nth-child(4) {
-        grid-column: 2; grid-row: 3;
+      /* td 3 = Pris (bold) */
+      #servicesTable td:nth-child(3) {
+        grid-column: 1; grid-row: 3;
         font-size: 13px; color: var(--ink); font-weight: 600;
       }
-      #servicesTable td:nth-child(5) {
-        grid-column: 3; grid-row: 1;
+      /* td 4 = Status (top-right) */
+      #servicesTable td:nth-child(4) {
+        grid-column: 2; grid-row: 1;
         justify-self: end;
       }
-      #servicesTable td:nth-child(6) {
-        grid-column: 3; grid-row: 2 / span 2;
+      /* td 5 = Actions (Skjul · star) – stjernen står til høyre for «Skjul» */
+      #servicesTable td:nth-child(5) {
+        grid-column: 2; grid-row: 2 / span 2;
         justify-self: end; align-self: end;
-        display: flex; gap: 6px; flex-wrap: wrap;
+        display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
       }
-      #servicesTable td:nth-child(6):empty { display: none; }
+      #servicesTable td:nth-child(5):empty { display: none; }
       #servicesTable .btn { padding: 6px 10px; font-size: 12px; min-height: 0; }
       #servicesTable .btn i { width: 14px; height: 14px; }
+      #servicesTable .popular-btn { padding: 6px; min-height: 0; }
 
       /* Anmeldelser: kompakt padding + tekststørrelse på mobil */
       .owner-review { padding: 14px 0; }
@@ -2017,6 +2031,7 @@
       padding: 28px;
       z-index: 1301;
       overflow-y: auto;
+      overflow-x: hidden;
       display: none;
       opacity: 0;
       transition: opacity .18s var(--ease-out-soft), transform .18s var(--ease-out-soft);
@@ -2533,6 +2548,10 @@
           <button class="kp-tab" role="tab" data-tab="tjenester"><i data-lucide="sparkles"></i> Tjenester</button>
           <button class="kp-tab" role="tab" data-tab="kunder"><i data-lucide="users"></i> Kunder</button>
           <button class="kp-tab" role="tab" data-tab="analyse"><i data-lucide="bar-chart-3"></i> Statistikk</button>
+          <button class="kp-tab" role="tab" data-tab="meldinger">
+            <i data-lucide="message-circle"></i> Meldinger
+            <span class="kp-tab__badge" id="messagesUnreadBadge" hidden>0</span>
+          </button>
           <button class="kp-tab" role="tab" data-tab="anmeldelser">
             <i data-lucide="star"></i> Anmeldelser
             <span class="kp-tab__badge" id="reviewsUnansweredBadge" hidden>0</span>
@@ -2743,6 +2762,25 @@
           <div class="cat-list" id="categoriesList"></div>
         </div>
 
+        <!-- Modal: Ny kategori -->
+        <div class="sp-modal-backdrop" id="categoryModalBackdrop"></div>
+        <div class="sp-modal" id="categoryModal" role="dialog" aria-modal="true" aria-labelledby="categoryModalTitle">
+          <div class="sp-modal__head">
+            <h2 class="sp-modal__title" id="categoryModalTitle">Ny kategori</h2>
+            <button type="button" class="sp-modal__close" id="categoryModalClose" aria-label="Lukk"><i data-lucide="x"></i></button>
+          </div>
+          <form id="categoryAddForm" class="sp-modal__form">
+            <div class="sp-modal__field">
+              <label for="categoryNameInput">Navn</label>
+              <input class="form-input" type="text" id="categoryNameInput" maxlength="120" placeholder="F.eks. Vipper, Negler, Bryn" required />
+            </div>
+            <div class="sp-modal__actions">
+              <button type="button" class="btn btn-ghost" id="categoryModalCancel">Avbryt</button>
+              <button type="submit" class="btn btn-primary"><i data-lucide="plus"></i> Legg til</button>
+            </div>
+          </form>
+        </div>
+
         <div class="sp-modal-backdrop" id="serviceModalBackdrop"></div>
         <div class="sp-modal" id="serviceFormPanel" role="dialog" aria-modal="true" aria-labelledby="serviceFormTitle">
           <div class="sp-modal__head">
@@ -2793,12 +2831,11 @@
           <table class="data-table" id="servicesTable">
             <thead>
               <tr>
-                <th style="width: 44px;"></th>
                 <th>Navn</th>
-                <th>Varighet</th>
-                <th>Pris</th>
-                <th>Status</th>
-                <th></th>
+                <th style="width: 110px;">Varighet</th>
+                <th style="width: 110px;">Pris</th>
+                <th style="width: 110px;">Status</th>
+                <th style="width: 200px;"></th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -3028,7 +3065,7 @@
               <div class="profile-card">
                 <div class="profile-card__head">
                   <h3 class="profile-card__title">Team</h3>
-                  <button class="btn btn-ghost btn-sm profile-card__edit" data-edit="team"><i data-lucide="plus"></i> Legg til</button>
+                  <button class="btn btn-ghost btn-sm profile-card__edit" data-edit="team"><i data-lucide="pencil"></i> Rediger team</button>
                 </div>
                 <div class="profile-team" id="phTeam"></div>
                 <div id="phTeamEmpty" class="profile-team__empty" style="display:none;">
@@ -3134,19 +3171,19 @@
                 <label>By/område</label>
                 <input class="form-input" name="city" type="text" required autocomplete="off" placeholder="Begynn å skrive…" />
               </div>
-              <div class="form-group" data-section="contact">
+              <div class="form-group" data-section="availability">
                 <label>Instagram-URL</label>
                 <input class="form-input" name="instagram_url" type="url" placeholder="https://instagram.com/.." />
               </div>
-              <div class="form-group" data-section="contact">
+              <div class="form-group" data-section="availability">
                 <label>TikTok-URL</label>
                 <input class="form-input" name="tiktok_url" type="url" />
               </div>
-              <div class="form-group" data-section="contact">
+              <div class="form-group" data-section="availability">
                 <label>Facebook-URL</label>
                 <input class="form-input" name="facebook_url" type="url" />
               </div>
-              <div class="form-group" data-section="contact">
+              <div class="form-group" data-section="availability">
                 <label>Nettside</label>
                 <input class="form-input" name="website_url" type="url" />
               </div>
@@ -6010,16 +6047,16 @@
 
           var tr = document.createElement('tr');
           tr.innerHTML =
-            '<td>' + starBtn + '</td>' +
             '<td><strong>' + escapeHtml(s.name) + '</strong>' +
               (s.description ? '<br><span class="td-muted">' + escapeHtml(s.description) + '</span>' : '') +
               teamChips + '</td>' +
             '<td>' + s.duration_min + ' min</td>' +
             '<td><strong>' + s.price_nok + ' kr</strong></td>' +
             '<td><span class="' + (s.active ? 'status status--active' : 'status status--inactive') + '">' + (s.active ? 'Aktiv' : 'Skjult') + '</span></td>' +
-            '<td>' +
+            '<td class="service-actions">' +
               '<button class="btn btn-ghost btn-sm" data-edit="' + s.id + '">Rediger</button> ' +
               (s.active ? '<button class="btn btn-ghost btn-sm" data-delete="' + s.id + '">Skjul</button>' : '<button class="btn btn-ghost btn-sm" data-restore="' + s.id + '">Vis igjen</button>') +
+              ' ' + starBtn +
             '</td>';
           tbody.appendChild(tr);
         });
@@ -6233,8 +6270,34 @@
       await loadServices();
     }
 
-    document.getElementById('newCategoryBtn').addEventListener('click', async function () {
-      var name = (prompt('Navn på ny kategori (f.eks. "Vipper")') || '').trim();
+    function closeCategoryModal() {
+      var m = document.getElementById('categoryModal');
+      var b = document.getElementById('categoryModalBackdrop');
+      if (m) m.classList.remove('open');
+      if (b) b.classList.remove('open');
+    }
+    function openCategoryModal() {
+      var m = document.getElementById('categoryModal');
+      var b = document.getElementById('categoryModalBackdrop');
+      var input = document.getElementById('categoryNameInput');
+      if (input) input.value = '';
+      if (m) m.classList.add('open');
+      if (b) b.classList.add('open');
+      setTimeout(function () { if (input) input.focus(); }, 80);
+    }
+    document.getElementById('newCategoryBtn').addEventListener('click', openCategoryModal);
+    document.getElementById('categoryModalClose').addEventListener('click', closeCategoryModal);
+    document.getElementById('categoryModalCancel').addEventListener('click', closeCategoryModal);
+    document.getElementById('categoryModalBackdrop').addEventListener('click', closeCategoryModal);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        var m = document.getElementById('categoryModal');
+        if (m && m.classList.contains('open')) closeCategoryModal();
+      }
+    });
+    document.getElementById('categoryAddForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var name = (document.getElementById('categoryNameInput').value || '').trim();
       if (!name) return;
       var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/categories', {
         method: 'POST', body: { name: name },
@@ -6245,6 +6308,7 @@
         return;
       }
       NailedForms.toast('Kategori lagt til');
+      closeCategoryModal();
       await reloadCategoriesAndServices();
     });
 
