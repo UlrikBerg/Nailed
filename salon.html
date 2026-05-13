@@ -1948,10 +1948,27 @@
       // Map block — only shown when the API has lat/lng for this salon.
       initSalonMap(s);
 
-      // Bio
+      // Bio — splittes på blanke linjer så avsnitt fra salongprofilen
+      // bevares som separate <p>-elementer i stedet for kollapset tekst.
       var aboutEl = document.querySelector('.salon-detail__about');
-      if (s.bio && String(s.bio).trim()) {
-        aboutEl.textContent = s.bio;
+      var bio = (s.bio || '').trim();
+      if (bio) {
+        var paragraphs = bio.split(/\n\s*\n/);
+        if (paragraphs.length > 1) {
+          // Erstatt <p> med en <div> som inneholder flere <p>-er.
+          var wrap = document.createElement('div');
+          wrap.className = 'salon-detail__about';
+          paragraphs.forEach(function (para) {
+            var p = document.createElement('p');
+            p.textContent = para.trim();
+            wrap.appendChild(p);
+          });
+          aboutEl.replaceWith(wrap);
+        } else {
+          // Ett avsnitt — behold linjeskift som <br> via white-space: pre-line.
+          aboutEl.style.whiteSpace = 'pre-line';
+          aboutEl.textContent = bio;
+        }
       } else {
         aboutEl.style.display = 'none';
       }

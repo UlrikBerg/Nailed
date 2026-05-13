@@ -864,6 +864,10 @@ p { margin: 0 0 var(--space-4) 0; }
 .salon-detail__sub { color: var(--fg-muted); font-size: 16px; margin: 0 0 24px; }
 .salon-detail__sub i { vertical-align: -3px; }
 .salon-detail__about { font-size: 16px; line-height: 1.65; max-width: 60ch; }
+/* Når bio består av flere avsnitt rendres .salon-detail__about som <div>
+   med <p>-barn. Gi <p>-ene riktig vertikal avstand. */
+div.salon-detail__about > p { margin: 0 0 12px; }
+div.salon-detail__about > p:last-child { margin-bottom: 0; }
 .salon-detail__chips { display: flex; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
 .salon-detail__photos {
   display: grid;
