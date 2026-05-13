@@ -125,9 +125,17 @@
     try {
       saveScroll(location.pathname + location.search);
 
+      // 15s timeout — om backend henger faller vi tilbake til full-page-load.
       var res;
       try {
-        res = await fetch(href, { headers: { 'Accept': 'text/html' }, credentials: 'same-origin' });
+        var ctl = window.AbortController ? new AbortController() : null;
+        var to  = ctl ? setTimeout(function () { ctl.abort(); }, 15000) : null;
+        res = await fetch(href, {
+          headers: { 'Accept': 'text/html' },
+          credentials: 'same-origin',
+          signal: ctl ? ctl.signal : undefined,
+        });
+        if (to) clearTimeout(to);
       } catch (err) {
         location.href = href;
         return;
