@@ -1641,11 +1641,29 @@
         + '</div>';
       }
 
+      // Map norske kategorinavn til slug-ene filtreringspillene bruker
+      // (data-tx="nails", "lashes", osv.). Brukes til klient-side filtrering
+      // av allerede-loadede kort.
+      var CAT_TO_TX = {
+        'Negler': 'nails',
+        'Vipper': 'lashes',
+        'Bryn': 'brows',
+        'Makeup': 'makeup',
+        'Hår': 'hair',
+        'Voksing': 'wax',
+        'Hud': 'tan',
+        'Spa': 'massage',
+      };
+      var txSlugs = Array.isArray(salon.top_categories)
+        ? salon.top_categories.map(function (c) { return CAT_TO_TX[c] || ''; }).filter(Boolean)
+        : [];
+      var txAttr = txSlugs.join(',');
+
       return ''
         + '<article class="service-card card" '
           + 'data-fylke="' + escapeHtml(fylkeAttr) + '" '
           + 'data-city="' + escapeHtml(cityAttr) + '" '
-          + 'data-tx="" '
+          + 'data-tx="' + escapeHtml(txAttr) + '" '
           + 'data-price="' + (salon.min_price != null ? salon.min_price : '') + '" '
           + 'data-rating="' + (salon.avg_rating != null ? salon.avg_rating : '') + '" '
           + 'data-reviews="' + (salon.review_count || 0) + '" '
@@ -1922,7 +1940,14 @@
       });
       var head = document.getElementById('resultsHeadCount');
       if (head) {
-        head.innerHTML = '<strong>' + count + '</strong> behandlere i ' + escapeHtml(fylkeLabelForHead());
+        var label = escapeHtml(fylkeLabelForHead());
+        // Vis «X av Y behandlere i …» når vi har en total fra backend
+        // (mange behandlere paginert). Når visnet = total, viser vi bare ett tall.
+        if (totalSalons > count) {
+          head.innerHTML = '<strong>' + count + '</strong> av <strong>' + totalSalons + '</strong> behandlere i ' + label;
+        } else {
+          head.innerHTML = '<strong>' + count + '</strong> behandlere i ' + label;
+        }
       }
       var noCards = cards.length === 0;
       var noMatches = count === 0;
