@@ -1807,6 +1807,10 @@
         } else {
           subBtn = '<button class="btn btn-primary btn-sm" data-act="sub-active" data-id="' + s.id + '"><i data-lucide="check"></i> Marker betalt</button>';
         }
+        // «Endre trial»-knapp på trial-salonger: setter trial_ends_at N dager fra nå
+        var trialBtn = (subStatus === 'trial' || subStatus === 'past_due' || subStatus === 'none')
+          ? '<button class="btn btn-ghost btn-sm" data-act="sub-trial" data-id="' + s.id + '" title="Sett trial til X dager fra nå"><i data-lucide="clock"></i> Endre trial</button>'
+          : '';
         var subInfo = '';
         if (subStatus === 'trial' && s.trial_ends_at) {
           var daysLeft = Math.max(0, Math.ceil((new Date(s.trial_ends_at).getTime() - Date.now()) / 86400000));
@@ -1823,7 +1827,7 @@
               subInfo +
             '</div>' +
           '</div>' +
-          '<div class="ap-row__actions">' + statusPill(s.status) + subPill + profileLink + subBtn + statusBtn + deleteBtn + '</div>' +
+          '<div class="ap-row__actions">' + statusPill(s.status) + subPill + profileLink + trialBtn + subBtn + statusBtn + deleteBtn + '</div>' +
         '</div>';
       }).join('');
 
@@ -1871,6 +1875,12 @@
           url = '/api/v1/admin/salons/' + id + '/subscription';
           fetchOpts = { method: 'PATCH', body: { status: newStatus } };
           label = act === 'sub-active' ? 'Markert som betalt' : 'Markert som oppsagt';
+        } else if (act === 'sub-trial') {
+          var days = parseInt(prompt('Sett trial til hvor mange dager fra nå?', '14') || '', 10);
+          if (!Number.isFinite(days) || days < 0 || days > 365) { btn.disabled = false; return; }
+          url = '/api/v1/admin/salons/' + id + '/subscription';
+          fetchOpts = { method: 'PATCH', body: { status: 'trial', extend_trial_days: days } };
+          label = 'Trial satt til ' + days + ' dager';
         } else {
           url = '/api/v1/admin/salons/' + id + (act === 'delete' ? '' : '/' + act);
           fetchOpts = { method: act === 'delete' ? 'DELETE' : 'POST' };
