@@ -59,18 +59,16 @@
 
   var ITEMS_CUSTOMER = [
     { key: 'utforsk',    label: 'Utforsk',    href: '/utforsk',                       svg: SVG.search },
-    { key: 'favoritter', label: 'Favoritter', href: '/favoritter',                    svg: SVG.heart },
     { key: 'bookinger',  label: 'Bookinger',  href: '/kunde-panel#tab-bookinger',     svg: SVG.calendar, requiresAuth: true },
-    { key: 'meldinger',  label: 'Meldinger',  href: '/kunde-panel#tab-meldinger',     svg: SVG.message,  requiresAuth: true },
-    { key: 'profil',     label: 'Profil',     href: '/kunde-panel#tab-profil',        svg: SVG.user },
+    { key: 'favoritter', label: 'Favoritter', href: '/favoritter',                    svg: SVG.heart },
+    { key: 'profil',     label: 'Min profil', href: '/kunde-panel#tab-profil',        svg: SVG.user },
   ];
 
   var ITEMS_SALON = [
-    { key: 'hjem',       label: 'Hjem',       href: '/salong-panel#tab-dashboard',    svg: SVG.home },
+    { key: 'dashboard',  label: 'Dashboard',  href: '/salong-panel#tab-dashboard',    svg: SVG.home },
+    { key: 'minsalong',  label: 'Min salong', href: '/salong-panel#tab-profil',       svg: SVG.users },
     { key: 'bookinger',  label: 'Bookinger',  href: '/salong-panel#tab-bookinger',    svg: SVG.calendar },
-    { key: 'kunder',     label: 'Kunder',     href: '/salong-panel#tab-kunder',       svg: SVG.users },
-    { key: 'meldinger',  label: 'Meldinger',  href: '/salong-panel#tab-meldinger',    svg: SVG.message },
-    { key: 'profil',     label: 'Profil',     href: '/salong-panel#tab-innstillinger', svg: SVG.user },
+    { key: 'profil',     label: 'Min profil', href: '/salong-panel#tab-innstillinger', svg: SVG.user },
   ];
 
   // Admin-nav: 5 viktigste tabs i admin-panelet
@@ -105,12 +103,14 @@
     var role = activeRole();
 
     if (role === 'salon') {
-      if (hash === '#tab-bookinger') return 'bookinger';
-      if (hash === '#tab-kunder')    return 'kunder';
-      if (hash === '#tab-meldinger') return 'meldinger';
-      if (hash === '#tab-innstillinger' || hash === '#tab-tjenester' ||
-          hash === '#tab-analyse' || hash === '#tab-anmeldelser') return 'profil';
-      return 'hjem'; // dashboard, default
+      if (hash === '#tab-profil')       return 'minsalong';
+      if (hash === '#tab-bookinger')    return 'bookinger';
+      if (hash === '#tab-innstillinger') return 'profil';
+      // tjenester/analyse/anmeldelser/kunder/meldinger faller på Min salong/Profil avhengig
+      if (hash === '#tab-tjenester')    return 'minsalong';
+      if (hash === '#tab-analyse' || hash === '#tab-anmeldelser' ||
+          hash === '#tab-kunder' || hash === '#tab-meldinger') return 'profil';
+      return 'dashboard'; // default
     }
 
     if (role === 'admin') {
@@ -125,7 +125,6 @@
     if (page === 'utforsk')    return 'utforsk';
     if (page === 'favoritter') return 'favoritter';
     if (page === 'kunde-panel') {
-      if (hash === '#tab-meldinger') return 'meldinger';
       if (hash === '#tab-favoritter') return 'favoritter';
       if (hash === '#tab-profil' || hash === '#tab-innstillinger') return 'profil';
       return 'bookinger';
