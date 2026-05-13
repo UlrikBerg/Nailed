@@ -15,7 +15,7 @@
   if (window.__nailedBottomNav) return;
   window.__nailedBottomNav = true;
 
-  var HIDE_ON = ['login', 'auth-complete', 'confirmation', 'bli-salong'];
+  var HIDE_ON = ['auth-complete', 'confirmation', 'bli-salong'];
 
   function currentPage() {
     var p = location.pathname.replace(/^\//, '').replace(/\.html$/, '').replace(/\/$/, '');

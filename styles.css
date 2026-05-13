@@ -2403,8 +2403,11 @@ div.salon-detail__about > p:last-child { margin-bottom: 0; }
 
   /* Skjul top-nav-lenker og høyresidens actions på mobil — kun logoen synlig.
      Footer-knappen «Logg inn» og hjerte-favoritter flytter inn i bottom-nav. */
-  .has-bottom-nav .top-nav__links,
-  .has-bottom-nav .top-nav__actions { display: none; }
+  /* Skjul top-nav-lenker og høyresidens actions globalt på mobil — kun
+     logoen synlig. Bottom-nav (når den finnes) tar over navigasjonen, og på
+     fokuserte sider (login, confirmation, etc) er det også OK å bare ha logo. */
+  .top-nav__links,
+  .top-nav__actions { display: none; }
 
   /* Plass for bottom-nav-en så footer/innhold ikke ligger under den.
      56px nav + safe-area bunn. */
