@@ -628,6 +628,18 @@ router.post('/seed-test-salons', asyncRoute(async (req, res) => {
   res.json(result);
 }));
 
+// Seed aktivitet på én eksisterende salong (for screenshot/marketing).
+// Body: { slug: 'katrine-hanstedt' }
+router.post('/seed-salon-activity', asyncRoute(async (req, res) => {
+  const schema = z.object({ slug: z.string().min(1).max(120) });
+  const { slug } = schema.parse(req.body || {});
+  const { seedSalonActivity } = require('../lib/seed-salon-activity');
+  const result = await seedSalonActivity(slug);
+  if (!result.ok) throw new HttpError(400, result.error, 'Kunne ikke seede ' + slug + ': ' + result.error);
+  await audit(req.user.id, 'admin.seed_salon_activity', null, null, result);
+  res.json(result);
+}));
+
 // ----------------------------------------------------------------------------
 // Bookings (read-only listing for admin)
 // ----------------------------------------------------------------------------

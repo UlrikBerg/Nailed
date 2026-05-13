@@ -1258,6 +1258,22 @@
         </div>
 
         <div class="ap-card">
+          <div class="ap-card__head"><h3 class="ap-card__title">Seed aktivitet for én salong</h3></div>
+          <p style="margin: 0 0 12px; color: var(--fg-muted); font-size: 13px;">
+            Legger til 10 bookinger, 4 anmeldelser (4–5 stjerner) og 2 chat-tråder med
+            realistiske meldinger. Trykk én gang per salong — kan kjøres flere ganger,
+            men legger da på mer aktivitet hver gang.
+          </p>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <input type="text" id="seedSalonSlug" class="form-input" style="width: 280px;" placeholder="salong-slug (f.eks. katrine-hanstedt)" />
+            <button class="btn btn-primary btn-sm" id="seedSalonActivityBtn">
+              <i data-lucide="sparkles"></i> Seed aktivitet
+            </button>
+            <span id="seedSalonActivityStatus" style="font-size: 13px; color: var(--fg-muted);"></span>
+          </div>
+        </div>
+
+        <div class="ap-card">
           <div class="ap-card__head"><h3 class="ap-card__title">E-post-test</h3></div>
           <p style="margin: 0 0 12px; color: var(--fg-muted); font-size: 13px;">
             Sender alle e-post-malene (booking-bekreftelser, kanselleringer, søknads-svar
@@ -2860,6 +2876,37 @@
         console.error('[admin] settings load failed', err);
         showToast('Kunne ikke laste innstillinger', 'error');
       }
+    }
+
+    // Seed-aktivitet for én salong
+    var seedActBtn = document.getElementById('seedSalonActivityBtn');
+    if (seedActBtn) {
+      seedActBtn.addEventListener('click', async function () {
+        var slugEl = document.getElementById('seedSalonSlug');
+        var statusEl = document.getElementById('seedSalonActivityStatus');
+        var slug = (slugEl.value || '').trim();
+        if (!slug) { statusEl.textContent = 'Slug mangler.'; return; }
+        if (!confirm('Seede aktivitet for «' + slug + '»? Dette kan ikke angres.')) return;
+        seedActBtn.disabled = true;
+        statusEl.textContent = 'Kjører ...';
+        try {
+          var res = await NailedAuth.api('/api/v1/admin/seed-salon-activity', {
+            method: 'POST', body: { slug: slug },
+          });
+          if (!res.ok) {
+            var err = await res.json().catch(function () { return {}; });
+            throw new Error((err.error && err.error.message) || ('seed ' + res.status));
+          }
+          var data = await res.json();
+          statusEl.textContent = data.bookings + ' bookinger, ' + data.reviews + ' anmeldelser, ' + data.chat_threads + ' chat-tråder.';
+          showToast('Seedet ' + data.salon, 'success');
+        } catch (e) {
+          statusEl.textContent = 'Feil: ' + (e.message || e);
+          showToast('Seeding feilet: ' + e.message, 'error');
+        } finally {
+          seedActBtn.disabled = false;
+        }
+      });
     }
 
     // E-post-test: send alle maler til oppgitt adresse
