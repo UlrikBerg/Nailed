@@ -16,6 +16,8 @@
   window.__nailedBottomNav = true;
 
   var HIDE_ON = ['auth-complete', 'confirmation', 'bli-salong'];
+  // Hvilken sub-side under /admin/ vi viser bottom-nav på (resten skipper)
+  var ADMIN_HIDE_PATHS = []; // tom: alle admin-sider får bottom-nav
 
   function currentPage() {
     var p = location.pathname.replace(/^\//, '').replace(/\.html$/, '').replace(/\/$/, '');
@@ -24,7 +26,9 @@
 
   function shouldRender() {
     var page = currentPage();
-    if (page.indexOf('admin') === 0) return false;
+    if (page.indexOf('admin') === 0) {
+      return ADMIN_HIDE_PATHS.indexOf(page) === -1;
+    }
     return HIDE_ON.indexOf(page) === -1;
   }
 
@@ -32,12 +36,13 @@
     return !!(window.NailedAuth && window.NailedAuth.isLoggedIn && window.NailedAuth.isLoggedIn());
   }
 
-  // Salong-modus: hvis brukeren er logget inn som salon_owner. Admin og kunde
-  // får begge kunde-nav-en.
+  // Aktiv rolle = hvilken panel-kontekst brukeren er i, basert på URL.
+  // Slik bytter bottom-nav automatisk når man navigerer mellom panel.
   function activeRole() {
-    if (!isLoggedIn()) return 'customer';
-    var r = window.NailedAuth.getRole && window.NailedAuth.getRole();
-    return r === 'salon_owner' ? 'salon' : 'customer';
+    var page = currentPage();
+    if (page === 'salong-panel') return 'salon';
+    if (page.indexOf('admin') === 0) return 'admin';
+    return 'customer';
   }
 
   // Ikon-SVG-er — inline siden lucide har fjernet brand-ikoner og vi vil
@@ -68,9 +73,19 @@
     { key: 'profil',     label: 'Profil',     href: '/salong-panel#tab-innstillinger', svg: SVG.user },
   ];
 
+  // Admin-nav: 5 viktigste tabs i admin-panelet
+  var ITEMS_ADMIN = [
+    { key: 'dashboard',  label: 'Oversikt',   href: '/admin/#tab-dashboard',  svg: SVG.home },
+    { key: 'salonger',   label: 'Salonger',   href: '/admin/#tab-salonger',   svg: SVG.users },
+    { key: 'bookinger',  label: 'Bookinger',  href: '/admin/#tab-bookinger',  svg: SVG.calendar },
+    { key: 'moderering', label: 'Moderering', href: '/admin/#tab-moderering', svg: SVG.message },
+    { key: 'profil',     label: 'Profil',     href: '/admin/#tab-innstillinger', svg: SVG.user },
+  ];
+
   function visibleItems() {
     var role = activeRole();
     if (role === 'salon') return ITEMS_SALON;
+    if (role === 'admin') return ITEMS_ADMIN;
 
     // Kunde-modus: filtrer på auth + omdiriger Profil til login når utlogget
     var loggedIn = isLoggedIn();
@@ -90,15 +105,20 @@
     var role = activeRole();
 
     if (role === 'salon') {
-      if (page === 'salong-panel') {
-        if (hash === '#tab-bookinger') return 'bookinger';
-        if (hash === '#tab-kunder')    return 'kunder';
-        if (hash === '#tab-meldinger') return 'meldinger';
-        if (hash === '#tab-innstillinger' || hash === '#tab-tjenester' ||
-            hash === '#tab-analyse' || hash === '#tab-anmeldelser') return 'profil';
-        return 'hjem'; // dashboard, default
-      }
-      return null;
+      if (hash === '#tab-bookinger') return 'bookinger';
+      if (hash === '#tab-kunder')    return 'kunder';
+      if (hash === '#tab-meldinger') return 'meldinger';
+      if (hash === '#tab-innstillinger' || hash === '#tab-tjenester' ||
+          hash === '#tab-analyse' || hash === '#tab-anmeldelser') return 'profil';
+      return 'hjem'; // dashboard, default
+    }
+
+    if (role === 'admin') {
+      if (hash === '#tab-salonger')    return 'salonger';
+      if (hash === '#tab-bookinger')   return 'bookinger';
+      if (hash === '#tab-moderering')  return 'moderering';
+      if (hash === '#tab-innstillinger') return 'profil';
+      return 'dashboard'; // default
     }
 
     // Kunde-rute
