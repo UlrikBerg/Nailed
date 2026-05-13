@@ -1048,7 +1048,7 @@
     .status--inactive  { background: var(--stone-100); color: var(--stone-500); }
     .status--pending   { background: var(--warning-50); color: var(--warning-500); }
     .status--confirmed { background: var(--success-50); color: var(--success-500); }
-    .status--completed { background: var(--success-500); color: #fff; }
+    .status--completed { background: #2F5F3A; color: #fff; }
     .status--cancelled { background: var(--stone-100); color: var(--stone-500); }
     .status--noshow    { background: var(--danger-50); color: var(--danger-500); }
 
@@ -1565,7 +1565,7 @@
     .sub-card__title-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       gap: 12px;
       margin-bottom: 6px;
     }
@@ -1729,6 +1729,7 @@
     }
     .booking-actions__item:hover { background: var(--stone-100); }
     .booking-actions__item--primary { color: var(--success-500); font-weight: 600; }
+    .booking-actions__item--danger { color: var(--danger-500); font-weight: 600; }
 
     /* Bookings-table på mobil: hver rad blir et kompakt 2-kolonne card.
        Venstre kolonne: tid / kunde / behandling / pris stablet.
@@ -1783,6 +1784,60 @@
         justify-self: end; align-self: end;
       }
       #incomingTable td:nth-child(6):empty { display: none; }
+
+      /* Generelle mobile-tilpasninger for paneler */
+      .kp-card { padding: 16px 14px; margin-bottom: 14px; }
+      .kp-card__head { flex-wrap: wrap; gap: 8px; }
+
+      /* Tjenester-tabellen: 3-kolonne grid per rad (drag · info · status/action) */
+      #servicesTable, #servicesTable thead, #servicesTable tbody { display: block; width: 100%; }
+      #servicesTable thead { display: none; }
+      #servicesTable tbody tr {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        column-gap: 10px;
+        row-gap: 2px;
+        padding: 12px 10px;
+        border: 1px solid var(--stone-200);
+        border-radius: var(--radius-md);
+        background: var(--cream-50);
+        margin-bottom: 10px;
+      }
+      #servicesTable td { padding: 0; border: 0; font-size: 13px; white-space: normal; }
+      #servicesTable td:nth-child(1) {
+        grid-column: 1; grid-row: 1 / span 3;
+        align-self: center;
+      }
+      #servicesTable td:nth-child(2) {
+        grid-column: 2; grid-row: 1;
+        font-size: 14px; font-weight: 600; color: var(--ink);
+      }
+      #servicesTable td:nth-child(3) {
+        grid-column: 2; grid-row: 2;
+        font-size: 12px; color: var(--fg-muted);
+      }
+      #servicesTable td:nth-child(4) {
+        grid-column: 2; grid-row: 3;
+        font-size: 13px; color: var(--ink); font-weight: 600;
+      }
+      #servicesTable td:nth-child(5) {
+        grid-column: 3; grid-row: 1;
+        justify-self: end;
+      }
+      #servicesTable td:nth-child(6) {
+        grid-column: 3; grid-row: 2 / span 2;
+        justify-self: end; align-self: end;
+        display: flex; gap: 6px; flex-wrap: wrap;
+      }
+      #servicesTable td:nth-child(6):empty { display: none; }
+      #servicesTable .btn { padding: 6px 10px; font-size: 12px; min-height: 0; }
+      #servicesTable .btn i { width: 14px; height: 14px; }
+
+      /* Anmeldelser: kompakt padding + tekststørrelse på mobil */
+      .owner-review { padding: 14px 0; }
+      .owner-review__body { font-size: 14px; }
+      .owner-review__reply { padding: 10px 12px; margin-top: 10px; }
+      .owner-review__reply-body { font-size: 13px; }
     }
 
     /* Bookings status-filter — stilig dropdown */
@@ -2654,10 +2709,10 @@
         </div>
 
         <div class="analytics-period" id="analyticsPeriod">
-          <button type="button" class="analytics-period__chip" data-period="today">I dag</button>
+          <button type="button" class="analytics-period__chip active" data-period="today">I dag</button>
           <button type="button" class="analytics-period__chip" data-period="yesterday">I går</button>
           <button type="button" class="analytics-period__chip" data-period="7d">7 dager</button>
-          <button type="button" class="analytics-period__chip active" data-period="30d">30 dager</button>
+          <button type="button" class="analytics-period__chip" data-period="30d">30 dager</button>
           <button type="button" class="analytics-period__chip" data-period="90d">90 dager</button>
           <button type="button" class="analytics-period__chip" data-period="6m">6 måneder</button>
           <button type="button" class="analytics-period__chip" data-period="12m">12 måneder</button>
@@ -3407,7 +3462,7 @@
     var currentCustomers = [];
     var notesCache = Object.create(null); // keyed by customer user_id
     var customersLoaded = false;
-    var analyticsPeriod = '30d';
+    var analyticsPeriod = 'today';
     var analyticsLoaded = false;
 
     // Sticky-shadow on the public top-nav. På mobil i panelet låses .scrolled
@@ -5165,8 +5220,8 @@
           actList.push({ action: 'cancelled', label: 'Avvis' });
         } else if (b.status === 'confirmed') {
           actList.push({ action: 'completed', label: 'Marker fullført', primary: true });
-          actList.push({ action: 'no_show', label: 'No-show' });
           actList.push({ action: 'cancelled', label: 'Avbestill' });
+          actList.push({ action: 'no_show', label: 'No-show', danger: true });
         } else if (b.status === 'completed') {
           var completedAtMs = b.completed_at ? new Date(b.completed_at).getTime() : 0;
           var withinUndo = completedAtMs && (Date.now() - completedAtMs) < 60 * 60 * 1000;
@@ -5184,7 +5239,9 @@
               '</button>' +
               '<div class="booking-actions__menu" data-actions-menu="' + b.id + '" hidden>' +
                 actList.map(function (a) {
-                  var cls = 'booking-actions__item' + (a.primary ? ' booking-actions__item--primary' : '');
+                  var cls = 'booking-actions__item';
+                  if (a.primary) cls += ' booking-actions__item--primary';
+                  else if (a.danger) cls += ' booking-actions__item--danger';
                   return '<button type="button" class="' + cls + '" data-action="' + a.action + '" data-id="' + b.id + '">' + a.label + '</button>';
                 }).join('') +
               '</div>' +
