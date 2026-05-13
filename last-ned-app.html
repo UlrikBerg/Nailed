@@ -271,10 +271,177 @@
       font-weight: 700;
     }
 
+    /* === Forsiden-mockup === */
+    .phone-hero-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      margin: 8px 0 10px;
+      color: var(--ink);
+      text-align: center;
+    }
+    .phone-hero-title em {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rouge-500);
+    }
+    .phone-search-stack {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 12px;
+    }
+    .phone-search-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      font-size: 9px;
+      color: var(--stone-400);
+      border-bottom: 1px solid var(--stone-100);
+    }
+    .phone-search-row:last-of-type { border-bottom: 0; }
+    .phone-search-row__ico { font-size: 10px; }
+    .phone-search-btn {
+      background: var(--rouge-500);
+      color: #fff;
+      border-radius: 8px;
+      padding: 7px;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      margin: 3px;
+    }
+    .phone-section-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13px;
+      margin: 6px 0 6px;
+    }
+    .phone-section-title em {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rouge-500);
+    }
+    .phone-card__body { position: relative; padding: 6px 9px 8px; }
+    .phone-card__rating {
+      position: absolute;
+      top: 6px;
+      right: 9px;
+      font-size: 8px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .phone-bottom-nav {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      display: flex;
+      justify-content: space-around;
+      gap: 4px;
+      background: rgba(251, 246, 238, 0.96);
+      border-top: 1px solid var(--stone-200);
+      padding: 8px 4px;
+      border-radius: 0 0 22px 22px;
+      backdrop-filter: blur(8px);
+    }
+    .phone-bottom-nav__item {
+      font-size: 7px;
+      font-weight: 500;
+      color: var(--stone-400);
+    }
+    .phone-bottom-nav__item--active { color: var(--rouge-500); font-weight: 700; }
+    .app-phone__screen--home { position: relative; padding-bottom: 36px; }
+
+    /* === Salongprofil-mockup === */
+    .app-phone__screen--salon { position: relative; padding-bottom: 36px; overflow: hidden; }
+    .phone-nav--salon { padding: 0 12px; padding-top: 0; }
+    .phone-back-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 12px 6px;
+      font-size: 8px;
+      color: var(--fg-muted);
+    }
+    .phone-back, .phone-share { font-size: 8px; }
+    .phone-salon-rating { font-size: 9px; color: var(--fg-muted); margin-top: 2px; }
+    .phone-salon-addr { font-size: 8px; color: var(--fg-muted); margin-top: 2px; margin-bottom: 8px; }
+    .phone-bp {
+      background: var(--cream-50);
+      border: 1px solid var(--stone-200);
+      border-radius: 10px;
+      padding: 8px;
+      margin-bottom: 8px;
+    }
+    .phone-bp__head {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 9px;
+      margin: 4px 0 4px;
+    }
+    .phone-bp__head:first-child { margin-top: 0; }
+    .phone-salon-svc--active {
+      background: var(--rouge-50);
+      border: 1px solid var(--rouge-500);
+    }
+    .phone-days, .phone-slots {
+      display: flex; gap: 4px; margin-bottom: 4px; overflow: hidden;
+    }
+    .phone-day {
+      flex: 0 0 24px;
+      padding: 5px 0;
+      border: 1px solid var(--stone-200);
+      border-radius: 6px;
+      font-size: 7px;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .phone-day b { font-size: 10px; }
+    .phone-day--active { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .phone-slot {
+      flex: 0 0 38px;
+      padding: 4px 0;
+      border: 1px solid var(--stone-200);
+      border-radius: 6px;
+      font-size: 8px;
+      text-align: center;
+      font-weight: 600;
+    }
+    .phone-slot--active { background: var(--rouge-500); color: #fff; border-color: var(--rouge-500); }
+    .phone-salon-btn { font-size: 11px; font-weight: 700; padding: 9px; border-radius: 999px; }
+
+    @media (max-width: 720px) {
+      /* Store-badges stacker vertikalt på mobil så de ikke krasjer i hverandre */
+      .store-badges { flex-direction: column; gap: 10px; margin-bottom: 32px; }
+      .store-badge { padding: 12px 18px; width: 100%; max-width: 280px; margin: 0 auto; }
+      .store-badge__soon { top: -6px; right: 8px; padding: 2px 7px; font-size: 9px; }
+    }
+
     @media (max-width: 560px) {
       .app-phones { gap: 12px; }
       .app-phone { width: 160px; height: 340px; border-radius: 28px; padding: 8px; }
       .app-phone__screen { border-radius: 20px; }
+      .phone-hero-title { font-size: 16px; margin: 4px 0 6px; }
+      .phone-section-title { font-size: 11px; margin: 4px 0 4px; }
+      .phone-card__photo { height: 50px; }
+      .phone-card__name { font-size: 9px; }
+      .phone-card__meta { font-size: 7px; }
+      .phone-card__rating { font-size: 7px; }
+      .phone-bp__head { font-size: 8px; }
+      .phone-salon-title { font-size: 13px; }
+      .phone-salon-rating { font-size: 8px; }
+      .phone-salon-svc { font-size: 8px; padding: 6px 8px; }
+      .phone-day { flex: 0 0 18px; padding: 3px 0; font-size: 6px; }
+      .phone-day b { font-size: 8px; }
+      .phone-slot { flex: 0 0 30px; padding: 3px 0; font-size: 7px; }
+      .phone-salon-btn { font-size: 9px; padding: 7px; }
     }
 
     /* Notify form */
@@ -400,46 +567,86 @@
         </div>
       </div>
 
-      <!-- Phone mockups -->
+      <!-- Phone mockups — speiler den faktiske mobilversjonen av nailed.no -->
       <div class="app-phones">
+        <!-- Telefon 1: Forsiden (hero-søk + salongkort + bottom-nav) -->
         <div class="app-phone">
           <div class="app-phone__screen app-phone__screen--home">
             <div class="phone-nav">
               <div class="phone-nav__brand">nailed <span class="phone-nav__dot"></span></div>
-              <i data-lucide="heart" style="width:14px;height:14px;color:var(--fg-muted);"></i>
             </div>
-            <div class="phone-search">Søk behandling eller salong..</div>
+            <div class="phone-hero-title">book deg <em>pen.</em></div>
+            <div class="phone-search-stack">
+              <div class="phone-search-row"><span class="phone-search-row__ico">✨</span>Velg behandling</div>
+              <div class="phone-search-row"><span class="phone-search-row__ico">📍</span>By eller sted</div>
+              <div class="phone-search-btn">Søk</div>
+            </div>
+            <div class="phone-section-title">Salonger på <em>nailed</em></div>
             <div class="phone-card">
               <div class="phone-card__photo" style="background:linear-gradient(135deg, #FFE0E9, #FFC4D6);"></div>
               <div class="phone-card__body">
+                <div class="phone-card__rating">★ 4.9</div>
                 <div class="phone-card__name">Studio Lakk</div>
-                <div class="phone-card__meta">Grünerløkka · 4.9 ★ · fra 690 kr</div>
+                <div class="phone-card__meta">Salong i Oslo</div>
               </div>
             </div>
             <div class="phone-card">
               <div class="phone-card__photo" style="background:linear-gradient(135deg, #F4ECDF, #E8DCC4);"></div>
               <div class="phone-card__body">
+                <div class="phone-card__rating">★ 4.8</div>
                 <div class="phone-card__name">Lash & Linn</div>
-                <div class="phone-card__meta">Frogner · 4.8 ★ · fra 890 kr</div>
+                <div class="phone-card__meta">Salong i Bergen</div>
               </div>
+            </div>
+            <div class="phone-bottom-nav">
+              <span class="phone-bottom-nav__item phone-bottom-nav__item--active">Utforsk</span>
+              <span class="phone-bottom-nav__item">Favoritter</span>
+              <span class="phone-bottom-nav__item">Logg inn</span>
             </div>
           </div>
         </div>
+
+        <!-- Telefon 2: Salongprofil (galleri + booking-flow + bottom-nav) -->
         <div class="app-phone">
           <div class="app-phone__screen app-phone__screen--salon">
+            <div class="phone-nav phone-nav--salon">
+              <div class="phone-nav__brand">nailed <span class="phone-nav__dot"></span></div>
+            </div>
+            <div class="phone-back-row">
+              <span class="phone-back">← Tilbake</span>
+              <span class="phone-share">↑ Del</span>
+            </div>
             <div class="phone-salon-hero"></div>
             <div class="phone-salon-body">
               <div class="phone-salon-title">Studio Lakk</div>
-              <div class="phone-salon-rating">★ 4.9 · 312 anmeldelser · Grünerløkka</div>
-              <div class="phone-salon-svc">
-                <span>Gel manikyr · 75 min</span>
-                <strong>690 kr</strong>
+              <div class="phone-salon-rating">★ 4.9 · 312 anmeldelser</div>
+              <div class="phone-salon-addr">Storgata 12, Oslo</div>
+              <div class="phone-bp">
+                <div class="phone-bp__head">Velg behandling</div>
+                <div class="phone-salon-svc phone-salon-svc--active">
+                  <span>Gel manikyr · 75 min</span>
+                  <strong>690 kr</strong>
+                </div>
+                <div class="phone-bp__head">Velg en dag</div>
+                <div class="phone-days">
+                  <span class="phone-day">Man</span>
+                  <span class="phone-day phone-day--active">Tir<br><b>16</b></span>
+                  <span class="phone-day">Ons</span>
+                  <span class="phone-day">Tor</span>
+                </div>
+                <div class="phone-bp__head">Velg en tid</div>
+                <div class="phone-slots">
+                  <span class="phone-slot">09:00</span>
+                  <span class="phone-slot phone-slot--active">10:30</span>
+                  <span class="phone-slot">12:00</span>
+                </div>
               </div>
-              <div class="phone-salon-svc">
-                <span>Gel + neglekunst · 90 min</span>
-                <strong>890 kr</strong>
-              </div>
-              <div class="phone-salon-btn">Book nå</div>
+              <div class="phone-salon-btn">Book</div>
+            </div>
+            <div class="phone-bottom-nav">
+              <span class="phone-bottom-nav__item phone-bottom-nav__item--active">Utforsk</span>
+              <span class="phone-bottom-nav__item">Favoritter</span>
+              <span class="phone-bottom-nav__item">Logg inn</span>
             </div>
           </div>
         </div>
