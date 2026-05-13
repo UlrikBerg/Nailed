@@ -657,7 +657,11 @@ router.post('/seed-salon-activity', asyncRoute(async (req, res) => {
 // admin-brukere (role='admin').
 router.post('/reset-platform', asyncRoute(async (req, res) => {
   const schema = z.object({ confirm: z.literal('SLETT ALT') });
-  schema.parse(req.body || {});
+  try {
+    schema.parse(req.body || {});
+  } catch (_e) {
+    throw new HttpError(400, 'confirm_required', 'Du må sende { confirm: "SLETT ALT" }.');
+  }
 
   // Beskytt admin-brukere
   const admins = await query(`SELECT id FROM users WHERE role = 'admin'`);
@@ -698,35 +702,44 @@ router.post('/reset-platform', asyncRoute(async (req, res) => {
     }
   }
 
-  // Slett DB-rader. FK-sjekk av for å forenkle rekkefølge — eneste tabell
-  // som faktisk RESTRICTer er salons↔bookings og salons↔users, og siden vi
-  // sletter ALT samtidig under FK-disable er vi trygge.
+  // Slett DB-rader. FK-sjekk av for å forenkle rekkefølge. Bruker én og
+  // samme connection (via pool.getConnection) så SET FOREIGN_KEY_CHECKS
+  // holder gjennom alle queriene — query()-helperen får ulik connection
+  // per kall.
   let deletedSalons = 0, deletedUsers = 0, deletedApps = 0;
-  await query(`SET FOREIGN_KEY_CHECKS = 0`);
+  const { pool } = require('../db');
+  const conn = await pool.getConnection();
   try {
-    const r1 = await query(`DELETE FROM salons`);
-    deletedSalons = r1.affectedRows || 0;
-    const r2 = await query(`DELETE FROM salon_applications`);
-    deletedApps = r2.affectedRows || 0;
-    // Beskytt admin-brukere via NOT IN
-    const placeholders = adminIds.map(() => '?').join(',');
-    const r3 = await query(
-      `DELETE FROM users WHERE id NOT IN (${placeholders})`,
-      adminIds
-    );
-    deletedUsers = r3.affectedRows || 0;
-    // Reset AUTO_INCREMENT for ren ID-sekvens
-    await query(`ALTER TABLE salons AUTO_INCREMENT = 1`);
-    await query(`ALTER TABLE bookings AUTO_INCREMENT = 1`);
-    await query(`ALTER TABLE reviews AUTO_INCREMENT = 1`);
-    await query(`ALTER TABLE chat_threads AUTO_INCREMENT = 1`);
-    await query(`ALTER TABLE chat_messages AUTO_INCREMENT = 1`);
-    await query(`ALTER TABLE services AUTO_INCREMENT = 1`);
-    await query(`ALTER TABLE team_members AUTO_INCREMENT = 1`);
-    await query(`ALTER TABLE salon_applications AUTO_INCREMENT = 1`);
-    await query(`ALTER TABLE salon_images AUTO_INCREMENT = 1`);
+    await conn.execute(`SET FOREIGN_KEY_CHECKS = 0`);
+    try {
+      const [r1] = await conn.execute(`DELETE FROM salons`);
+      deletedSalons = r1.affectedRows || 0;
+      const [r2] = await conn.execute(`DELETE FROM salon_applications`);
+      deletedApps = r2.affectedRows || 0;
+      const placeholders = adminIds.map(() => '?').join(',');
+      const [r3] = await conn.execute(
+        `DELETE FROM users WHERE id NOT IN (${placeholders})`,
+        adminIds
+      );
+      deletedUsers = r3.affectedRows || 0;
+      // Reset AUTO_INCREMENT for ren ID-sekvens. Best-effort — feilende
+      // ALTER på en enkelttabell stopper ikke selve slettingen.
+      const resetTables = [
+        'salons', 'bookings', 'reviews', 'chat_threads', 'chat_messages',
+        'services', 'team_members', 'salon_applications', 'salon_images',
+      ];
+      for (const t of resetTables) {
+        try { await conn.execute(`ALTER TABLE ${t} AUTO_INCREMENT = 1`); }
+        catch (_e) { /* tabell mangler eller mangler privilege — ignorer */ }
+      }
+    } finally {
+      await conn.execute(`SET FOREIGN_KEY_CHECKS = 1`);
+    }
+  } catch (err) {
+    console.error('[reset-platform] DB-feil:', err);
+    throw new HttpError(500, 'reset_db_failed', 'DB-sletting feilet: ' + (err.message || err.code || 'ukjent'));
   } finally {
-    await query(`SET FOREIGN_KEY_CHECKS = 1`);
+    conn.release();
   }
 
   const result = {
