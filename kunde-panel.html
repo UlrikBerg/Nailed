@@ -855,28 +855,6 @@
         <h2 class="kp-section-title">Profil</h2>
         <p class="kp-section-sub">Disse opplysningene brukes ved booking.</p>
 
-        <!-- Konto-kort: panel-bytte + logg ut -->
-        <div class="kp-card kp-account" id="profileAccountCard" hidden>
-          <div class="kp-account__head">
-            <div class="kp-account__info">
-              <div class="kp-account__name" id="profileAccountName">—</div>
-              <div class="kp-account__email" id="profileAccountEmail">—</div>
-            </div>
-            <span class="kp-account__badge">Kundepanel</span>
-          </div>
-          <div class="kp-account__actions">
-            <a class="btn btn-ghost btn-sm" href="/salong-panel" id="profileGoSalon" hidden>
-              <i data-lucide="store"></i> Salongpanel
-            </a>
-            <a class="btn btn-ghost btn-sm" href="/admin/" id="profileGoAdmin" hidden>
-              <i data-lucide="shield"></i> Adminpanel
-            </a>
-            <button class="btn btn-ghost btn-sm" id="profileLogout">
-              <i data-lucide="log-out"></i> Logg ut
-            </button>
-          </div>
-        </div>
-
         <div class="kp-card">
           <form id="profileForm" class="kp-form-grid">
             <div class="kp-field">
@@ -2105,21 +2083,6 @@
       document.querySelector('input[name=notify_email_reminders]').checked = !!u.notify_email_reminders;
       document.querySelector('input[name=notify_sms_reminders]').checked = !!u.notify_sms_reminders;
       document.querySelector('input[name=notify_marketing]').checked = !!u.notify_marketing;
-
-      // Konto-kort: navn/e-post + panel-bytte basert på rolle.
-      var card = document.getElementById('profileAccountCard');
-      if (card) {
-        document.getElementById('profileAccountName').textContent = u.name || '—';
-        document.getElementById('profileAccountEmail').textContent = u.email || '—';
-        var role = (NailedAuth.getRole && NailedAuth.getRole()) || u.role || 'customer';
-        // Vis Salongpanel-knapp hvis bruker er salon_owner eller admin
-        var salonBtn = document.getElementById('profileGoSalon');
-        if (salonBtn) salonBtn.hidden = !(role === 'salon_owner' || role === 'admin');
-        // Vis Adminpanel-knapp kun for admin
-        var adminBtn = document.getElementById('profileGoAdmin');
-        if (adminBtn) adminBtn.hidden = role !== 'admin';
-        card.hidden = false;
-      }
     }
 
     document.getElementById('profileForm').addEventListener('submit', async function (e) {
@@ -2250,8 +2213,6 @@
       window.location.replace('/');
     }
     document.getElementById('logoutBtn').addEventListener('click', doLogout);
-    var profileLogoutBtn = document.getElementById('profileLogout');
-    if (profileLogoutBtn) profileLogoutBtn.addEventListener('click', doLogout);
 
     document.getElementById('deleteAccountBtn').addEventListener('click', async function () {
       var res = await NailedAuth.api('/api/v1/me', { method: 'DELETE' });
