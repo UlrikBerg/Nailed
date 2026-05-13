@@ -1552,6 +1552,13 @@
 
     var _tabLoaded = {};
     function lazyLoadTab(tabId) {
+      // Moderering re-fetcher hver gang man bytter til fanen så nye
+      // salongsøknader + chat-rapporter dukker opp uten manuell refresh.
+      if (tabId === 'moderering') {
+        if (typeof loadModerering === 'function') loadModerering();
+        if (typeof loadChatReports === 'function') loadChatReports();
+        return;
+      }
       if (_tabLoaded[tabId]) return;
       _tabLoaded[tabId] = true;
       if (tabId === 'rapporter')              loadRapporter();

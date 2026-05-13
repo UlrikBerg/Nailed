@@ -770,15 +770,13 @@ CREATE TABLE IF NOT EXISTS chat_messages (
   CONSTRAINT fk_cm_sender FOREIGN KEY (sender_user_id) REFERENCES users(id)        ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Image-meldinger: en melding kan ha enten body, image_key eller begge.
-ALTER TABLE chat_messages
-  ADD COLUMN IF NOT EXISTS image_key VARCHAR(255) DEFAULT NULL,
-  MODIFY body TEXT NULL;
-
 -- -----------------------------------------------------------------------------
 -- chat_message_reports
 -- Bruker rapporterer en melding for moderering. Vises i adminpanelet under
 -- Moderering. status går pending → resolved / dismissed.
+--
+-- Plassert FØR chat_messages-ALTERene under, så CREATE-en kjører selv om
+-- en MODIFY-setning under mot eldre MariaDB-versjoner skulle abortere.
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS chat_message_reports (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -800,3 +798,11 @@ CREATE TABLE IF NOT EXISTS chat_message_reports (
   CONSTRAINT fk_cmr_reporter FOREIGN KEY (reporter_user_id) REFERENCES users(id)        ON DELETE CASCADE,
   CONSTRAINT fk_cmr_resolver FOREIGN KEY (resolved_by_user_id) REFERENCES users(id)     ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Image-meldinger: en melding kan ha enten body, image_key eller begge.
+-- Splittet i to ALTER-er så ADD COLUMN ikke aborterer hvis MODIFY mot
+-- en gammel MariaDB-versjon skulle feile (ADD blir kjørt først).
+ALTER TABLE chat_messages
+  ADD COLUMN IF NOT EXISTS image_key VARCHAR(255) DEFAULT NULL;
+ALTER TABLE chat_messages
+  MODIFY body TEXT NULL;
