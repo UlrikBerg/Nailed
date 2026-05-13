@@ -2027,6 +2027,20 @@
        Moderering — pending salon applications
        ================================================================ */
 
+    // Felles tab-badge-state: apps + chat-rapporter slått sammen.
+    var _modereringCounts = { apps: 0, chatReports: 0 };
+    function updateModereringTabBadge() {
+      var badge = document.getElementById('navModereringCount');
+      if (!badge) return;
+      var n = _modereringCounts.apps + _modereringCounts.chatReports;
+      if (n > 0) {
+        badge.textContent = String(n);
+        badge.style.display = '';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
     async function loadModerering() {
       var container = document.getElementById('modereringList');
       if (!container) return;
@@ -2035,12 +2049,8 @@
         if (!res.ok) throw new Error('apps ' + res.status);
         var data = await res.json();
         renderModerering(data.applications || []);
-        var badge = document.getElementById('navModereringCount');
-        if (badge) {
-          var n = (data.applications || []).length;
-          badge.textContent = n;
-          badge.style.display = n > 0 ? '' : 'none';
-        }
+        _modereringCounts.apps = (data.applications || []).length;
+        updateModereringTabBadge();
       } catch (err) {
         console.error('[admin] applications failed', err);
         container.innerHTML = '<div class="td-muted">Kunne ikke laste søknader.</div>';
@@ -2167,12 +2177,14 @@
         var res = await NailedAuth.api('/api/v1/admin/chat-reports?status=pending');
         if (!res.ok) throw new Error('chat-reports ' + res.status);
         var data = await res.json();
-        renderChatReports(data.reports || []);
+        var reports = data.reports || [];
+        renderChatReports(reports);
         if (badge) {
-          var n = (data.reports || []).length;
-          badge.textContent = n;
-          badge.hidden = n === 0;
+          badge.textContent = reports.length;
+          badge.hidden = reports.length === 0;
         }
+        _modereringCounts.chatReports = reports.length;
+        updateModereringTabBadge();
       } catch (err) {
         console.error('[admin] chat-reports failed', err);
         container.innerHTML = '<div class="td-muted">Kunne ikke laste rapporter.</div>';
