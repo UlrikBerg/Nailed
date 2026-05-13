@@ -206,6 +206,15 @@ router.patch('/salons/:id/pilot', asyncRoute(async (req, res) => {
   res.json({ ok: true });
 }));
 
+// POST /admin/subscription-sweep — kjør trial-utløp-sveipen manuelt.
+// Den samme funksjonen kalles av Hostinger cron en gang i døgnet.
+router.post('/subscription-sweep', asyncRoute(async (req, res) => {
+  const { runSubscriptionSweep } = require('../lib/subscription-sweep');
+  const result = await runSubscriptionSweep();
+  await audit(req.user.id, 'subscription.sweep_manual', null, null, result);
+  res.json(result);
+}));
+
 router.post('/salons/:id/suspend', asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
