@@ -176,7 +176,9 @@
   }
 
   // Bestem om vi trenger full re-render (rolle endret, login-state for kunde
-  // endret, eller shouldRender flipped) — ellers oppdater bare active-state.
+  // endret, shouldRender flipped, eller nav-noden er fjernet av SPA-swap)
+  // — ellers oppdater bare active-state. spa-nav.js wiper alt utenom
+  // header.top-nav ved navigasjon, så bottom-nav forsvinner og må re-mountes.
   var lastRole = null;
   var lastShouldRender = null;
   var lastLoggedIn = null;
@@ -184,10 +186,12 @@
     var should = shouldRender();
     var role = activeRole();
     var loggedIn = isLoggedIn();
+    var navExists = !!document.getElementById('bottomNav');
     var needsRender = (
       should !== lastShouldRender ||
       role !== lastRole ||
-      (role === 'customer' && loggedIn !== lastLoggedIn)
+      (role === 'customer' && loggedIn !== lastLoggedIn) ||
+      (should && !navExists)
     );
     lastShouldRender = should;
     lastRole = role;
