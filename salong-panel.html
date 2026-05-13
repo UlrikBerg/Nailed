@@ -515,11 +515,11 @@
     /* Statistikk-fliser: 3 og 3 på alle viewports.
        Bruker id-selektor så det vinner over .kp-summary-defaultsen. */
     #analyticsKpiRow { grid-template-columns: repeat(3, 1fr); }
-    #analyticsKpiRow .kp-tile { align-items: center; text-align: center; }
     @media (max-width: 600px) {
       /* Smalere mobil-fliser: krymp verdi-tekst litt så «1500 kr» osv
-         får plass uten å bli kuttet eller pushet ut av kortet. */
-      #analyticsKpiRow .kp-tile { padding: 12px 8px; }
+         får plass uten å bli kuttet eller pushet ut av kortet. Sentreres
+         på mobil (venstre på desktop). */
+      #analyticsKpiRow .kp-tile { padding: 12px 8px; align-items: center; text-align: center; }
       #analyticsKpiRow .kp-tile__value { font-size: 18px; }
       #analyticsKpiRow .kp-tile__label { font-size: 10px; }
     }
@@ -2485,7 +2485,7 @@
           </div>
           <div class="kp-tile">
             <span class="kp-tile__icon"><i data-lucide="crown"></i></span>
-            <span class="kp-tile__label">Dyreste behandling</span>
+            <span class="kp-tile__label">Dyreste</span>
             <span class="kp-tile__value" id="aKpiTopPrice">0 <span class="kp-tile__unit">kr</span></span>
           </div>
         </div>
