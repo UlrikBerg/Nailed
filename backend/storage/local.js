@@ -28,6 +28,9 @@ async function remove({ key }) {
 }
 
 function publicUrl(key) {
+  if (!key) return null;
+  // Pass-through eksterne URLer (brukes av seed-data / test-salonger).
+  if (key.startsWith('http://') || key.startsWith('https://')) return key;
   // Served by Express static under /uploads.
   return `/uploads/${key}`;
 }
