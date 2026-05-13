@@ -184,7 +184,7 @@ function confirmationParagraphHtml(text) {
   const t = (text || '').toString().trim();
   if (!t) return '';
   return `<div style="margin:0 0 20px 0;padding:16px 18px;background:${C.cream100};border-radius:10px;color:${C.ink};font-size:14px;line-height:1.55;white-space:pre-wrap;">
-    <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${C.fgMuted};margin-bottom:6px;">Beskjed fra salongen</div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${C.fgMuted};margin-bottom:6px;">Beskjed fra behandleren</div>
     ${escapeHtml(t)}
   </div>`;
 }
@@ -254,7 +254,7 @@ function bookingCreatedCustomer(ctx) {
   // SALONG
   const addressRow = ctx.salon.address ? { label: 'Adresse', value: ctx.salon.address } : null;
   const phoneRow = ctx.salonPhone ? { label: 'Telefon', value: ctx.salonPhone } : null;
-  body += detailSectionHtml('Salong', [
+  body += detailSectionHtml('Behandler', [
     { label: 'Navn', value: ctx.salon.name },
     addressRow,
     phoneRow,
@@ -282,7 +282,7 @@ function bookingCreatedCustomer(ctx) {
   body += buttonHtml('Se bookingen', link);
   const sideLinks = [];
   if (map) sideLinks.push(linkHtml('Veibeskrivelse', map));
-  sideLinks.push(linkHtml('Salongens side', salonLink));
+  sideLinks.push(linkHtml('Behandlerens side', salonLink));
   body += `<div style="margin-top:14px;font-size:13px;color:${C.fgMuted};">${sideLinks.join(' &nbsp;·&nbsp; ')}</div>`;
 
   body += divider();
@@ -293,7 +293,7 @@ function bookingCreatedCustomer(ctx) {
   } else if (ctx.cancellationLeadHours) {
     body += `Avbestill senest ${ctx.cancellationLeadHours} timer før timen for å unngå gebyr.`;
   } else {
-    body += `Ta kontakt med salongen om du må avbestille.`;
+    body += `Ta kontakt med behandleren om du må avbestille.`;
   }
   body += `<br>Bookings-ID: <span style="font-family:Menlo,Consolas,monospace;color:${C.ink};">#${escapeHtml(String(ctx.bookingId))}</span></div>`;
 
@@ -314,7 +314,7 @@ function bookingCreatedCustomer(ctx) {
     if (ctx.durationMin) lines.push(`Varighet: ${ctx.durationMin} min`);
     lines.push('');
   }
-  lines.push(`Salong: ${ctx.salon.name}`);
+  lines.push(`Behandler: ${ctx.salon.name}`);
   if (ctx.salon.address) lines.push(`Adresse: ${ctx.salon.address}`);
   if (ctx.salonPhone) lines.push(`Telefon: ${ctx.salonPhone}`);
   lines.push('');
@@ -325,7 +325,7 @@ function bookingCreatedCustomer(ctx) {
     lines.push('', `Din beskjed: ${ctx.customerNote}`);
   }
   if ((ctx.confirmationText || '').trim()) {
-    lines.push('', `Beskjed fra salongen:`, ctx.confirmationText.trim());
+    lines.push('', `Beskjed fra behandleren:`, ctx.confirmationText.trim());
   }
   lines.push('');
   lines.push(`Se bookingen: ${link}`);
@@ -400,7 +400,7 @@ function bookingCreatedOwner(ctx) {
     </div>`;
   }
 
-  body += buttonHtml('Åpne salong-panelet', panelLink);
+  body += buttonHtml('Åpne panelet', panelLink);
   body += divider();
   body += `<div style="font-size:12px;color:${C.fgMuted};">Bookings-ID: <span style="font-family:Menlo,Consolas,monospace;color:${C.ink};">#${escapeHtml(String(ctx.bookingId))}</span></div>`;
 
@@ -428,7 +428,7 @@ function bookingCreatedOwner(ctx) {
   if (ctx.teamMemberName) lines.push(`Behandler: ${ctx.teamMemberName}`);
   if (ctx.priceNok != null) lines.push(`Pris: ${ctx.priceNok} kr`);
   if (ctx.customerNote) lines.push('', `Beskjed fra kunden: ${ctx.customerNote}`);
-  lines.push('', `Åpne salong-panelet: ${panelLink}`);
+  lines.push('', `Åpne panelet: ${panelLink}`);
   lines.push(`Bookings-ID: #${ctx.bookingId}`);
 
   return { subject, html: shell({ bodyHtml: body, preheader }), text: lines.join('\n') };
@@ -449,15 +449,15 @@ function bookingCreatedOwnerSms(ctx) {
 // =============================================================================
 function bookingConfirmedCustomer(ctx) {
   const subject = `Bekreftet: ${ctx.serviceName} hos ${ctx.salonName}`;
-  const preheader = `${fmtShortDate(ctx.startAt)} kl. ${fmtTime(ctx.startAt)} — salongen har bekreftet`;
+  const preheader = `${fmtShortDate(ctx.startAt)} kl. ${fmtTime(ctx.startAt)} — behandleren har bekreftet`;
   const link = bookingPageLink(ctx.bookingId);
 
   let body = '';
-  body += heroHtml({ title: 'Salongen har bekreftet ✓', accent: 'Bekreftet' });
+  body += heroHtml({ title: 'Behandleren har bekreftet ✓', accent: 'Bekreftet' });
   body += `<p style="margin:0 0 22px 0;font-size:15px;line-height:1.55;color:${C.fgMuted};">Hei ${escapeHtml(ctx.customerName || '')}, <strong style="color:${C.ink};">${escapeHtml(ctx.salonName)}</strong> har bekreftet bookingen din. Vi sees!</p>`;
   body += whenBlockHtml({ startAt: ctx.startAt });
   body += detailSectionHtml('Detaljer', [
-    { label: 'Salong', value: ctx.salonName },
+    { label: 'Behandler', value: ctx.salonName },
     { label: 'Behandling', value: ctx.serviceName },
   ]);
   body += confirmationParagraphHtml(ctx.confirmationText);
@@ -470,7 +470,7 @@ function bookingConfirmedCustomer(ctx) {
     '',
     `Tid: ${fmtDateTime(ctx.startAt)}`,
     `Behandling: ${ctx.serviceName}`,
-    (ctx.confirmationText || '').trim() ? `\nBeskjed fra salongen:\n${ctx.confirmationText.trim()}` : '',
+    (ctx.confirmationText || '').trim() ? `\nBeskjed fra behandleren:\n${ctx.confirmationText.trim()}` : '',
     '',
     `Se bookingen: ${link}`,
   ].join('\n');
@@ -486,14 +486,14 @@ function bookingCancelledCustomer(ctx) {
   const preheader = `${ctx.salonName} har avlyst timen din ${fmtShortDate(ctx.startAt)}`;
 
   let body = '';
-  body += heroHtml({ title: 'Timen din ble avlyst', accent: 'Avlyst av salongen' });
+  body += heroHtml({ title: 'Timen din ble avlyst', accent: 'Avlyst av behandleren' });
   body += `<p style="margin:0 0 22px 0;font-size:15px;line-height:1.55;color:${C.fgMuted};">Hei ${escapeHtml(ctx.customerName || '')}, <strong style="color:${C.ink};">${escapeHtml(ctx.salonName)}</strong> har dessverre måttet avlyse bookingen din. Vi beklager bryderiet.</p>`;
   body += whenBlockHtml({ startAt: ctx.startAt });
   body += detailSectionHtml('Det gjaldt', [
     { label: 'Behandling', value: ctx.serviceName },
-    { label: 'Salong', value: ctx.salonName },
+    { label: 'Behandler', value: ctx.salonName },
   ]);
-  body += `<p style="margin:0 0 18px 0;font-size:14px;line-height:1.55;color:${C.ink};">Ta gjerne kontakt med salongen om du har spørsmål, eller finn en ny tid på nailed.</p>`;
+  body += `<p style="margin:0 0 18px 0;font-size:14px;line-height:1.55;color:${C.ink};">Ta gjerne kontakt med behandleren om du har spørsmål, eller finn en ny tid på nailed.</p>`;
   body += buttonHtml('Finn ny tid', `${baseUrl()}/utforsk.html`);
 
   const text = [
@@ -526,7 +526,7 @@ function bookingCancelledOwner(ctx) {
     { label: 'Kunde', value: ctx.customerDisplayName || '—' },
     { label: 'Behandling', value: ctx.serviceName },
   ]);
-  body += buttonHtml('Åpne salong-panelet', link);
+  body += buttonHtml('Åpne panelet', link);
 
   const text = [
     `Hei ${ctx.ownerName || ''},`,
@@ -537,7 +537,7 @@ function bookingCancelledOwner(ctx) {
     `Kunde: ${ctx.customerDisplayName || '—'}`,
     `Behandling: ${ctx.serviceName}`,
     '',
-    `Åpne salong-panelet: ${link}`,
+    `Åpne panelet: ${link}`,
   ].join('\n');
 
   return { subject, html: shell({ bodyHtml: body, preheader }), text };
@@ -636,7 +636,7 @@ function bookingCreatedTeam(ctx) {
     </div>`;
   }
 
-  body += buttonHtml('Åpne salong-panelet', panelLink);
+  body += buttonHtml('Åpne panelet', panelLink);
   body += divider();
   body += `<div style="font-size:12px;color:${C.fgMuted};">Bookings-ID: <span style="font-family:Menlo,Consolas,monospace;color:${C.ink};">#${escapeHtml(String(ctx.bookingId))}</span></div>`;
 
@@ -660,7 +660,7 @@ function bookingCreatedTeam(ctx) {
   lines.push('');
   lines.push(`Behandling: ${ctx.serviceName}`);
   if (ctx.customerNote) lines.push('', `Beskjed fra kunden: ${ctx.customerNote}`);
-  lines.push('', `Åpne salong-panelet: ${panelLink}`);
+  lines.push('', `Åpne panelet: ${panelLink}`);
   lines.push(`Bookings-ID: #${ctx.bookingId}`);
 
   return { subject, html: shell({ bodyHtml: body, preheader }), text: lines.join('\n') };
@@ -692,7 +692,7 @@ function bookingCancelledTeam(ctx) {
     { label: 'Kunde', value: ctx.customerDisplayName || '—' },
     { label: 'Behandling', value: ctx.serviceName },
   ]);
-  body += buttonHtml('Åpne salong-panelet', link);
+  body += buttonHtml('Åpne panelet', link);
 
   const text = [
     `Hei ${ctx.teamMemberName || ''},`,
@@ -703,7 +703,7 @@ function bookingCancelledTeam(ctx) {
     `Kunde: ${ctx.customerDisplayName || '—'}`,
     `Behandling: ${ctx.serviceName}`,
     '',
-    `Åpne salong-panelet: ${link}`,
+    `Åpne panelet: ${link}`,
   ].join('\n');
 
   return { subject, html: shell({ bodyHtml: body, preheader }), text };
@@ -728,7 +728,7 @@ function salonApplicationApproved(ctx) {
   body += `<div style="margin:0 0 22px 0;padding:18px 20px;background:${C.rouge50};border:1px solid #FFD8E5;border-radius:12px;">
     <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${C.rouge700};margin-bottom:8px;">Slik kommer du i gang</div>
     <ol style="margin:0;padding:0 0 0 18px;color:${C.ink};font-size:14px;line-height:1.7;">
-      <li>Last opp bilder av salongen</li>
+      <li>Last opp bilder av virksomheten</li>
       <li>Skriv en kort bio</li>
       <li>Sett åpningstider</li>
       <li>Legg til behandlinger med pris og varighet</li>
@@ -754,7 +754,7 @@ function salonApplicationApproved(ctx) {
     `Søknaden din om ${ctx.salonName} er godkjent. Du har 4 måneder gratis prøveperiode.`,
     '',
     'Slik kommer du i gang:',
-    '  1. Last opp bilder av salongen',
+    '  1. Last opp bilder av virksomheten',
     '  2. Skriv en kort bio',
     '  3. Sett åpningstider',
     '  4. Legg til behandlinger',
