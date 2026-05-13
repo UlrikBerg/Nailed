@@ -760,10 +760,14 @@ router.patch('/:id', asyncRoute(async (req, res) => {
   } else if (status === 'completed') {
     // Auto-faktura via Fiken (beste-innsats, blokkerer ikke responsen).
     // syncBookingInvoice no-op-er hvis Fiken ikke koblet eller deaktivert.
+    // Try/catch + .catch() siden funksjonen er async — synkron try fanger
+    // bare require-feil, ikke Promise-rejections.
     setImmediate(() => {
       try {
         const fiken = require('../lib/fiken');
-        fiken.syncBookingInvoice(id);
+        Promise.resolve(fiken.syncBookingInvoice(id)).catch(err => {
+          console.warn('[bookings] fiken sync rejected', err && err.message);
+        });
       } catch (err) {
         console.warn('[bookings] fiken sync hook failed', err.message);
       }
