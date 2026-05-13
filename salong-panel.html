@@ -85,7 +85,7 @@
       margin: 0 0 6px;
     }
     .kp-hero__title em { font-style: normal; color: var(--rouge-500); }
-    .kp-hero__sub { font-size: 15px; color: var(--fg-muted); margin: 0 0 22px; }
+    .kp-hero__sub { font-size: 15px; color: var(--fg-muted); margin: 0 0 28px; }
     .kp-hero__actions { display: flex; gap: 8px; flex-wrap: wrap; }
     @media (max-width: 720px) {
       /* Begge knapper på samme rad på mobil — kompakt størrelse */
@@ -1974,8 +1974,8 @@
       <!-- Greeting hero -->
       <div class="kp-hero">
         <div>
-          <h1 class="kp-hero__title">Hei, <em id="greetingName">der!</em></h1>
-          <p class="kp-hero__sub">Velkommen tilbake til salongpanelet.</p>
+          <h1 class="kp-hero__title">Ditt <em>salongpanel.</em></h1>
+          <p class="kp-hero__sub">Logget inn som <span id="greetingName">der</span>.</p>
           <div class="kp-hero__actions">
             <button type="button" class="btn btn-ghost btn-sm" data-tab-goto="profil">
               <i data-lucide="store"></i> Redigere salongprofil
@@ -6415,10 +6415,10 @@
     (async function init() {
       var user = await NailedAuth.requireAuth('salon_owner');
       if (!user) return;
-      // Hero greeting — show the salon owner's first name in rouge.
+      // Hero greeting — «Logget inn som [Fornavn]».
       var greetEl = document.getElementById('greetingName');
       if (greetEl) {
-        greetEl.textContent = ((user.name || '').split(' ')[0] || 'der') + '!';
+        greetEl.textContent = (user.name || '').split(' ')[0] || 'deg';
       }
       // Wire the city autocomplete before loadSalon() so that the typeahead
       // can canonicalize the loaded value via _nailedPlaces.setValue().
