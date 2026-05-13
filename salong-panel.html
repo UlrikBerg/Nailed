@@ -1437,11 +1437,13 @@
       margin-bottom: 6px;
     }
     .sub-card__title { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 22px; color: var(--ink); }
-    .sub-card__title-pill { flex-shrink: 0; display: none; }
-    .sub-card__title-pill:empty { display: none; }
+    .sub-card__title-pill { flex-shrink: 0; }
+    /* Desktop: pill vises inline foran status-teksten (skjul tittel-pillen).
+       Bruker id-selektor for å vinne over .sub-card__statusPill { display: inline-flex }. */
+    #subStatusPill { display: none; }
     @media (max-width: 720px) {
-      /* På mobil: pill flyttes opp i tittel-raden, inline-pill i status-teksten skjules */
-      .sub-card__title-pill:not(:empty) { display: inline-flex; }
+      /* Mobil: pill flyttes opp i tittel-raden, inline-pill i statusteksten skjules */
+      #subStatusPill:not(:empty) { display: inline-flex; }
       #subStatusText > .sub-card__statusPill { display: none; }
     }
     .sub-card__sub { margin: 0; font-size: 14px; color: var(--fg-muted); }
