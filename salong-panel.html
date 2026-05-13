@@ -679,6 +679,48 @@
       color: var(--rouge-500);
       pointer-events: none;
     }
+
+    /* Kalender på mobil: kompakt kvadrat-grid med kun dots/teller per dag.
+       Tap-på-dag åpner detaljvisning hvis kalender-handlere støtter det. */
+    @media (max-width: 720px) {
+      .kp-cal { padding: 14px; margin-top: 16px; margin-bottom: 20px; }
+      .kp-cal__head { gap: 8px; margin-bottom: 14px; }
+      .kp-cal__navBtn { width: 32px; height: 32px; }
+      .kp-cal__navBtn i { width: 16px; height: 16px; }
+      .kp-cal__monthLabel { font-size: 16px; min-width: 0; }
+      .kp-cal__weekdays, .kp-cal__grid { gap: 3px; }
+      .kp-cal__weekdays { font-size: 9px; padding-bottom: 4px; }
+      .kp-cal__cell {
+        min-height: 0;
+        aspect-ratio: 1 / 1;
+        padding: 4px;
+        font-size: 11px;
+        gap: 2px;
+        align-items: center;
+        justify-content: flex-start;
+      }
+      .kp-cal__num { font-size: 12px; margin-bottom: 1px; }
+      /* Skjul booking-chips på mobil — vis bare dots */
+      .kp-cal__chips {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 2px;
+        justify-content: center;
+        align-items: center;
+      }
+      .kp-cal__chip {
+        width: 5px; height: 5px;
+        padding: 0;
+        border-radius: 50%;
+        background: var(--chip-color, var(--rouge-500));
+        border-left: 0;
+        font-size: 0;
+        overflow: hidden;
+      }
+      .kp-cal__chip__time, .kp-cal__chip__name { display: none; }
+      .kp-cal__more { font-size: 9px; padding: 1px 3px; }
+      .kp-cal__today { font-size: 8px; }
+    }
     .kp-cal__today--center {
       position: absolute;
       top: 50%; left: 50%;
