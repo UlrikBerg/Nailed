@@ -91,12 +91,125 @@ async function ensureDemoCustomers() {
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
+// Defaults for å fylle ut salongprofilen så den er screenshot-klar. Lar
+// eksisterende felter være i fred — overskriver bare når noe mangler.
+const PROFILE_DEFAULTS = {
+  address_line: 'Storgata 12',
+  postal_code: '1771',
+  city: 'Halden',
+  public_phone: '+47 90 12 34 56',
+  public_email: 'hei@katrinehanstedt.no',
+  bio: 'Hei! Jeg heter Katrine og driver mitt eget lille studio i sentrum av Halden. '
+     + 'Spesialiteten min er klassiske og volum-vippeextensions, men jeg gjør også brynforming, '
+     + 'farging og voksing. Jeg jobber rolig og lavmælt — du skal kunne slappe helt av i stolen min. '
+     + 'Bestilling skjer enklest her i appen. Velkommen inn! 🤍',
+  booking_confirmation_text: 'Inngang fra bakgården. Vennligst ikke kom for tidlig — jeg er ofte midt i en behandling. Vil du parkere, er det gratis i sidegata.',
+  cancellation_lead_hours: 24,
+};
+
+const DEFAULT_HOURS = [
+  { weekday: 1, is_closed: 0, open_at: '09:00', close_at: '17:00' },
+  { weekday: 2, is_closed: 0, open_at: '09:00', close_at: '19:00' },
+  { weekday: 3, is_closed: 0, open_at: '09:00', close_at: '19:00' },
+  { weekday: 4, is_closed: 0, open_at: '09:00', close_at: '17:00' },
+  { weekday: 5, is_closed: 0, open_at: '09:00', close_at: '15:00' },
+  { weekday: 6, is_closed: 0, open_at: '10:00', close_at: '14:00' },
+  { weekday: 7, is_closed: 1, open_at: null,    close_at: null    },
+];
+
+const DEFAULT_AMENITIES = [
+  'wifi', 'coffee', 'water', 'parking',
+  'card_payment', 'vipps_payment',
+  'late_hours', 'weekend_hours',
+  'free_cancellation_24h', 'vegan_products',
+];
+
+async function fillEmptyProfileFields(salon) {
+  const sets = [];
+  const vals = [];
+  for (const k of Object.keys(PROFILE_DEFAULTS)) {
+    if (salon[k] == null || salon[k] === '') {
+      sets.push(k + ' = ?');
+      vals.push(PROFILE_DEFAULTS[k]);
+    }
+  }
+  if (!sets.length) return 0;
+  vals.push(salon.id);
+  await query(`UPDATE salons SET ${sets.join(', ')} WHERE id = ?`, vals);
+  return sets.length;
+}
+
+async function ensureHours(salonId) {
+  const existing = await query(`SELECT weekday FROM salon_hours WHERE salon_id = ?`, [salonId]);
+  if (existing.length >= 7) return 0;
+  // Slett evt. ufullstendige og insert hele uka
+  await query(`DELETE FROM salon_hours WHERE salon_id = ?`, [salonId]);
+  for (const h of DEFAULT_HOURS) {
+    await query(
+      `INSERT INTO salon_hours (salon_id, weekday, is_closed, open_at, close_at)
+       VALUES (?, ?, ?, ?, ?)`,
+      [salonId, h.weekday, h.is_closed, h.open_at, h.close_at]
+    );
+  }
+  return DEFAULT_HOURS.length;
+}
+
+async function ensureAmenities(salonId) {
+  const existing = await query(`SELECT amenity FROM salon_amenities WHERE salon_id = ?`, [salonId]);
+  if (existing.length >= 5) return 0;
+  let added = 0;
+  for (const code of DEFAULT_AMENITIES) {
+    await query(
+      `INSERT IGNORE INTO salon_amenities (salon_id, amenity) VALUES (?, ?)`,
+      [salonId, code]
+    );
+    added++;
+  }
+  return added;
+}
+
+async function ensureKatrineTeamMember(salonId, ownerName) {
+  const existing = await queryOne(
+    `SELECT id FROM team_members WHERE salon_id = ? AND active = 1 LIMIT 1`,
+    [salonId]
+  );
+  if (existing) return 0;
+  const displayName = ownerName || 'Katrine';
+  await query(
+    `INSERT INTO team_members (salon_id, name, role, bio, active, position)
+     VALUES (?, ?, ?, ?, 1, 0)`,
+    [
+      salonId,
+      displayName,
+      'Daglig leder & behandler',
+      'Sertifisert vippetekniker med over 7 års erfaring. Spesialiteten min er klassiske og volum-vipper, men jeg er like glad i å forme bryn som å lakke negler.',
+    ]
+  );
+  return 1;
+}
+
 async function seedSalonActivity(slug) {
   const salon = await queryOne(
-    `SELECT id, owner_user_id, name FROM salons WHERE slug = ? LIMIT 1`,
+    `SELECT id, owner_user_id, name, address_line, postal_code, city, public_phone,
+            public_email, bio, booking_confirmation_text, cancellation_lead_hours,
+            public_phone_visible
+       FROM salons WHERE slug = ? LIMIT 1`,
     [slug]
   );
   if (!salon) return { ok: false, error: 'salon_not_found' };
+
+  // Hvis telefon legges inn, vis den også offentlig
+  if (salon.public_phone == null && !salon.public_phone_visible) {
+    await query(`UPDATE salons SET public_phone_visible = 1 WHERE id = ?`, [salon.id]);
+  }
+
+  const owner = await queryOne(`SELECT name FROM users WHERE id = ? LIMIT 1`, [salon.owner_user_id]);
+  const ownerName = owner ? owner.name : null;
+
+  const profileFieldsFilled = await fillEmptyProfileFields(salon);
+  const hoursAdded = await ensureHours(salon.id);
+  const amenitiesAdded = await ensureAmenities(salon.id);
+  const teamAdded = await ensureKatrineTeamMember(salon.id, ownerName);
 
   let services = await query(
     `SELECT id, duration_min, price_nok FROM services WHERE salon_id = ?`,
@@ -213,6 +326,10 @@ async function seedSalonActivity(slug) {
   return {
     ok: true,
     salon: salon.name,
+    profile_fields_filled: profileFieldsFilled,
+    hours_added: hoursAdded,
+    amenities_added: amenitiesAdded,
+    team_added: teamAdded,
     services_created: servicesCreated,
     bookings: statusPlan.length,
     reviews: completedBookingIds.length,
