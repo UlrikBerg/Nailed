@@ -1273,6 +1273,22 @@
           </div>
         </div>
 
+        <div class="ap-card" style="border-color: var(--danger-500);">
+          <div class="ap-card__head"><h3 class="ap-card__title" style="color: var(--danger-500);">⚠️ Reset til fresh</h3></div>
+          <p style="margin: 0 0 12px; color: var(--fg-muted); font-size: 13px;">
+            <strong>Irreversibel:</strong> sletter alle behandlere, brukere (unntatt admin),
+            søknader, bookinger, anmeldelser, chat-meldinger og R2-bilder. Service-kategorier
+            og innstillinger bevares. Bruk før launch for å starte fresh.
+          </p>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <input type="text" id="resetConfirm" class="form-input" style="width: 280px;" placeholder="Skriv SLETT ALT for å bekrefte" />
+            <button class="btn btn-danger btn-sm" id="resetPlatformBtn">
+              <i data-lucide="trash-2"></i> Reset til fresh
+            </button>
+            <span id="resetPlatformStatus" style="font-size: 13px; color: var(--fg-muted);"></span>
+          </div>
+        </div>
+
         <div class="ap-card">
           <div class="ap-card__head"><h3 class="ap-card__title">E-post-test</h3></div>
           <p style="margin: 0 0 12px; color: var(--fg-muted); font-size: 13px;">
@@ -2905,6 +2921,50 @@
           showToast('Seeding feilet: ' + e.message, 'error');
         } finally {
           seedActBtn.disabled = false;
+        }
+      });
+    }
+
+    // Reset-til-fresh: tømmer hele plattformen for data (irreversibel)
+    var resetBtn = document.getElementById('resetPlatformBtn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', async function () {
+        var confirmEl = document.getElementById('resetConfirm');
+        var statusEl = document.getElementById('resetPlatformStatus');
+        var typed = (confirmEl.value || '').trim();
+        if (typed !== 'SLETT ALT') {
+          statusEl.textContent = 'Du må skrive SLETT ALT i feltet.';
+          return;
+        }
+        var doubleCheck = await showConfirm({
+          title: 'Reset til fresh?',
+          body: 'Dette sletter ALLE behandlere, brukere (unntatt admin), søknader, bookinger, anmeldelser, chat og R2-bilder. Kan ikke angres uten å restore Hostinger-backup.',
+          okLabel: 'Slett alt',
+          okClass: 'btn-danger',
+        });
+        if (!doubleCheck) return;
+        resetBtn.disabled = true;
+        statusEl.textContent = 'Sletter ...';
+        try {
+          var res = await NailedAuth.api('/api/v1/admin/reset-platform', {
+            method: 'POST', body: { confirm: 'SLETT ALT' },
+          });
+          if (!res.ok) {
+            var err = await res.json().catch(function () { return {}; });
+            throw new Error((err.error && err.error.message) || ('reset ' + res.status));
+          }
+          var data = await res.json();
+          statusEl.textContent = 'Slettet ' + data.deletedSalons + ' behandlere, ' +
+            data.deletedUsers + ' brukere, ' + data.deletedApps + ' søknader, ' +
+            data.r2Deleted + ' R2-objekter.' +
+            (data.r2Failed ? ' (' + data.r2Failed + ' R2-feil — sjekk loggene)' : '');
+          showToast('Plattformen er reset', 'success');
+          confirmEl.value = '';
+        } catch (e) {
+          statusEl.textContent = 'Feil: ' + (e.message || e);
+          showToast('Reset feilet: ' + e.message, 'error');
+        } finally {
+          resetBtn.disabled = false;
         }
       });
     }

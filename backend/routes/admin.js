@@ -645,6 +645,100 @@ router.post('/seed-salon-activity', asyncRoute(async (req, res) => {
   res.json(result);
 }));
 
+// POST /admin/reset-platform — irreversibel rydding før launch:
+//   - Sletter alle salonger (cascade: bookinger, anmeldelser, chat, tjenester,
+//     team-medlemmer, åpningstider, amenities, salongbilder, favoritter, ventelister)
+//   - Sletter alle søknader (salon_applications)
+//   - Sletter alle ikke-admin-brukere
+//   - Sletter alle R2-objekter referert fra DB (best-effort)
+//
+// Body krever { confirm: 'SLETT ALT' } for å unngå utilsiktet kjøring.
+// Beholder service_categories, settings, audit_log (med NULL-actor) og
+// admin-brukere (role='admin').
+router.post('/reset-platform', asyncRoute(async (req, res) => {
+  const schema = z.object({ confirm: z.literal('SLETT ALT') });
+  schema.parse(req.body || {});
+
+  // Beskytt admin-brukere
+  const admins = await query(`SELECT id FROM users WHERE role = 'admin'`);
+  const adminIds = admins.map(a => a.id);
+  if (adminIds.length === 0) {
+    throw new HttpError(409, 'no_admin', 'Fant ingen admin-bruker. Avbryter for å unngå at du låser deg ute.');
+  }
+
+  // Samle R2-keys FØR DB-sletting
+  const r2Keys = new Set();
+  const collectKey = k => {
+    if (k && typeof k === 'string' && !k.startsWith('http://') && !k.startsWith('https://')) {
+      r2Keys.add(k);
+    }
+  };
+  const [salonCovers, salonImgs, teamImgs, chatImgs] = await Promise.all([
+    query(`SELECT cover_image_key AS k FROM salons WHERE cover_image_key IS NOT NULL`),
+    query(`SELECT \`key\` AS k FROM salon_images`),
+    query(`SELECT image_key AS k FROM team_members WHERE image_key IS NOT NULL`),
+    query(`SELECT image_key AS k FROM chat_messages WHERE image_key IS NOT NULL`),
+  ]);
+  [...salonCovers, ...salonImgs, ...teamImgs, ...chatImgs].forEach(r => collectKey(r.k));
+
+  // Slett R2-objekter inkludert varianter. Best-effort; vi continuerer ved feil.
+  const config = require('../config');
+  const storage = require('../storage/' + config.storage.backend);
+  const { variantKey } = require('../lib/image-variants');
+  let r2Deleted = 0, r2Failed = 0;
+  for (const key of r2Keys) {
+    const toDelete = [key, variantKey(key, 400), variantKey(key, 800), variantKey(key, 1600)];
+    for (const k of toDelete) {
+      try {
+        await storage.remove({ key: k });
+        r2Deleted++;
+      } catch (_e) {
+        r2Failed++;
+      }
+    }
+  }
+
+  // Slett DB-rader. FK-sjekk av for å forenkle rekkefølge — eneste tabell
+  // som faktisk RESTRICTer er salons↔bookings og salons↔users, og siden vi
+  // sletter ALT samtidig under FK-disable er vi trygge.
+  let deletedSalons = 0, deletedUsers = 0, deletedApps = 0;
+  await query(`SET FOREIGN_KEY_CHECKS = 0`);
+  try {
+    const r1 = await query(`DELETE FROM salons`);
+    deletedSalons = r1.affectedRows || 0;
+    const r2 = await query(`DELETE FROM salon_applications`);
+    deletedApps = r2.affectedRows || 0;
+    // Beskytt admin-brukere via NOT IN
+    const placeholders = adminIds.map(() => '?').join(',');
+    const r3 = await query(
+      `DELETE FROM users WHERE id NOT IN (${placeholders})`,
+      adminIds
+    );
+    deletedUsers = r3.affectedRows || 0;
+    // Reset AUTO_INCREMENT for ren ID-sekvens
+    await query(`ALTER TABLE salons AUTO_INCREMENT = 1`);
+    await query(`ALTER TABLE bookings AUTO_INCREMENT = 1`);
+    await query(`ALTER TABLE reviews AUTO_INCREMENT = 1`);
+    await query(`ALTER TABLE chat_threads AUTO_INCREMENT = 1`);
+    await query(`ALTER TABLE chat_messages AUTO_INCREMENT = 1`);
+    await query(`ALTER TABLE services AUTO_INCREMENT = 1`);
+    await query(`ALTER TABLE team_members AUTO_INCREMENT = 1`);
+    await query(`ALTER TABLE salon_applications AUTO_INCREMENT = 1`);
+    await query(`ALTER TABLE salon_images AUTO_INCREMENT = 1`);
+  } finally {
+    await query(`SET FOREIGN_KEY_CHECKS = 1`);
+  }
+
+  const result = {
+    ok: true,
+    deletedSalons, deletedUsers, deletedApps,
+    r2Deleted, r2Failed,
+    preservedAdmins: adminIds.length,
+  };
+  await audit(req.user.id, 'admin.reset_platform', null, null, result);
+  res.json(result);
+}));
+
 // ----------------------------------------------------------------------------
 // Bookings (read-only listing for admin)
 // ----------------------------------------------------------------------------
