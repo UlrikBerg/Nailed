@@ -186,6 +186,123 @@
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // Profil-sheet: åpnes når man trykker «Min profil» / «Profil» i bottom-nav.
+  // Viser navn + e-post + raske paneler-snarveier + logg ut. Animert slide-up.
+  // ---------------------------------------------------------------------------
+  var sheetUser = null;
+
+  function ensureSheet() {
+    if (document.getElementById('bnProfileSheet')) return;
+    var backdrop = '<div class="bn-sheet-backdrop" id="bnProfileBackdrop"></div>';
+    var sheet =
+      '<div class="bn-sheet" id="bnProfileSheet" role="dialog" aria-modal="true" aria-labelledby="bnProfileName" hidden>' +
+        '<div class="bn-sheet__grabber"></div>' +
+        '<div class="bn-sheet__head">' +
+          '<div class="bn-sheet__avatar" id="bnProfileAvatar">?</div>' +
+          '<div class="bn-sheet__info">' +
+            '<div class="bn-sheet__name" id="bnProfileName">—</div>' +
+            '<div class="bn-sheet__email" id="bnProfileEmail">—</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="bn-sheet__actions">' +
+          '<a class="bn-sheet__action" href="/kunde-panel#tab-profil" data-bn-action="nav">' +
+            '<i data-lucide="user"></i><span>Kundepanel</span>' +
+          '</a>' +
+          '<a class="bn-sheet__action" href="/salong-panel" id="bnGoSalon" data-bn-action="nav" hidden>' +
+            '<i data-lucide="store"></i><span>Salongpanel</span>' +
+          '</a>' +
+          '<a class="bn-sheet__action" href="/admin/" id="bnGoAdmin" data-bn-action="nav" hidden>' +
+            '<i data-lucide="shield"></i><span>Adminpanel</span>' +
+          '</a>' +
+          '<button class="bn-sheet__action bn-sheet__action--danger" type="button" id="bnLogout">' +
+            '<i data-lucide="log-out"></i><span>Logg ut</span>' +
+          '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.insertAdjacentHTML('beforeend', backdrop + sheet);
+
+    document.getElementById('bnProfileBackdrop').addEventListener('click', closeSheet);
+    document.getElementById('bnLogout').addEventListener('click', async function () {
+      try { await window.NailedAuth.logout(); } catch (_) {}
+      window.location.replace('/');
+    });
+    // Lukk når en av navigasjonslenkene klikkes (sheet'en glir ned før page-bytte)
+    document.querySelectorAll('#bnProfileSheet [data-bn-action="nav"]').forEach(function (a) {
+      a.addEventListener('click', function () { closeSheet(); });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeSheet();
+    });
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      try { window.lucide.createIcons(); } catch (_) {}
+    }
+  }
+
+  async function openSheet() {
+    ensureSheet();
+    var sheet = document.getElementById('bnProfileSheet');
+    var backdrop = document.getElementById('bnProfileBackdrop');
+    if (!sheet || !backdrop) return;
+
+    // Hent brukerinfo (én gang per sidelevetid; oppdater på nytt åpning hvis blank).
+    if (!sheetUser && window.NailedAuth && window.NailedAuth.api) {
+      try {
+        var res = await window.NailedAuth.api('/api/v1/me');
+        if (res.ok) {
+          var data = await res.json();
+          sheetUser = data.user || null;
+        }
+      } catch (_) { /* ignore */ }
+    }
+
+    var u = sheetUser || {};
+    document.getElementById('bnProfileName').textContent  = u.name  || 'Du';
+    document.getElementById('bnProfileEmail').textContent = u.email || '';
+    var initial = (u.name || u.email || '?').trim().charAt(0).toUpperCase();
+    document.getElementById('bnProfileAvatar').textContent = initial || '?';
+
+    var role = u.role || (window.NailedAuth && window.NailedAuth.getRole && window.NailedAuth.getRole()) || 'customer';
+    document.getElementById('bnGoSalon').hidden = !(role === 'salon_owner' || role === 'admin');
+    document.getElementById('bnGoAdmin').hidden = role !== 'admin';
+
+    // Vis først (hidden → false), så på neste frame trigger transition.
+    sheet.hidden = false;
+    requestAnimationFrame(function () {
+      backdrop.classList.add('bn-sheet-backdrop--open');
+      sheet.classList.add('bn-sheet--open');
+    });
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSheet() {
+    var sheet = document.getElementById('bnProfileSheet');
+    var backdrop = document.getElementById('bnProfileBackdrop');
+    if (!sheet || !backdrop) return;
+    sheet.classList.remove('bn-sheet--open');
+    backdrop.classList.remove('bn-sheet-backdrop--open');
+    document.body.style.overflow = '';
+    // Etter transition: skjul helt så fokus ikke ligger fanget.
+    setTimeout(function () {
+      if (!sheet.classList.contains('bn-sheet--open')) sheet.hidden = true;
+    }, 280);
+  }
+
+  // Fang klikk på «Profil»-item — kun når innlogget. Utlogget → la /login-lenken navigere.
+  document.addEventListener('click', function (e) {
+    var item = e.target.closest && e.target.closest('.bottom-nav__item[data-key="profil"]');
+    if (!item) return;
+    if (!isLoggedIn()) return; // ulogget → href=/login
+    e.preventDefault();
+    openSheet();
+  });
+
+  // Tøm cachet brukerinfo ved logg ut / token-bytte, slik at neste åpning re-fetcher.
+  window.addEventListener('storage', function (e) {
+    if (e.key === 'nailed.accessToken') sheetUser = null;
+  });
+
   if (document.readyState !== 'loading') {
     render();
     observeBadge();
