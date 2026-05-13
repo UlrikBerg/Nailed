@@ -493,6 +493,8 @@
       try {
         var data = await fetchSalonsWithRetry('/api/v1/salons?limit=8');
         var salons = Array.isArray(data.salons) ? data.salons : [];
+        // Sortér eldste salong først (lavere id = registrert tidligere).
+        salons.sort(function (a, b) { return (a.id || 0) - (b.id || 0); });
         if (salons.length === 0) {
           section.style.display = 'none';
           return;
