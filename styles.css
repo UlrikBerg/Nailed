@@ -447,13 +447,17 @@ p { margin: 0 0 var(--space-4) 0; }
   margin-top: 14px;
 }
 
-/* Minimalistiske hero-CTA-er — to elegante pill-buttons med kun tittel. */
+/* Minimalistiske hero-CTA-er for mobil. På desktop vises .hero__quick i stedet. */
 .hero__cta-row {
-  display: flex;
+  display: none;
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
   margin-top: 20px;
+}
+@media (max-width: 720px) {
+  .hero__quick { display: none; }
+  .hero__cta-row { display: flex; }
 }
 .hero__cta-pill {
   display: inline-flex;
