@@ -700,6 +700,32 @@
       aspect-ratio: 16 / 11;
     }
 
+    /* Mobil-only: matcher forsidekort-stilen — skjul status+team, prefiks
+       «Salong i», flytt rating til top-right. Desktop påvirkes ikke. */
+    @media (max-width: 720px) {
+      .utforsk-results .sc2-status,
+      .utforsk-results .sc2-team { display: none; }
+      .utforsk-results .sc2-meta__item--city i { display: none; }
+      .utforsk-results .sc2-meta__city-text::before { content: "Salong i "; }
+      .utforsk-results .service-card__body { position: relative; }
+      .utforsk-results .sc2-meta__item--rating {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .utforsk-results .sc2-meta__item--rating i {
+        color: var(--rouge-500);
+        fill: var(--rouge-500);
+      }
+      .utforsk-results .sc2-meta__item--rating .sc2-meta__sub {
+        color: var(--stone-400);
+        font-weight: 500;
+      }
+    }
+
     /* Mobile filter button — shown only when sidebar is drawer-mode. */
     .mobile-filter-bar {
       display: none;
@@ -1510,12 +1536,12 @@
       }
 
       var locationLine = salon.city
-        ? '<span class="sc2-meta__item"><i data-lucide="map-pin"></i>' + escapeHtml(salon.city) + '</span>'
+        ? '<span class="sc2-meta__item sc2-meta__item--city" data-city="' + escapeHtml(salon.city) + '"><i data-lucide="map-pin"></i><span class="sc2-meta__city-text">' + escapeHtml(salon.city) + '</span></span>'
         : '';
 
       var ratingLine = '';
       if (salon.avg_rating != null && salon.review_count > 0) {
-        ratingLine = '<span class="sc2-meta__item"><i data-lucide="star"></i>'
+        ratingLine = '<span class="sc2-meta__item sc2-meta__item--rating"><i data-lucide="star"></i>'
           + escapeHtml(salon.avg_rating.toFixed ? salon.avg_rating.toFixed(1) : String(salon.avg_rating))
           + ' <span class="sc2-meta__sub">(' + salon.review_count + ')</span></span>';
       }
