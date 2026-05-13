@@ -422,6 +422,73 @@ router.patch('/review-reports/:id', asyncRoute(async (req, res) => {
 }));
 
 // ----------------------------------------------------------------------------
+// Chat-message reports (moderation queue for rapporterte chat-meldinger)
+// ----------------------------------------------------------------------------
+
+router.get('/chat-reports', asyncRoute(async (req, res) => {
+  const status = (req.query.status || 'pending').toString();
+  const allowed = ['pending', 'resolved', 'dismissed', 'all'];
+  if (!allowed.includes(status)) throw new HttpError(400, 'bad_status', 'Ugyldig status.');
+
+  const where = status === 'all' ? '1 = 1' : 'cmr.status = ?';
+  const params = status === 'all' ? [] : [status];
+
+  const rows = await query(
+    `SELECT cmr.id, cmr.message_id, cmr.thread_id, cmr.reason, cmr.status,
+            cmr.created_at, cmr.resolved_at, cmr.reporter_role,
+            m.body         AS message_body,
+            m.sent_at      AS message_sent_at,
+            m.sender_role  AS sender_role,
+            sender.name    AS sender_name,
+            sender.email   AS sender_email,
+            reporter.name  AS reporter_name,
+            reporter.email AS reporter_email,
+            t.salon_id,
+            s.name         AS salon_name,
+            s.slug         AS salon_slug
+       FROM chat_message_reports cmr
+       JOIN chat_messages m   ON m.id = cmr.message_id
+       JOIN chat_threads t    ON t.id = cmr.thread_id
+       JOIN salons s          ON s.id = t.salon_id
+       JOIN users sender      ON sender.id = m.sender_user_id
+       JOIN users reporter    ON reporter.id = cmr.reporter_user_id
+      WHERE ${where}
+      ORDER BY cmr.created_at DESC LIMIT 200`,
+    params
+  );
+  res.json({ reports: rows });
+}));
+
+router.patch('/chat-reports/:id', asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+
+  const schema = z.object({
+    action: z.enum(['dismiss', 'resolve']),
+    admin_note: z.string().trim().max(2000).nullable().optional(),
+  });
+  const { action, admin_note } = schema.parse(req.body || {});
+
+  const report = await queryOne(
+    `SELECT id, status FROM chat_message_reports WHERE id = ?`, [id]
+  );
+  if (!report) throw new HttpError(404, 'not_found', 'Rapporten finnes ikke.');
+  if (report.status !== 'pending') {
+    throw new HttpError(409, 'not_pending', 'Rapporten er allerede behandlet.');
+  }
+
+  const newStatus = action === 'resolve' ? 'resolved' : 'dismissed';
+  await query(
+    `UPDATE chat_message_reports
+        SET status = ?, resolved_at = NOW(), resolved_by_user_id = ?, admin_note = ?
+      WHERE id = ?`,
+    [newStatus, req.user.id, admin_note || null, id]
+  );
+  await audit(req.user.id, 'chat_report.' + action, 'chat_message_report', id, {});
+  res.json({ ok: true });
+}));
+
+// ----------------------------------------------------------------------------
 // Bookings (read-only listing for admin)
 // ----------------------------------------------------------------------------
 
