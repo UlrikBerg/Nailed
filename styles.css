@@ -2860,6 +2860,9 @@ html {
   .salon-back-link { padding: 4px 0; font-size: 13px; }
   .salon-share-btn { min-height: 32px; padding: 6px 12px; font-size: 13px; }
   .salon-back-row { margin-bottom: 16px; }
+  /* Luft mellom bio og bookingpanelet som plasseres rett under på mobil */
+  .salon-detail__about { margin-bottom: 24px; }
+  div.salon-detail__about { margin-bottom: 24px; }
 
   /* Amenity-chips: horisontal carousel på mobil — full-bleed til viewport-
      kantene så scroll-følelsen er naturlig. Skjul scrollbar. */
