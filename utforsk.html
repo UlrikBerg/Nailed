@@ -1906,7 +1906,9 @@
 
     async function loadSalons() {
       renderSkeleton(6);
-      var qs = ['limit=24'];
+      // Henter inntil 200 salonger på én side. Backend caper på 500.
+      // TODO: paginering / «Vis flere»-knapp når vi har 200+ aktive salonger.
+      var qs = ['limit=200'];
       if (currentQ) qs.push('q=' + encodeURIComponent(currentQ));
       if (currentCity) qs.push('city=' + encodeURIComponent(currentCity));
       if (fState.min_price != null) qs.push('min_price=' + fState.min_price);
