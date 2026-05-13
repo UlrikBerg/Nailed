@@ -296,6 +296,33 @@
       padding: 24px;
       margin-bottom: 20px;
     }
+    /* Konto-kort — navn/e-post + panel-bytte + logg ut */
+    .kp-account__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .kp-account__name { font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+    .kp-account__email { font-size: 13px; color: var(--fg-muted); margin-top: 2px; }
+    .kp-account__badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--rouge-50);
+      color: var(--rouge-500);
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .kp-account__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .kp-account__actions .btn i { width: 16px; height: 16px; }
     .kp-card__head {
       display: flex;
       justify-content: space-between;
@@ -2670,6 +2697,28 @@
           <div>
             <h2 class="kp-section__title">Innstillinger</h2>
             <p class="kp-section__sub">Abonnement, booking-regler og varslinger.</p>
+          </div>
+        </div>
+
+        <!-- Konto-kort: panel-bytte + logg ut -->
+        <div class="kp-card kp-account" id="settingsAccountCard" hidden style="margin-bottom: 20px;">
+          <div class="kp-account__head">
+            <div class="kp-account__info">
+              <div class="kp-account__name" id="settingsAccountName">—</div>
+              <div class="kp-account__email" id="settingsAccountEmail">—</div>
+            </div>
+            <span class="kp-account__badge">Salongpanel</span>
+          </div>
+          <div class="kp-account__actions">
+            <a class="btn btn-ghost btn-sm" href="/kunde-panel">
+              <i data-lucide="user"></i> Kundepanel
+            </a>
+            <a class="btn btn-ghost btn-sm" href="/admin/" id="settingsGoAdmin" hidden>
+              <i data-lucide="shield"></i> Adminpanel
+            </a>
+            <button class="btn btn-ghost btn-sm" id="settingsLogout">
+              <i data-lucide="log-out"></i> Logg ut
+            </button>
           </div>
         </div>
 
@@ -5860,10 +5909,32 @@
       }
     });
 
-    document.getElementById('logoutBtn').addEventListener('click', async function () {
+    async function doLogout() {
       await NailedAuth.logout();
       window.location.replace('/');
-    });
+    }
+    document.getElementById('logoutBtn').addEventListener('click', doLogout);
+    var settingsLogout = document.getElementById('settingsLogout');
+    if (settingsLogout) settingsLogout.addEventListener('click', doLogout);
+
+    // Fyll konto-kortet (navn/e-post + admin-knapp basert på rolle)
+    (async function loadAccountCard() {
+      try {
+        var card = document.getElementById('settingsAccountCard');
+        if (!card) return;
+        var res = await NailedAuth.api('/api/v1/me');
+        if (!res.ok) return;
+        var data = await res.json();
+        var u = data.user || {};
+        document.getElementById('settingsAccountName').textContent = u.name || '—';
+        document.getElementById('settingsAccountEmail').textContent = u.email || '—';
+        var role = (NailedAuth.getRole && NailedAuth.getRole()) || u.role || 'salon_owner';
+        var adminBtn = document.getElementById('settingsGoAdmin');
+        if (adminBtn) adminBtn.hidden = role !== 'admin';
+        card.hidden = false;
+        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      } catch (_) {}
+    })();
 
     /* ---------- ANALYSE-FANE ---------- */
 
