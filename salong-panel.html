@@ -1781,13 +1781,13 @@
     .analytics-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 28px;
     }
     @media (max-width: 900px) {
       .analytics-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 720px) {
-      .analytics-grid { gap: 12px; }
+      .analytics-grid { gap: 20px; }
       .analytics-card { padding: 16px 14px; }
       .analytics-card__head { margin-bottom: 10px; flex-wrap: wrap; gap: 4px; }
       .analytics-card__title { font-size: 15px; }
@@ -2493,7 +2493,7 @@
           <div class="kp-tile">
             <span class="kp-tile__icon"><i data-lucide="user-x"></i></span>
             <span class="kp-tile__label">No-show</span>
-            <span class="kp-tile__value" id="aKpiNoShow">0 <span class="kp-tile__unit">(0 %)</span></span>
+            <span class="kp-tile__value" id="aKpiNoShow">0</span>
           </div>
 
           <!-- Rad 3: omsetning, snittpris, dyreste behandling -->
@@ -2527,7 +2527,6 @@
                   <tr>
                     <th>Behandling</th>
                     <th style="width: 90px;">Antall</th>
-                    <th style="width: 110px;">Snittpris</th>
                     <th style="width: 130px;">Omsetning</th>
                   </tr>
                 </thead>
@@ -2550,10 +2549,9 @@
                 <thead>
                   <tr>
                     <th>Navn</th>
-                    <th style="width: 90px;">Antall</th>
+                    <th style="width: 110px;">Bookinger</th>
                     <th style="width: 110px;">Andel</th>
                     <th style="width: 130px;">Omsetning</th>
-                    <th style="width: 110px;">No-show</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
@@ -2573,33 +2571,9 @@
           <div class="analytics-card">
             <div class="analytics-card__head">
               <h3 class="analytics-card__title">Bookinger per time</h3>
-              <span class="analytics-card__sub">Lokal tid (Oslo)</span>
+              <span class="analytics-card__sub">Lokal tid</span>
             </div>
             <div class="bar-chart" id="hourChart"></div>
-          </div>
-
-          <!-- Omsetning siste 12 uker -->
-          <div class="analytics-card" style="grid-column: 1 / -1;">
-            <div class="analytics-card__head">
-              <h3 class="analytics-card__title">Omsetning siste 12 uker</h3>
-              <span class="analytics-card__sub">Fullførte bookinger, ukentlig</span>
-            </div>
-            <svg class="trend-svg" id="revenueTrend" preserveAspectRatio="none" viewBox="0 0 600 140"></svg>
-            <div id="revenueTrendEmpty" class="trend-empty" style="display:none;">
-              Ingen omsetning de siste 12 ukene.
-            </div>
-          </div>
-
-          <!-- Returnerende kundeandel -->
-          <div class="analytics-card">
-            <div class="analytics-card__head">
-              <h3 class="analytics-card__title">Returnerende kundeandel</h3>
-              <span class="analytics-card__sub">Siste 6 måneder</span>
-            </div>
-            <svg class="trend-svg" id="returningTrend" preserveAspectRatio="none" viewBox="0 0 600 140"></svg>
-            <div id="returningTrendEmpty" class="trend-empty" style="display:none;">
-              Ingen data ennå.
-            </div>
           </div>
 
           <!-- Siste anmeldelser -->
@@ -6275,8 +6249,7 @@
       document.getElementById('aKpiReturning').textContent = data.kpi.returning_customers;
       document.getElementById('aKpiCompleted').textContent = data.kpi.completed_count;
       document.getElementById('aKpiCancelled').textContent = data.kpi.cancelled_count;
-      document.getElementById('aKpiNoShow').innerHTML = data.kpi.no_show_count +
-        ' <span class="kpi__unit">(' + pct(data.kpi.no_show_rate) + ')</span>';
+      document.getElementById('aKpiNoShow').textContent = data.kpi.no_show_count;
       document.getElementById('aKpiAvgValue').innerHTML = fmtKr(data.kpi.avg_value) + ' <span class="kpi__unit">kr</span>';
 
       // «Dyreste behandling»: max avg_price på tvers av top_services i perioden.
@@ -6297,7 +6270,6 @@
           return '<tr>' +
             '<td><strong>' + escapeHtml(s.name || '') + '</strong></td>' +
             '<td>' + s.count + '</td>' +
-            '<td>' + fmtKr(s.avg_price) + ' kr</td>' +
             '<td>' + fmtKr(s.revenue_nok) + ' kr</td>' +
             '</tr>';
         }).join('');
@@ -6309,13 +6281,19 @@
         stylistsCard.style.display = 'none';
       } else {
         stylistsCard.style.display = '';
+        // Maskér etternavnet: «Anne Hansen» → «Anne H.»
+        function maskStylistName(full) {
+          var parts = String(full || '').trim().split(/\s+/).filter(Boolean);
+          if (!parts.length) return '';
+          if (parts.length === 1) return parts[0];
+          return parts[0] + ' ' + parts[parts.length - 1].charAt(0).toUpperCase() + '.';
+        }
         stBody.innerHTML = data.top_stylists.map(function (s) {
           return '<tr>' +
-            '<td><strong>' + escapeHtml(s.name || '') + '</strong></td>' +
+            '<td><strong>' + escapeHtml(maskStylistName(s.name)) + '</strong></td>' +
             '<td>' + s.count + '</td>' +
             '<td>' + pct(s.share) + '</td>' +
             '<td>' + fmtKr(s.revenue_nok) + ' kr</td>' +
-            '<td>' + pct(s.no_show_rate) + '</td>' +
             '</tr>';
         }).join('');
       }
@@ -6339,44 +6317,6 @@
         hourValues.push(Number(data.bookings_by_hour[h2] || 0));
       }
       renderBarChart(document.getElementById('hourChart'), hourLabels, hourValues);
-
-      var revPoints = data.revenue_trend.map(function (p) { return Number(p.revenue || 0); });
-      var revLabels = data.revenue_trend.map(function (p) {
-        var d = new Date(p.week_start + 'T00:00:00');
-        return d.toLocaleDateString('no-NO', { day: '2-digit', month: 'short' });
-      });
-      var revTotal = revPoints.reduce(function (a, b) { return a + b; }, 0);
-      var revEmpty = document.getElementById('revenueTrendEmpty');
-      var revSvg = document.getElementById('revenueTrend');
-      if (revTotal === 0) {
-        revSvg.innerHTML = '';
-        revEmpty.style.display = '';
-      } else {
-        revEmpty.style.display = 'none';
-        renderTrendSvg(revSvg, revPoints, {
-          xLabels: revLabels,
-          yFormat: function (n) { return fmtKr(Math.round(n)) + ' kr'; },
-        });
-      }
-
-      var retPoints = data.returning_rate_trend.map(function (p) { return Number(p.returning_rate || 0) * 100; });
-      var retLabels = data.returning_rate_trend.map(function (p) {
-        var d = new Date(p.month_start + 'T00:00:00');
-        return d.toLocaleDateString('no-NO', { month: 'short' });
-      });
-      var retHasData = data.returning_rate_trend.some(function (p) { return Number(p.total) > 0; });
-      var retSvg = document.getElementById('returningTrend');
-      var retEmpty = document.getElementById('returningTrendEmpty');
-      if (!retHasData) {
-        retSvg.innerHTML = '';
-        retEmpty.style.display = '';
-      } else {
-        retEmpty.style.display = 'none';
-        renderTrendSvg(retSvg, retPoints, {
-          xLabels: retLabels,
-          yFormat: function (n) { return Math.round(n) + ' %'; },
-        });
-      }
 
       var revEl = document.getElementById('analyticsRecentReviews');
       var revListEmpty = document.getElementById('analyticsRecentReviewsEmpty');
