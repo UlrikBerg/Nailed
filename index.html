@@ -34,6 +34,21 @@
     }
     .sc2-body--vertical .sc2-status--open { background: #dcfce7; color: #166534; }
     .sc2-body--vertical .sc2-status--closed { background: var(--stone-100); color: var(--fg-muted); }
+    /* Stjerne-rating: absolutt-plassert øvre høyre hjørne av info-arealet. */
+    .sc2-body--vertical .sc2-rating-corner {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .sc2-body--vertical .sc2-rating-corner i { width: 14px; height: 14px; color: var(--rouge-500); fill: var(--rouge-500); }
+    .sc2-body--vertical .sc2-rating-corner .sc2-meta__sub { color: var(--stone-400); font-weight: 500; }
     .sc2-body--vertical .sc2-status__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
     .sc2-body--vertical .sc2-name {
       font-family: var(--font-display); font-weight: 700;
@@ -166,22 +181,8 @@
 
       </div>
       <div class="hero__cta-row">
-        <a class="hero__cta-pill" href="for-salonger">
-          <i data-lucide="store"></i>
-          <span class="hero__cta-pill__text">
-            <span class="hero__cta-pill__title">For salonger</span>
-            <span class="hero__cta-pill__sub">3 mnd gratis · ingen provisjon</span>
-          </span>
-          <i data-lucide="arrow-right" class="hero__cta-pill__arrow"></i>
-        </a>
-        <a class="hero__cta-pill" href="last-ned-app">
-          <i data-lucide="smartphone"></i>
-          <span class="hero__cta-pill__text">
-            <span class="hero__cta-pill__title">Last ned app</span>
-            <span class="hero__cta-pill__sub">Kommer juni / juli</span>
-          </span>
-          <i data-lucide="arrow-right" class="hero__cta-pill__arrow"></i>
-        </a>
+        <a class="hero__cta-pill" href="for-salonger">For salonger</a>
+        <a class="hero__cta-pill" href="last-ned-app">Last ned app</a>
       </div>
     </div>
     <img src="assets/sticker-nailed-it.svg" class="hero__sticker" alt="" />
@@ -393,12 +394,12 @@
       var featured = (opts.allowFeatured && idx === 0) ? ' service-card--featured' : '';
 
       var locationLine = salon.city
-        ? '<span class="sc2-meta__item"><i data-lucide="map-pin"></i>' + featuredEscapeHtml(salon.city) + '</span>'
-        : '';
+        ? '<span class="sc2-meta__item">Salong i ' + featuredEscapeHtml(salon.city) + '</span>'
+        : '<span class="sc2-meta__item">Salong</span>';
 
-      var ratingLine = '';
+      var ratingBadge = '';
       if (salon.avg_rating != null && salon.review_count > 0) {
-        ratingLine = '<span class="sc2-meta__item"><i data-lucide="star"></i>'
+        ratingBadge = '<span class="sc2-rating-corner"><i data-lucide="star"></i>'
           + featuredEscapeHtml(Number(salon.avg_rating).toFixed(1))
           + ' <span class="sc2-meta__sub">(' + salon.review_count + ')</span></span>';
       }
@@ -431,8 +432,9 @@
             + '</button>'
           + '</div>'
           + '<div class="service-card__body sc2-body sc2-body--vertical">'
+            + ratingBadge
             + '<div class="sc2-name">' + featuredEscapeHtml(salon.name || 'Salong') + '</div>'
-            + '<div class="sc2-meta">' + locationLine + ratingLine + '</div>'
+            + '<div class="sc2-meta">' + locationLine + '</div>'
             + '<div class="sc2-bottom">'
               + '<div class="sc2-footer">'
                 + catsHtml

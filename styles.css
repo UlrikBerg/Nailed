@@ -447,11 +447,10 @@ p { margin: 0 0 var(--space-4) 0; }
   margin-top: 14px;
 }
 
-/* CTA-rad rett under hero-søket — to pill-style cards for «For salonger»
-   og «Last ned app». Erstatter den gamle «Populært»-chip-raden. */
+/* Minimalistiske hero-CTA-er — to elegante pill-buttons med kun tittel. */
 .hero__cta-row {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
   margin-top: 20px;
@@ -459,53 +458,21 @@ p { margin: 0 0 var(--space-4) 0; }
 .hero__cta-pill {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 18px;
-  background: var(--cream-50);
-  border: 1px solid var(--stone-200);
+  padding: 10px 22px;
+  background: transparent;
+  border: 1px solid var(--stone-300);
   border-radius: var(--radius-pill);
   color: var(--ink);
   text-decoration: none;
   font-family: var(--font-body);
-  transition: border-color var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast);
+  font-weight: 500;
+  font-size: 14px;
+  transition: border-color var(--dur-fast), background var(--dur-fast), color var(--dur-fast);
 }
 .hero__cta-pill:hover {
-  border-color: var(--rouge-300);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(238, 63, 126, 0.08);
-}
-.hero__cta-pill > i:first-child {
-  width: 22px;
-  height: 22px;
-  color: var(--rouge-500);
-  flex-shrink: 0;
-}
-.hero__cta-pill__text {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
-  line-height: 1.15;
-}
-.hero__cta-pill__title {
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--ink);
-}
-.hero__cta-pill__sub {
-  font-size: 12px;
-  color: var(--fg-muted);
-}
-.hero__cta-pill__arrow {
-  width: 14px;
-  height: 14px;
-  color: var(--rouge-500);
-  flex-shrink: 0;
-  transition: transform var(--dur-fast);
-}
-.hero__cta-pill:hover .hero__cta-pill__arrow { transform: translateX(2px); }
-@media (max-width: 560px) {
-  .hero__cta-row { flex-direction: column; align-items: stretch; gap: 8px; }
-  .hero__cta-pill { justify-content: space-between; }
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--cream-50);
 }
 .hero__sticker {
   position: absolute;
