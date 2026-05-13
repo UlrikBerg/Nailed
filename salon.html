@@ -921,19 +921,18 @@
                   '</div>' +
                  '</div>';
       serviceList.insertAdjacentHTML('beforeend', html);
+    }
 
-      // På mobil: scroll til selve «Valgt behandling»-card-en — ikke bookingpanel-
-      // toppen — så brukeren lander rett på det de nettopp valgte. ~100 px
-      // fra toppen plasserer kortet rett under top-nav-en uten å overshoote.
-      if (window.matchMedia('(max-width: 900px)').matches) {
-        var card = serviceList.querySelector('.service-list__adhoc');
-        if (card) {
-          setTimeout(function () {
-            var top = card.getBoundingClientRect().top + window.scrollY - 60;
-            window.scrollTo({ top: top, behavior: 'smooth' });
-          }, 50);
-        }
-      }
+    // Scroll til «Valgt behandling»-card-en på mobil. Kalles eksplisitt fra
+    // user-click-handlere (ikke fra initial render eller URL-pre-select).
+    function scrollToSelectedService() {
+      if (!window.matchMedia('(max-width: 900px)').matches) return;
+      var card = serviceList.querySelector('.service-list__adhoc');
+      if (!card) return;
+      setTimeout(function () {
+        var top = card.getBoundingClientRect().top + window.scrollY - 60;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+      }, 50);
     }
 
     // Toggle: re-clicking the same service deselects it; otherwise switch.
@@ -964,7 +963,7 @@
       var item = e.target.closest('.service-list__item');
       if (!item) return;
       var svc = renderedServices.find(function(s) { return String(s.id) === item.dataset.id; });
-      if (svc) toggleService(svc);
+      if (svc) { toggleService(svc); scrollToSelectedService(); }
     });
 
     // ---- Day picker — sliding carousel of up to 30 days, 5 per page ----
@@ -2089,7 +2088,7 @@
         document.querySelectorAll('.all-services__item').forEach(function(item) {
           item.addEventListener('click', function() {
             var svc = renderedServices.find(function(s) { return String(s.id) === item.dataset.id; });
-            if (svc) toggleService(svc);
+            if (svc) { toggleService(svc); scrollToSelectedService(); }
           });
         });
 
