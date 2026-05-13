@@ -23,6 +23,7 @@ const trackRoutes = require('./routes/track');
 const contactRoutes = require('./routes/contact');
 const fikenRoutes = require('./routes/fiken');
 const seoRoutes = require('./routes/seo');
+const cronRoutes = require('./routes/cron');
 
 function buildApp() {
   const app = express();
@@ -194,6 +195,7 @@ function buildApp() {
   app.use('/api/v1/track', trackRoutes);
   app.use('/api/v1/contact', contactRoutes);
   app.use('/api/v1/fiken', fikenRoutes);
+  app.use('/api/v1/cron', cronRoutes);
 
   // 404 for unknown /api/v1/* — returnerer JSON-feil.
   app.use('/api/v1', notFound);

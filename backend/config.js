@@ -111,6 +111,11 @@ const config = {
 
   bootstrapAdminEmails: list('BOOTSTRAP_ADMIN_EMAILS'),
 
+  // Token brukt av Hostinger-cron for å trigge interne sveip via HTTPS
+  // uten admin-sesjon. Sett som env-var i hPanel; cron-linja sender det
+  // som Bearer-token i Authorization-headeren.
+  cronToken: optional('CRON_TOKEN', ''),
+
   // Fiken-integrasjon (regnskap). Salongene kobler sin Fiken-konto via OAuth
   // og Nailed oppretter fakturaer automatisk når bookinger fullføres.
   // clientId + secret hentes fra fiken.no/utvikler etter at appen er
