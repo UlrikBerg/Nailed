@@ -1357,9 +1357,14 @@
     (function () {
       var nav = document.getElementById('topNav');
       if (!nav) return;
-      window.addEventListener('scroll', function () {
-        nav.classList.toggle('scrolled', window.scrollY > 30);
-      });
+      var mq = window.matchMedia('(max-width: 720px)');
+      function update() {
+        if (mq.matches) nav.classList.add('scrolled');
+        else nav.classList.toggle('scrolled', window.scrollY > 30);
+      }
+      window.addEventListener('scroll', update, { passive: true });
+      if (mq.addEventListener) mq.addEventListener('change', update);
+      update();
     })();
 
     /* ================================================================

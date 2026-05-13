@@ -3182,13 +3182,19 @@
     var analyticsPeriod = '30d';
     var analyticsLoaded = false;
 
-    // Sticky-shadow on the public top-nav as the user scrolls.
+    // Sticky-shadow on the public top-nav. På mobil i panelet låses .scrolled
+    // alltid på så headeren blir kompakt og innstillinger får mer plass.
     (function () {
       var nav = document.getElementById('topNav');
       if (!nav) return;
-      window.addEventListener('scroll', function () {
-        nav.classList.toggle('scrolled', window.scrollY > 30);
-      });
+      var mq = window.matchMedia('(max-width: 720px)');
+      function update() {
+        if (mq.matches) nav.classList.add('scrolled');
+        else nav.classList.toggle('scrolled', window.scrollY > 30);
+      }
+      window.addEventListener('scroll', update, { passive: true });
+      if (mq.addEventListener) mq.addEventListener('change', update);
+      update();
     })();
 
     // The tab pills act like the old sidebar nav-items: clicking switches the

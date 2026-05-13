@@ -1040,9 +1040,15 @@
     // ---------------------------------------------------------------------
     (function () {
       var nav = document.getElementById('topNav');
-      window.addEventListener('scroll', function () {
-        nav.classList.toggle('scrolled', window.scrollY > 30);
-      });
+      if (!nav) return;
+      var mq = window.matchMedia('(max-width: 720px)');
+      function update() {
+        if (mq.matches) nav.classList.add('scrolled');
+        else nav.classList.toggle('scrolled', window.scrollY > 30);
+      }
+      window.addEventListener('scroll', update, { passive: true });
+      if (mq.addEventListener) mq.addEventListener('change', update);
+      update();
     })();
 
     // ---------------------------------------------------------------------
