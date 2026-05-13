@@ -512,10 +512,16 @@
       gap: 14px;
     }
     @media (max-width: 1100px) { .kp-summary { grid-template-columns: 1fr 1fr; } }
-    /* Statistikk-fliser: 3 og 3 på desktop, 2 på smalere viewport.
+    /* Statistikk-fliser: 3 og 3 på alle viewports.
        Bruker id-selektor så det vinner over .kp-summary-defaultsen. */
     #analyticsKpiRow { grid-template-columns: repeat(3, 1fr); }
-    @media (max-width: 1100px) { #analyticsKpiRow { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) {
+      /* Smalere mobil-fliser: krymp verdi-tekst litt så «1500 kr» osv
+         får plass uten å bli kuttet eller pushet ut av kortet. */
+      #analyticsKpiRow .kp-tile { padding: 12px 8px; }
+      #analyticsKpiRow .kp-tile__value { font-size: 18px; }
+      #analyticsKpiRow .kp-tile__label { font-size: 10px; }
+    }
     @media (max-width: 600px)  {
       /* Mobil: to fliser i bredden så de tar mindre plass enn én stablet
          kolonne. Innholdet vertikalt inni (ikon → label → tall), kompakt. */
