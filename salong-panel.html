@@ -4652,7 +4652,8 @@
           rows2.push('<div class="profile-contact__row"><span class="profile-contact__svg">' + SOCIAL_SVG[k] + '</span>' +
             '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' + label + '</a></div>');
         });
-        rows2.push('<div class="profile-contact__row"><i data-lucide="check-circle"></i>' +
+        var checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+        rows2.push('<div class="profile-contact__row"><span class="profile-contact__svg">' + checkSvg + '</span>' +
           '<span>' + (s.accepts_new_bookings ? 'Tar imot nye bookinger.' : 'Tar ikke imot nye bookinger akkurat nå.') + '</span></div>');
         if (rows2.length === 1) {
           rows2.unshift('<div class="profile-contact__row profile-contact__row--empty"><i data-lucide="info"></i>Legg til kontaktinfo og lenker i Rediger.</div>');

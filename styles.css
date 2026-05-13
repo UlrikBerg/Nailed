@@ -2400,6 +2400,17 @@ div.salon-detail__about > p:last-child { margin-bottom: 0; }
     box-sizing: border-box;
   }
   .bottom-nav__badge[hidden] { display: none; }
+  /* Dot-variant uten tall — for "noe krever oppmerksomhet" på profil-item */
+  .bottom-nav__badge--dot {
+    min-width: 9px;
+    width: 9px;
+    height: 9px;
+    padding: 0;
+    border-radius: 50%;
+    top: 0;
+    right: -2px;
+    font-size: 0;
+  }
 
   /* Skjul top-nav-lenker og høyresidens actions på mobil — kun logoen synlig.
      Footer-knappen «Logg inn» og hjerte-favoritter flytter inn i bottom-nav. */
