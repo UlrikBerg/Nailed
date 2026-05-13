@@ -806,3 +806,29 @@ ALTER TABLE chat_messages
   ADD COLUMN IF NOT EXISTS image_key VARCHAR(255) DEFAULT NULL;
 ALTER TABLE chat_messages
   MODIFY body TEXT NULL;
+
+-- Fiken-integrasjon (regnskap). En salong kan koble sin Fiken-konto via
+-- OAuth; vi lagrer access/refresh-token + company_slug. Auto-faktura
+-- opprettes når bookinger markeres fullført, og fiken_invoice_id lagres
+-- på booking-raden for sporbarhet (idempotent ved retry).
+ALTER TABLE salons
+  ADD COLUMN IF NOT EXISTS fiken_company_slug      VARCHAR(255) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS fiken_access_token      VARCHAR(2048) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS fiken_refresh_token     VARCHAR(2048) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS fiken_token_expires_at  DATETIME DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS fiken_auto_invoice      TINYINT(1) NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS fiken_connected_at      DATETIME DEFAULT NULL;
+
+-- Per-tjeneste mapping: MVA-kode + Fiken-produkt-id (valgfritt — uten
+-- mapping bruker vi en default tjeneste-linje med 25 % MVA).
+ALTER TABLE services
+  ADD COLUMN IF NOT EXISTS fiken_product_id        INT UNSIGNED DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS fiken_vat_code          VARCHAR(16) DEFAULT NULL;
+
+-- Spor hvilken Fiken-faktura en booking ble fakturert som. NULL = ikke
+-- fakturert (enten ikke fullført ennå, eller fiken ikke koblet på).
+ALTER TABLE bookings
+  ADD COLUMN IF NOT EXISTS fiken_invoice_id        VARCHAR(64) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS fiken_invoice_url       VARCHAR(512) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS fiken_synced_at         DATETIME DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS fiken_sync_error        VARCHAR(2000) DEFAULT NULL;
