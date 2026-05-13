@@ -751,10 +751,10 @@
           <span class="kp-welcome__wave" aria-hidden="true">👋</span>
           <h2 class="kp-welcome__title">Velkommen til <em>nailed.</em></h2>
           <p class="kp-welcome__desc">
-            Du er klar til å booke din første time. Finn salongen som passer deg.
+            Du er klar til å booke din første time. Finn behandleren som passer deg.
           </p>
           <a class="btn btn-primary btn-lg" href="/utforsk">
-            Utforsk salonger <i data-lucide="arrow-right"></i>
+            Utforsk behandlere <i data-lucide="arrow-right"></i>
           </a>
         </div>
 
@@ -779,15 +779,15 @@
 
         <div class="kp-callout">
           <div class="kp-callout__text">
-            <h3 class="kp-callout__title">Bli salong på nailed</h3>
+            <h3 class="kp-callout__title">Bli behandler på nailed</h3>
             <p class="kp-callout__desc">
-              Tilbyr du behandlinger? Søk om å bli registrert salong og start å motta
+              Tilbyr du behandlinger? Søk om å bli registrert behandler og start å motta
               bookinger gjennom nailed.
             </p>
             <div id="becomeSalonStatus" style="margin-top:10px;"></div>
           </div>
           <a class="btn btn-primary" id="becomeSalonBtn" href="/bli-salong">
-            <i data-lucide="store"></i> Søk om å bli salong
+            <i data-lucide="store"></i> Søk om å bli behandler
           </a>
         </div>
       </div>
@@ -807,7 +807,7 @@
           <span class="kp-empty__icon"><i data-lucide="calendar"></i></span>
           <h3 class="kp-empty__title" id="bookingsEmptyTitle">Ingen bookinger her ennå</h3>
           <p class="kp-empty__desc" id="bookingsEmptyDesc">
-            Når du booker en behandling, dukker den opp her. <a href="/utforsk">Utforsk salonger →</a>
+            Når du booker en behandling, dukker den opp her. <a href="/utforsk">Utforsk behandlere →</a>
           </p>
         </div>
 
@@ -821,21 +821,21 @@
       <!-- MELDINGER -->
       <div class="kp-tab-content" id="tab-meldinger">
         <h2 class="kp-section-title">Meldinger</h2>
-        <p class="kp-section-sub">Snakk med salongene du har booket time hos.</p>
+        <p class="kp-section-sub">Snakk med behandlerne du har booket time hos.</p>
         <div id="meldingerRoot"></div>
       </div>
 
       <!-- FAVORITTER -->
       <div class="kp-tab-content" id="tab-favoritter">
         <h2 class="kp-section-title">Favoritter</h2>
-        <p class="kp-section-sub">Salonger du har lagret.</p>
+        <p class="kp-section-sub">Behandlere du har lagret.</p>
 
         <div class="kp-list" id="favoritesList"></div>
         <div id="favoritesEmpty" class="kp-empty" style="display:none;">
           <span class="kp-empty__icon"><i data-lucide="heart"></i></span>
           <h3 class="kp-empty__title">Ingen favoritter ennå</h3>
           <p class="kp-empty__desc">
-            Trykk på hjertet på en salong for å lagre den her. <a href="/utforsk">Utforsk salonger →</a>
+            Trykk på hjertet på en behandler for å lagre den her. <a href="/utforsk">Utforsk behandlere →</a>
           </p>
         </div>
       </div>
@@ -851,7 +851,7 @@
           <h3 class="kp-empty__title">Ingen anmeldelser ennå</h3>
           <p class="kp-empty__desc">
             Du har ikke skrevet noen anmeldelser ennå. Etter en time kan du anmelde
-            salongen fra Bookinger-fanen.
+            behandleren fra Bookinger-fanen.
           </p>
         </div>
       </div>
@@ -1281,10 +1281,10 @@
         empty.style.display = '';
         if (filter === 'past') {
           emptyTitle.textContent = 'Ingen tidligere bookinger';
-          emptyDesc.innerHTML = 'Når du har vært hos en salong, dukker historikken opp her.';
+          emptyDesc.innerHTML = 'Når du har vært hos en behandler, dukker historikken opp her.';
         } else {
           emptyTitle.textContent = 'Ingen kommende bookinger';
-          emptyDesc.innerHTML = 'Når du booker en behandling, dukker den opp her. <a href="/utforsk">Utforsk salonger →</a>';
+          emptyDesc.innerHTML = 'Når du booker en behandling, dukker den opp her. <a href="/utforsk">Utforsk behandlere →</a>';
         }
         window.lucide && window.lucide.createIcons();
         return;
@@ -1565,7 +1565,7 @@
         NailedAuth.api('/api/v1/bookings/' + encodeURIComponent(opts.bookingId)),
       ]);
       if (!salonRes.ok || !bookingRes.ok) {
-        daysEl.innerHTML = '<div class="kp-resched-form__empty">Kunne ikke laste salongdata.</div>';
+        daysEl.innerHTML = '<div class="kp-resched-form__empty">Kunne ikke laste behandler-data.</div>';
         return;
       }
       var salonData = await salonRes.json();
@@ -1940,7 +1940,7 @@
             '<div>' +
               '<span class="kp-review-card__salon">' +
                 '<a href="/salon?slug=' + encodeURIComponent(salon.slug || '') + '">' +
-                  escapeHtml(salon.name || 'Salong') +
+                  escapeHtml(salon.name || 'Behandler') +
                 '</a>' +
               '</span>' +
               '<span class="kp-review-card__stars">' + reviewStarsHtml(r.rating) + '</span>' +
