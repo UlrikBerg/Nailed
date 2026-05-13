@@ -967,8 +967,27 @@
       transition: border-color var(--dur-fast);
     }
     .form-input:focus { border-color: var(--rouge-500); }
+    .form-input { width: 100%; box-sizing: border-box; }
     .form-label { font-weight: 600; font-size: 13px; color: var(--ink); }
     .form-help { font-size: 13px; color: var(--fg-muted); display: block; margin-top: 4px; }
+
+    /* Mobil-tilpasninger for Innstillinger-tab: kortene blir kompakte,
+       sub-card stacker tittel+pris, inputs får full bredde og border-box. */
+    @media (max-width: 720px) {
+      #tab-innstillinger .kp-card { padding: 18px 16px; margin-bottom: 14px; }
+      #tab-innstillinger h2,
+      #tab-innstillinger .sub-card__title { font-size: 18px !important; }
+      .sub-card__head { flex-direction: column; gap: 10px; margin-bottom: 14px; }
+      .sub-card__price { width: 100%; justify-content: center; padding: 8px 12px; }
+      .sub-card__priceValue { font-size: 24px; }
+      .sub-card__list { gap: 6px; }
+      .sub-card__list li { font-size: 13px; }
+      /* Booking-regler-form: max-width fjernes så input fyller kortet */
+      #bookingRulesForm,
+      #notificationsForm { max-width: 100%; }
+      .form-input { font-size: 16px; padding: 10px 12px; }
+      .form-help { font-size: 12px; }
+    }
 
     /* Extra button variants (success/danger) — base .btn comes from styles.css. */
     .btn-danger { background: var(--danger-50); color: var(--danger-500); border: 1px solid transparent; }
