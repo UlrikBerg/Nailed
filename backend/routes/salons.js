@@ -274,6 +274,7 @@ router.get('/:slug', asyncRoute(async (req, res) => {
     `SELECT id, slug, name, city, address_line, postal_code, lat, lng, bio,
             instagram_url, tiktok_url, facebook_url, website_url,
             cover_image_key, public_phone_visible, accepts_new_bookings,
+            public_email, public_phone,
             cancellation_lead_hours, booking_window_days,
             min_booking_lead_hours, booking_buffer_min,
             notify_email_new_booking, notify_email_cancellation,
@@ -428,6 +429,7 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
     `SELECT id, slug, name, city, address_line, postal_code, bio,
             instagram_url, tiktok_url, facebook_url, website_url,
             cover_image_key, public_phone_visible, accepts_new_bookings,
+            public_email, public_phone,
             cancellation_lead_hours, booking_window_days,
             min_booking_lead_hours, booking_buffer_min,
             notify_email_new_booking, notify_email_cancellation,
@@ -558,6 +560,16 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
     website_url: lazyUrl().optional(),
     public_phone_visible: z.boolean().optional(),
     accepts_new_bookings: z.boolean().optional(),
+    // Salongens egen e-post + telefon (separat fra eier-kontoen).
+    // Tom streng → null så feltet ryddes.
+    public_email: z.preprocess(
+      v => (typeof v === 'string' && v.trim() === '' ? null : v),
+      z.string().trim().email('Ugyldig e-postadresse').max(255).nullable()
+    ).optional(),
+    public_phone: z.preprocess(
+      v => (typeof v === 'string' && v.trim() === '' ? null : v),
+      z.string().trim().max(32).nullable()
+    ).optional(),
     cancellation_lead_hours: z.number().int().min(0).max(168).optional(),
     booking_window_days: z.number().int().min(1).max(180).optional(),
     min_booking_lead_hours: z.number().int().min(0).max(168).optional(),
