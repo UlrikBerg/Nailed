@@ -2816,8 +2816,9 @@
             throw new Error((err.error && err.error.message) || ('seed ' + res.status));
           }
           var data = await res.json();
-          statusEl.textContent = 'Ferdig: ' + data.created + ' opprettet, ' + data.skipped + ' hoppet over.';
-          showToast(data.created + ' test-salonger opprettet', 'success');
+          statusEl.textContent = 'Ferdig: ' + data.created + ' opprettet, ' +
+            (data.backfilled || 0) + ' fikk aktivitet, ' + data.skipped + ' hoppet over.';
+          showToast(data.created + ' nye + ' + (data.backfilled || 0) + ' backfilled', 'success');
         } catch (e) {
           statusEl.textContent = 'Feil: ' + (e.message || e);
           showToast('Seeding feilet: ' + e.message, 'error');
