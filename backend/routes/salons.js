@@ -674,6 +674,52 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
 // shown on the Dashboard tab of /salong-panel.html. Idempotent: subsequent
 // calls are no-ops. Once set, the card never re-renders even if the underlying
 // state changes (e.g. owner deletes their bio later).
+// POST /salons/:id/request-invoice — salongeier ber om at admin sender
+// faktura manuelt (via Fiken). Sender e-post til support-adressen.
+router.post('/:id/request-invoice', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const salon = await queryOne(
+    `SELECT s.id, s.name, s.slug, s.subscription_status, s.trial_ends_at,
+            s.public_email, s.public_phone, s.org_number,
+            u.email AS owner_email, u.name AS owner_name
+       FROM salons s JOIN users u ON u.id = s.owner_user_id
+      WHERE s.id = ? LIMIT 1`,
+    [id]
+  );
+  if (!salon) throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
+  if (req.user.role !== 'admin' && req.user.id !== (
+    await queryOne('SELECT owner_user_id FROM salons WHERE id = ?', [id])).owner_user_id) {
+    throw new HttpError(403, 'forbidden', 'Du eier ikke denne salongen.');
+  }
+  try {
+    const { sendEmail } = require('../lib/notify/email');
+    const supportEmail = process.env.SUPPORT_EMAIL || 'support@nailed.no';
+    const html =
+      '<h2>Faktura-forespørsel fra ' + salon.name + '</h2>' +
+      '<p>Salongeier har bedt om at faktura for Nailed-abonnementet sendes.</p>' +
+      '<ul>' +
+        '<li><strong>Salong:</strong> ' + salon.name + ' (' + salon.slug + ')</li>' +
+        '<li><strong>Eier:</strong> ' + (salon.owner_name || '–') + ' &lt;' + salon.owner_email + '&gt;</li>' +
+        '<li><strong>Org.nr:</strong> ' + (salon.org_number || '–') + '</li>' +
+        '<li><strong>Salong e-post:</strong> ' + (salon.public_email || salon.owner_email) + '</li>' +
+        '<li><strong>Salong telefon:</strong> ' + (salon.public_phone || '–') + '</li>' +
+        '<li><strong>Prøveperiode utløper:</strong> ' + (salon.trial_ends_at || '–') + '</li>' +
+      '</ul>' +
+      '<p>Opprett faktura i Fiken og marker salongen som «active» i adminpanelet når betaling er mottatt.</p>';
+    await sendEmail({
+      to: supportEmail,
+      subject: 'Nailed: faktura-forespørsel — ' + salon.name,
+      html: html,
+      replyTo: salon.owner_email,
+    });
+  } catch (err) {
+    console.warn('[request-invoice] email failed', err && err.message);
+    // Failer ikke responsen — admin har uansett tilgang til lista
+  }
+  res.json({ ok: true });
+}));
+
 router.post('/:id/onboarding/skip', requireAuth, asyncRoute(async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
