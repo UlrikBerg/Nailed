@@ -1445,6 +1445,25 @@
 
     /* Team editor cards */
     .team-edit-list { display: flex; flex-direction: column; gap: 12px; }
+    /* Team-card-knapper: kompakt, ikon-tung, mindre cluttered. */
+    .team-edit-card__actions .btn {
+      padding: 6px 10px;
+      font-size: 12px;
+      min-height: 0;
+      gap: 4px;
+    }
+    .team-edit-card__actions .btn i { width: 14px; height: 14px; }
+    @media (max-width: 720px) {
+      /* På mobil: ikon-only-knapper for å spare plass */
+      .team-edit-card__actions .btn {
+        width: 36px; height: 36px;
+        padding: 0;
+        justify-content: center;
+      }
+      .team-edit-card__actions .btn span,
+      .team-edit-card__actions .btn { font-size: 0; }
+      .team-edit-card__actions .btn i { width: 16px; height: 16px; font-size: 16px; }
+    }
     .team-edit-card {
       border: 1px solid var(--stone-200); border-radius: var(--radius-md);
       padding: 14px; background: var(--cream-100);
@@ -3267,10 +3286,12 @@
           <div class="kp-card" id="teamEditPanel" data-edit-section="team">
             <div class="kp-card__head">
               <h3>Team</h3>
-              <div style="font-size: 13px; color: var(--fg-muted);">Legg til, rediger og skjul team-medlemmer.</div>
+              <button class="btn btn-primary btn-sm" type="button" id="teamAddToggle">
+                <i data-lucide="plus"></i> Legg til medlem
+              </button>
             </div>
 
-            <form id="teamAddForm" class="settings-grid" style="margin-bottom: 20px;">
+            <form id="teamAddForm" class="settings-grid" hidden>
               <div class="form-group">
                 <label>Navn</label>
                 <input class="form-input" name="name" type="text" required maxlength="120" />
@@ -3283,8 +3304,9 @@
                 <label>Bio (valgfri)</label>
                 <textarea class="form-input" name="bio" rows="2" maxlength="500"></textarea>
               </div>
-              <div style="grid-column: 1 / -1;">
-                <button class="btn btn-primary" type="submit"><i data-lucide="plus"></i> Legg til medlem</button>
+              <div style="grid-column: 1 / -1; display:flex; gap:8px; justify-content:flex-end;">
+                <button class="btn btn-ghost" type="button" id="teamAddCancel">Avbryt</button>
+                <button class="btn btn-primary" type="submit"><i data-lucide="check"></i> Legg til</button>
               </div>
             </form>
 
@@ -6416,6 +6438,26 @@
     document.getElementById('saveHoursBtn').addEventListener('click', saveHours);
     document.getElementById('saveAmenitiesBtn').addEventListener('click', saveAmenities);
 
+    (function wireTeamAddToggle() {
+      var toggle = document.getElementById('teamAddToggle');
+      var form = document.getElementById('teamAddForm');
+      var cancel = document.getElementById('teamAddCancel');
+      if (!toggle || !form) return;
+      function open() {
+        form.hidden = false;
+        var firstInput = form.querySelector('input[name=name]');
+        if (firstInput) setTimeout(function () { firstInput.focus(); }, 50);
+      }
+      function close() {
+        form.hidden = true;
+        form.reset();
+      }
+      toggle.addEventListener('click', function () {
+        if (form.hidden) open(); else close();
+      });
+      if (cancel) cancel.addEventListener('click', close);
+    })();
+
     document.getElementById('teamAddForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       var fd = new FormData(this);
@@ -6436,6 +6478,7 @@
       }
       NailedForms.toast('Team-medlem lagt til');
       this.reset();
+      this.hidden = true;
       await loadSalon();
       await loadServices();
     });
