@@ -1029,6 +1029,20 @@
     /* Stylist-navn skal ikke wrappe på «Anne H.» — ett stykke ord. */
     #topStylistsTable td:first-child { white-space: nowrap; }
 
+    /* Fiken-synk-pill — vises på fullførte bookinger i Bookinger-tabellen */
+    .fiken-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .fiken-pill--ok  { background: var(--success-50);  color: var(--success-500); }
+    .fiken-pill--err { background: var(--danger-50);   color: var(--danger-500); cursor: help; }
+
     /* Status badges (admin-derived; cream/rouge palette) */
     .status {
       display: inline-flex;
@@ -2872,6 +2886,20 @@
               <select class="form-input" name="category_id" id="serviceCategorySelect">
                 <option value="">(Ingen kategori)</option>
               </select>
+            </div>
+            <div class="form-group">
+              <label>MVA-sats (Fiken)</label>
+              <select class="form-input" name="fiken_vat_code">
+                <option value="">– Standard (25 %) –</option>
+                <option value="HIGH">25 % (HIGH)</option>
+                <option value="MEDIUM">15 % (MEDIUM)</option>
+                <option value="LOW">11,11 % (LOW)</option>
+                <option value="EXEMPT">Fritatt (EXEMPT)</option>
+                <option value="OUTSIDE">Utenfor MVA (OUTSIDE)</option>
+              </select>
+              <span class="form-help" style="display:block; color: var(--fg-muted); font-size:12px; margin-top:4px;">
+                Brukes når Nailed automatisk lager faktura i Fiken. La stå tom for å bruke 25 %.
+              </span>
             </div>
             <div class="form-group" style="grid-column: 1 / -1;">
               <label>Tilbys av</label>
@@ -5530,7 +5558,13 @@
             (b.team_member_name ? '<br><span class="td-muted">Behandler: ' + escapeHtml(b.team_member_name) + '</span>' : '') +
             (b.duration_min ? '<br><span class="td-muted">' + b.duration_min + ' min</span>' : '') +
             '</td>' +
-          '<td><strong>' + b.price_nok + ' kr</strong></td>' +
+          '<td><strong>' + b.price_nok + ' kr</strong>' +
+            (b.fiken_invoice_id
+              ? '<br><span class="fiken-pill fiken-pill--ok" title="Faktura opprettet i Fiken"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;"><polyline points="20 6 9 17 4 12"/></svg> Fiken</span>'
+              : (b.fiken_sync_error
+                  ? '<br><span class="fiken-pill fiken-pill--err" title="' + escapeHtml(b.fiken_sync_error) + '">Fiken: feil</span>'
+                  : '')) +
+          '</td>' +
           '<td><span class="' + (statusClass[b.status] || 'status') + '">' + (statusLabel[b.status] || b.status) + '</span></td>' +
           '<td>' + actions + '</td>';
         tbody.appendChild(tr);
@@ -6319,6 +6353,8 @@
       form.querySelector('textarea[name=description]').value = svc ? (svc.description || '') : '';
       form.querySelector('input[name=duration_min]').value = svc ? svc.duration_min : '';
       form.querySelector('input[name=price_nok]').value = svc ? svc.price_nok : '';
+      var vatSel = form.querySelector('select[name=fiken_vat_code]');
+      if (vatSel) vatSel.value = (svc && svc.fiken_vat_code) ? svc.fiken_vat_code : '';
       renderServiceCategorySelect(svc ? svc.category_id : null);
       renderServiceTeamGrid(svc ? (svc.team_member_ids || []) : []);
       panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -6495,12 +6531,14 @@
       e.preventDefault();
       var fd = new FormData(this);
       var catVal = (fd.get('category_id') || '').toString().trim();
+      var vatVal = (fd.get('fiken_vat_code') || '').toString().trim();
       var body = {
         name: (fd.get('name') || '').toString().trim(),
         description: ((fd.get('description') || '').toString().trim() || null),
         duration_min: parseInt(fd.get('duration_min'), 10),
         price_nok: parseInt(fd.get('price_nok'), 10),
         category_id: catVal ? parseInt(catVal, 10) : null,
+        fiken_vat_code: vatVal || null,
       };
       var id = this.dataset.id;
       var res = id
