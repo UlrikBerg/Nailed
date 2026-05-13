@@ -269,10 +269,10 @@
         '</div>' +
         '<div class="bn-sheet__actions">' +
           '<a class="bn-sheet__action" href="/kunde-panel#tab-profil" data-bn-action="nav">' +
-            '<i data-lucide="user"></i><span>Kundepanel</span>' +
+            '<i data-lucide="user"></i><span>Kundeprofil</span>' +
           '</a>' +
           '<a class="bn-sheet__action" href="/salong-panel" id="bnGoSalon" data-bn-action="nav" hidden>' +
-            '<i data-lucide="store"></i><span>Salongpanel</span>' +
+            '<i data-lucide="store"></i><span>Salongprofil</span>' +
           '</a>' +
           '<a class="bn-sheet__action" href="/admin/" id="bnGoAdmin" data-bn-action="nav" hidden>' +
             '<i data-lucide="shield"></i><span>Adminpanel</span>' +
