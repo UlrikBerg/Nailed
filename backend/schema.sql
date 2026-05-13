@@ -811,6 +811,12 @@ ALTER TABLE chat_messages
 -- OAuth; vi lagrer access/refresh-token + company_slug. Auto-faktura
 -- opprettes når bookinger markeres fullført, og fiken_invoice_id lagres
 -- på booking-raden for sporbarhet (idempotent ved retry).
+-- Pilot-flag: salonger som ble med tidlig får 149 kr/mnd så lenge
+-- abonnementet er aktivt. Re-aktivering etter kansellering for ikke-piloter
+-- koster 299 kr/mnd.
+ALTER TABLE salons
+  ADD COLUMN IF NOT EXISTS is_pilot TINYINT(1) NOT NULL DEFAULT 0;
+
 ALTER TABLE salons
   ADD COLUMN IF NOT EXISTS fiken_company_slug      VARCHAR(255) DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS fiken_access_token      VARCHAR(2048) DEFAULT NULL,

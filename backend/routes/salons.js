@@ -448,7 +448,7 @@ router.get('/me/own', requireAuth, asyncRoute(async (req, res) => {
             booking_confirmation_text, lunch_break_start, lunch_break_end,
             onboarding_skipped,
             slot_interval_min, org_number,
-            subscription_status, subscription_price_nok,
+            subscription_status, subscription_price_nok, is_pilot,
             trial_ends_at, subscription_started_at, subscription_cancelled_at,
             suspension_reason, suspended_at,
             status
@@ -674,6 +674,66 @@ router.patch('/:id', requireAuth, asyncRoute(async (req, res) => {
 // shown on the Dashboard tab of /salong-panel.html. Idempotent: subsequent
 // calls are no-ops. Once set, the card never re-renders even if the underlying
 // state changes (e.g. owner deletes their bio later).
+// POST /salons/:id/cancel-subscription — salongeier sier opp abonnementet.
+// Salongen forblir aktiv, men subscription_status settes til 'cancelled'.
+// Når trial er over og status='cancelled', sluttes auto-fakturering.
+router.post('/:id/cancel-subscription', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const salon = await queryOne(`SELECT owner_user_id FROM salons WHERE id = ?`, [id]);
+  if (!salon) throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
+  if (req.user.role !== 'admin' && salon.owner_user_id !== req.user.id) {
+    throw new HttpError(403, 'forbidden', 'Du eier ikke denne salongen.');
+  }
+  await query(
+    `UPDATE salons SET subscription_status = 'cancelled',
+                       subscription_cancelled_at = NOW() WHERE id = ?`,
+    [id]
+  );
+  res.json({ ok: true });
+}));
+
+// POST /salons/:id/reactivate-subscription — salongeier vil starte opp igjen
+// etter kansellering. Pris: 149 kr/mnd hvis is_pilot=1, ellers 299 kr/mnd.
+// Setter status='trial' med 0 dager igjen (auto-fakturering trigger neste cron).
+// Egentlig: setter status til 'active' med ny start-dato — admin må sende
+// første faktura manuelt etter at salongen har bekreftet.
+router.post('/:id/reactivate-subscription', requireAuth, asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const salon = await queryOne(
+    `SELECT owner_user_id, is_pilot FROM salons WHERE id = ?`, [id]
+  );
+  if (!salon) throw new HttpError(404, 'not_found', 'Salongen finnes ikke.');
+  if (req.user.role !== 'admin' && salon.owner_user_id !== req.user.id) {
+    throw new HttpError(403, 'forbidden', 'Du eier ikke denne salongen.');
+  }
+  const price = salon.is_pilot ? 149 : 299;
+  await query(
+    `UPDATE salons
+        SET subscription_status = 'past_due',
+            subscription_cancelled_at = NULL,
+            subscription_price_nok = ?
+      WHERE id = ?`,
+    [price, id]
+  );
+  // Send e-post til admin så de kan fakturere manuelt
+  try {
+    const { sendEmail } = require('../lib/notify/email');
+    const supportEmail = process.env.SUPPORT_EMAIL || 'support@nailed.no';
+    await sendEmail({
+      to: supportEmail,
+      subject: 'Nailed: re-aktivering av abonnement — salong-id ' + id,
+      html: '<p>Salongeier ønsker å starte opp abonnementet igjen.</p>' +
+        '<p>Salong-id: <strong>' + id + '</strong></p>' +
+        '<p>Ny pris: <strong>' + price + ' kr/mnd</strong>' +
+        (salon.is_pilot ? ' (pilot)' : '') + '</p>' +
+        '<p>Send faktura i Fiken og marker som «active» i adminpanelet.</p>',
+    });
+  } catch (_) {}
+  res.json({ ok: true, price });
+}));
+
 // POST /salons/:id/request-invoice — salongeier ber om at admin sender
 // faktura manuelt (via Fiken). Sender e-post til support-adressen.
 router.post('/:id/request-invoice', requireAuth, asyncRoute(async (req, res) => {

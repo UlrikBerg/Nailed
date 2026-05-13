@@ -1813,6 +1813,14 @@
         var trialBtn = (subStatus === 'trial' || subStatus === 'past_due' || subStatus === 'none')
           ? '<button class="btn btn-ghost btn-sm" data-act="sub-trial" data-id="' + s.id + '" title="Sett trial til X dager fra nå"><i data-lucide="clock"></i> Endre trial</button>'
           : '';
+        // Pilot-toggle: pilot-salonger har 149 kr/mnd-låst, øvrige 299 kr/mnd ved re-aktivering
+        var isPilot = !!s.is_pilot;
+        var pilotPill = isPilot
+          ? '<span class="status status--paid" title="Pilot-pris låst til 149 kr/mnd">Pilot</span>'
+          : '';
+        var pilotBtn = isPilot
+          ? '<button class="btn btn-ghost btn-sm" data-act="pilot-off" data-id="' + s.id + '" title="Fjern pilot-status (pris → 299 kr/mnd)"><i data-lucide="star-off"></i></button>'
+          : '<button class="btn btn-ghost btn-sm" data-act="pilot-on" data-id="' + s.id + '" title="Marker som pilot (pris → 149 kr/mnd)"><i data-lucide="star"></i></button>';
         var subInfo = '';
         if (subStatus === 'trial' && s.trial_ends_at) {
           var daysLeft = Math.max(0, Math.ceil((new Date(s.trial_ends_at).getTime() - Date.now()) / 86400000));
@@ -1829,7 +1837,7 @@
               subInfo +
             '</div>' +
           '</div>' +
-          '<div class="ap-row__actions">' + statusPill(s.status) + subPill + profileLink + trialBtn + subBtn + statusBtn + deleteBtn + '</div>' +
+          '<div class="ap-row__actions">' + statusPill(s.status) + subPill + pilotPill + profileLink + pilotBtn + trialBtn + subBtn + statusBtn + deleteBtn + '</div>' +
         '</div>';
       }).join('');
 
@@ -1883,6 +1891,11 @@
           url = '/api/v1/admin/salons/' + id + '/subscription';
           fetchOpts = { method: 'PATCH', body: { status: 'trial', extend_trial_days: days } };
           label = 'Trial satt til ' + days + ' dager';
+        } else if (act === 'pilot-on' || act === 'pilot-off') {
+          var nowPilot = act === 'pilot-on';
+          url = '/api/v1/admin/salons/' + id + '/pilot';
+          fetchOpts = { method: 'PATCH', body: { is_pilot: nowPilot } };
+          label = nowPilot ? 'Markert som pilot (149 kr/mnd)' : 'Pilot-status fjernet (299 kr/mnd)';
         } else {
           url = '/api/v1/admin/salons/' + id + (act === 'delete' ? '' : '/' + act);
           fetchOpts = { method: act === 'delete' ? 'DELETE' : 'POST' };

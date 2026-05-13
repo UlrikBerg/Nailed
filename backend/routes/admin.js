@@ -140,7 +140,7 @@ router.get('/salons', asyncRoute(async (req, res) => {
   const rows = await query(
     `SELECT s.id, s.slug, s.name, s.city, s.status, s.created_at,
             s.subscription_status, s.trial_ends_at, s.subscription_started_at,
-            s.subscription_cancelled_at, s.subscription_price_nok,
+            s.subscription_cancelled_at, s.subscription_price_nok, s.is_pilot,
             u.email AS owner_email, u.name AS owner_name
        FROM salons s JOIN users u ON u.id = s.owner_user_id
       ORDER BY s.created_at DESC LIMIT ? OFFSET ?`,
@@ -186,6 +186,23 @@ router.patch('/salons/:id/subscription', asyncRoute(async (req, res) => {
     await query(`UPDATE salons SET subscription_status = ? WHERE id = ?`, [status, id]);
   }
   await audit(req.user.id, 'salon.subscription_change', 'salon', id, { status, extend_trial_days });
+  res.json({ ok: true });
+}));
+
+// PATCH /admin/salons/:id/pilot — toggle is_pilot-flagget. Pilot-salonger
+// låser pris til 149 kr/mnd selv etter re-aktivering.
+router.patch('/salons/:id/pilot', asyncRoute(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+  const schema = z.object({ is_pilot: z.boolean() });
+  const { is_pilot } = schema.parse(req.body || {});
+  // Pilot-pris er 149, ordinær 299. Oppdater også gjeldende pris.
+  const price = is_pilot ? 149 : 299;
+  await query(
+    `UPDATE salons SET is_pilot = ?, subscription_price_nok = ? WHERE id = ?`,
+    [is_pilot ? 1 : 0, price, id]
+  );
+  await audit(req.user.id, 'salon.pilot_toggle', 'salon', id, { is_pilot });
   res.json({ ok: true });
 }));
 

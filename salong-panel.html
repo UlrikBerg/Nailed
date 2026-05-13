@@ -3413,10 +3413,8 @@
           </ul>
           <p class="sub-card__note">SMS-påminnelser kommer senere som tilleggspakke.</p>
           <div class="sub-card__actions" id="subActionsBox" hidden>
-            <button type="button" class="btn btn-primary" id="subRequestInvoiceBtn">
-              <i data-lucide="file-text"></i> Be om faktura
-            </button>
-            <p class="sub-card__hint">Vi sender deg en faktura i Fiken så abonnementet fortsetter etter prøveperioden.</p>
+            <div id="subActionBtnSlot"></div>
+            <p class="sub-card__hint" id="subActionHint"></p>
           </div>
         </div>
 
@@ -4682,22 +4680,32 @@
         statusEl.textContent = price + ' kr/mnd. Ingen bindingstid.';
       }
 
-      // Vis «Be om faktura»-knapp når abonnementet trenger handling:
-      //  - trial: 14 dager eller mindre igjen
-      //  - past_due / cancelled / none
+      // Vis handling-knapp basert på status:
+      //  - trial / active → «Kanseller abonnement»
+      //  - cancelled / past_due → «Start opp igjen» med pris-notis
       var actionsBox = document.getElementById('subActionsBox');
-      var showActions = false;
-      if (status === 'trial') {
-        // Beregn daysLeft på nytt for å unngå skopproblem
-        var dLeft = null;
-        if (s.trial_ends_at) {
-          dLeft = Math.max(0, Math.ceil((new Date(s.trial_ends_at).getTime() - Date.now()) / 86400000));
+      var btnSlot = document.getElementById('subActionBtnSlot');
+      var hintEl = document.getElementById('subActionHint');
+      if (actionsBox && btnSlot && hintEl) {
+        if (status === 'trial' || status === 'active') {
+          btnSlot.innerHTML = '<button type="button" class="btn btn-ghost" id="subCancelBtn"><i data-lucide="x-circle"></i> Kanseller abonnement</button>';
+          hintEl.textContent = status === 'trial'
+            ? 'Du beholder full tilgang gjennom prøveperioden. Etter den slutter sender vi automatisk faktura via Fiken.'
+            : 'Ingen bindingstid. Du kan starte opp igjen senere — pris justeres da til ordinær takst.';
+          actionsBox.hidden = false;
+        } else if (status === 'cancelled' || status === 'past_due' || status === 'none') {
+          var newPrice = s.is_pilot ? 149 : 299;
+          var priceNote = s.is_pilot
+            ? 'Pilot-pris: ' + newPrice + ' kr/mnd så lenge abonnementet er aktivt.'
+            : 'Re-aktivering: ' + newPrice + ' kr/mnd (149 kr/mnd er kun for pilot-behandlere).';
+          btnSlot.innerHTML = '<button type="button" class="btn btn-primary" id="subReactivateBtn"><i data-lucide="refresh-cw"></i> Start opp igjen</button>';
+          hintEl.textContent = priceNote;
+          actionsBox.hidden = false;
+        } else {
+          actionsBox.hidden = true;
         }
-        if (dLeft != null && dLeft <= 14) showActions = true;
-      } else if (status === 'past_due' || status === 'cancelled' || status === 'none') {
-        showActions = true;
+        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
       }
-      if (actionsBox) actionsBox.hidden = !showActions;
     }
 
     function renderProfileView(s, images) {
@@ -6857,27 +6865,43 @@
     }
     document.getElementById('logoutBtn').addEventListener('click', doLogout);
 
-    // Abonnement: «Be om faktura»-knapp → sender e-post til admin
-    (function wireSubInvoice() {
-      var btn = document.getElementById('subRequestInvoiceBtn');
-      if (!btn) return;
-      btn.addEventListener('click', async function () {
-        if (!salon || !salon.id) return;
-        btn.disabled = true;
-        try {
-          var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/request-invoice', {
-            method: 'POST', body: {},
-          });
-          if (res.ok) {
-            NailedForms.toast('Forespørsel sendt — vi sender faktura snart');
-          } else {
-            NailedForms.toast('Kunne ikke sende forespørsel', { type: 'error' });
-          }
-        } finally {
-          btn.disabled = false;
+    // Abonnement: cancel + reaktivering. Bruker event-delegation siden
+    // knappene byttes dynamisk basert på subscription_status.
+    document.addEventListener('click', async function (e) {
+      var cancelBtn = e.target.closest && e.target.closest('#subCancelBtn');
+      var reactivateBtn = e.target.closest && e.target.closest('#subReactivateBtn');
+      if (!cancelBtn && !reactivateBtn) return;
+      if (!salon || !salon.id) return;
+
+      if (cancelBtn) {
+        if (!confirm('Kanseller abonnementet? Hvis du vil starte opp igjen senere blir prisen 299 kr/mnd (med mindre du er pilot).')) return;
+        cancelBtn.disabled = true;
+        var res = await NailedAuth.api('/api/v1/salons/' + salon.id + '/cancel-subscription', {
+          method: 'POST', body: {},
+        });
+        if (res.ok) {
+          NailedForms.toast('Abonnementet er sagt opp');
+          await loadSalon();
+        } else {
+          NailedForms.toast('Kunne ikke kansellere', { type: 'error' });
+          cancelBtn.disabled = false;
         }
-      });
-    })();
+      } else if (reactivateBtn) {
+        var price = salon.is_pilot ? 149 : 299;
+        if (!confirm('Starte opp abonnementet igjen til ' + price + ' kr/mnd? Vi sender faktura i Fiken.')) return;
+        reactivateBtn.disabled = true;
+        var res2 = await NailedAuth.api('/api/v1/salons/' + salon.id + '/reactivate-subscription', {
+          method: 'POST', body: {},
+        });
+        if (res2.ok) {
+          NailedForms.toast('Forespørsel sendt — vi sender faktura snart');
+          await loadSalon();
+        } else {
+          NailedForms.toast('Kunne ikke starte opp', { type: 'error' });
+          reactivateBtn.disabled = false;
+        }
+      }
+    });
 
     /* ---------- ANALYSE-FANE ---------- */
 
