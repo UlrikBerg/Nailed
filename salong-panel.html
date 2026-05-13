@@ -3202,7 +3202,12 @@
     navItems.forEach(function (item) {
       item.addEventListener('click', function () {
         var tab = this.getAttribute('data-tab');
-        if (window.location.hash !== '#tab-' + tab) {
+        // Bruk replaceState så vi ikke fyrer hashchange (som trigger
+        // syncOrRender på bottom-nav + dobbelt setActiveTab-kall).
+        // Matcher mønsteret i kunde-panel og admin.
+        try {
+          history.replaceState(null, '', '#tab-' + tab);
+        } catch (_) {
           window.location.hash = 'tab-' + tab;
         }
         setActiveTab(tab);
