@@ -274,6 +274,7 @@ router.get('/incoming', asyncRoute(async (req, res) => {
   const rows = await query(
     `SELECT b.id, b.start_at, b.end_at, b.status, b.price_nok, b.customer_note,
             b.team_member_id, b.customer_user_id, b.completed_at,
+            b.fiken_invoice_id, b.fiken_invoice_url, b.fiken_sync_error,
             b.guest_name, b.guest_phone,
             s.id AS salon_id, s.name AS salon_name,
             sv.name AS service_name, sv.duration_min,

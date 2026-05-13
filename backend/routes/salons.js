@@ -689,7 +689,8 @@ router.get('/:id/services', asyncRoute(async (req, res) => {
   const activeFilter = isOwner ? '' : 'AND active = 1';
   const [rows, links] = await Promise.all([
     query(
-      `SELECT id, category_id, name, description, duration_min, price_nok, is_popular, active
+      `SELECT id, category_id, name, description, duration_min, price_nok, is_popular, active,
+              fiken_vat_code, fiken_product_id
          FROM services WHERE salon_id = ? ${activeFilter} ORDER BY price_nok ASC`,
       [id]
     ),
@@ -733,6 +734,9 @@ router.post('/:id/services', requireAuth, asyncRoute(async (req, res) => {
     active: z.boolean().optional(),
     category_id: z.number().int().positive().nullable().optional(),
     is_popular: z.boolean().optional(),
+    // Fiken-mapping: MVA-kode + ev. produkt-id i Fiken-katalogen.
+    fiken_vat_code:   z.string().trim().max(16).nullable().optional(),
+    fiken_product_id: z.number().int().nonnegative().nullable().optional(),
   });
   const data = schema.parse(req.body);
 
@@ -757,8 +761,9 @@ router.post('/:id/services', requireAuth, asyncRoute(async (req, res) => {
   }
 
   const result = await query(
-    `INSERT INTO services (salon_id, category_id, name, description, duration_min, price_nok, active, is_popular)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO services (salon_id, category_id, name, description, duration_min, price_nok,
+                           active, is_popular, fiken_vat_code, fiken_product_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       data.category_id ?? null,
@@ -768,6 +773,8 @@ router.post('/:id/services', requireAuth, asyncRoute(async (req, res) => {
       data.price_nok,
       data.active === false ? 0 : 1,
       data.is_popular ? 1 : 0,
+      data.fiken_vat_code ?? null,
+      data.fiken_product_id ?? null,
     ]
   );
   res.status(201).json({ id: result.insertId });
@@ -797,6 +804,9 @@ router.patch('/:salonId/services/:serviceId', requireAuth, asyncRoute(async (req
     active: z.boolean().optional(),
     category_id: z.number().int().positive().nullable().optional(),
     is_popular: z.boolean().optional(),
+    // Fiken-mapping: MVA-kode + ev. produkt-id i Fiken-katalogen.
+    fiken_vat_code:   z.string().trim().max(16).nullable().optional(),
+    fiken_product_id: z.number().int().nonnegative().nullable().optional(),
   });
   const patch = schema.parse(req.body);
 
