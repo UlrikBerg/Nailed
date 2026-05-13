@@ -690,33 +690,33 @@
         try { salonMapInstance.remove(); } catch (e) {}
         salonMapInstance = null;
       }
+      // Statisk kart: alle interaksjoner avskrudd. Brukeren skal kun
+      // visuelt se hvor salongen ligger, ikke pan/zoom.
       salonMapInstance = L.map('salonMap', {
         center: [lat, lng],
         zoom: 16,
-        scrollWheelZoom: false, // avoids hijacking page scroll on long pages
-        zoomControl: true,
+        dragging: false,
+        touchZoom: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false,
+        zoomControl: false,
+        tap: false,
+        attributionControl: true,
       });
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         // OSM tiles require visible attribution.
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-bidragsytere',
       }).addTo(salonMapInstance);
-      L.marker([lat, lng]).addTo(salonMapInstance)
-        .bindPopup(escapeHtml(s.name || 'Salongen'));
+      L.marker([lat, lng]).addTo(salonMapInstance);
 
-      // Fade-in: trigger after first paint so the transition runs. Also a
-      // gentle fly-in animation (zoom from slightly further out → final zoom).
+      // Fade-in: trigger after first paint så transition kjører.
       var mapEl = document.getElementById('salonMap');
       if (mapEl) {
         requestAnimationFrame(function () { mapEl.classList.add('is-loaded'); });
       }
-      try {
-        salonMapInstance.setView([lat, lng], 14, { animate: false });
-        setTimeout(function () {
-          try { salonMapInstance.flyTo([lat, lng], 16, { duration: 1.4, easeLinearity: 0.25 }); }
-          catch (_) {}
-        }, 280);
-      } catch (_) { /* fly-in is decorative; never block render on it */ }
     }
 
     // ---- 1. Read slug; redirect if missing ----
