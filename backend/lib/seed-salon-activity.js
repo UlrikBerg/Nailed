@@ -50,6 +50,18 @@ const CHAT_THREAD_1 = [
   { who: 'salon',    body: 'Med dine egne vipper vil jeg anbefale lett volum — det gir fyldigere uttrykk uten å bli for tungt. Vi prater mer torsdag!' },
 ];
 
+// Standard-tjenester som lages hvis salongen ikke har egne. Realistisk
+// utvalg for en negl/bryn/vippe-behandler — bytter dette ut for andre
+// behandler-typer hvis nødvendig.
+const DEFAULT_SERVICES = [
+  { name: 'Klassisk vippeløft', duration_min: 60, price_nok: 750, popular: 1 },
+  { name: 'Volum vippeextensions', duration_min: 120, price_nok: 1450, popular: 1 },
+  { name: 'Påfyll vipper (innen 3 uker)', duration_min: 60, price_nok: 650, popular: 0 },
+  { name: 'Brynforming + farge', duration_min: 45, price_nok: 550, popular: 1 },
+  { name: 'Brynsbleking', duration_min: 30, price_nok: 350, popular: 0 },
+  { name: 'Overleppe-voks', duration_min: 15, price_nok: 200, popular: 0 },
+];
+
 const CHAT_THREAD_2 = [
   { who: 'customer', body: 'Hei! Tar du imot nye kunder, eller er det venteliste?' },
   { who: 'salon',    body: 'Hei og velkommen! Jeg har ledig fra neste uke. Hva slags behandling tenker du på?' },
@@ -86,11 +98,27 @@ async function seedSalonActivity(slug) {
   );
   if (!salon) return { ok: false, error: 'salon_not_found' };
 
-  const services = await query(
+  let services = await query(
     `SELECT id, duration_min, price_nok FROM services WHERE salon_id = ?`,
     [salon.id]
   );
-  if (!services.length) return { ok: false, error: 'salon_has_no_services' };
+  let servicesCreated = 0;
+  if (!services.length) {
+    for (const svc of DEFAULT_SERVICES) {
+      await query(
+        `INSERT INTO services
+           (salon_id, name, duration_min, price_nok, active, is_popular, description)
+         VALUES (?, ?, ?, ?, 1, ?, ?)`,
+        [salon.id, svc.name, svc.duration_min, svc.price_nok, svc.popular,
+         'Profesjonell ' + svc.name.toLowerCase() + ' i rolige omgivelser.']
+      );
+      servicesCreated++;
+    }
+    services = await query(
+      `SELECT id, duration_min, price_nok FROM services WHERE salon_id = ?`,
+      [salon.id]
+    );
+  }
 
   const customerIds = await ensureDemoCustomers();
 
@@ -185,6 +213,7 @@ async function seedSalonActivity(slug) {
   return {
     ok: true,
     salon: salon.name,
+    services_created: servicesCreated,
     bookings: statusPlan.length,
     reviews: completedBookingIds.length,
     chat_threads: chatThreads.length,
