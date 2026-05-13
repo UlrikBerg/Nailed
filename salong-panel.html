@@ -87,6 +87,21 @@
     .kp-hero__title em { font-style: normal; color: var(--rouge-500); }
     .kp-hero__sub { font-size: 15px; color: var(--fg-muted); margin: 0 0 22px; }
     .kp-hero__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    @media (max-width: 720px) {
+      /* Begge knapper på samme rad på mobil — kompakt størrelse */
+      .kp-hero__actions { flex-wrap: nowrap; gap: 6px; }
+      .kp-hero__actions .btn {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 6px 8px;
+        font-size: 11px;
+        white-space: nowrap;
+        justify-content: center;
+        min-height: 36px;
+        gap: 4px;
+      }
+      .kp-hero__actions .btn i { width: 13px; height: 13px; }
+    }
     .kp-hero__userWrap { position: relative; }
     .kp-hero__user {
       display: inline-flex;
