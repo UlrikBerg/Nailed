@@ -162,6 +162,12 @@
       var badge = '';
       if (item.key === 'meldinger') {
         badge = '<span class="bottom-nav__badge" id="bnMsgBadge" hidden></span>';
+      } else if (item.key === 'bookinger') {
+        badge = '<span class="bottom-nav__badge" id="bnBookingsBadge" hidden></span>';
+      } else if (item.key === 'profil' || item.key === 'minsalong') {
+        badge = '<span class="bottom-nav__badge bottom-nav__badge--dot" id="bnAlertsBadge" hidden></span>';
+      } else if (item.key === 'moderering') {
+        badge = '<span class="bottom-nav__badge" id="bnModBadge" hidden></span>';
       }
       return (
         '<a class="' + cls + '" href="' + item.href + '" data-key="' + item.key + '">' +
@@ -226,11 +232,14 @@
     }
   }
 
-  // Speil in-page meldinger-badge (#msgUnreadBadge) til bottom-nav-badge.
-  function syncMsgBadge() {
-    var src = document.getElementById('msgUnreadBadge');
-    var dst = document.getElementById('bnMsgBadge');
-    if (!src || !dst) return;
+  // Speil in-page badges til bottom-nav-badges. Brukes for meldinger
+  // (msgUnreadBadge), bookinger (bookingsPendingBadge) og admin-moderering
+  // (chatReportsBadge). Genererisk så det er enkelt å legge til flere.
+  function mirrorBadge(srcId, dstId) {
+    var src = document.getElementById(srcId);
+    var dst = document.getElementById(dstId);
+    if (!dst) return;
+    if (!src) { dst.hidden = true; return; }
     var count = (src.textContent || '').trim();
     if (count && count !== '0' && !src.hidden) {
       dst.textContent = count;
@@ -239,14 +248,65 @@
       dst.hidden = true;
     }
   }
+  function syncAllBadges() {
+    mirrorBadge('msgUnreadBadge',       'bnMsgBadge');
+    mirrorBadge('bookingsPendingBadge', 'bnBookingsBadge');
+    mirrorBadge('chatReportsBadge',     'bnModBadge');
+    // «Alerts»-dot på profil-item: lyser hvis noen av handlingene har badge
+    syncAlertsDot();
+  }
+  function syncAlertsDot() {
+    var dot = document.getElementById('bnAlertsBadge');
+    if (!dot) return;
+    var any = ['msgUnreadBadge', 'bookingsPendingBadge', 'chatReportsBadge']
+      .some(function (id) {
+        var el = document.getElementById(id);
+        return el && !el.hidden && (el.textContent || '').trim() && (el.textContent || '').trim() !== '0';
+      });
+    dot.hidden = !any;
+  }
+  // Bakoverkompatibelt alias
+  function syncMsgBadge() { syncAllBadges(); }
 
   function observeBadge() {
-    var src = document.getElementById('msgUnreadBadge');
-    if (!src) return;
-    new MutationObserver(syncMsgBadge).observe(src, {
-      attributes: true, childList: true, characterData: true, subtree: true,
+    ['msgUnreadBadge', 'bookingsPendingBadge', 'chatReportsBadge'].forEach(function (id) {
+      var src = document.getElementById(id);
+      if (!src) return;
+      new MutationObserver(syncAllBadges).observe(src, {
+        attributes: true, childList: true, characterData: true, subtree: true,
+      });
     });
   }
+
+  // Hent /me/actions så bottom-nav-badges fungerer på enhver side (ikke
+  // bare på sidene som har in-page badge-elementer). Polles hvert minutt.
+  function setBadge(dstId, count) {
+    var dst = document.getElementById(dstId);
+    if (!dst) return;
+    if (count > 0) {
+      dst.textContent = count > 99 ? '99+' : String(count);
+      dst.hidden = false;
+    } else {
+      dst.hidden = true;
+    }
+  }
+  function applyActionsToBadges(c) {
+    if (!c) return;
+    setBadge('bnMsgBadge', c.messages || 0);
+    setBadge('bnBookingsBadge', c.salon_bookings_pending || 0);
+    setBadge('bnModBadge', c.chat_reports_pending || 0);
+    syncAlertsDot();
+  }
+  function fetchActionsAndApply() {
+    if (!isLoggedIn() || !window.NailedAuth || !NailedAuth.api) return;
+    NailedAuth.api('/api/v1/me/actions').then(function (res) {
+      if (!res.ok) return;
+      return res.json();
+    }).then(function (data) {
+      if (data) applyActionsToBadges(data);
+    }).catch(function () {});
+  }
+  setInterval(fetchActionsAndApply, 60 * 1000);
 
   // ---------------------------------------------------------------------------
   // Profil-sheet: åpnes når man trykker «Min profil» / «Profil» i bottom-nav.

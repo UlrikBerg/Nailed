@@ -12,7 +12,15 @@ router.use(requireAuth);
 // felter relevante for brukerens rolle: salon for salon_owner/admin med
 // salonger, admin for admin-rolle.
 router.get('/actions', asyncRoute(async (req, res) => {
-  const out = { salon: 0, admin: 0, messages: 0 };
+  const out = {
+    salon: 0, admin: 0, messages: 0,
+    // Granular tellere for bottom-nav badges:
+    salon_bookings_pending: 0,
+    salon_reviews_unanswered: 0,
+    admin_apps_pending: 0,
+    admin_review_reports_pending: 0,
+    chat_reports_pending: 0,
+  };
 
   // Uleste chat-tråder for brukeren (uavhengig av rolle). En tråd teller som
   // 1 uavhengig av antall meldinger, så badge'n samsvarer med listen i
@@ -54,6 +62,8 @@ router.get('/actions', asyncRoute(async (req, res) => {
         [req.user.id]
       ),
     ]);
+    out.salon_bookings_pending = pendingBookings.n;
+    out.salon_reviews_unanswered = unansweredReviews.n;
     out.salon = pendingBookings.n + unansweredReviews.n;
   }
 
@@ -63,7 +73,7 @@ router.get('/actions', asyncRoute(async (req, res) => {
   // klikker inn. Uten JOINs ville foreldreløse rader (slettet bruker,
   // skjult anmeldelse) bidra til badge'n men være usynlige i panelet.
   if (req.user.role === 'admin') {
-    const [apps, reports] = await Promise.all([
+    const [apps, reports, chatReports] = await Promise.all([
       queryOne(
         `SELECT COUNT(*) AS n
            FROM salon_applications a
@@ -78,8 +88,17 @@ router.get('/actions', asyncRoute(async (req, res) => {
            JOIN users   reporter ON reporter.id = rr.reporter_user_id
           WHERE rr.status = 'pending'`
       ),
+      // Chat-rapporter (admin handler dem under Moderering). Wrapped i
+      // try/catch via .catch så badge-en ikke crasher hvis tabellen
+      // ikke er migrert enda.
+      queryOne(
+        `SELECT COUNT(*) AS n FROM chat_message_reports WHERE status = 'pending'`
+      ).catch(function () { return { n: 0 }; }),
     ]);
-    out.admin = apps.n + reports.n;
+    out.admin_apps_pending = apps.n;
+    out.admin_review_reports_pending = reports.n;
+    out.chat_reports_pending = chatReports.n || 0;
+    out.admin = apps.n + reports.n + (chatReports.n || 0);
   }
 
   res.json(out);
