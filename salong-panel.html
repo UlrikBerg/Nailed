@@ -1368,15 +1368,57 @@
       padding: 8px 0;
     }
 
-    /* Hours editor */
+    /* Hours editor — stilig 4-kolonne grid på desktop, 2-rad stack på mobil */
     .hours-edit-row {
-      display: grid; grid-template-columns: 110px 110px 1fr 1fr;
-      gap: 12px; align-items: center; padding: 10px 0;
+      display: grid;
+      grid-template-columns: 96px auto 1fr 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 0;
       border-bottom: 1px solid var(--stone-200);
     }
     .hours-edit-row:last-child { border: 0; }
-    .hours-edit-row__day { font-weight: 600; font-size: 14px; }
-    .hours-edit-row__closed { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--fg-muted); }
+    .hours-edit-row:first-child { padding-top: 4px; }
+    .hours-edit-row__day {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .hours-edit-row__closed {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--fg-muted);
+      padding: 6px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-200);
+      background: var(--cream-100);
+      cursor: pointer;
+      transition: all 120ms ease;
+      white-space: nowrap;
+    }
+    .hours-edit-row__closed:has(input:checked) {
+      background: var(--rouge-50);
+      border-color: var(--rouge-300);
+      color: var(--rouge-500);
+    }
+    .hours-edit-row input[type="time"] {
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+    @media (max-width: 720px) {
+      .hours-edit-row {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+          "day    closed"
+          "open   close";
+        gap: 8px 10px;
+        padding: 14px 0;
+      }
+      .hours-edit-row__day  { grid-area: day; align-self: center; }
+      .hours-edit-row__closed { grid-area: closed; justify-self: end; }
+      .hours-edit-row [data-open]  { grid-area: open; }
+      .hours-edit-row [data-close] { grid-area: close; }
+    }
 
     /* Amenities checkbox grid */
     .amen-grid {
