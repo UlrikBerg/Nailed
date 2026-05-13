@@ -562,7 +562,7 @@
       border: 1px solid var(--stone-200);
       border-radius: var(--radius-lg);
       padding: 18px 20px;
-      margin-bottom: 20px;
+      margin: 28px 0;
       box-shadow: var(--shadow-sm);
     }
     .kp-today__head {
@@ -616,7 +616,7 @@
       padding: 20px 0;
     }
     @media (max-width: 720px) {
-      .kp-today { padding: 14px 16px; }
+      .kp-today { padding: 14px 16px; margin: 8px 0 20px; }
       .kp-today__title { font-size: 16px; }
       .kp-today__item { padding: 10px 12px; gap: 10px; }
       .kp-today__time { font-size: 15px; min-width: 42px; }
@@ -2777,7 +2777,6 @@
           <div class="analytics-card" style="grid-column: 1 / -1;">
             <div class="analytics-card__head">
               <h3 class="analytics-card__title">Topp behandlinger</h3>
-              <span class="analytics-card__sub">Sortert på antall i valgt periode</span>
             </div>
             <div class="table-scroll">
               <table class="data-table data-table--right" id="topServicesTable">
@@ -2800,7 +2799,6 @@
           <div class="analytics-card" id="topStylistsCard" style="grid-column: 1 / -1; display:none;">
             <div class="analytics-card__head">
               <h3 class="analytics-card__title">Topp stylister</h3>
-              <span class="analytics-card__sub">Andel av totalt bookede timer</span>
             </div>
             <div class="table-scroll">
               <table class="data-table data-table--right" id="topStylistsTable">

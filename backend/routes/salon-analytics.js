@@ -201,7 +201,7 @@ router.get('/:id/analytics', requireAuth, asyncRoute(async (req, res) => {
     `SELECT sv.id, sv.name,
             COUNT(*)                                                AS count,
             COALESCE(SUM(CASE WHEN b.status='completed' THEN b.price_nok END), 0) AS revenue_nok,
-            COALESCE(AVG(b.price_nok), 0)                           AS avg_price
+            COALESCE(AVG(CASE WHEN b.status IN ('completed','confirmed') THEN b.price_nok END), 0) AS avg_price
        FROM bookings b
        JOIN services sv ON sv.id = b.service_id
       WHERE b.salon_id = ? ${winSql}
