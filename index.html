@@ -49,6 +49,10 @@
     }
     .sc2-body--vertical .sc2-rating-corner i { width: 14px; height: 14px; color: var(--rouge-500); fill: var(--rouge-500); }
     .sc2-body--vertical .sc2-rating-corner .sc2-meta__sub { color: var(--stone-400); font-weight: 500; }
+
+    /* «Utforsk nailed»-knappen under salongkortene */
+    .featured-more { display: flex; justify-content: center; margin-top: 28px; }
+    .featured-more .btn i { width: 16px; height: 16px; margin-left: 4px; }
     .sc2-body--vertical .sc2-status__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
     .sc2-body--vertical .sc2-name {
       font-family: var(--font-display); font-weight: 700;
@@ -209,6 +213,11 @@
         </div>
       </div>
       <div class="grid-3" id="featuredGrid"></div>
+      <div class="featured-more" id="featuredMore" hidden>
+        <a href="/utforsk" class="btn btn-primary btn-lg">
+          Utforsk nailed <i data-lucide="arrow-right"></i>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -491,14 +500,18 @@
       grid.innerHTML = sk;
       section.style.display = '';
       try {
-        var data = await fetchSalonsWithRetry('/api/v1/salons?limit=8');
-        var salons = Array.isArray(data.salons) ? data.salons : [];
+        // Hent litt mer enn 6 så vi kan vise «Utforsk nailed»-knapp ved overflow.
+        var data = await fetchSalonsWithRetry('/api/v1/salons?limit=12');
+        var allSalons = Array.isArray(data.salons) ? data.salons : [];
         // Sortér eldste salong først (lavere id = registrert tidligere).
-        salons.sort(function (a, b) { return (a.id || 0) - (b.id || 0); });
-        if (salons.length === 0) {
+        allSalons.sort(function (a, b) { return (a.id || 0) - (b.id || 0); });
+        if (allSalons.length === 0) {
           section.style.display = 'none';
           return;
         }
+        var salons = allSalons.slice(0, 6);
+        var moreEl = document.getElementById('featuredMore');
+        if (moreEl) moreEl.hidden = allSalons.length <= 6;
         grid.innerHTML = salons.map(function (s, i) {
           return featuredCard(s, i, { allowFeatured: true });
         }).join('');
