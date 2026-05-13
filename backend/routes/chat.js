@@ -175,6 +175,57 @@ router.post('/threads/:id/messages', asyncRoute(async (req, res) => {
   });
 }));
 
+// POST /chat/messages/:id/report — rapporter en melding for moderering.
+// Begge parter (kunde og salon) i tråden kan rapportere; admin håndterer.
+router.post('/messages/:id/report', asyncRoute(async (req, res) => {
+  const messageId = parseInt(req.params.id, 10);
+  if (!Number.isFinite(messageId)) throw new HttpError(400, 'bad_id', 'Ugyldig id.');
+
+  const msg = await queryOne(
+    `SELECT m.id, m.thread_id, m.sender_user_id, m.sender_role,
+            t.customer_user_id, t.salon_id,
+            (SELECT owner_user_id FROM salons WHERE id = t.salon_id) AS salon_owner_user_id
+       FROM chat_messages m
+       JOIN chat_threads t ON t.id = m.thread_id
+      WHERE m.id = ? LIMIT 1`,
+    [messageId]
+  );
+  if (!msg) throw new HttpError(404, 'not_found', 'Meldingen finnes ikke.');
+
+  // Verifiser at brukeren er part i tråden (eller admin).
+  let reporterRole;
+  if (req.user.id === msg.customer_user_id) reporterRole = 'customer';
+  else if (req.user.id === msg.salon_owner_user_id) reporterRole = 'salon';
+  else if (req.user.role === 'admin') reporterRole = 'salon';
+  else throw new HttpError(403, 'forbidden', 'Du er ikke part i denne samtalen.');
+
+  // Egne meldinger kan ikke rapporteres.
+  if (msg.sender_user_id === req.user.id) {
+    throw new HttpError(400, 'cant_report_self', 'Du kan ikke rapportere din egen melding.');
+  }
+
+  const schema = z.object({ reason: z.string().trim().max(2000).nullable().optional() });
+  const { reason } = schema.parse(req.body || {});
+
+  // Dedup: ett pending-rapport per (melding, rapportør)
+  const existing = await queryOne(
+    `SELECT id FROM chat_message_reports
+      WHERE message_id = ? AND reporter_user_id = ? AND status = 'pending' LIMIT 1`,
+    [messageId, req.user.id]
+  );
+  if (existing) {
+    return res.status(200).json({ id: existing.id, deduped: true });
+  }
+
+  const result = await query(
+    `INSERT INTO chat_message_reports
+       (message_id, thread_id, reporter_user_id, reporter_role, reason)
+     VALUES (?, ?, ?, ?, ?)`,
+    [messageId, msg.thread_id, req.user.id, reporterRole, reason || null]
+  );
+  res.status(201).json({ id: result.insertId });
+}));
+
 // POST /chat/threads/:id/read — marker tråden som lest.
 router.post('/threads/:id/read', asyncRoute(async (req, res) => {
   const threadId = parseInt(req.params.id, 10);

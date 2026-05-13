@@ -769,3 +769,29 @@ CREATE TABLE IF NOT EXISTS chat_messages (
   CONSTRAINT fk_cm_thread FOREIGN KEY (thread_id)      REFERENCES chat_threads(id) ON DELETE CASCADE,
   CONSTRAINT fk_cm_sender FOREIGN KEY (sender_user_id) REFERENCES users(id)        ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- chat_message_reports
+-- Bruker rapporterer en melding for moderering. Vises i adminpanelet under
+-- Moderering. status går pending → resolved / dismissed.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS chat_message_reports (
+  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  message_id      BIGINT UNSIGNED NOT NULL,
+  thread_id       BIGINT UNSIGNED NOT NULL,
+  reporter_user_id BIGINT UNSIGNED NOT NULL,
+  reporter_role   ENUM('customer','salon') NOT NULL,
+  reason          VARCHAR(2000) DEFAULT NULL,
+  status          ENUM('pending','resolved','dismissed') NOT NULL DEFAULT 'pending',
+  admin_note      VARCHAR(2000) DEFAULT NULL,
+  resolved_by_user_id BIGINT UNSIGNED DEFAULT NULL,
+  created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  resolved_at     DATETIME DEFAULT NULL,
+  PRIMARY KEY (id),
+  KEY idx_status_created (status, created_at),
+  KEY idx_message (message_id),
+  CONSTRAINT fk_cmr_msg     FOREIGN KEY (message_id)       REFERENCES chat_messages(id) ON DELETE CASCADE,
+  CONSTRAINT fk_cmr_thread  FOREIGN KEY (thread_id)        REFERENCES chat_threads(id)  ON DELETE CASCADE,
+  CONSTRAINT fk_cmr_reporter FOREIGN KEY (reporter_user_id) REFERENCES users(id)        ON DELETE CASCADE,
+  CONSTRAINT fk_cmr_resolver FOREIGN KEY (resolved_by_user_id) REFERENCES users(id)     ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -45,6 +45,20 @@
       '.nc-form textarea { flex: 1; resize: none; padding: 10px 12px; border: 1px solid var(--stone-300); border-radius: 10px; font-family: inherit; font-size: 14px; min-height: 44px; max-height: 120px; }',
       '.nc-form button { background: var(--rouge-500); color: #fff; border: 0; border-radius: 10px; padding: 0 18px; cursor: pointer; font-weight: 600; }',
       '.nc-form button:disabled { background: var(--stone-300); cursor: not-allowed; }',
+      '.nc-report-btn { background: transparent; border: 0; cursor: pointer; padding: 4px; border-radius: 50%; color: var(--fg-muted); opacity: 0.5; transition: opacity .15s ease; align-self: center; }',
+      '.nc-report-btn:hover, .nc-row:hover .nc-report-btn { opacity: 1; color: var(--rouge-500); }',
+      '.nc-report-btn i, .nc-report-btn svg { width: 14px; height: 14px; }',
+      '.nc-modal-backdrop { position: fixed; inset: 0; background: rgba(27,18,24,0.4); z-index: 1300; display: none; }',
+      '.nc-modal-backdrop.open { display: block; }',
+      '.nc-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; max-width: calc(100vw - 32px); background: var(--cream-50); border: 1px solid var(--stone-200); border-radius: 14px; box-shadow: 0 24px 60px rgba(40,30,20,0.18); padding: 22px; z-index: 1301; display: none; }',
+      '.nc-modal.open { display: block; }',
+      '.nc-modal__title { font-family: var(--font-display); font-weight: 700; font-size: 18px; margin: 0 0 6px; color: var(--ink); }',
+      '.nc-modal__sub { font-size: 13px; color: var(--fg-muted); margin: 0 0 14px; }',
+      '.nc-modal__quote { font-size: 13px; color: var(--ink); background: var(--cream-100); border-radius: 8px; padding: 10px 12px; margin: 0 0 14px; max-height: 90px; overflow-y: auto; white-space: pre-wrap; }',
+      '.nc-modal textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--stone-200); border-radius: 8px; font-family: inherit; font-size: 14px; min-height: 70px; resize: vertical; box-sizing: border-box; }',
+      '.nc-modal__actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }',
+      '.nc-modal__actions .btn-ghost, .nc-modal__actions .btn-primary { padding: 9px 16px; font-size: 14px; }',
+      '@media (max-width: 720px) { .nc-modal { width: calc(100vw - 24px); padding: 18px; } }',
     ].join('\n');
     var s = document.createElement('style');
     s.id = 'nailed-chat-styles';
@@ -115,6 +129,71 @@
       return '<span class="nc-row__avatar" style="' + style + '">' + text + '</span>';
     }
 
+    function ensureReportModal() {
+      if (document.getElementById('ncReportModal')) return;
+      var backdrop = document.createElement('div');
+      backdrop.className = 'nc-modal-backdrop';
+      backdrop.id = 'ncReportBackdrop';
+      document.body.appendChild(backdrop);
+      var modal = document.createElement('div');
+      modal.className = 'nc-modal';
+      modal.id = 'ncReportModal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.innerHTML =
+        '<h3 class="nc-modal__title">Rapporter melding</h3>' +
+        '<p class="nc-modal__sub">Vi sender denne til moderering. Beskriv kort hvorfor du rapporterer.</p>' +
+        '<div class="nc-modal__quote" id="ncReportQuote"></div>' +
+        '<textarea id="ncReportReason" maxlength="2000" placeholder="Hva er problemet? (valgfritt)"></textarea>' +
+        '<div class="nc-modal__actions">' +
+          '<button type="button" class="btn btn-ghost" id="ncReportCancel">Avbryt</button>' +
+          '<button type="button" class="btn btn-primary" id="ncReportSubmit">Send rapport</button>' +
+        '</div>';
+      document.body.appendChild(modal);
+      backdrop.addEventListener('click', closeReportModal);
+      document.getElementById('ncReportCancel').addEventListener('click', closeReportModal);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('open')) closeReportModal();
+      });
+    }
+    function openReportModal(messageId, snippet) {
+      ensureReportModal();
+      var modal = document.getElementById('ncReportModal');
+      var backdrop = document.getElementById('ncReportBackdrop');
+      var quote = document.getElementById('ncReportQuote');
+      var reasonEl = document.getElementById('ncReportReason');
+      var submitBtn = document.getElementById('ncReportSubmit');
+      if (quote) quote.textContent = snippet || '';
+      if (reasonEl) reasonEl.value = '';
+      submitBtn.onclick = async function () {
+        submitBtn.disabled = true;
+        try {
+          var reason = (reasonEl.value || '').trim();
+          var res = await NailedAuth.api('/api/v1/chat/messages/' + messageId + '/report', {
+            method: 'POST',
+            body: { reason: reason || null },
+          });
+          if (res.ok) {
+            if (window.NailedForms && NailedForms.toast) NailedForms.toast('Rapport sendt');
+            closeReportModal();
+          } else {
+            if (window.NailedForms && NailedForms.toast) NailedForms.toast('Kunne ikke sende rapport', { type: 'error' });
+          }
+        } finally {
+          submitBtn.disabled = false;
+        }
+      };
+      modal.classList.add('open');
+      backdrop.classList.add('open');
+      setTimeout(function () { if (reasonEl) reasonEl.focus(); }, 100);
+    }
+    function closeReportModal() {
+      var m = document.getElementById('ncReportModal');
+      var b = document.getElementById('ncReportBackdrop');
+      if (m) m.classList.remove('open');
+      if (b) b.classList.remove('open');
+    }
+
     function buildMessagesHtml(data) {
       var msgs = data.messages || [];
       if (!msgs.length) {
@@ -137,12 +216,17 @@
         if (mine && idx === lastMineIdx && m.read) {
           readMark = '<div class="nc-readmark">Lest</div>';
         }
+        var reportBtn = mine ? '' :
+          '<button type="button" class="nc-report-btn" data-report-msg="' + m.id + '" title="Rapporter melding" aria-label="Rapporter melding">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>' +
+          '</button>';
         return '<div class="nc-row nc-row--' + (mine ? 'mine' : 'theirs') + '">' +
             avatar +
-            '<div class="nc-msg">' +
+            '<div class="nc-msg" data-msg-id="' + m.id + '">' +
               escapeHtml(m.body).replace(/\n/g, '<br>') +
               '<span class="nc-msg__time">' + escapeHtml(fmtTime(m.sent_at)) + '</span>' +
             '</div>' +
+            reportBtn +
           '</div>' + readMark;
       }).join('');
     }
@@ -247,6 +331,15 @@
           }
           var data = await res.json();
           bodyEl.innerHTML = buildMessagesHtml(data);
+          // Wire rapport-knapper (én per theirs-melding)
+          bodyEl.querySelectorAll('[data-report-msg]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              var msgId = parseInt(this.getAttribute('data-report-msg'), 10);
+              var msgEl = bodyEl.querySelector('[data-msg-id="' + msgId + '"]');
+              var snippet = msgEl ? (msgEl.textContent || '').slice(0, 240) : '';
+              openReportModal(msgId, snippet);
+            });
+          });
           bodyEl.scrollTop = bodyEl.scrollHeight;
           // Marker tråd som lest i state
           var t = threads.find(function (t) { return t.id === id; });

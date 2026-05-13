@@ -1184,12 +1184,27 @@
         <div class="ap-tab-head">
           <div>
             <h2 class="ap-section-title">Moderering</h2>
-            <p class="ap-section-sub">Salongsøknader til vurdering.</p>
+            <p class="ap-section-sub">Salongsøknader og rapporterte chat-meldinger.</p>
           </div>
         </div>
 
-        <div id="modereringList">
-          <div class="td-muted">Laster ...</div>
+        <div class="ap-card">
+          <div class="ap-card__head">
+            <h3 class="ap-card__title">Salongsøknader</h3>
+          </div>
+          <div id="modereringList">
+            <div class="td-muted">Laster ...</div>
+          </div>
+        </div>
+
+        <div class="ap-card">
+          <div class="ap-card__head">
+            <h3 class="ap-card__title">Rapporterte meldinger <span class="ap-tab__count" id="chatReportsBadge" hidden>0</span></h3>
+            <button class="btn btn-ghost btn-sm" id="chatReportsRefreshBtn"><i data-lucide="refresh-cw"></i> Oppdater</button>
+          </div>
+          <div id="chatReportsList">
+            <div class="td-muted">Laster ...</div>
+          </div>
         </div>
       </div>
 
@@ -1605,6 +1620,7 @@
       loadBrukere('');
       loadBookinger();
       loadModerering();
+      loadChatReports();
       loadAnmeldelser();
 
       lucide.createIcons();
@@ -2132,6 +2148,91 @@
         actBtns.forEach(function (b) { b.disabled = false; });
       }
     });
+
+    /* ================================================================
+       Chat-rapporter (rapporterte chat-meldinger)
+       ================================================================ */
+    async function loadChatReports() {
+      var container = document.getElementById('chatReportsList');
+      var badge = document.getElementById('chatReportsBadge');
+      if (!container) return;
+      try {
+        var res = await NailedAuth.api('/api/v1/admin/chat-reports?status=pending');
+        if (!res.ok) throw new Error('chat-reports ' + res.status);
+        var data = await res.json();
+        renderChatReports(data.reports || []);
+        if (badge) {
+          var n = (data.reports || []).length;
+          badge.textContent = n;
+          badge.hidden = n === 0;
+        }
+      } catch (err) {
+        console.error('[admin] chat-reports failed', err);
+        container.innerHTML = '<div class="td-muted">Kunne ikke laste rapporter.</div>';
+      }
+    }
+    function renderChatReports(reports) {
+      var container = document.getElementById('chatReportsList');
+      if (!container) return;
+      if (!reports.length) {
+        container.innerHTML = '<div class="td-muted" style="padding:14px 0;">Ingen rapporterte meldinger.</div>';
+        return;
+      }
+      container.innerHTML = reports.map(function (r) {
+        var dt = '';
+        try { dt = new Date(r.created_at).toLocaleString('nb-NO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }); } catch (_) {}
+        var msgDt = '';
+        try { msgDt = new Date(r.message_sent_at).toLocaleString('nb-NO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }); } catch (_) {}
+        var senderRoleLabel = r.sender_role === 'salon' ? 'salongeier' : 'kunde';
+        var reporterRoleLabel = r.reporter_role === 'salon' ? 'salongen' : 'kunden';
+        var reasonHtml = r.reason
+          ? '<div style="margin-top:8px; font-size:13px; color: var(--ink);"><strong>Begrunnelse:</strong> ' + escapeHtml(r.reason) + '</div>'
+          : '<div style="margin-top:8px; font-size:13px; color: var(--fg-muted); font-style: italic;">Ingen begrunnelse</div>';
+        return '<div class="review-card" data-cr-id="' + r.id + '" style="margin-bottom: 12px;">' +
+          '<div style="display:flex; gap:8px; align-items:center; flex-wrap: wrap; font-size:12px; color: var(--fg-muted);">' +
+            '<strong>' + escapeHtml(r.salon_name) + '</strong>' +
+            ' · ' + escapeHtml(senderRoleLabel) + ' <strong>' + escapeHtml(r.sender_name) + '</strong>' +
+            ' · ' + escapeHtml(msgDt) +
+          '</div>' +
+          '<div style="margin-top:8px; padding:10px 12px; background:var(--cream-100); border-radius: 8px; font-size:14px; color: var(--ink); white-space: pre-wrap;">' +
+            escapeHtml(r.message_body) +
+          '</div>' +
+          '<div style="margin-top:8px; font-size:12px; color: var(--fg-muted);">' +
+            'Rapportert av ' + escapeHtml(reporterRoleLabel) + ' ' + escapeHtml(r.reporter_name) +
+            ' · ' + escapeHtml(dt) +
+          '</div>' +
+          reasonHtml +
+          '<div style="display:flex; gap:8px; margin-top:12px; justify-content:flex-end;">' +
+            '<button class="btn btn-ghost btn-sm" data-cr-action="dismiss" data-cr-id="' + r.id + '">Avvis</button>' +
+            '<button class="btn btn-primary btn-sm" data-cr-action="resolve" data-cr-id="' + r.id + '">Marker som løst</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      container.querySelectorAll('[data-cr-action]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          var id = parseInt(this.getAttribute('data-cr-id'), 10);
+          var action = this.getAttribute('data-cr-action');
+          this.disabled = true;
+          var res = await NailedAuth.api('/api/v1/admin/chat-reports/' + id, {
+            method: 'PATCH', body: { action: action },
+          });
+          if (res.ok) {
+            showToast('Rapport behandlet', 'success');
+            loadChatReports();
+          } else {
+            showToast('Kunne ikke behandle', 'error');
+            this.disabled = false;
+          }
+        });
+      });
+    }
+    var chatReportsRefreshBtn = document.getElementById('chatReportsRefreshBtn');
+    if (chatReportsRefreshBtn) {
+      chatReportsRefreshBtn.addEventListener('click', function () {
+        loadChatReports();
+        showToast('Oppdatert', 'success');
+      });
+    }
 
     /* ================================================================
        Anmeldelser (review reports queue)
