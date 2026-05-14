@@ -1217,7 +1217,7 @@ const SETTINGS_DEFAULTS = {
   platform_name:           { type: 'string',  value: 'nailed' },
   support_email:           { type: 'string',  value: 'hei@nailed.no' },
   trial_length:            { type: 'string',  value: '4 måneder' },
-  monthly_price:           { type: 'string',  value: '99 kr' },
+  monthly_price:           { type: 'string',  value: '299 kr (149 kr for pilot)' },
   feature_vipps_login:     { type: 'boolean', value: true },
   feature_push:            { type: 'boolean', value: true },
   feature_sms_reminders:   { type: 'boolean', value: true },

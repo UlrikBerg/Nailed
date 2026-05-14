@@ -67,6 +67,48 @@ router.post('/', asyncRoute(async (req, res) => {
       data.application_text,
     ]
   );
+
+  // Varsle admin per e-post så søknader behandles raskt. Best-effort.
+  try {
+    const { sendEmail } = require('../lib/notify/email');
+    const supportEmail = process.env.SUPPORT_EMAIL || 'hei@nailed.no';
+    const applicant = await queryOne(
+      `SELECT email, name FROM users WHERE id = ? LIMIT 1`,
+      [req.user.id]
+    );
+    const baseUrl = (process.env.PUBLIC_BASE_URL || 'https://nailed.no').replace(/\/+$/, '');
+    const links = [
+      data.instagram_url ? `Instagram: ${data.instagram_url}` : null,
+      data.tiktok_url ? `TikTok: ${data.tiktok_url}` : null,
+      data.facebook_url ? `Facebook: ${data.facebook_url}` : null,
+      data.website_url ? `Nettside: ${data.website_url}` : null,
+    ].filter(Boolean).join('<br>');
+    const escapeHtml = (s) => String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    await sendEmail({
+      to: supportEmail,
+      subject: 'Ny behandler-søknad: ' + data.salon_name,
+      replyTo: applicant ? applicant.email : null,
+      html:
+        '<h2>Ny søknad mottatt</h2>' +
+        '<ul>' +
+          '<li><strong>Navn:</strong> ' + escapeHtml(data.salon_name) + '</li>' +
+          '<li><strong>By:</strong> ' + escapeHtml(data.city) + '</li>' +
+          '<li><strong>Søker:</strong> ' + escapeHtml((applicant && applicant.name) || '-') +
+            ' &lt;' + escapeHtml(applicant ? applicant.email : '-') + '&gt;</li>' +
+          (data.address_line ? '<li><strong>Adresse:</strong> ' + escapeHtml(data.address_line) +
+            (data.postal_code ? ', ' + escapeHtml(data.postal_code) : '') + '</li>' : '') +
+        '</ul>' +
+        (links ? '<p><strong>Lenker:</strong><br>' + links + '</p>' : '') +
+        '<p><strong>Søknadstekst:</strong></p>' +
+        '<p style="white-space:pre-wrap;background:#fafafa;padding:12px;border-radius:8px;">' +
+          escapeHtml(data.application_text) + '</p>' +
+        '<p><a href="' + baseUrl + '/admin/#tab-moderering">Behandle i adminpanelet →</a></p>',
+    });
+  } catch (err) {
+    console.warn('[salon-application] admin-varsel feilet:', err && err.message);
+  }
+
   res.status(201).json({ id: result.insertId });
 }));
 
