@@ -707,34 +707,63 @@ router.post('/reset-platform', asyncRoute(async (req, res) => {
   // samme connection (via pool.getConnection) så SET FOREIGN_KEY_CHECKS
   // holder gjennom alle queriene — query()-helperen får ulik connection
   // per kall.
+  // Slett i topologisk rekkefølge (barn → foreldre). MERK: vi bruker IKKE
+  // FOREIGN_KEY_CHECKS = 0, fordi det også deaktiverer ON DELETE CASCADE,
+  // og etterlater foreldreløse rader. Sletter eksplisitt fra hver tabell.
   let deletedSalons = 0, deletedUsers = 0, deletedApps = 0;
+  const tableCounts = {};
   const { pool } = require('../db');
   const conn = await pool.getConnection();
   try {
-    await conn.execute(`SET FOREIGN_KEY_CHECKS = 0`);
-    try {
-      const [r1] = await conn.execute(`DELETE FROM salons`);
-      deletedSalons = r1.affectedRows || 0;
-      const [r2] = await conn.execute(`DELETE FROM salon_applications`);
-      deletedApps = r2.affectedRows || 0;
-      const placeholders = adminIds.map(() => '?').join(',');
-      const [r3] = await conn.execute(
-        `DELETE FROM users WHERE id NOT IN (${placeholders})`,
-        adminIds
-      );
-      deletedUsers = r3.affectedRows || 0;
-      // Reset AUTO_INCREMENT for ren ID-sekvens. Best-effort — feilende
-      // ALTER på en enkelttabell stopper ikke selve slettingen.
-      const resetTables = [
-        'salons', 'bookings', 'reviews', 'chat_threads', 'chat_messages',
-        'services', 'team_members', 'salon_applications', 'salon_images',
-      ];
-      for (const t of resetTables) {
-        try { await conn.execute(`ALTER TABLE ${t} AUTO_INCREMENT = 1`); }
-        catch (_e) { /* tabell mangler eller mangler privilege — ignorer */ }
+    // Rekkefølge er viktig: tabeller med FK må slettes før parent.
+    // Tabeller listet i rekkefølgen barn→forelder. Best-effort per tabell —
+    // hvis en tabell ikke finnes ignorerer vi.
+    const orderedTables = [
+      'chat_message_reports',
+      'chat_messages',
+      'chat_threads',
+      'review_reports',
+      'reviews',
+      'waitlist_entries',
+      'favorites',
+      'notification_log',
+      'customer_notes',
+      'closures',
+      'bookings',
+      'service_team_members',
+      'services',
+      'service_categories_per_salon',
+      'team_members',
+      'salon_hours',
+      'salon_amenities',
+      'salon_images',
+      'salons',
+      'salon_applications',
+    ];
+    for (const t of orderedTables) {
+      try {
+        const [r] = await conn.execute(`DELETE FROM ${t}`);
+        tableCounts[t] = r.affectedRows || 0;
+        if (t === 'salons') deletedSalons = r.affectedRows || 0;
+        if (t === 'salon_applications') deletedApps = r.affectedRows || 0;
+      } catch (e) {
+        // Tabell finnes ikke (eldre schema) — ignorer
+        if (e.code !== 'ER_NO_SUCH_TABLE') {
+          console.warn('[reset-platform] feilet på ' + t + ':', e.message);
+        }
       }
-    } finally {
-      await conn.execute(`SET FOREIGN_KEY_CHECKS = 1`);
+    }
+    // Slett ikke-admin-brukere (auth_identities + sessions cascader).
+    const placeholders = adminIds.map(() => '?').join(',');
+    const [r3] = await conn.execute(
+      `DELETE FROM users WHERE id NOT IN (${placeholders})`,
+      adminIds
+    );
+    deletedUsers = r3.affectedRows || 0;
+    // Reset AUTO_INCREMENT for ren ID-sekvens. Best-effort.
+    for (const t of orderedTables.concat(['users'])) {
+      try { await conn.execute(`ALTER TABLE ${t} AUTO_INCREMENT = 1`); }
+      catch (_e) { /* ignore */ }
     }
   } catch (err) {
     console.error('[reset-platform] DB-feil:', err);
