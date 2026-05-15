@@ -551,6 +551,53 @@
       flex-direction: column;
       gap: 16px;
     }
+    /* Lansering-banner — vises når DB er tom (pre-launch). Speiler
+       hero-estetikken: cream-bakgrunn, rouge-accent, generøs padding. */
+    .launch-banner {
+      background: linear-gradient(180deg, var(--cream-50) 0%, var(--cream-100) 100%);
+      border: 1px solid var(--rouge-100);
+      border-radius: var(--radius-xl, 18px);
+      padding: 56px 32px;
+      text-align: center;
+      margin: 16px 0;
+    }
+    .launch-banner__eyebrow {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--rouge-500);
+      margin-bottom: 14px;
+    }
+    .launch-banner__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(28px, 4vw, 40px);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin: 0 0 14px;
+      color: var(--ink);
+    }
+    .launch-banner__title em {
+      font-family: var(--font-editorial);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rouge-500);
+    }
+    .launch-banner__sub {
+      font-size: 16px;
+      color: var(--fg-muted);
+      max-width: 52ch;
+      margin: 0 auto 28px;
+      line-height: 1.55;
+    }
+    .launch-banner__actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
     /* Sidenummerering under salong-grid */
     .utforsk-pagination {
       display: flex;
@@ -1892,11 +1939,27 @@
       if (!el) return;
       if (!message) {
         el.style.display = 'none';
-        el.textContent = '';
+        el.innerHTML = '';
       } else {
         el.style.display = '';
         el.textContent = message;
       }
+    }
+
+    function setLaunchBanner() {
+      var el = document.getElementById('resultsState');
+      if (!el) return;
+      el.style.display = '';
+      el.innerHTML =
+        '<div class="launch-banner">' +
+          '<div class="launch-banner__eyebrow">Lansering</div>' +
+          '<h2 class="launch-banner__title">De første behandlerne slippes <em>1. juni 2026</em></h2>' +
+          '<p class="launch-banner__sub">Vi er midt i opptak av pilot-behandlere fra hele Norge. Følg oss på Instagram så får du beskjed med en gang det er noen å booke hos.</p>' +
+          '<div class="launch-banner__actions">' +
+            '<a href="https://www.instagram.com/nailed.no/" target="_blank" rel="noopener" class="btn btn-primary">Følg på Instagram</a>' +
+            '<a href="/bli-salong" class="btn btn-ghost">Bli behandler</a>' +
+          '</div>' +
+        '</div>';
     }
 
     // Skeleton-kort vises mens fetch pågår. Render 6 stk + skjul «Laster…»-
@@ -1975,7 +2038,8 @@
         } else if (currentCity) {
           setState('Ingen behandlere i ' + currentCity);
         } else if (noCards) {
-          setState('Ingen behandlere funnet');
+          // Helt tom (pre-launch). Vis lansering-banner i stedet for tørr melding.
+          setLaunchBanner();
         } else {
           setState('Ingen behandlere matcher filtrene dine');
         }

@@ -16,6 +16,36 @@
   <meta name="apple-mobile-web-app-title" content="Nailed">
   <link rel="stylesheet" href="styles.css" />
   <style>
+    /* Lansering-banner — vises i Behandlere-seksjonen mens DB er tom. */
+    .launch-banner {
+      background: linear-gradient(180deg, var(--cream-50) 0%, var(--cream-100) 100%);
+      border: 1px solid var(--rouge-100);
+      border-radius: 18px;
+      padding: 56px 32px;
+      text-align: center;
+    }
+    .launch-banner__eyebrow {
+      font-family: var(--font-body);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--rouge-500); margin-bottom: 14px;
+    }
+    .launch-banner__title {
+      font-family: var(--font-display); font-weight: 700;
+      font-size: clamp(28px, 4vw, 40px); letter-spacing: -0.02em;
+      line-height: 1.15; margin: 0 0 14px; color: var(--ink);
+    }
+    .launch-banner__title em {
+      font-family: var(--font-editorial); font-style: italic;
+      font-weight: 400; color: var(--rouge-500);
+    }
+    .launch-banner__sub {
+      font-size: 16px; color: var(--fg-muted);
+      max-width: 52ch; margin: 0 auto 28px; line-height: 1.55;
+    }
+    .launch-banner__actions {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    }
+
     /* sc2-* salongkort på forsiden — speiler stilen fra utforsk, men med
        vertikal layout (bilde over, body under). */
     .featured-card-grid .service-card { display: flex; flex-direction: column; }
@@ -494,7 +524,18 @@
         // Sortér eldste salong først (lavere id = registrert tidligere).
         allSalons.sort(function (a, b) { return (a.id || 0) - (b.id || 0); });
         if (allSalons.length === 0) {
-          section.style.display = 'none';
+          // Pre-launch: tomt DB. Vis lansering-banner i stedet for å skjule seksjonen.
+          grid.outerHTML =
+            '<div class="launch-banner">' +
+              '<div class="launch-banner__eyebrow">Lansering</div>' +
+              '<h2 class="launch-banner__title">De første behandlerne slippes <em>1. juni 2026</em></h2>' +
+              '<p class="launch-banner__sub">Vi er midt i opptak av pilot-behandlere fra hele Norge. Følg oss på Instagram så får du beskjed med en gang det er noen å booke hos.</p>' +
+              '<div class="launch-banner__actions">' +
+                '<a href="https://www.instagram.com/nailed.no/" target="_blank" rel="noopener" class="btn btn-primary">Følg på Instagram</a>' +
+                '<a href="/bli-salong" class="btn btn-ghost">Bli behandler</a>' +
+              '</div>' +
+            '</div>';
+          section.style.display = '';
           return;
         }
         var salons = allSalons.slice(0, 6);
